@@ -189,10 +189,11 @@ Depois da Onda 4, o tamanho restante está concentrado em poucas funções, e di
 
 | Função | Linhas |
 |---|---|
-| `TMFieldScene::OnControlEvent` | ~3.500 → ~1.560 (28 handlers extraídos para `TMFieldScene_Controls.cpp`) |
+| `TMFieldScene::OnControlEvent` | ~3.500 → ~860 (71 handlers `OnControl_*` em `TMFieldScene_Controls.cpp`) |
 | `TMFieldScene::OnPacketAttack` | ~2.270 |
-| `TMFieldScene::SkillUse` | ~1.570 |
-| `TMFieldScene::FrameMove` / `InitializeScene` | ~1.500 cada |
+| `TMFieldScene::SkillUse` | ~1.570 → ~1.490 (`SendAreaAttack` extraído) |
+| `TMFieldScene::FrameMove` | ~1.510 → ~570 (8 etapas `FrameMove_*` extraídas) |
+| `TMFieldScene::InitializeScene` | ~1.500 (sequência plana, sem blocos grandes) |
 | `TMFieldScene::AutoSkillUse`, `TMHuman::InitObject`, `TMHuman::FrameMove` | ~1.000 cada |
 
 Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que podem cair para o próximo `if`, locais compartilhadas), o que deixa de ser movimentação de código. Rede de segurança (Fase 3, passos 1 e 2 — concluídos na branch `refactor/phase3-mingw-ci`):
@@ -204,7 +205,11 @@ Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que p
    - leem apenas as locais `dwServerTime`, `pMobData` e `cktrans`, constantes depois do prólogo, que são passadas por valor com o mesmo nome.
 
    O ponto de chamada mantém a condição original e vira `return OnControl_X(...)`. Cada extração foi conferida reinserindo o corpo no lugar (texto idêntico), e cada commit intermediário compila no mingw.
-4. **Próximo passo**: os blocos restantes de `OnControlEvent` (menores, ou que caem para o próximo `if`, ou com `else`) e depois `OnPacketAttack`, `SkillUse`, `FrameMove`/`InitializeScene`, com o mesmo critério.
+4. **Segunda leva (branch `refactor/phase3-giant-functions`)**:
+   - Mais 43 handlers de `OnControlEvent` (blocos de 12+ linhas, mesmo critério). A função fica com ~860 linhas.
+   - Extração `void` de statements de nível 1 sem `return` nem `goto` em `FrameMove` (8 etapas `FrameMove_*`: painel, minimapa, guerra de castelo, timers de afeto, parada de movimento, clima/sons, barras de skill, tempo de ranking) e em `SkillUse` (`SendAreaAttack`). Como o bloco é filho direto do corpo da função, todo `break`/`continue` dentro dele mira um laço interno. As locais e os parâmetros que ele usa passam **por referência**: é o mesmo objeto, então as escritas continuam visíveis depois da chamada. Cada extração foi conferida reinserindo o corpo no lugar, e a lista de parâmetros foi cruzada com todas as declarações de nível 1 anteriores ao bloco.
+   - `AutoSkillUse` tinha uma cópia idêntica do bloco de ataque em área e passou a chamar `SendAreaAttack`.
+5. **Próximo passo**: os blocos grandes que restam (`OnPacketAttack`, o corpo principal de `SkillUse`/`AutoSkillUse`) têm `return` no meio de um fluxo que cai adiante. Extraí-los exige um valor de retorno que distinga "retornou X" de "continua", o que já é reescrita de controle de fluxo. Recomenda-se fazer isso só com teste de execução do cliente.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.
