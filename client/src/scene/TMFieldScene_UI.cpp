@@ -882,51 +882,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == B_QUEST_BUTTON4)
 		return OnControl_QuestButton4(idwControlID, idwEvent);
 	if (idwControlID == B_QUEST_MEMO)
-	{
-		if (m_pQuestPanel)
-		{
-			m_pQuestPanel->SetVisible(1);
-			m_pQuestMemo->SetVisible(0);
-
-			TMScene::LoadMsgText3(
-				m_pQuestList[0],
-				(char*)"UI\\QuestSubjects.txt",
-				pMobData->CurrentScore.Level + 1,
-				pMobData->Equip[0].sIndex % 10);
-			TMScene::LoadMsgText3(
-				m_pQuestList[1],
-				(char*)"UI\\QuestSubjects2.txt",
-				pMobData->CurrentScore.Level + 1,
-				pMobData->Equip[0].sIndex % 10);
-			TMScene::LoadMsgText3(
-				m_pQuestList[2],
-				(char*)"UI\\QuestSubjects3.txt",
-				pMobData->CurrentScore.Level + 1,
-				pMobData->Equip[0].sIndex % 10);
-			TMScene::LoadMsgText3(
-				m_pQuestList[3],
-				(char*)"UI\\QuestSubjects4.txt",
-				pMobData->CurrentScore.Level + 1,
-				pMobData->Equip[0].sIndex % 10);
-
-			switch (m_pLevelQuest[pMobData->CurrentScore.Level])
-			{
-			case 97:
-				OnControlEvent(1054259, 0);
-				break;
-			case 98:
-				OnControlEvent(1054262, 0);
-				break;
-			case 99:
-				OnControlEvent(1054265, 0);
-				break;
-			case 101:
-				OnControlEvent(1054268, 0);
-				break;
-			}		
-		}	
-		return 1;
-	}
+		return OnControl_QuestMemo(idwControlID, idwEvent, pMobData);
 	if (idwControlID == TMB_HELP_BUTTON1)
 	{
 		if (m_pHelpInterface)
