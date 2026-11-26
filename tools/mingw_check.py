@@ -5,7 +5,7 @@ O que faz:
   1. Gera shims de headers do sistema cujo nome difere só em maiúsculas/minúsculas
      (ex.: <Windows.h> -> <windows.h>), já que o mingw no Linux é case-sensitive.
   2. Compila todas as TUs de server/common, server/dbsrv, server/tmsrv e client/src.
-  3. Linka DBSrv e w2pp_common_tests e executa os testes no wine (se disponível).
+  3. Linka DBSrv e um executável por fonte em tests/ e executa os testes no wine (se disponível).
 
 As TUs que hoje só compilam no MSVC ficam em tools/mingw_known_failures.txt. A checagem
 falha se uma TU fora dessa lista não compilar e avisa quando uma TU da lista passar a
@@ -35,6 +35,9 @@ COMMON_FLAGS = [
     # mingw-w64 mais antigos (ex.: Ubuntu 24.04) incluem <strsafe.h> a partir de <dshow.h>,
     # que redefine sprintf/strcpy/strcat como macros de deprecação.
     "-DSTRSAFE_NO_DEPRECATE",
+    # Ponto flutuante em SSE2, como o MSVC Win32 (/arch:SSE2 é o padrão). O x87 do GCC i686 usa
+    # precisão intermediária de 80 bits e muda resultados de BASE_GetCurrentScore conforme a otimização.
+    "-msse2", "-mfpmath=sse",
     # time_t de 64 bits, como no MSVC Win32 (mantém as travas de ABI de ProtocolLayoutCheck.cpp).
     "-D__MINGW_USE_VC2005_COMPAT",
 ]
@@ -160,18 +163,21 @@ def main():
         if run([CXX, "-static", "-mwindows", *objs("server/dbsrv"), lib, "-o", work / "DBSrv.exe", *libs]).returncode:
             print("::error::falha ao linkar DBSrv")
             status = 1
-        tests = work / "w2pp_common_tests.exe"
-        if run([CXX, "-static", *objs("tests"), lib, "-o", tests, *libs]).returncode:
-            print("::error::falha ao linkar w2pp_common_tests")
-            status = 1
-        elif not args.no_wine and shutil.which("wine"):
-            env = dict(os.environ, WINEDEBUG="-all")
-            r = run(["wine", tests], env=env, timeout=300)
-            if r.returncode:
-                print("::error::w2pp_common_tests falhou no wine")
+        # Um executável por fonte de teste (cada um tem seu main), como em tests/CMakeLists.txt.
+        for obj in objs("tests"):
+            name = Path(obj).name.replace("tests_", "", 1).rsplit(".cpp.o", 1)[0]
+            exe = work / f"{name}.exe"
+            if run([CXX, "-static", obj, lib, "-o", exe, *libs]).returncode:
+                print(f"::error::falha ao linkar {name}")
                 status = 1
-        elif not args.no_wine:
-            print("::warning::wine nao encontrado; testes nao executados")
+            elif not args.no_wine and shutil.which("wine"):
+                env = dict(os.environ, WINEDEBUG="-all")
+                r = run(["wine", exe], env=env, timeout=300)
+                if r.returncode:
+                    print(f"::error::{name} falhou no wine")
+                    status = 1
+            elif not args.no_wine:
+                print("::warning::wine nao encontrado; testes nao executados")
     else:
         print("::error::server/common, server/dbsrv ou tests com falha de compilacao; link ignorado")
         status = 1
