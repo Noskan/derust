@@ -27,6 +27,7 @@ set(TMSRV_SOURCES
   systems/CWarTower.cpp
   systems/CWarTower.h
   systems/ItemSpawnSystem.cpp
+  systems/MobAISystem.cpp
   systems/MobKilled.cpp
   systems/MobKilledInternal.h
   systems/MobKilled_Drops.cpp
@@ -34,6 +35,8 @@ set(TMSRV_SOURCES
   systems/MobKilled_PvP.cpp
   systems/MobSpawnSystem.cpp
   systems/MountSystem.cpp
+  systems/ScheduledEventSystem.cpp
+  systems/SecTimerInternal.h
   systems/WorldEventSystem.cpp
   systems/imple.cpp
   handlers/account/_MSG_AccountLogin.cpp

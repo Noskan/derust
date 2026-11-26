@@ -3,6 +3,9 @@ set(DBSRV_SOURCES
   core/CReadFiles.h
   core/Server.cpp
   core/Server.h
+  core/Server_Admin.cpp
+  core/Server_Config.cpp
+  core/Server_Logs.cpp
   core/stdafx.h
   net/CUser.cpp
   net/CUser.h
