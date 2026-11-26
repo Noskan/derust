@@ -455,52 +455,7 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 	int nSkill2 = -1;
 	int nSkill3 = -1;
 
-	for (size_t nShort = 0; nShort < 20; ++nShort)
-	{
-		char cSkillIndex = g_pObjectManager->m_cShortSkill[nShort];
-		if ((unsigned char)cSkillIndex >= 105)
-			cSkillIndex += 95;
-
-		unsigned int dwSub = dwServerTime - m_dwSkillLastTime[(unsigned char)cSkillIndex];
-		if (nShort >= 10)
-			++nSkill3;
-		else
-			++nSkill2;
-
-		if (dwSub)
-		{
-			float fTime = 0.0f;
-			int Delay = g_pSpell[(unsigned char)cSkillIndex].Delay;
-			if (m_nMySanc >= 9 && Delay >= 2)
-				--Delay;
-			if (m_pMyHuman->m_DilpunchJewel == 1)
-				--Delay;
-			if (Delay < 1)
-				Delay = 1;
-
-			if (m_pMyHuman->Is2stClass() == 2 && cSkillIndex == 102	&& g_pObjectManager->m_stMobData.CurrentScore.Level >= 79)
-				Delay = 1000;
-
-			if (Delay > 0)
-				fTime = (float)dwSub / ((float)Delay * 1000.0f);
-			else
-				fTime = (float)dwSub / 1000.0f;
-
-			if (fTime > 0.0f && fTime < 1.0f)
-			{
-				auto pItem2 = pGridSkillBelt2->GetItem(nSkill2, 0);
-				if (nShort >= 10)
-					pItem2 = pGridSkillBelt3->GetItem(nSkill3, 0);
-				
-				if (pItem2)
-				{
-					int idx = (unsigned char)cSkillIndex < 200 ? (unsigned char)cSkillIndex + 5000 : (unsigned char)cSkillIndex + 5200;
-					if (pItem2->m_pItem->sIndex == idx)
-						pItem2->m_fTimer = fTime;
-				}
-			}
-		}
-	}
+	FrameMove_ShortSkillBelts(dwServerTime, pGridSkillBelt2, pGridSkillBelt3, nSkill2, nSkill3);
 	if (dwServerTime - m_dwChatTime > 10000)
 	{
 		char szMsg[128]{};
@@ -1612,6 +1567,58 @@ if (!g_nWeather && (!m_pGround->m_bDungeon || m_pGround->m_bDungeon == 3 || m_pG
 			}
 		}
 		m_dwWeatherTime = g_pTimerManager->GetServerTime();
+	}
+}
+}
+
+/// Atualiza as barras de atalho de skill 2 e 3 (20 slots).
+/// @note Extraído de `TMFieldScene::FrameMove` (Fase 3); locais da função passadas por referência.
+void TMFieldScene::FrameMove_ShortSkillBelts(unsigned int& dwServerTime, SGridControl*& pGridSkillBelt2, SGridControl*& pGridSkillBelt3, int& nSkill2, int& nSkill3)
+{
+for (size_t nShort = 0; nShort < 20; ++nShort)
+{
+	char cSkillIndex = g_pObjectManager->m_cShortSkill[nShort];
+	if ((unsigned char)cSkillIndex >= 105)
+		cSkillIndex += 95;
+
+	unsigned int dwSub = dwServerTime - m_dwSkillLastTime[(unsigned char)cSkillIndex];
+	if (nShort >= 10)
+		++nSkill3;
+	else
+		++nSkill2;
+
+	if (dwSub)
+	{
+		float fTime = 0.0f;
+		int Delay = g_pSpell[(unsigned char)cSkillIndex].Delay;
+		if (m_nMySanc >= 9 && Delay >= 2)
+			--Delay;
+		if (m_pMyHuman->m_DilpunchJewel == 1)
+			--Delay;
+		if (Delay < 1)
+			Delay = 1;
+
+		if (m_pMyHuman->Is2stClass() == 2 && cSkillIndex == 102	&& g_pObjectManager->m_stMobData.CurrentScore.Level >= 79)
+			Delay = 1000;
+
+		if (Delay > 0)
+			fTime = (float)dwSub / ((float)Delay * 1000.0f);
+		else
+			fTime = (float)dwSub / 1000.0f;
+
+		if (fTime > 0.0f && fTime < 1.0f)
+		{
+			auto pItem2 = pGridSkillBelt2->GetItem(nSkill2, 0);
+			if (nShort >= 10)
+				pItem2 = pGridSkillBelt3->GetItem(nSkill3, 0);
+			
+			if (pItem2)
+			{
+				int idx = (unsigned char)cSkillIndex < 200 ? (unsigned char)cSkillIndex + 5000 : (unsigned char)cSkillIndex + 5200;
+				if (pItem2->m_pItem->sIndex == idx)
+					pItem2->m_fTimer = fTime;
+			}
+		}
 	}
 }
 }
