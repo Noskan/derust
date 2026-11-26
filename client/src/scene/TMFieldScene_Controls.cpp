@@ -2572,3 +2572,20 @@ int TMFieldScene::OnControl_GuildOnOff(unsigned int idwControlID, unsigned int i
 	SendOneMessage((char*)&stMsgChat, sizeof(stMsgChat));
 	return 1;
 }
+
+/// Sair do jogo pelo menu do sistema (`B_SYS_QUIT`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_SysQuit(unsigned int idwControlID, unsigned int idwEvent)
+{
+	SetRunMode();
+	if (g_dwStartQuitGameTime)
+		return 1;
+
+	g_dwStartQuitGameTime = g_pTimerManager->GetServerTime();
+
+	MSG_STANDARDPARM stParm{};
+	stParm.Header.ID = m_pMyHuman->m_dwID;
+	stParm.Header.Type = MSG_SysQuit_Opcode;
+	g_pSocketManager->SendOneMessage((char*)&stParm, sizeof(stParm));
+	return 0;
+}

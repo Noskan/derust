@@ -340,19 +340,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == B_SYS_QUIT)
-	{
-		SetRunMode();
-		if (g_dwStartQuitGameTime)
-			return 1;
-
-		g_dwStartQuitGameTime = g_pTimerManager->GetServerTime();
-
-		MSG_STANDARDPARM stParm{};
-		stParm.Header.ID = m_pMyHuman->m_dwID;
-		stParm.Header.Type = MSG_SysQuit_Opcode;
-		g_pSocketManager->SendOneMessage((char*)&stParm, sizeof(stParm));
-		return 0;
-	}
+		return OnControl_SysQuit(idwControlID, idwEvent);
 	if (idwControlID == P_MINIBTNPANEL_BTN)
 	{
 		if (m_pMiniPanel->m_bVisible)
