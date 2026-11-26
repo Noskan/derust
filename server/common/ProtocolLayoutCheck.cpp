@@ -126,4 +126,26 @@ W2_FIELD(MSG_SendReqParty, TargetID, 40, 4);
 static_assert(sizeof(MSG_CNFAddParty) == 40, "MSG_CNFAddParty deve ter 40 bytes (MSG_AddParty).");
 W2_FIELD(MSG_CNFAddParty, Party, 12, 26);
 W2_FIELD(MSG_RemoveParty, Leaderconn, 12, 4);                // (MSG_STANDARDPARM::Parm)
+
+static_assert(sizeof(STRUCT_DAM) == 8, "STRUCT_DAM deve ter 8 bytes (cliente).");
+W2_FIELD(STRUCT_DAM, TargetID, 0, 2);
+W2_FIELD(STRUCT_DAM, Damage, 4, 4);
+#define W2_ATTACK(T, size, dam)                                                                           \
+	static_assert(sizeof(T) == (size), #T " fora do tamanho do cliente");                              \
+	W2_FIELD(T, FakeExp, 12, 4);                                                                       \
+	W2_FIELD(T, ReqMp, 16, 4);                                                                         \
+	W2_FIELD(T, CurrentExp, 24, 8);                                                                    \
+	W2_FIELD(T, Rsv, 32, 2);                                                                           \
+	W2_FIELD(T, PosX, 34, 2);                                                                          \
+	W2_FIELD(T, AttackerID, 42, 2);                                                                    \
+	W2_FIELD(T, Motion, 46, 1);                                                                        \
+	W2_FIELD(T, FlagLocal, 47, 1);                                                                     \
+	W2_FIELD(T, DoubleCritical, 48, 1);                                                                \
+	W2_FIELD(T, SkillParm, 49, 1);                                                                     \
+	W2_FIELD(T, CurrentMp, 52, 4);                                                                     \
+	W2_FIELD(T, SkillIndex, 56, 2);                                                                    \
+	W2_FIELD(T, Dam, 60, dam)
+W2_ATTACK(MSG_Attack, 168, 104);
+W2_ATTACK(MSG_AttackOne, 72, 8);
+W2_ATTACK(MSG_AttackTwo, 80, 16);
 #endif

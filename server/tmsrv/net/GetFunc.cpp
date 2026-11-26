@@ -1568,7 +1568,6 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 		}
 	}
 
-	sm->CurrentHp = -1;
 	sm->Progress = 52428;
 	sm->Dam[0].Damage = fisdam;
 }

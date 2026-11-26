@@ -1725,7 +1725,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 		m->DoubleCritical = m->DoubleCritical | 8;
 
 	m->CurrentExp = pMob[conn].MOB.Exp;
-	m->CurrentHp = pMob[conn].MOB.CurrentScore.Hp;
+	m->FakeExp = (int)pMob[conn].extra.Hold; // o cliente zerava o Hold a cada ataque
 
 	if (ClientTick == SKIPCHECKTICK)
 		m->ClientTick = CurrentTime;

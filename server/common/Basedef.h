@@ -2027,24 +2027,24 @@ struct		 MSG_SplitItem
 
 struct	STRUCT_DAM
 {
-	int		TargetID;
-	int		Damage;
-
+	unsigned short	TargetID;	// 2 bytes no cliente; os 2 seguintes são preenchimento
+	int				Damage;
 };
 
 const short  _MSG_Attack					= (103 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
+/// @brief Ataque (0x367; 0x39D e 0x39E são MSG_AttackOne e MSG_AttackTwo, com 1 e 2 alvos), no layout
+/// do cliente. No layout antigo SkillParm e FlagLocal estavam trocados (o cliente lia o nível do
+/// efeito como "ataque local"), ReqMp ia em 58 (o cliente o lê em 16) e o cliente lia em 16 o
+/// CurrentHp. MSG_AttackOne e MSG_AttackTwo tinham ainda CurrentMp e CurrentHp invertidos.
 struct		  MSG_Attack
 {
 	_MSG;
 
-	char Unk_1[4];
-
-	int  CurrentHp;
-
-	char Unk_2[4];
+	int  FakeExp;			// Hold (extra.Hold), como no _MSG_UpdateEtc; o cliente desconta da exp mostrada
+	int  ReqMp;				// -1: o cliente não mexe no MP previsto
 
 	long long CurrentExp;
-	short unk0;
+	short Rsv;
 
 	unsigned short		PosX, PosY;
 	unsigned short		TargetX, TargetY;
@@ -2053,16 +2053,13 @@ struct		  MSG_Attack
 	unsigned short		Progress;
 
 	unsigned char		Motion;
-	unsigned char		SkillParm;
-	unsigned char		DoubleCritical;
 	unsigned char		FlagLocal;
+	unsigned char		DoubleCritical;
+	unsigned char		SkillParm;
 
-	short				Rsv;
-
-	int					CurrentMp;
+	int					CurrentMp;	// -1: o cliente não mexe no MP
 
 	short 				SkillIndex;
-	short				ReqMp;
 
 	STRUCT_DAM			Dam[MAX_TARGET];
 };
@@ -2084,19 +2081,15 @@ const short _MSG_QuitTrade					= (132 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 const short _MSG_CNFCheck					= (134 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME); // STANDARD
 
 const short  _MSG_AttackOne					= (157 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
-#pragma pack(push, 1)
 struct		  MSG_AttackOne
 {
 	_MSG;
 
-	char Unk_1[4];
-
-	int  CurrentMp;
-
-	char Unk_2[4];
+	int  FakeExp;			// Hold (extra.Hold), como no _MSG_UpdateEtc; o cliente desconta da exp mostrada
+	int  ReqMp;				// -1: o cliente não mexe no MP previsto
 
 	long long CurrentExp;
-	short unk0;
+	short Rsv;
 
 	unsigned short		PosX, PosY;
 	unsigned short		TargetX, TargetY;
@@ -2105,34 +2098,27 @@ struct		  MSG_AttackOne
 	unsigned short		Progress;
 
 	unsigned char		Motion;
-	unsigned char		SkillParm;
-	unsigned char		DoubleCritical;
 	unsigned char		FlagLocal;
+	unsigned char		DoubleCritical;
+	unsigned char		SkillParm;
 
-	short				Rsv;
-
-	int					CurrentHp;
+	int					CurrentMp;	// -1: o cliente não mexe no MP
 
 	short 				SkillIndex;
-	short				ReqMp;
 
 	STRUCT_DAM			Dam[1];
 };
-#pragma pack(pop)
 
 const short  _MSG_AttackTwo					= (158 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 struct		  MSG_AttackTwo
 {
 	_MSG;
 
-	char Unk_1[4];
-
-	int  CurrentMp;
-
-	char Unk_2[4];
+	int  FakeExp;			// Hold (extra.Hold), como no _MSG_UpdateEtc; o cliente desconta da exp mostrada
+	int  ReqMp;				// -1: o cliente não mexe no MP previsto
 
 	long long CurrentExp;
-	short unk0;
+	short Rsv;
 
 	unsigned short		PosX, PosY;
 	unsigned short		TargetX, TargetY;
@@ -2141,17 +2127,13 @@ struct		  MSG_AttackTwo
 	unsigned short		Progress;
 
 	unsigned char		Motion;
-	unsigned char		SkillParm;
-	unsigned char		DoubleCritical;
 	unsigned char		FlagLocal;
+	unsigned char		DoubleCritical;
+	unsigned char		SkillParm;
 
-	short				Rsv;
-
-	int					CurrentHp;
+	int					CurrentMp;	// -1: o cliente não mexe no MP
 
 	short 				SkillIndex;
-	short				ReqMp;
-
 
 	STRUCT_DAM			Dam[2];
 };
