@@ -426,101 +426,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 86) // Explosão Etérea
 		{
-			if (pAttacker)
-			{
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pAttacker->m_vecPosition.y };
-				TMVector2 vecSum{};
-
-				int nCount = 0;
-				for (int i = 0; i < 13; i++)
-				{
-					if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-						break;
-
-					if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-						break;
-
-					auto pOwner = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pOwner)
-					{
-						TMVector3 vecDest{ pOwner->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pOwner->m_vecPosition.y };
-
-						vecSum.x += pOwner->m_vecPosition.x;
-						vecSum.y += pOwner->m_vecPosition.y;
-						++nCount;
-
-						auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
-
-						m_pEffectContainer->AddChild(pArrow);
-					}
-				}
-
-				TMVector2 vecDNormal{};
-				if (nCount <= 0)
-					vecDNormal = TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f);
-				else
-					vecDNormal = vecSum / static_cast<const float>(nCount);
-
-				float fAng = atan2f(vecDNormal.x - pAttacker->m_vecPosition.x, -vecDNormal.y + pAttacker->m_vecPosition.y);
-				fAng -= D3DXToRadian(90);
-
-				if (fAng < 0.0f)
-					fAng += D3DXToRadian(360);
-				if (fAng > D3DXToRadian(360))
-					fAng -= D3DXToRadian(360);
-
-				int nIndex = (int)((fAng * 12.0f) / D3DXToRadian(360));
-				int nMin = nIndex - 3;
-				int nMax = nIndex + 3;
-
-				if (nMin < 0 || nMax > 12)
-				{
-					int nLow = 0;
-					int nHigh = 0;
-
-					if (nMin >= 0)
-					{
-						nLow = nMin;
-						nHigh = nMax - 12;
-					}
-					else
-					{
-						nLow = nMin + 12;
-						nHigh = nMax;
-					}
-
-					for (int i = 0; i < nHigh; i++)
-					{
-						TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
-						TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
-
-						auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
-
-						m_pEffectContainer->AddChild(pArrow);
-					}
-					for (int i = nLow; i < 12; i++)
-					{
-						TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
-						TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
-
-						auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
-
-						m_pEffectContainer->AddChild(pArrow);
-					}
-				}
-				else
-				{
-					for (int i = nMin; i < nMax; i++)
-					{
-						TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
-						TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
-
-						auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
-
-						m_pEffectContainer->AddChild(pArrow);
-					}
-				}
-			}
+			PacketAttack_Skill86Arrows(pAttack, pAttacker);
 		}
 		else if (pAttack->SkillIndex == 99) // Muro de Espinhos
 		{
@@ -1399,6 +1305,107 @@ void TMFieldScene::PacketAttack_Skill87BillBoards(TMHuman*& pAttacker)
 				pBill->SetColor(0xFF4444FF);
 
 				m_pEffectContainer->AddChild(pBill);
+			}
+		}
+	}
+}
+
+/// Skill 86: flechas (`TMArrow`) do atacante para cada alvo.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill86Arrows(MSG_Attack*& pAttack, TMHuman*& pAttacker)
+{
+	if (pAttacker)
+	{
+		TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pAttacker->m_vecPosition.y };
+		TMVector2 vecSum{};
+
+		int nCount = 0;
+		for (int i = 0; i < 13; i++)
+		{
+			if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+				break;
+
+			if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+				break;
+
+			auto pOwner = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+			if (pOwner)
+			{
+				TMVector3 vecDest{ pOwner->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pOwner->m_vecPosition.y };
+
+				vecSum.x += pOwner->m_vecPosition.x;
+				vecSum.y += pOwner->m_vecPosition.y;
+				++nCount;
+
+				auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
+
+				m_pEffectContainer->AddChild(pArrow);
+			}
+		}
+
+		TMVector2 vecDNormal{};
+		if (nCount <= 0)
+			vecDNormal = TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f);
+		else
+			vecDNormal = vecSum / static_cast<const float>(nCount);
+
+		float fAng = atan2f(vecDNormal.x - pAttacker->m_vecPosition.x, -vecDNormal.y + pAttacker->m_vecPosition.y);
+		fAng -= D3DXToRadian(90);
+
+		if (fAng < 0.0f)
+			fAng += D3DXToRadian(360);
+		if (fAng > D3DXToRadian(360))
+			fAng -= D3DXToRadian(360);
+
+		int nIndex = (int)((fAng * 12.0f) / D3DXToRadian(360));
+		int nMin = nIndex - 3;
+		int nMax = nIndex + 3;
+
+		if (nMin < 0 || nMax > 12)
+		{
+			int nLow = 0;
+			int nHigh = 0;
+
+			if (nMin >= 0)
+			{
+				nLow = nMin;
+				nHigh = nMax - 12;
+			}
+			else
+			{
+				nLow = nMin + 12;
+				nHigh = nMax;
+			}
+
+			for (int i = 0; i < nHigh; i++)
+			{
+				TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
+				TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
+
+				auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
+
+				m_pEffectContainer->AddChild(pArrow);
+			}
+			for (int i = nLow; i < 12; i++)
+			{
+				TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
+				TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
+
+				auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
+
+				m_pEffectContainer->AddChild(pArrow);
+			}
+		}
+		else
+		{
+			for (int i = nMin; i < nMax; i++)
+			{
+				TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
+				TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
+
+				auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
+
+				m_pEffectContainer->AddChild(pArrow);
 			}
 		}
 	}
