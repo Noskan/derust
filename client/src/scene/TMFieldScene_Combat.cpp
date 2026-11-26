@@ -668,33 +668,8 @@ if (dwServerTime > m_dwOldAttackTime + 1000 &&
 			int x2 = (int)pNode->m_vecPosition.x;
 			int y2 = (int)pNode->m_vecPosition.y;
 
-			if (cSkillIndex == 0 || cSkillIndex == 16 || cSkillIndex == 7 || cSkillIndex == 17 || cSkillIndex == 23 ||
-				cSkillIndex == 35 || cSkillIndex == 39 || cSkillIndex == 51 || cSkillIndex == 55)
-			{
-				if (!pOver)
-					{ nReturnValue = 1; return true; }
-
-				nSX = (int)pOver->m_vecPosition.x;
-				nSY = (int)pOver->m_vecPosition.y;
-
-				if (pOver->m_nClass == 56 && !pOver->m_stLookInfo.FaceMesh)
-				{
-					int nMX = (int)m_pMyHuman->m_vecPosition.x;
-					int nMY = (int)m_pMyHuman->m_vecPosition.y;
-					if (m_stMoveStop.NextX)
-					{
-						nMX = m_stMoveStop.NextX;
-						nMY = m_stMoveStop.NextY;
-					}
-
-					int nDistanceFromMe = BASE_GetDistance(nMX, nMY, (int)pOver->m_vecPosition.x, (int)pOver->m_vecPosition.y) - 12;
-					if (nDistanceFromMe < 1)
-					{
-						nSX = (signed int)pOver->m_vecPosition.x;
-						nSY = (signed int)pOver->m_vecPosition.y;
-					}
-				}
-			}
+			if (SkillUse_AreaCenterOnTarget(pOver, cSkillIndex, nSX, nSY, nReturnValue))
+				return true;
 			if (cSkillIndex == 95 && pNode != pOver)
 			{
 				if (!pOver)
@@ -1504,6 +1479,41 @@ void TMFieldScene::SkillUse_CollectSelfAreaTargets(char& cSkillIndex, MSG_Attack
 		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget <= nTargetIndex || nTargetIndex >= 13)
 			break;
 	};
+}
+
+/// Skills de área centradas no alvo (0, 16, 7, 17, 23, 35, 39, 51, 55): o centro da área é a posição de `pOver`.
+/// @note Extraído de `TMFieldScene::SkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::SkillUse_AreaCenterOnTarget(TMHuman*& pOver, char& cSkillIndex, int& nSX, int& nSY, int& nReturnValue)
+{
+	if (cSkillIndex == 0 || cSkillIndex == 16 || cSkillIndex == 7 || cSkillIndex == 17 || cSkillIndex == 23 ||
+		cSkillIndex == 35 || cSkillIndex == 39 || cSkillIndex == 51 || cSkillIndex == 55)
+	{
+		if (!pOver)
+			{ nReturnValue = 1; return true; }
+
+		nSX = (int)pOver->m_vecPosition.x;
+		nSY = (int)pOver->m_vecPosition.y;
+
+		if (pOver->m_nClass == 56 && !pOver->m_stLookInfo.FaceMesh)
+		{
+			int nMX = (int)m_pMyHuman->m_vecPosition.x;
+			int nMY = (int)m_pMyHuman->m_vecPosition.y;
+			if (m_stMoveStop.NextX)
+			{
+				nMX = m_stMoveStop.NextX;
+				nMY = m_stMoveStop.NextY;
+			}
+
+			int nDistanceFromMe = BASE_GetDistance(nMX, nMY, (int)pOver->m_vecPosition.x, (int)pOver->m_vecPosition.y) - 12;
+			if (nDistanceFromMe < 1)
+			{
+				nSX = (signed int)pOver->m_vecPosition.x;
+				nSY = (signed int)pOver->m_vecPosition.y;
+			}
+		}
+	}
+	return false;
 }
 
 /// Alvo fora de alcance: aproxima o personagem antes de usar a skill.
