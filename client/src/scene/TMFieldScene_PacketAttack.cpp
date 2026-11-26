@@ -158,7 +158,7 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 		if (pAttacker != m_pMyHuman || pAttack->FlagLocal == 1 && pAttacker == m_pMyHuman || !pAttack->FlagLocal && 
 			pAttacker == m_pMyHuman && (unsigned char)pAttack->Motion == 254)
 		{
-			if (pAttack->SkillIndex == 4) // PossuÌdo
+			if (pAttack->SkillIndex == 4) // Possu√≠do
 			{
 				pAttacker->m_cPunish = 1;
 				pAttacker->m_dwPunishedTime = g_pTimerManager->GetServerTime();
@@ -181,7 +181,7 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 					fAngle = atan2f(pTarget->m_vecPosition.x - pAttacker->m_vecPosition.x, pTarget->m_vecPosition.y - pAttacker->m_vecPosition.y) + D3DXToRadian(90);
 			}
 
-			if (pAttack->SkillIndex == 98) // Canh„o Superior
+			if (pAttack->SkillIndex == 98) // Canh√£o Superior
 				fAngle = atan2f((float)pAttack->TargetX - pAttacker->m_vecPosition.x, (float)pAttack->TargetY - pAttacker->m_vecPosition.y) + D3DXToRadian(90);
 			if (pAttack->DoubleCritical & 1)
 				pAttacker->m_bDoubleAttack = 1;
@@ -251,7 +251,7 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 				if (pEffect && m_pEffectContainer)
 					m_pEffectContainer->AddChild(pEffect);
 			}
-			else if (pAttack->SkillIndex == 3) // PerseguiÁ„o
+			else if (pAttack->SkillIndex == 3) // Persegui√ß√£o
 			{
 				if (pAttacker)
 				{
@@ -278,7 +278,7 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 					GetSoundAndPlay(151, 0, 0);
 				}
 			}
-			else if (pAttack->SkillIndex == 45) // Arma M·gica
+			else if (pAttack->SkillIndex == 45) // Arma M√°gica
 			{
 				float fY = (float)pAttack->TargetY + 0.5f;
 				TMVector3 vecTarget{ (float)pAttack->TargetX + 0.5f, (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, fY)) * 0.1f, fY };
@@ -536,7 +536,7 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 			{
 				GetSoundAndPlay(34, 0, 0);
 			}
-			else if (pAttack->SkillIndex == 77) // MeditaÁ„o
+			else if (pAttack->SkillIndex == 77) // Medita√ß√£o
 			{
 				GetSoundAndPlay(36, 0, 0);
 			}
@@ -576,7 +576,7 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 					}
 				}
 			}
-			else if (pAttack->SkillIndex == 86) // Explos„o EtÈrea
+			else if (pAttack->SkillIndex == 86) // Explos√£o Et√©rea
 			{
 				if (pAttacker)
 				{
@@ -756,7 +756,7 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 
 				GetSoundAndPlay(1, 0, 0);
 			}
-			else if (pAttack->SkillIndex == 100) // RessureiÁ„o
+			else if (pAttack->SkillIndex == 100) // Ressurei√ß√£o
 			{
 				GetSoundAndPlay(156, 0, 0);
 			}
