@@ -361,81 +361,10 @@ int TMFieldScene::SkillUse(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwServe
 			nMobAttackRange = nSpecForce + BASE_GetMobAbility(pMobData, 27);
 	}
 
-	if (nDistance > nMobAttackRange || nDX != nTX || nDY != nTY)
 	{
-		if (bMoving == 1 && nDistance >= nMobAttackRange && nDX == nTX && nDY == nTY)
-		{
-			if ((signed int)m_pMyHuman->m_eMotion >= 4 && (signed int)m_pMyHuman->m_eMotion <= 9)
-			{
-				unsigned int dwMod = MeshManager::m_BoneAnimationList[m_pMyHuman->m_nSkinMeshType].numAniCut[m_pMyHuman->m_pSkinMesh->m_nAniIndex];
-				if (dwMod > 2)
-					dwMod -= 2;
-				if (g_pEventTranslator->button[0] && dwServerTime < m_pMyHuman->m_dwStartAnimationTime + 4 * dwMod * m_pMyHuman->m_pSkinMesh->m_dwFPS)
-				{
-					return 1;
-				}
-			}
-
-			if (!m_pGround)
-				return 0;
-			if (vec.y < -5000.0f && pOver)
-			{
-				vec.x = pOver->m_vecPosition.x;
-				vec.z = pOver->m_vecPosition.y;
-				vec.y = pOver->m_fHeight;
-			}
-
-			m_pMyHuman->SetSpeed(m_bMountDead);
-			if (vec.x == m_pMyHuman->m_vecPosition.x && vec.z == m_pMyHuman->m_vecPosition.y)
-				return 1;
-
-			m_pTargetItem = nullptr;
-			m_pMyHuman->m_pMoveSkillTargetHuman = pOver;
-			m_dwLastSetTargetHuman = dwServerTime;
-			if (m_pMyHuman->m_cCantMove)
-				return 0;
-
-			int nMoveSX = (int)m_pMyHuman->m_vecPosition.x;
-			int nMoveSY = (int)m_pMyHuman->m_vecPosition.y;
-			if (m_stMoveStop.NextX)
-			{
-				nMoveSX = m_stMoveStop.NextX;
-				nMoveSY = m_stMoveStop.NextY;
-			}
-
-			if (!pOver)
-				return 0;
-
-			nTX = (int)pOver->m_vecPosition.x;
-			nTY = (int)pOver->m_vecPosition.y;
-
-			int nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, nTX, nTY);
-			int PlusX = 1;
-			int PlusY = 1;
-			if (nMoveSX > nTX)
-				PlusX = -1;
-			if (nMoveSY > nTY)
-				PlusY = -1;
-
-			int nBreak = 0;
-			while (nMoveDistance2 > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
-			{
-				if (nBreak > 500)
-					return 1;
-
-				if (nMoveSX != nTX)
-					nMoveSX += PlusX;
-				if (nMoveSY != nTY)
-					nMoveSY += PlusY;
-
-				nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, nTX, nTY);
-				++nBreak;
-			}
-
-			m_vecMyNext.x = nMoveSX;
-			m_vecMyNext.y = nMoveSY;
-		}
-		return GetItemFromGround(dwServerTime);
+		int nReturnValue = 0;
+		if (SkillUse_ApproachTarget(vec, dwServerTime, bMoving, nSpecForce, pOver, cSkillIndex, nTX, nTY, nDistance, nMobAttackRange, nDX, nDY, nReturnValue))
+			return nReturnValue;
 	}
 
 	if (g_pSpell[(unsigned char)cSkillIndex].Range == -1)
@@ -1566,6 +1495,90 @@ if (dwServerTime > m_dwOldAttackTime + 1000 &&
 	}
 	if (cSkillIndex != 85)
 		{ nReturnValue = 1; return true; }			
+}
+	return false;
+}
+
+/// Alvo fora de alcance: aproxima o personagem antes de usar a skill.
+/// @note Extraído de `TMFieldScene::SkillUse` (Fase 3); locais da função passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::SkillUse_ApproachTarget(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& bMoving, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& nTX, int& nTY, int& nDistance, int& nMobAttackRange, int& nDX, int& nDY, int& nReturnValue)
+{
+if (nDistance > nMobAttackRange || nDX != nTX || nDY != nTY)
+{
+	if (bMoving == 1 && nDistance >= nMobAttackRange && nDX == nTX && nDY == nTY)
+	{
+		if ((signed int)m_pMyHuman->m_eMotion >= 4 && (signed int)m_pMyHuman->m_eMotion <= 9)
+		{
+			unsigned int dwMod = MeshManager::m_BoneAnimationList[m_pMyHuman->m_nSkinMeshType].numAniCut[m_pMyHuman->m_pSkinMesh->m_nAniIndex];
+			if (dwMod > 2)
+				dwMod -= 2;
+			if (g_pEventTranslator->button[0] && dwServerTime < m_pMyHuman->m_dwStartAnimationTime + 4 * dwMod * m_pMyHuman->m_pSkinMesh->m_dwFPS)
+			{
+				{ nReturnValue = 1; return true; }
+			}
+		}
+
+		if (!m_pGround)
+			{ nReturnValue = 0; return true; }
+		if (vec.y < -5000.0f && pOver)
+		{
+			vec.x = pOver->m_vecPosition.x;
+			vec.z = pOver->m_vecPosition.y;
+			vec.y = pOver->m_fHeight;
+		}
+
+		m_pMyHuman->SetSpeed(m_bMountDead);
+		if (vec.x == m_pMyHuman->m_vecPosition.x && vec.z == m_pMyHuman->m_vecPosition.y)
+			{ nReturnValue = 1; return true; }
+
+		m_pTargetItem = nullptr;
+		m_pMyHuman->m_pMoveSkillTargetHuman = pOver;
+		m_dwLastSetTargetHuman = dwServerTime;
+		if (m_pMyHuman->m_cCantMove)
+			{ nReturnValue = 0; return true; }
+
+		int nMoveSX = (int)m_pMyHuman->m_vecPosition.x;
+		int nMoveSY = (int)m_pMyHuman->m_vecPosition.y;
+		if (m_stMoveStop.NextX)
+		{
+			nMoveSX = m_stMoveStop.NextX;
+			nMoveSY = m_stMoveStop.NextY;
+		}
+
+		if (!pOver)
+			{ nReturnValue = 0; return true; }
+
+		nTX = (int)pOver->m_vecPosition.x;
+		nTY = (int)pOver->m_vecPosition.y;
+
+		int nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, nTX, nTY);
+		int PlusX = 1;
+		int PlusY = 1;
+		if (nMoveSX > nTX)
+			PlusX = -1;
+		if (nMoveSY > nTY)
+			PlusY = -1;
+
+		int nBreak = 0;
+		while (nMoveDistance2 > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
+		{
+			if (nBreak > 500)
+				{ nReturnValue = 1; return true; }
+
+			if (nMoveSX != nTX)
+				nMoveSX += PlusX;
+			if (nMoveSY != nTY)
+				nMoveSY += PlusY;
+
+			nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, nTX, nTY);
+			++nBreak;
+		}
+
+		m_vecMyNext.x = nMoveSX;
+		m_vecMyNext.y = nMoveSY;
+	}
+	{ nReturnValue = GetItemFromGround(dwServerTime); return true; }
 }
 	return false;
 }
