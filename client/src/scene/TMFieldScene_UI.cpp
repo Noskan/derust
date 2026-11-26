@@ -176,28 +176,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == B_CHAR)
-	{
-		auto pATradePanel = static_cast<SPanel*>(m_pControlContainer->FindControl(TMP_ATRADE_PANEL));
-
-		if (pATradePanel && pATradePanel->IsVisible())
-			return 1;
-
-		if (m_pShopPanel->IsVisible() == 1)
-			return 1;
-
-		if (m_pTradePanel->IsVisible() != 1)
-		{
-			auto pCharBtn = static_cast<SButton*>(m_pControlContainer->FindControl(B_CHAR));
-
-			pCharBtn->SetSelected(pCharBtn->m_bSelected == 0);
-
-			SetVisibleCharInfo();
-
-			return 0;
-		}
-
-		return 1;
-	}
+		return OnControl_CharPanel(idwControlID, idwEvent);
 	if (idwControlID == B_EQUIP)
 	{
 		auto pEquipBtn = static_cast<SButton*>(m_pControlContainer->FindControl(B_EQUIP));

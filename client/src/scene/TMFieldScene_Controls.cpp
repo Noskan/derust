@@ -2213,3 +2213,29 @@ int TMFieldScene::OnControl_CharClose(unsigned int idwControlID, unsigned int id
 
 	return 0;
 }
+
+/// Abrir/fechar janela do personagem (`B_CHAR`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CharPanel(unsigned int idwControlID, unsigned int idwEvent)
+{
+	auto pATradePanel = static_cast<SPanel*>(m_pControlContainer->FindControl(TMP_ATRADE_PANEL));
+
+	if (pATradePanel && pATradePanel->IsVisible())
+		return 1;
+
+	if (m_pShopPanel->IsVisible() == 1)
+		return 1;
+
+	if (m_pTradePanel->IsVisible() != 1)
+	{
+		auto pCharBtn = static_cast<SButton*>(m_pControlContainer->FindControl(B_CHAR));
+
+		pCharBtn->SetSelected(pCharBtn->m_bSelected == 0);
+
+		SetVisibleCharInfo();
+
+		return 0;
+	}
+
+	return 1;
+}

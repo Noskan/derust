@@ -303,6 +303,7 @@ private:
 	int OnControl_CargoMoney(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_InvClose(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_CharClose(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_CharPanel(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
