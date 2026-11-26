@@ -599,30 +599,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == B_CCATTACK)
 		return OnControl_CCAttack(idwControlID, idwEvent);
 	if (idwControlID == B_CCPOTION)
-	{
-		if (++m_AutoHpMp >= 4)
-			m_AutoHpMp = 0;
-		if (m_AutoHpMp)
-		{
-			switch (m_AutoHpMp)
-			{
-			case 1:
-				m_pSGameAutoBtn->SetTextureSetIndex(461);
-				break;
-			case 2:
-				m_pSGameAutoBtn->SetTextureSetIndex(460);
-				break;
-			case 3:
-				m_pSGameAutoBtn->SetTextureSetIndex(466);
-				break;
-			}
-		}
-		else
-		{
-			m_pSGameAutoBtn->SetTextureSetIndex(462);
-		}
-		return 1;
-	}
+		return OnControl_CCPotion(idwControlID, idwEvent);
 	if (idwControlID == B_CCMOVE)
 		return OnControl_CCMove(idwControlID, idwEvent);
 	if (idwControlID == B_ITEMMIX_RUN)

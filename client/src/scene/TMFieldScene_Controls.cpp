@@ -2649,3 +2649,31 @@ int TMFieldScene::OnControl_HelpButton4(unsigned int idwControlID, unsigned int 
 		m_pHelpList[3]->SetVisible(1);
 	return 1;
 }
+
+/// Poção do modo CC (`B_CCPOTION`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CCPotion(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (++m_AutoHpMp >= 4)
+		m_AutoHpMp = 0;
+	if (m_AutoHpMp)
+	{
+		switch (m_AutoHpMp)
+		{
+		case 1:
+			m_pSGameAutoBtn->SetTextureSetIndex(461);
+			break;
+		case 2:
+			m_pSGameAutoBtn->SetTextureSetIndex(460);
+			break;
+		case 3:
+			m_pSGameAutoBtn->SetTextureSetIndex(466);
+			break;
+		}
+	}
+	else
+	{
+		m_pSGameAutoBtn->SetTextureSetIndex(462);
+	}
+	return 1;
+}
