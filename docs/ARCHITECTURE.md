@@ -137,12 +137,20 @@ Qualquer refatoração futura que altere alinhamento ou tamanho desses tipos que
 
 ---
 
-## 6. Roteiro da Fase 2 (Quebra de God-Files e Comentários)
+## 6. Progresso e Roteiro da Fase 2 (Quebra de God-Files e Comentários)
 
-Na **Fase 2**, os arquivos monolíticos serão fatiados por coesão (preservando 100% de paridade de comportamento), promovendo subsistemas desacoplados a static libraries CMake com `.clang-format` e testes CTest:
+Na **Fase 2**, os arquivos monolíticos são fatiados por coesão (preservando 100% de paridade de comportamento), acompanhados de [`.clang-format`](../.clang-format) e documentação em PT-BR:
 
-- **Alvos prioritários no cliente**: `TMFieldScene.cpp` (~24,5 mil linhas), `TMHuman.cpp` (~16,3 mil), `SGrid.cpp` (~5,3 mil), `TMGround.cpp` (~4,5 mil), `RenderDevice.cpp` (~3,5 mil), `Basedef.cpp` (~3,4 mil).
-- **Alvos prioritários no servidor**: `tmsrv/core/Server.cpp` (~9,4 mil linhas), `common/Basedef.cpp` (~6,8 mil), `_MSG_UseItem.cpp` (~5,7 mil), `_MSG_Quest.cpp` (~2,7 mil), `CFileDB.cpp` (~2,7 mil), `MobKilled.cpp` (~2,5 mil).
+### Onda 1 (concluída na branch `refactor/modularize-phase2`)
+- **`ItemEffect.h` (`server/common/` e `client/src/common/`)**: comentários coreanos/mojibake convertidos para PT-BR preservando 100% das constantes `EF_*`.
+- **`server/common/Basedef.cpp` (6.814 → 2.844 linhas)**: dividido em `Basedef.cpp`, [`BaseItem.cpp`](../server/common/BaseItem.cpp) (1.649L) e [`BaseCombat.cpp`](../server/common/BaseCombat.cpp) (2.436L), com [`BasedefInternal.h`](../server/common/BasedefInternal.h) e documentação Doxygen em [`server/common/Basedef.h`](../server/common/Basedef.h).
+- **`server/tmsrv/core/Server.cpp` (9.449 → 2.912 linhas)**: extraídos 5 sistemas em `server/tmsrv/systems/`: `MountSystem.cpp` (167L), `AffectSystem.cpp` (1.204L), `WorldEventSystem.cpp` (2.251L), `ItemSpawnSystem.cpp` (1.811L) e `MobSpawnSystem.cpp` (1.377L).
+- **`client/src/scene/TMFieldScene.cpp` (24.476 → 5.045 linhas)**: dividido em `TMFieldScene.cpp`, `TMFieldScene_UI.cpp` (7.753L), `TMFieldScene_Packets.cpp` (5.128L), `TMFieldScene_Combat.cpp` (4.431L) e `TMFieldScene_Input.cpp` (2.368L).
+- **`client/src/entities/TMHuman.cpp` (16.323 → 5.152 linhas)**: dividido em `TMHuman.cpp`, `TMHuman_Effects.cpp` (3.147L), `TMHuman_Animation.cpp` (3.126L), `TMHuman_Packets.cpp` (3.021L) e `TMHuman_Combat.cpp` (2.125L).
+
+### Onda 2 (próximos alvos)
+- **Cliente**: `SGrid.cpp` (~5,3 mil linhas), `TMGround.cpp` (~4,5 mil), `RenderDevice.cpp` (~3,5 mil), `client/src/common/Basedef.cpp` (~3,4 mil), além da promoção de subsistemas desacoplados a static libs CMake com testes CTest.
+- **Servidor**: `handlers/items/_MSG_UseItem.cpp` (~5,7 mil linhas), `handlers/world/_MSG_Quest.cpp` (~2,7 mil), `dbsrv/persistence/CFileDB.cpp` (~2,7 mil), `systems/MobKilled.cpp` (~2,5 mil).
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.

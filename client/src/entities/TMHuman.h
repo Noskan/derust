@@ -52,6 +52,9 @@ struct stEffectEvent
     short sEffectLevel;
 };
 
+/// @brief Entidade de personagem jogavel, NPC ou monstro no mundo 3D.
+/// @details Implementacao dividida por coesao em TMHuman.cpp, TMHuman_Packets.cpp,
+///          TMHuman_Animation.cpp, TMHuman_Effects.cpp e TMHuman_Combat.cpp.
 class TMHuman : public TMObject
 {
 public:

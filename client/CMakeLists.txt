@@ -76,6 +76,10 @@ set(TMPROJECT_SOURCES
   src/entities/TMFlail.cpp
   src/entities/TMFloat.cpp
   src/entities/TMHuman.cpp
+  src/entities/TMHuman_Animation.cpp
+  src/entities/TMHuman_Combat.cpp
+  src/entities/TMHuman_Effects.cpp
+  src/entities/TMHuman_Packets.cpp
   src/entities/TMItem.cpp
   src/entities/TMLeaf.cpp
   src/entities/TMShade.cpp

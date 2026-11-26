@@ -39,7 +39,8 @@ python3 tools/check_boundaries.py
 ## Status da Modularização
 
 - **Fase 1 (concluída)**: Reorganização modular via `git mv`, migração para CMake + presets Win32, pipeline CI no GitHub Actions (`windows-latest` Debug/Release), verificador de fronteiras e travas de ABI em `ProtocolLayoutCheck.cpp`.
-- **Fase 2 (próxima etapa)**: Fatiamento dos *god-files* por coesão (`TMFieldScene.cpp`, `TMHuman.cpp`, `TMSrv/Server.cpp`, `_MSG_UseItem.cpp`, `Basedef.cpp`, etc.), documentação Doxygen/inline em PT-BR e testes unitários nos módulos extraídos.
+- **Fase 2 — Onda 1 (concluída)**: Limpeza de `ItemEffect.h` para PT-BR, `.clang-format`, documentação Doxygen/inline em PT-BR e fatiamento dos 4 maiores *god-files*: `server/common/Basedef.cpp` (`Basedef`/`BaseItem`/`BaseCombat`), `tmsrv/core/Server.cpp` (5 sistemas em `tmsrv/systems/`), `TMFieldScene.cpp` (5 TUs) e `TMHuman.cpp` (5 TUs).
+- **Fase 2 — Onda 2 (próxima etapa)**: Fatiamento de `_MSG_UseItem.cpp`, `SGrid.cpp`, `TMGround.cpp`, `_MSG_Quest.cpp`, `CFileDB.cpp`, `MobKilled.cpp` e testes CTest nos módulos extraídos.
 
 ## Histórico e Licença
 
