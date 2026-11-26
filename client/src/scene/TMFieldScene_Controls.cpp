@@ -2717,3 +2717,27 @@ int TMFieldScene::OnControl_ShortSkillToggle2(unsigned int idwControlID, unsigne
 
 	return 0;
 }
+
+/// Alterna o filtro de chat geral (controle 65677).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_ChatGeneralToggle(unsigned int idwControlID, unsigned int idwEvent)
+{
+	m_pChatGeneral->m_bSelected = m_pChatGeneral->m_bSelected == 0;
+	m_pChatGeneral_C->m_bSelected = m_pChatGeneral->m_bSelected == 0;
+	m_pChatGeneral->Update();
+	m_pChatGeneral_C->Update();
+
+	char szText[128]{};
+	if (m_pChatGeneral->m_bSelected)
+		sprintf(szText, "%s%s", g_pMessageStringTable[452], g_pMessageStringTable[446]);
+	else
+		sprintf(szText, "%s%s", g_pMessageStringTable[452], g_pMessageStringTable[447]);
+
+	auto ipNewItem = new SListBoxItem(szText, 0xFFCCAAFF, 0.0, 0.0, 280.0f, 16.0f, 0, 0x77777777u, 1u, 0);
+
+	auto pChatList = (SListBox*)m_pControlContainer->FindControl(65667);;
+	if (ipNewItem && pChatList)
+		pChatList->AddItem(ipNewItem);
+
+	return 0;
+}

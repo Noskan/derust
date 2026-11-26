@@ -694,26 +694,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == 65677)
-	{
-		m_pChatGeneral->m_bSelected = m_pChatGeneral->m_bSelected == 0;
-		m_pChatGeneral_C->m_bSelected = m_pChatGeneral->m_bSelected == 0;
-		m_pChatGeneral->Update();
-		m_pChatGeneral_C->Update();
-
-		char szText[128]{};
-		if (m_pChatGeneral->m_bSelected)
-			sprintf(szText, "%s%s", g_pMessageStringTable[452], g_pMessageStringTable[446]);
-		else
-			sprintf(szText, "%s%s", g_pMessageStringTable[452], g_pMessageStringTable[447]);
-
-		auto ipNewItem = new SListBoxItem(szText, 0xFFCCAAFF, 0.0, 0.0, 280.0f, 16.0f, 0, 0x77777777u, 1u, 0);
-
-		auto pChatList = (SListBox*)m_pControlContainer->FindControl(65667);;
-		if (ipNewItem && pChatList)
-			pChatList->AddItem(ipNewItem);
-
-		return 0;
-	}
+		return OnControl_ChatGeneralToggle(idwControlID, idwEvent);
 	if (idwControlID == 65785)
 	{
 		SetPK();
