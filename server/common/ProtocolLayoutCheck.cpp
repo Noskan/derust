@@ -50,6 +50,16 @@ W2_FIELD(STRUCT_MOB, Reserved, 808, 212);         // (dummy)
 W2_FIELD(STRUCT_MOB, CurrentKill, 1020, 2);
 W2_FIELD(STRUCT_MOB, TotalKill, 1022, 2);
 
+// Score como no cliente (MOB, MSG_UpdateScore, MSG_CreateMob): Level tem 2 bytes. Direction e ChaosRate
+// ficam no alinhamento depois de AttackRun, que o cliente não lê.
+W2_FIELD(STRUCT_SCORE, Level, 0, 2);
+W2_FIELD(STRUCT_SCORE, Ac, 4, 4);
+W2_FIELD(STRUCT_SCORE, Damage, 8, 4);
+W2_FIELD(STRUCT_SCORE, Merchant, 12, 1);       // (Reserved)
+W2_FIELD(STRUCT_SCORE, AttackRun, 13, 1);
+W2_FIELD(STRUCT_SCORE, MaxHp, 16, 4);
+W2_FIELD(STRUCT_SCORE, Special, 40, 8);
+
 // Affect como o cliente o lê em _MSG_SendAffect e no login: Level no byte 1, Value (2 bytes) no 2.
 static_assert(sizeof(STRUCT_AFFECT) == 8, "STRUCT_AFFECT deve ter 8 bytes (cliente).");
 W2_FIELD(STRUCT_AFFECT, Type, 0, 1);

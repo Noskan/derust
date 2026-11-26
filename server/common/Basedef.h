@@ -416,7 +416,7 @@ struct STRUCT_ITEM
 /// @brief Atributos de combate, defesa, HP/MP, pontos base e maestrias de um mob/personagem (48 bytes).
 struct STRUCT_SCORE
 {
-	int Level;	 // The mob's level
+	short Level;	 // Nível (2 bytes, como no cliente; os bytes 2-3 são alinhamento de Ac)
 	int Ac;		 // The mob's defense
 	int Damage;   // The mob's damage force
 
