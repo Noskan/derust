@@ -5,6 +5,9 @@ set(TMSRV_SOURCES
   core/ProcessSecMinTimer.cpp
   core/Server.cpp
   core/Server.h
+  core/Server_Config.cpp
+  core/Server_Logs.cpp
+  core/Server_Window.cpp
   entities/CItem.cpp
   entities/CItem.h
   entities/CMob.cpp

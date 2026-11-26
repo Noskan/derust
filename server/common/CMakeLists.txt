@@ -2,6 +2,7 @@ add_library(w2pp_common STATIC
   Basedef.cpp
   BaseItem.cpp
   BaseCombat.cpp
+  BaseLoaders.cpp
   CPSock.cpp
   ProtocolLayoutCheck.cpp
   Basedef.h
