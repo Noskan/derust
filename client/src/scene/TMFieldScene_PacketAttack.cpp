@@ -1699,37 +1699,7 @@ else
 
 					int nStartX = 0;
 					int nStartY = 0;
-					if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nStartX, &nStartY))
-					{
-						char szStr[128]{};
-						if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
-							(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
-							&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
-						{
-							sprintf(szStr, "?");
-						}
-						else
-							sprintf(szStr, "+ %d", -pAttack->Dam[i].Damage / ((pAttack->DoubleCritical & 1) + 1));
-
-						bool bDrawFront = false;
-						if (g_bHideEffect)
-						{
-							if (pAttacker == m_pMyHuman)
-								bDrawFront = true;
-							if (pTargetHuman == m_pMyHuman)
-								bDrawFront = true;
-						}
-						else
-						{
-							bDrawFront = true;
-						}
-
-						if (bDrawFront)
-						{
-							auto pFont = new TMFont3(szStr, nStartX, nStartY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFF5555FF, 2.0f, dwDelay, 1, 1500, 0, 2);
-							m_pExtraContainer->AddChild(pFont);
-						}
-					}
+					PacketAttack_AreaShowHealText(pAttack, pAttacker, dwDelay, i, pTargetHuman, nStartX, nStartY);
 					if (pAttack->AttackerID == m_pMyHuman->m_dwID)
 						SetMyHumanExp(pAttack->CurrentExp, pAttack->FakeExp);
 				}
@@ -2488,4 +2458,41 @@ bool TMFieldScene::PacketAttack_ShowDamage(MSG_Attack*& pAttack, TMHuman*& pAtta
 		}
 	}
 	return false;
+}
+
+/// Cura em área: número "+ N" sobre cada alvo na tela.
+/// @note Extraído de `TMFieldScene::PacketAttack_ApplyTargets` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_AreaShowHealText(MSG_Attack*& pAttack, TMHuman*& pAttacker, unsigned int& dwDelay, int& i, TMHuman*& pTargetHuman, int& nStartX, int& nStartY)
+{
+	if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nStartX, &nStartY))
+	{
+		char szStr[128]{};
+		if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
+			(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
+			&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
+		{
+			sprintf(szStr, "?");
+		}
+		else
+			sprintf(szStr, "+ %d", -pAttack->Dam[i].Damage / ((pAttack->DoubleCritical & 1) + 1));
+
+		bool bDrawFront = false;
+		if (g_bHideEffect)
+		{
+			if (pAttacker == m_pMyHuman)
+				bDrawFront = true;
+			if (pTargetHuman == m_pMyHuman)
+				bDrawFront = true;
+		}
+		else
+		{
+			bDrawFront = true;
+		}
+
+		if (bDrawFront)
+		{
+			auto pFont = new TMFont3(szStr, nStartX, nStartY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFF5555FF, 2.0f, dwDelay, 1, 1500, 0, 2);
+			m_pExtraContainer->AddChild(pFont);
+		}
+	}
 }
