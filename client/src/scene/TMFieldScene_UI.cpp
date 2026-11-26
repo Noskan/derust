@@ -1306,51 +1306,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 641)
 		return OnControl_PlayerMenu641(idwControlID, idwEvent);
 	if (idwControlID == 643)
-	{
-		if (!m_pPGTOver	|| 
-			(float)BASE_GetDistance(
-				(int)m_pMyHuman->m_vecPosition.x,
-				(int)m_pMyHuman->m_vecPosition.y,
-				(int)m_pPGTOver->m_vecPosition.x,
-				(int)m_pPGTOver->m_vecPosition.y) > ((float)(g_pObjectManager->m_pCamera->m_fMaxCamLen - 11.0) + 6.0))
-		{
-			return 1;
-		}
-
-		m_pPGTOver = 0;
-		if (m_pMyHuman->m_cDie == 1)
-			return 1;
-
-		RECT rc; 
-		
-		rc.left = 2601;
-		rc.top = 1702;
-		rc.right = 2652;
-		rc.bottom = 1750;
-
-		POINT pt;
-		pt.x = (int)m_pMyHuman->m_vecPosition.x;
-		pt.y = (int)m_pMyHuman->m_vecPosition.y;
-		if (PtInRect(&rc, pt) == 1)
-			return 1;
-
-		auto pTradePanel = m_pTradePanel;
-		if (!g_pObjectManager->m_stTrade.OpponentID || !pTradePanel || pTradePanel->IsVisible() != 1)
-		{
-			g_pObjectManager->m_stTrade.Header.Type = 0x383;
-			g_pObjectManager->m_stTrade.Header.ID = m_pMyHuman->m_dwID;
-			g_pObjectManager->m_stTrade.OpponentID = m_dwOpID;
-			SendOneMessage((char*)&g_pObjectManager->m_stTrade, 156);
-
-			m_dwOpID = 0;
-			m_pPGTPanel->SetVisible(0);
-			return 0;
-		}
-
-		m_pMessagePanel->SetMessage(g_pMessageStringTable[35], 2000);
-		m_pMessagePanel->SetVisible(1, 1);
-		return 1;
-	}
+		return OnControl_PlayerMenu643(idwControlID, idwEvent);
 	if (idwControlID == 642)
 	{
 		m_pBtnPGTGuild->SetVisible(0);
