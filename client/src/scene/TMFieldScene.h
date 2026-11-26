@@ -389,6 +389,7 @@ private:
 	bool PacketAttack_ApplyTargets(MSG_Attack*& pAttack, TMHuman*& pAttacker, bool& bomb, TMVector2& vecAttackerPos, int& nClass, TMVector3& vecStart, TMVector3& vecTarget, unsigned int& dwDelay, int& nReturnValue);
 	void PacketAttack_ApplyHealHp(MSG_Attack*& pAttack, int& i, TMHuman*& pTargetHuman, int& nDamageRate);
 	void PacketAttack_ShowHealText(MSG_Attack*& pAttack, TMHuman*& pAttacker, unsigned int& dwDelay, int& i, TMHuman*& pTargetHuman, int& nTX, int& nTY);
+	void PacketAttack_ApplyDamageHp(MSG_Attack*& pAttack, int& i, TMHuman*& pTargetHuman, int& nDamageRate);
 	/// @}
 
 	/// @name Etapas com retorno antecipado extraídas de OnControlEvent (Fase 3)
