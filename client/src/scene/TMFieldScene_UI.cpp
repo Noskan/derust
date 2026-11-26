@@ -1360,42 +1360,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 912)
 		return OnControl_PlayerMenu912(idwControlID, idwEvent);
 	if (idwControlID >= 913 && idwControlID <= 915)
-	{
-		if (!g_pCurrentScene)
-			return 0;
-
-		if (m_pPGTOver != nullptr)
-		{
-			if (!m_pPGTOver->m_usGuild)
-			{
-				m_pMessagePanel->SetMessage(g_pMessageStringTable[367], 2000);
-				m_pMessagePanel->SetVisible(1, 1);
-				return 0;
-			}
-			if (m_pPGTOver->m_usGuild != m_pMyHuman->m_usGuild)
-			{
-				m_pMessagePanel->SetMessage(g_pMessageStringTable[365], 2000);
-				m_pMessagePanel->SetVisible(1, 1);
-				return 0;
-			}
-			if (m_pPGTOver->m_sGuildLevel >= 3 && m_pPGTOver->m_sGuildLevel <= 8)
-			{
-				m_pMessagePanel->SetMessage(g_pMessageStringTable[366], 2000);
-				m_pMessagePanel->SetVisible(1, 1);
-				return 0;
-			}
-			if (g_pObjectManager->m_stMobData.Coin < 50000000)
-			{
-				m_pMessagePanel->SetMessage(g_pMessageStringTable[155], 2000);
-				m_pMessagePanel->SetVisible(1, 1);
-				return 0;
-			}
-		}
-
-		VisibleInputGuildName();
-		m_pPGTPanel->SetVisible(0);
-		return 0;
-	}
+		return OnControl_PlayerMenu913(idwControlID, idwEvent);
 	if (idwControlID == 816)
 	{
 		m_pPGTOver = 0;
