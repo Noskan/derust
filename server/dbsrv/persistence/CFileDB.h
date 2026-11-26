@@ -22,6 +22,7 @@
 
 #include "common/Basedef.h"
 
+/// @brief Estado em memória de uma conta conectada no DBSrv.
 typedef struct
 {
      int Login;
@@ -32,8 +33,11 @@ typedef struct
 	 int Mac[4];
 } STRUCT_ACCOUNTLIST;
 
+/// @brief Registra uma entrada no arquivo de log/registro textual do DBSrv.
 int ProcessRecord(int conn, char * str);
 
+/// @brief Camada de persistência de contas, personagens, guildas e rankings do DBSrv.
+/// @details Centraliza cache em memória (`pAccountList`), leitura/escrita em disco e despacho de pacotes DB.
 class CFileDB
 {
 public:
@@ -45,7 +49,14 @@ public:
 	int  AddAccount				(char *id, char *pass, char *name, int ssn1, int ssn2, char *email, char *tel, char *addr, int bonus);
 	int  UpdateAccount			(char *id, char *pass);
 
+	/// @brief Roteia pacotes recebidos dos TMSrvs entre blocos de conta/personagem e de mundo/guilda.
 	int  ProcessMessage			(char *Msg, int conn);
+
+	/// @brief Sub-handler de pacotes DB de contas, personagens, cápsulas, PIN e troca de canal.
+	int  ProcessAccountMessage  (char *Msg, int conn, bool& handled);
+
+	/// @brief Sub-handler de pacotes DB de guildas, guerras, safira, logs, ranking e anúncios.
+	int  ProcessWorldMessage    (char *Msg, int conn, bool& handled);
 
 	int  SendDBSignal			(int svr, unsigned short id, unsigned short signal);
 	int  SendDBSignalParm		(int svr, unsigned short id, unsigned short signal, int parm);

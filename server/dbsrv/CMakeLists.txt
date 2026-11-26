@@ -8,6 +8,8 @@ set(DBSRV_SOURCES
   net/CUser.h
   persistence/CFileDB.cpp
   persistence/CFileDB.h
+  persistence/CFileDB_AccountPackets.cpp
+  persistence/CFileDB_WorldPackets.cpp
   persistence/CRanking.cpp
   persistence/CRanking.h
   resources/DBSrv.rc

@@ -28,6 +28,10 @@ set(TMSRV_SOURCES
   systems/CWarTower.h
   systems/ItemSpawnSystem.cpp
   systems/MobKilled.cpp
+  systems/MobKilledInternal.h
+  systems/MobKilled_Drops.cpp
+  systems/MobKilled_Exp.cpp
+  systems/MobKilled_PvP.cpp
   systems/MobSpawnSystem.cpp
   systems/MountSystem.cpp
   systems/WorldEventSystem.cpp
@@ -94,6 +98,10 @@ set(TMSRV_SOURCES
   handlers/world/_MSG_ChangeCity.cpp
   handlers/world/_MSG_NoViewMob.cpp
   handlers/world/_MSG_Quest.cpp
+  handlers/world/QuestInternal.h
+  handlers/world/Quest_Kingdom.cpp
+  handlers/world/Quest_Progression.cpp
+  handlers/world/Quest_Special.cpp
   handlers/world/_MSG_ReqRanking.cpp
   handlers/world/_MSG_ReqTeleport.cpp
   resources/TMSrv.rc
