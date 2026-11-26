@@ -201,63 +201,7 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 	if (m_pMiniMapDir)
 		m_pMiniMapDir->GetGeomControl()->fAngle = m_pMyHuman->m_fAngle - 2.3561945f;
 
-	if (m_pMiniMapPanel)
-	{
-		if (m_pMiniMapPanel->m_bVisible)
-		{
-			float fX = 0.0f;
-			float fY = 0.0f;
-			float fX2 = 0.0f;
-			float fY2 = 0.0f;
-
-			auto pFocused = g_pObjectManager->m_pCamera->m_pFocusedObject;
-			if (pFocused)
-			{
-				int nCullSize = 400;
-				if (TMGround::m_fMiniMapScale < 1.0)
-					nCullSize = 130;
-
-				int PlusX = 60;
-				int PlusY = 10;
-				for (int l = 0; l < 256; ++l)
-				{
-					fX = pFocused->m_vecPosition.x - (float)g_MinimapPos[l].nX;
-					fY = pFocused->m_vecPosition.y - (float)g_MinimapPos[l].nY;
-
-					// TODO: confirm this "-" latter.
-					fX2 = ((-((0.70710701f * fX) + (-0.70710701f * fY))	* 2.0f) + 78.0f)
-						+ ((signed int)TMGround::m_fMiniMapScale * 128.0f);
-					fY2 = ((((0.70710701f * fX) + (0.70710701f * fY)) * 2.0f) + 78.0f)
-						+ ((signed int)TMGround::m_fMiniMapScale * 128.0f);
-
-					if (fX2 >= 0.0 && fX2 <= (float)nCullSize && fY2 >= 0.0 && fY2 <= (float)nCullSize)
-						m_pInMiniMapPosPanel[l]->SetVisible(1);
-					else
-						m_pInMiniMapPosPanel[l]->SetVisible(0);
-
-					if (((float)g_MinimapPos[l].nCX + fX2) >= 0.0f && ((float)g_MinimapPos[l].nCX + fX2) <= (float)(nCullSize - PlusX) && 
-						((float)g_MinimapPos[l].nCY + fY2) >= 0.0f && ((float)g_MinimapPos[l].nCY + fY2) <= (float)(nCullSize - PlusY))
-					{
-						if (TMGround::m_fMiniMapScale >= 1.0f)
-							m_pInMiniMapPosText[l]->SetVisible(1);
-						else
-							m_pInMiniMapPosText[l]->SetVisible(0);
-					}
-					else
-					{
-						m_pInMiniMapPosText[l]->SetVisible(0);
-					}
-
-					m_pInMiniMapPosPanel[l]->SetPos(BASE_ScreenResize(fX2), BASE_ScreenResize(fY2));
-					if (TMGround::m_fMiniMapScale >= 1.0f)
-					{
-						m_pInMiniMapPosText[l]->SetPos(BASE_ScreenResize((float)g_MinimapPos[l].nCX + fX2), 
-							BASE_ScreenResize((float)g_MinimapPos[l].nCY + fY2));
-					}
-				}
-			}
-		}
-	}
+	FrameMove_MiniMap();
 	if (m_pTarget1 && m_pTarget2 && m_pTargetBill)
 	{
 		if (m_pTarget1->m_bShow == 1)
@@ -1577,6 +1521,69 @@ if (pCPanel && pCPanel->IsVisible() == 1)
 	else
 	{
 		m_dwLastClbuttonTime = dwServerTime;
+	}
+}
+}
+
+/// Atualiza o minimapa (`m_pMiniMapPanel`).
+/// @note Extraído de `TMFieldScene::FrameMove` (Fase 3); locais da função passadas por referência.
+void TMFieldScene::FrameMove_MiniMap()
+{
+if (m_pMiniMapPanel)
+{
+	if (m_pMiniMapPanel->m_bVisible)
+	{
+		float fX = 0.0f;
+		float fY = 0.0f;
+		float fX2 = 0.0f;
+		float fY2 = 0.0f;
+
+		auto pFocused = g_pObjectManager->m_pCamera->m_pFocusedObject;
+		if (pFocused)
+		{
+			int nCullSize = 400;
+			if (TMGround::m_fMiniMapScale < 1.0)
+				nCullSize = 130;
+
+			int PlusX = 60;
+			int PlusY = 10;
+			for (int l = 0; l < 256; ++l)
+			{
+				fX = pFocused->m_vecPosition.x - (float)g_MinimapPos[l].nX;
+				fY = pFocused->m_vecPosition.y - (float)g_MinimapPos[l].nY;
+
+				// TODO: confirm this "-" latter.
+				fX2 = ((-((0.70710701f * fX) + (-0.70710701f * fY))	* 2.0f) + 78.0f)
+					+ ((signed int)TMGround::m_fMiniMapScale * 128.0f);
+				fY2 = ((((0.70710701f * fX) + (0.70710701f * fY)) * 2.0f) + 78.0f)
+					+ ((signed int)TMGround::m_fMiniMapScale * 128.0f);
+
+				if (fX2 >= 0.0 && fX2 <= (float)nCullSize && fY2 >= 0.0 && fY2 <= (float)nCullSize)
+					m_pInMiniMapPosPanel[l]->SetVisible(1);
+				else
+					m_pInMiniMapPosPanel[l]->SetVisible(0);
+
+				if (((float)g_MinimapPos[l].nCX + fX2) >= 0.0f && ((float)g_MinimapPos[l].nCX + fX2) <= (float)(nCullSize - PlusX) && 
+					((float)g_MinimapPos[l].nCY + fY2) >= 0.0f && ((float)g_MinimapPos[l].nCY + fY2) <= (float)(nCullSize - PlusY))
+				{
+					if (TMGround::m_fMiniMapScale >= 1.0f)
+						m_pInMiniMapPosText[l]->SetVisible(1);
+					else
+						m_pInMiniMapPosText[l]->SetVisible(0);
+				}
+				else
+				{
+					m_pInMiniMapPosText[l]->SetVisible(0);
+				}
+
+				m_pInMiniMapPosPanel[l]->SetPos(BASE_ScreenResize(fX2), BASE_ScreenResize(fY2));
+				if (TMGround::m_fMiniMapScale >= 1.0f)
+				{
+					m_pInMiniMapPosText[l]->SetPos(BASE_ScreenResize((float)g_MinimapPos[l].nCX + fX2), 
+						BASE_ScreenResize((float)g_MinimapPos[l].nCY + fY2));
+				}
+			}
+		}
 	}
 }
 }

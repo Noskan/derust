@@ -348,6 +348,7 @@ private:
 	/// @name Etapas extraídas de FrameMove (Fase 3)
 	/// @{
 	void FrameMove_CPanel(unsigned int& dwServerTime, SPanel*& pCPanel);
+	void FrameMove_MiniMap();
 	/// @}
 
 public:
