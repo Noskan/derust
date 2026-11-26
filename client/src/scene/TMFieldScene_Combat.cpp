@@ -903,43 +903,8 @@ if (dwServerTime > m_dwOldAttackTime + 1000 &&
 			m_pMessagePanel->SetVisible(1, 1);
 			{ nReturnValue = 1; return true; }
 		}
-		if (cSkillIndex == 73)
-		{
-			if (g_pObjectManager->m_stMobData.CurrentScore.Mp < g_pSpell[73].ManaSpent)
-				{ nReturnValue = 1; return true; }
-
-			if (dwServerTime - m_pMyHuman->m_dwOldMovePacketTime > 1000)
-			{
-				int targetx = (signed int)vec.x;
-				int targety = (int)vec.z;
-				int x = (int)m_pMyHuman->m_vecPosition.x;
-				int y = (int)m_pMyHuman->m_vecPosition.y;
-
-				char cRouteBuffer[48]{};
-				BASE_GetRoute(x, y, &targetx, &targety, cRouteBuffer, 8, (char*)m_HeightMapData, 8);
-				if (!strlen(cRouteBuffer))
-					{ nReturnValue = 1; return true; }
-
-				MSG_Action stAction{};
-				stAction.Header.ID = m_pMyHuman->m_dwID;
-				stAction.PosX = x;
-				stAction.PosY = y;
-				stAction.Effect = 6;
-				stAction.Header.Type = MSG_Action2_Opcode;
-				stAction.Speed = g_nMyHumanSpeed;
-				stAction.TargetX = targetx;
-				stAction.TargetY = targety;
-				m_stMoveStop.LastX = x;
-				m_stMoveStop.LastY = stAction.PosY;
-				m_stMoveStop.NextX = stAction.TargetX;
-				m_stMoveStop.NextY = stAction.TargetY;
-				SendOneMessage((char*)&stAction, sizeof(stAction));
-				IncSkillSel();
-				m_dwSkillLastTime[(unsigned char)cSkillIndex] = dwServerTime;
-				m_pMyHuman->m_dwOldMovePacketTime = dwServerTime;
-			}
-			{ nReturnValue = 1; return true; }
-		}
+		if (SkillUse_Skill73Dash(vec, dwServerTime, cSkillIndex, nReturnValue))
+			return true;
 
 		stAttack.Dam[0].TargetID = m_pMyHuman->m_dwID;
 		stAttack.Dam[0].Damage = -1;
@@ -1538,6 +1503,51 @@ void TMFieldScene::SkillUse_PartyTargets(int& nSpecForce, char& cSkillIndex, MSG
 		stAttack.Dam[0].TargetID = m_pMyHuman->m_dwID;
 		stAttack.Dam[0].Damage = -1;
 	}
+}
+
+/// Skill 73: confere a mana e envia o movimento até o ponto clicado (`MSG_Action2`, efeito 6).
+/// @note Extraído de `TMFieldScene::SkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::SkillUse_Skill73Dash(D3DXVECTOR3& vec, unsigned int& dwServerTime, char& cSkillIndex, int& nReturnValue)
+{
+	if (cSkillIndex == 73)
+	{
+		if (g_pObjectManager->m_stMobData.CurrentScore.Mp < g_pSpell[73].ManaSpent)
+			{ nReturnValue = 1; return true; }
+
+		if (dwServerTime - m_pMyHuman->m_dwOldMovePacketTime > 1000)
+		{
+			int targetx = (signed int)vec.x;
+			int targety = (int)vec.z;
+			int x = (int)m_pMyHuman->m_vecPosition.x;
+			int y = (int)m_pMyHuman->m_vecPosition.y;
+
+			char cRouteBuffer[48]{};
+			BASE_GetRoute(x, y, &targetx, &targety, cRouteBuffer, 8, (char*)m_HeightMapData, 8);
+			if (!strlen(cRouteBuffer))
+				{ nReturnValue = 1; return true; }
+
+			MSG_Action stAction{};
+			stAction.Header.ID = m_pMyHuman->m_dwID;
+			stAction.PosX = x;
+			stAction.PosY = y;
+			stAction.Effect = 6;
+			stAction.Header.Type = MSG_Action2_Opcode;
+			stAction.Speed = g_nMyHumanSpeed;
+			stAction.TargetX = targetx;
+			stAction.TargetY = targety;
+			m_stMoveStop.LastX = x;
+			m_stMoveStop.LastY = stAction.PosY;
+			m_stMoveStop.NextX = stAction.TargetX;
+			m_stMoveStop.NextY = stAction.TargetY;
+			SendOneMessage((char*)&stAction, sizeof(stAction));
+			IncSkillSel();
+			m_dwSkillLastTime[(unsigned char)cSkillIndex] = dwServerTime;
+			m_pMyHuman->m_dwOldMovePacketTime = dwServerTime;
+		}
+		{ nReturnValue = 1; return true; }
+	}
+	return false;
 }
 
 /// Alvo fora de alcance: aproxima o personagem antes de usar a skill.
