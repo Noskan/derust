@@ -569,7 +569,7 @@ int BASE_CanTrade(STRUCT_ITEM* Dest, STRUCT_ITEM* Carry, char* MyTrade, STRUCT_I
 
 void BASE_ClearItem(STRUCT_ITEM* item)
 {
-    memset(item, 0, sizeof(item));
+    memset(item, 0, sizeof(*item)); // era sizeof(item): zerava só 4 dos 8 bytes
 }
 
 void BASE_SortTradeItem(STRUCT_ITEM* Item, int Type)

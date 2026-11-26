@@ -190,7 +190,7 @@ void CItemMix::Set_NeedItemList(int Index)
 
                         auto pstItem = new STRUCT_ITEM();
 
-                        memcpy(pstItem, &stNeed_itemList[index].stGridItem, sizeof(pstItem));
+                        memcpy(pstItem, &stNeed_itemList[index].stGridItem, sizeof(*pstItem)); // era sizeof(pstItem): 4 de 8 bytes
 
                         m_pGridNeedItem[j]->AddItem(new SGridControlItem(0, pstItem, 0.0f, 0.0f), 0, 0);
                         m_pGridNeedItem[j]->m_eGridType = TMEGRIDTYPE::GRID_ITEMMIXNEED;

@@ -536,14 +536,16 @@ const Case kCases[] = {
 
 /// Valores gerados com o código da tag `pre-modularization` (ver @file), em ponto flutuante SSE2
 /// (padrão do MSVC Win32; o mingw usa `-msse2 -mfpmath=sse`). Conferem também com `-O0` e x87.
+/// Mudança intencional: `ItemSancAndColor` e `EquipCarryTrade` foram regravados quando
+/// `BASE_ClearItem` passou a zerar o item inteiro (antes, `sizeof` do ponteiro: 4 de 8 bytes).
 const struct
 {
 	const char* name;
 	uint64_t hash;
 } kExpected[] = {
 	{ "ItemAbility", 0xba651a92727573d2ull },
-	{ "ItemSancAndColor", 0x928fb0731f29e78aull },
-	{ "EquipCarryTrade", 0x7ea562c6d4f792c8ull },
+	{ "ItemSancAndColor", 0x17120ba33e0148ceull },
+	{ "EquipCarryTrade", 0xe7dcd9fdb0faea97ull },
 	{ "Combat", 0x3bae9037bdb69946ull },
 	{ "World", 0x9f42c7c0d5518942ull },
 	{ "Strings", 0xff7b3c1c5a0c6e8eull },
