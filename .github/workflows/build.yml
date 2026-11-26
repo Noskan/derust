@@ -1,0 +1,45 @@
+name: Build (Windows Win32 MSVC)
+
+on:
+  push:
+    branches:
+      - main
+      - "refactor/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: MSVC Win32 (${{ matrix.config }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Debug, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure CMake (Win32)
+        run: cmake --preset win32-msvc -DW2PP_BUILD_CLIENT_PATCH=ON
+
+      - name: Build (${{ matrix.config }})
+        run: cmake --build build/win32-msvc --config ${{ matrix.config }} --parallel
+
+      - name: Collect artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/${{ matrix.config }} | Out-Null
+          Get-ChildItem -Path build/win32-msvc -Recurse -Include *.exe,*.dll |
+            Where-Object { $_.DirectoryName -match "\\${{ matrix.config }}$" -and $_.FullName -notmatch "\\CMakeFiles\\" } |
+            Copy-Item -Destination dist/${{ matrix.config }} -Force
+          Get-ChildItem dist/${{ matrix.config }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: derust-win32-${{ matrix.config }}
+          path: dist/${{ matrix.config }}/*

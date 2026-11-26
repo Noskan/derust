@@ -1,0 +1,39 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "win32-msvc",
+      "displayName": "Windows x86 (Visual Studio 2022 Win32)",
+      "generator": "Visual Studio 17 2022",
+      "architecture": {
+        "value": "Win32",
+        "strategy": "set"
+      },
+      "binaryDir": "${sourceDir}/build/win32-msvc",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "win32-debug",
+      "displayName": "Win32 Debug",
+      "configurePreset": "win32-msvc",
+      "configuration": "Debug"
+    },
+    {
+      "name": "win32-release",
+      "displayName": "Win32 Release",
+      "configurePreset": "win32-msvc",
+      "configuration": "Release"
+    }
+  ]
+}

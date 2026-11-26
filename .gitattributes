@@ -1,0 +1,25 @@
+# Default line ending auto-detection without touching legacy encodings/EOLs unnecessarily
+* text=auto
+
+# Normalize modern build, CI, documentation, and tooling files to LF
+*.cmake text eol=lf
+CMakeLists.txt text eol=lf
+CMakePresets.json text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.py text eol=lf
+.editorconfig text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# Binary assets and legacy DirectX libraries
+*.lib binary
+*.dll binary
+*.exe binary
+*.ico binary
+*.cur binary
+*.png binary
+*.bmp binary
+*.jpg binary
