@@ -267,48 +267,7 @@ int TMHuman::FrameMove(unsigned int dwServerTime)
     m_vecPosition = vecCurrent;
     FrameMoveEffect(dwServerTime);
 
-    if (pScene && pScene->m_pGround)
-    {
-        float fCurrent = (float)pScene->GroundGetMask(m_vecRouteBuffer[nRouteIndex]) * 0.1f;
-        float fNext = (float)pScene->GroundGetMask(m_vecRouteBuffer[nRouteIndex + 1]) * 0.1f;
-        if (m_cSameHeight == 1)
-        {
-            fCurrent = (float)pScene->GroundGetMask(m_vecStartPos) * 0.1f;
-            fNext = (float)pScene->GroundGetMask(m_vecTargetPos) * 0.1f;
-        }
-
-        m_fWantHeight = ((1.0f - fProgressRate) * fCurrent) + (float)(fNext * fProgressRate);
-        if (pScene->m_eSceneType == ESCENE_TYPE::ESCENE_SELCHAR)
-        {
-            if (m_vecPosition.y >= 2060.0f)
-                m_fWantHeight = 4.09f;
-            else
-                m_fWantHeight = 0.1f;
-        }
-
-        if (m_dwID < 0 || m_dwID > 1000)
-            m_fWantHeight = m_fWantHeight + fDieHeight;
-
-        if (m_nSkinMeshType == 20)
-        {
-            if (!m_stLookInfo.HelmMesh && m_eMotion == ECHAR_MOTION::ECMOTION_RUN)
-                m_fWantHeight = m_fWantHeight + 1.2f;
-            else if (m_stLookInfo.HelmMesh == 2 && m_eMotion == ECHAR_MOTION::ECMOTION_RUN)
-                m_fWantHeight = m_fWantHeight + 1.0f;
-        }
-        else if (m_nSkinMeshType == 24)
-        {
-            if (m_eMotion == ECHAR_MOTION::ECMOTION_RUN || m_eMotion == ECHAR_MOTION::ECMOTION_WALK && m_bParty == 1)
-                m_fWantHeight = m_fWantHeight + 1.2f;
-            else if (m_eMotion == ECHAR_MOTION::ECMOTION_STAND01 || m_eMotion == ECHAR_MOTION::ECMOTION_STAND02)
-            {
-                if (m_fMaxSpeed > 2.0f || m_bParty == 1)
-                    m_fWantHeight = m_fWantHeight + 1.2f;
-            }
-            else if ((int)m_eMotion >= 4 && (int)m_eMotion <= 9 && (m_fMaxSpeed > 2.0f || m_bParty == 1))
-                m_fWantHeight = m_fWantHeight + 1.1f;
-        }
-    }
+    FrameMove_RouteHeight(pScene, fDieHeight, nRouteIndex, fProgressRate);
 
     if (!m_bIgnoreHeight)
         m_fHeight = GetMyHeight();
@@ -1018,6 +977,54 @@ void TMHuman::FrameMove_TurnAngle(float& fDAngle)
             m_fWantAngle = m_fCurrAng;
         }
     }    
+}
+
+/// Altura desejada ao longo da rota, interpolada entre o ponto atual e o próximo.
+/// @note Extraído de `TMHuman::FrameMove` (Fase 3); locais passadas por referência.
+void TMHuman::FrameMove_RouteHeight(TMScene*& pScene, float& fDieHeight, int& nRouteIndex, float& fProgressRate)
+{
+    if (pScene && pScene->m_pGround)
+    {
+        float fCurrent = (float)pScene->GroundGetMask(m_vecRouteBuffer[nRouteIndex]) * 0.1f;
+        float fNext = (float)pScene->GroundGetMask(m_vecRouteBuffer[nRouteIndex + 1]) * 0.1f;
+        if (m_cSameHeight == 1)
+        {
+            fCurrent = (float)pScene->GroundGetMask(m_vecStartPos) * 0.1f;
+            fNext = (float)pScene->GroundGetMask(m_vecTargetPos) * 0.1f;
+        }
+
+        m_fWantHeight = ((1.0f - fProgressRate) * fCurrent) + (float)(fNext * fProgressRate);
+        if (pScene->m_eSceneType == ESCENE_TYPE::ESCENE_SELCHAR)
+        {
+            if (m_vecPosition.y >= 2060.0f)
+                m_fWantHeight = 4.09f;
+            else
+                m_fWantHeight = 0.1f;
+        }
+
+        if (m_dwID < 0 || m_dwID > 1000)
+            m_fWantHeight = m_fWantHeight + fDieHeight;
+
+        if (m_nSkinMeshType == 20)
+        {
+            if (!m_stLookInfo.HelmMesh && m_eMotion == ECHAR_MOTION::ECMOTION_RUN)
+                m_fWantHeight = m_fWantHeight + 1.2f;
+            else if (m_stLookInfo.HelmMesh == 2 && m_eMotion == ECHAR_MOTION::ECMOTION_RUN)
+                m_fWantHeight = m_fWantHeight + 1.0f;
+        }
+        else if (m_nSkinMeshType == 24)
+        {
+            if (m_eMotion == ECHAR_MOTION::ECMOTION_RUN || m_eMotion == ECHAR_MOTION::ECMOTION_WALK && m_bParty == 1)
+                m_fWantHeight = m_fWantHeight + 1.2f;
+            else if (m_eMotion == ECHAR_MOTION::ECMOTION_STAND01 || m_eMotion == ECHAR_MOTION::ECMOTION_STAND02)
+            {
+                if (m_fMaxSpeed > 2.0f || m_bParty == 1)
+                    m_fWantHeight = m_fWantHeight + 1.2f;
+            }
+            else if ((int)m_eMotion >= 4 && (int)m_eMotion <= 9 && (m_fMaxSpeed > 2.0f || m_bParty == 1))
+                m_fWantHeight = m_fWantHeight + 1.1f;
+        }
+    }
 }
 
 void TMHuman::DelayDelete()
