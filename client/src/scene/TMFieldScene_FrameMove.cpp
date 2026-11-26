@@ -411,297 +411,7 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 			m_pRain->m_bVisible = 0;
 		}
 	}
-	if (!g_nWeather && (!m_pGround->m_bDungeon || m_pGround->m_bDungeon == 3 || m_pGround->m_bDungeon == 4))
-	{
-		int nTime = (dwServerTime / 600000) % 12;
-		if (m_nWTime)
-			nTime = m_nWTime;
-
-		if ((m_pGround->m_bDungeon == 3 || m_pGround->m_bDungeon == 4) && m_pSnow->m_bVisible == 1)
-		{
-			m_pSnow->m_bVisible = 0;
-			m_pSnow2->m_bVisible = 0;
-			m_pRain->m_bVisible = 1;
-		}
-		if (nTime <= 7)
-		{
-			if ((int)m_pMyHuman->m_vecPosition.x >> 7 > 26 && (int)m_pMyHuman->m_vecPosition.x >> 7 < 31 && 
-				(int)m_pMyHuman->m_vecPosition.y >> 7 > 20 && (int)m_pMyHuman->m_vecPosition.y >> 7 < 25)
-			{
-				if (m_pSky->m_nState != 1 && m_pSky->m_nState != 11)
-				{
-					m_pSky->SetWeatherState(11);
-					m_pRain->m_bVisible = 0;
-					m_pSnow->m_bVisible = 1;
-					m_pSnow2->m_bVisible = 0;
-				}
-			}
-			else if (m_pSky->m_nState && m_pSky->m_nState != 10)
-			{
-				m_pSky->SetWeatherState(10);
-				m_pRain->m_bVisible = 0;
-				m_pSnow->m_bVisible = 0;
-				m_pSnow2->m_bVisible = 0;
-			}
-		}
-		else if (nTime >= 8 && nTime <= 9)
-		{
-			if (m_pSky->m_nState != 2 && m_pSky->m_nState != 12)
-			{
-				m_pSky->SetWeatherState(12);
-				m_pRain->m_bVisible = 0;
-				m_pSnow->m_bVisible = 0;
-				m_pSnow2->m_bVisible = 0;
-			}
-		}
-		else if (nTime >= 10 && nTime <= 11)
-		{
-			if (m_pSky->m_nState != 3 && m_pSky->m_nState != 13)
-			{
-				m_pSky->SetWeatherState(13);
-				m_pRain->m_bVisible = 0;
-				m_pSnow->m_bVisible = 0;
-				m_pSnow2->m_bVisible = 0;
-			}
-		}
-		else if (nTime == 12)
-		{
-			if (m_pSky->m_nState != 1)
-			{
-				g_nWeather = 12;
-				m_pSky->SetWeatherState(11);
-			}
-			if (!m_pRain->m_bVisible)
-				m_pRain->m_bVisible = 1;
-			if (m_pSnow->m_bVisible == 1)
-				m_pSnow->m_bVisible = 0;
-			if (m_pSnow2->m_bVisible == 1)
-				m_pSnow2->m_bVisible = 0;
-		}
-		else if (nTime == 13)
-		{
-			if (m_pSky->m_nState != 1)
-			{
-				g_nWeather = 13;
-				m_pSky->SetWeatherState(11);
-			}
-			if (m_pRain->m_bVisible == 1)
-				m_pRain->m_bVisible = 0;
-			if (!m_pSnow->m_bVisible)
-				m_pSnow->m_bVisible = 1;
-			if (m_pSnow2->m_bVisible == 1)
-				m_pSnow2->m_bVisible = 0;
-		}
-		else if (nTime == 14)
-		{
-			if (m_pSky->m_nState != 1)
-			{
-				g_nWeather = 14;
-				m_pSky->SetWeatherState(11);
-			}
-			if (m_pRain->m_bVisible == 1)
-				m_pRain->m_bVisible = 0;
-			if (!m_pSnow->m_bVisible)
-				m_pSnow->m_bVisible = 1;
-			if (!m_pSnow2->m_bVisible)
-				m_pSnow2->m_bVisible = 1;
-		}
-		if (dwServerTime - m_dwWeatherTime > 1000)
-		{
-			if (!m_pGround->m_bDungeon)
-			{
-				int nRand = rand() % 7;
-				int nTexture = 95;
-
-				if (((int)m_pMyHuman->m_vecPosition.x >> 7 == 29 || (int)m_pMyHuman->m_vecPosition.x >> 7 == 30) && (int)m_pMyHuman->m_vecPosition.y >> 7 == 22)
-				{
-					if (pSoundManager)
-					{
-						auto pSoundData = pSoundManager->GetSoundData(114);
-						if (pSoundData && !pSoundData->IsSoundPlaying())
-							pSoundData->Play();
-					}
-
-					nTexture = 2;
-				}
-				else if (pSoundManager)
-				{
-					auto pSoundData = pSoundManager->GetSoundData(114);
-					if (pSoundData && pSoundData->IsSoundPlaying())
-						pSoundData->Stop();
-				}
-
-				if ((int)m_pMyHuman->m_vecPosition.x >> 7 == 28	&& (int)m_pMyHuman->m_vecPosition.y >> 7 == 24 || 
-					(int)m_pMyHuman->m_vecPosition.x >> 7 == 19	&& (int)m_pMyHuman->m_vecPosition.y >> 7 == 12)
-				{
-					int nSoundRand = rand() % 7;
-					if (nSoundRand >= 0 && nSoundRand <= 2)
-					{
-						if (pSoundManager)
-						{
-							auto pSoundData = pSoundManager->GetSoundData(367 + nSoundRand);
-							if (pSoundData && !pSoundData->IsSoundPlaying())
-								pSoundData->Play();
-						}
-					}					
-				}
-
-				if (!g_bHideEffect)
-				{
-					auto pPappus = new TMEffectBillBoard(nTexture, 20000, 0.2f, 0.2f, 0.2f, 0.0f, 1, 80);
-					if (pPappus)
-					{
-						pPappus->m_vecPosition = TMVector3((float)(m_pMyHuman->m_vecPosition.x + 2.0f) - (float)nRand,
-							((float)nRand * 0.2f) + m_pMyHuman->m_fHeight,
-							(float)(m_pMyHuman->m_vecPosition.y + 2.0f) - (float)nRand);
-
-						pPappus->m_vecPosition.y += 1.0f;
-						pPappus->m_vecStartPos = pPappus->m_vecPosition;
-						pPappus->m_fCircleSpeed = ((float)nRand * 0.1f) + 1.0f;
-						nRand = rand() % 7;
-						pPappus->m_fParticleH = ((float)nRand * 0.5f) + 7.0f;
-						nRand = rand() % 7;
-						pPappus->m_fParticleV = ((float)nRand * 0.1f) + 1.0f;
-						pPappus->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-						pPappus->m_nParticleType = nRand % 3 + 3;
-						pPappus->SetColor(0xAAAAAAAA);
-						if (m_pEffectContainer)
-							m_pEffectContainer->AddChild(pPappus);
-					}
-				}				
-			}
-			if (m_pSky->m_nState == 3 || m_pSky->m_nState == 13)
-			{
-				if (pSoundManager)
-				{
-					auto pSoundData = pSoundManager->GetSoundData(107);
-					if (pSoundData && !pSoundData->IsSoundPlaying())
-						pSoundData->Play();
-				}
-
-				if (((int)m_pMyHuman->m_vecPosition.x >> 7 > 26 && (int)m_pMyHuman->m_vecPosition.x >> 7 < 31 &&
-					 (int)m_pMyHuman->m_vecPosition.y >> 7 > 20 && (int)m_pMyHuman->m_vecPosition.y >> 7 < 25) == 0 &&
-					!g_bHideEffect)
-				{
-					int nRand = rand() % 7;
-					auto pGlow = new TMEffectBillBoard(56, 20000, 0.2f, 0.2f, 0.2f, 0.0f, 1, 80);
-					if (pGlow)
-					{
-						pGlow->m_vecPosition = TMVector3((float)(m_pMyHuman->m_vecPosition.x + 2.0f) - (float)nRand,
-							(float)(m_pMyHuman->m_fHeight + 1.5f) + ((float)nRand * 0.2f),
-							(float)(m_pMyHuman->m_vecPosition.y + 2.0f) - (float)nRand);
-
-						pGlow->m_vecStartPos = pGlow->m_vecPosition;
-						pGlow->m_fCircleSpeed = (float)((float)nRand * 0.1f) + 1.5f;
-						pGlow->m_fParticleH = (float)((float)nRand * 0.5f) + 5.0f;
-						pGlow->m_fParticleV = (float)((float)nRand * 0.05f) + 0.2f;
-						pGlow->m_nParticleType = nRand % 3 + 6;
-						pGlow->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-						pGlow->SetColor(0x0FFFFFF00);
-						if (m_pEffectContainer)
-							m_pEffectContainer->AddChild(pGlow);
-					}
-
-					pGlow = new TMEffectBillBoard(60, 20000, 0.07f, 0.07f, 0.07f, 0.0f, 1, 80);
-					if (pGlow)
-					{
-						pGlow->m_vecPosition = TMVector3((float)(m_pMyHuman->m_vecPosition.x + 2.0f) - (float)nRand,
-							(float)(m_pMyHuman->m_fHeight + 1.5f) + ((float)nRand * 0.2f),
-							(float)(m_pMyHuman->m_vecPosition.y + 2.0f) - (float)nRand);
-
-						pGlow->m_vecStartPos = pGlow->m_vecPosition;
-						pGlow->m_fCircleSpeed = ((float)nRand * 0.1f) + 1.5f;
-						pGlow->m_fParticleH = ((float)nRand * 0.5f) + 5.0f;
-						pGlow->m_fParticleV = ((float)nRand * 0.05f) + 0.2f;
-						pGlow->m_nParticleType = nRand % 3 + 6;
-						pGlow->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-						pGlow->SetColor(0x0FFFFFF00);
-						if (m_pEffectContainer)
-							m_pEffectContainer->AddChild(pGlow);
-					}
-				}
-				if ((RenderDevice::m_bDungeon == 3 || RenderDevice::m_bDungeon == 4) && dwServerTime - m_dwLastWolfSound > 25000)
-				{
-					if (pSoundManager)
-					{
-						auto pSoundData = pSoundManager->GetSoundData(111);
-						if (pSoundData && !pSoundData->IsSoundPlaying())
-							pSoundData->Play();
-					}
-
-					m_dwLastWolfSound = dwServerTime;
-				}
-			}
-			else if (pSoundManager)
-			{
-				auto pSoundData = pSoundManager->GetSoundData(107);
-				if (pSoundData && !pSoundData->IsSoundPlaying())
-					pSoundData->Stop();
-			}
-
-			if (RenderDevice::m_bDungeon == 3)
-			{
-				if (dwServerTime - m_dwLastDustTime > m_dwDustTerm && m_bSandWind == 1 && g_bCastleWar == 2 && !m_pSky->m_nState)
-				{
-					if (pSoundManager)
-					{
-						auto pSoundData = pSoundManager->GetSoundData(304);
-						if (pSoundData && pSoundData->IsSoundPlaying())
-							pSoundData->Play();
-					}
-					if (!g_bHideEffect)
-					{
-						for (int ii = 0; ii < 5; ++ii)
-						{
-							float fWidth = (float)(50 * (rand() % 5)) + 300.0f;
-							auto pCamera = g_pObjectManager->m_pCamera;
-							
-							auto pBillEffect = new TMEffectBillBoard4(193, 800 * ii + 3000, fWidth, fWidth, 1.0f, 1, 80);
-							if (pBillEffect)
-							{
-								pBillEffect->SetPosition(100 * ii - 900, 100 * ii);
-								pBillEffect->SetParticle(1600.0, 0.0);
-								m_pEffectContainer->AddChild(pBillEffect);
-							}
-						}
-					}
-					++m_nDustCount;
-					m_nDustCount %= 10;
-					if (m_nDustCount)
-						m_dwDustTerm = 1000;
-					else
-						m_dwDustTerm = 3000 * (rand() % 10 + 5);
-
-					m_dwLastDustTime = dwServerTime;
-				}		
-				if (dwServerTime - m_dwLastPappusTime > 2000)
-				{
-					for (int jj = 0; jj < 8; ++jj)
-					{
-						int nRand = rand() % 5;
-						int nRand2 = rand() % 5;
-
-						TMVector3 vecStart = TMVector3(
-							((float)(m_pMyHuman->m_vecPosition.x - 16.0f) + (float)jj) + (float)(4 * nRand),
-							m_pMyHuman->m_fHeight + 8.0f,
-							((float)(m_pMyHuman->m_vecPosition.y - 12.0f) + (float)jj) + (float)(2 * nRand2));
-
-						TMVector3 vecEnd = TMVector3(
-							(float)((float)(m_pMyHuman->m_vecPosition.x + 4.0f) + (float)jj) + (float)(2 * nRand),
-							m_pMyHuman->m_fHeight + 0.5f,
-							(float)((float)(m_pMyHuman->m_vecPosition.y + 4.0f) + (float)jj) + (float)nRand2
-						);
-
-						auto pStorm = new TMSkillMagicArrow(vecStart, vecEnd, 3, 0);
-						if (pStorm)
-							m_pEffectContainer->AddChild(pStorm);
-					}
-					m_dwLastPappusTime = dwServerTime;
-				}
-			}
-			m_dwWeatherTime = g_pTimerManager->GetServerTime();
-		}
-	}
+	FrameMove_WeatherSound(dwServerTime, pSoundManager);
 	if ((int)m_pMyHuman->m_vecPosition.x >> 7 > 26 && (int)m_pMyHuman->m_vecPosition.x >> 7 < 31 && 
 		(int)m_pMyHuman->m_vecPosition.y >> 7 > 20 && (int)m_pMyHuman->m_vecPosition.y >> 7 < 25)
 	{
@@ -1605,6 +1315,303 @@ if (!m_pMyHuman->m_cLastMoveStop)
 		}
 		else if (m_vecMyNext.x != (int)m_pMyHuman->m_vecPosition.x || m_vecMyNext.y != (int)m_pMyHuman->m_vecPosition.y)
 			m_pMyHuman->GetRoute(m_vecMyNext, 0, m_pMyHuman->m_cLastMoveStop);
+	}
+}
+}
+
+/// Clima e sons ambientes fora de dungeon (`g_nWeather`).
+/// @note Extraído de `TMFieldScene::FrameMove` (Fase 3); locais da função passadas por referência.
+void TMFieldScene::FrameMove_WeatherSound(unsigned int& dwServerTime, CSoundManager*& pSoundManager)
+{
+if (!g_nWeather && (!m_pGround->m_bDungeon || m_pGround->m_bDungeon == 3 || m_pGround->m_bDungeon == 4))
+{
+	int nTime = (dwServerTime / 600000) % 12;
+	if (m_nWTime)
+		nTime = m_nWTime;
+
+	if ((m_pGround->m_bDungeon == 3 || m_pGround->m_bDungeon == 4) && m_pSnow->m_bVisible == 1)
+	{
+		m_pSnow->m_bVisible = 0;
+		m_pSnow2->m_bVisible = 0;
+		m_pRain->m_bVisible = 1;
+	}
+	if (nTime <= 7)
+	{
+		if ((int)m_pMyHuman->m_vecPosition.x >> 7 > 26 && (int)m_pMyHuman->m_vecPosition.x >> 7 < 31 && 
+			(int)m_pMyHuman->m_vecPosition.y >> 7 > 20 && (int)m_pMyHuman->m_vecPosition.y >> 7 < 25)
+		{
+			if (m_pSky->m_nState != 1 && m_pSky->m_nState != 11)
+			{
+				m_pSky->SetWeatherState(11);
+				m_pRain->m_bVisible = 0;
+				m_pSnow->m_bVisible = 1;
+				m_pSnow2->m_bVisible = 0;
+			}
+		}
+		else if (m_pSky->m_nState && m_pSky->m_nState != 10)
+		{
+			m_pSky->SetWeatherState(10);
+			m_pRain->m_bVisible = 0;
+			m_pSnow->m_bVisible = 0;
+			m_pSnow2->m_bVisible = 0;
+		}
+	}
+	else if (nTime >= 8 && nTime <= 9)
+	{
+		if (m_pSky->m_nState != 2 && m_pSky->m_nState != 12)
+		{
+			m_pSky->SetWeatherState(12);
+			m_pRain->m_bVisible = 0;
+			m_pSnow->m_bVisible = 0;
+			m_pSnow2->m_bVisible = 0;
+		}
+	}
+	else if (nTime >= 10 && nTime <= 11)
+	{
+		if (m_pSky->m_nState != 3 && m_pSky->m_nState != 13)
+		{
+			m_pSky->SetWeatherState(13);
+			m_pRain->m_bVisible = 0;
+			m_pSnow->m_bVisible = 0;
+			m_pSnow2->m_bVisible = 0;
+		}
+	}
+	else if (nTime == 12)
+	{
+		if (m_pSky->m_nState != 1)
+		{
+			g_nWeather = 12;
+			m_pSky->SetWeatherState(11);
+		}
+		if (!m_pRain->m_bVisible)
+			m_pRain->m_bVisible = 1;
+		if (m_pSnow->m_bVisible == 1)
+			m_pSnow->m_bVisible = 0;
+		if (m_pSnow2->m_bVisible == 1)
+			m_pSnow2->m_bVisible = 0;
+	}
+	else if (nTime == 13)
+	{
+		if (m_pSky->m_nState != 1)
+		{
+			g_nWeather = 13;
+			m_pSky->SetWeatherState(11);
+		}
+		if (m_pRain->m_bVisible == 1)
+			m_pRain->m_bVisible = 0;
+		if (!m_pSnow->m_bVisible)
+			m_pSnow->m_bVisible = 1;
+		if (m_pSnow2->m_bVisible == 1)
+			m_pSnow2->m_bVisible = 0;
+	}
+	else if (nTime == 14)
+	{
+		if (m_pSky->m_nState != 1)
+		{
+			g_nWeather = 14;
+			m_pSky->SetWeatherState(11);
+		}
+		if (m_pRain->m_bVisible == 1)
+			m_pRain->m_bVisible = 0;
+		if (!m_pSnow->m_bVisible)
+			m_pSnow->m_bVisible = 1;
+		if (!m_pSnow2->m_bVisible)
+			m_pSnow2->m_bVisible = 1;
+	}
+	if (dwServerTime - m_dwWeatherTime > 1000)
+	{
+		if (!m_pGround->m_bDungeon)
+		{
+			int nRand = rand() % 7;
+			int nTexture = 95;
+
+			if (((int)m_pMyHuman->m_vecPosition.x >> 7 == 29 || (int)m_pMyHuman->m_vecPosition.x >> 7 == 30) && (int)m_pMyHuman->m_vecPosition.y >> 7 == 22)
+			{
+				if (pSoundManager)
+				{
+					auto pSoundData = pSoundManager->GetSoundData(114);
+					if (pSoundData && !pSoundData->IsSoundPlaying())
+						pSoundData->Play();
+				}
+
+				nTexture = 2;
+			}
+			else if (pSoundManager)
+			{
+				auto pSoundData = pSoundManager->GetSoundData(114);
+				if (pSoundData && pSoundData->IsSoundPlaying())
+					pSoundData->Stop();
+			}
+
+			if ((int)m_pMyHuman->m_vecPosition.x >> 7 == 28	&& (int)m_pMyHuman->m_vecPosition.y >> 7 == 24 || 
+				(int)m_pMyHuman->m_vecPosition.x >> 7 == 19	&& (int)m_pMyHuman->m_vecPosition.y >> 7 == 12)
+			{
+				int nSoundRand = rand() % 7;
+				if (nSoundRand >= 0 && nSoundRand <= 2)
+				{
+					if (pSoundManager)
+					{
+						auto pSoundData = pSoundManager->GetSoundData(367 + nSoundRand);
+						if (pSoundData && !pSoundData->IsSoundPlaying())
+							pSoundData->Play();
+					}
+				}					
+			}
+
+			if (!g_bHideEffect)
+			{
+				auto pPappus = new TMEffectBillBoard(nTexture, 20000, 0.2f, 0.2f, 0.2f, 0.0f, 1, 80);
+				if (pPappus)
+				{
+					pPappus->m_vecPosition = TMVector3((float)(m_pMyHuman->m_vecPosition.x + 2.0f) - (float)nRand,
+						((float)nRand * 0.2f) + m_pMyHuman->m_fHeight,
+						(float)(m_pMyHuman->m_vecPosition.y + 2.0f) - (float)nRand);
+
+					pPappus->m_vecPosition.y += 1.0f;
+					pPappus->m_vecStartPos = pPappus->m_vecPosition;
+					pPappus->m_fCircleSpeed = ((float)nRand * 0.1f) + 1.0f;
+					nRand = rand() % 7;
+					pPappus->m_fParticleH = ((float)nRand * 0.5f) + 7.0f;
+					nRand = rand() % 7;
+					pPappus->m_fParticleV = ((float)nRand * 0.1f) + 1.0f;
+					pPappus->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+					pPappus->m_nParticleType = nRand % 3 + 3;
+					pPappus->SetColor(0xAAAAAAAA);
+					if (m_pEffectContainer)
+						m_pEffectContainer->AddChild(pPappus);
+				}
+			}				
+		}
+		if (m_pSky->m_nState == 3 || m_pSky->m_nState == 13)
+		{
+			if (pSoundManager)
+			{
+				auto pSoundData = pSoundManager->GetSoundData(107);
+				if (pSoundData && !pSoundData->IsSoundPlaying())
+					pSoundData->Play();
+			}
+
+			if (((int)m_pMyHuman->m_vecPosition.x >> 7 > 26 && (int)m_pMyHuman->m_vecPosition.x >> 7 < 31 &&
+				 (int)m_pMyHuman->m_vecPosition.y >> 7 > 20 && (int)m_pMyHuman->m_vecPosition.y >> 7 < 25) == 0 &&
+				!g_bHideEffect)
+			{
+				int nRand = rand() % 7;
+				auto pGlow = new TMEffectBillBoard(56, 20000, 0.2f, 0.2f, 0.2f, 0.0f, 1, 80);
+				if (pGlow)
+				{
+					pGlow->m_vecPosition = TMVector3((float)(m_pMyHuman->m_vecPosition.x + 2.0f) - (float)nRand,
+						(float)(m_pMyHuman->m_fHeight + 1.5f) + ((float)nRand * 0.2f),
+						(float)(m_pMyHuman->m_vecPosition.y + 2.0f) - (float)nRand);
+
+					pGlow->m_vecStartPos = pGlow->m_vecPosition;
+					pGlow->m_fCircleSpeed = (float)((float)nRand * 0.1f) + 1.5f;
+					pGlow->m_fParticleH = (float)((float)nRand * 0.5f) + 5.0f;
+					pGlow->m_fParticleV = (float)((float)nRand * 0.05f) + 0.2f;
+					pGlow->m_nParticleType = nRand % 3 + 6;
+					pGlow->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+					pGlow->SetColor(0x0FFFFFF00);
+					if (m_pEffectContainer)
+						m_pEffectContainer->AddChild(pGlow);
+				}
+
+				pGlow = new TMEffectBillBoard(60, 20000, 0.07f, 0.07f, 0.07f, 0.0f, 1, 80);
+				if (pGlow)
+				{
+					pGlow->m_vecPosition = TMVector3((float)(m_pMyHuman->m_vecPosition.x + 2.0f) - (float)nRand,
+						(float)(m_pMyHuman->m_fHeight + 1.5f) + ((float)nRand * 0.2f),
+						(float)(m_pMyHuman->m_vecPosition.y + 2.0f) - (float)nRand);
+
+					pGlow->m_vecStartPos = pGlow->m_vecPosition;
+					pGlow->m_fCircleSpeed = ((float)nRand * 0.1f) + 1.5f;
+					pGlow->m_fParticleH = ((float)nRand * 0.5f) + 5.0f;
+					pGlow->m_fParticleV = ((float)nRand * 0.05f) + 0.2f;
+					pGlow->m_nParticleType = nRand % 3 + 6;
+					pGlow->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+					pGlow->SetColor(0x0FFFFFF00);
+					if (m_pEffectContainer)
+						m_pEffectContainer->AddChild(pGlow);
+				}
+			}
+			if ((RenderDevice::m_bDungeon == 3 || RenderDevice::m_bDungeon == 4) && dwServerTime - m_dwLastWolfSound > 25000)
+			{
+				if (pSoundManager)
+				{
+					auto pSoundData = pSoundManager->GetSoundData(111);
+					if (pSoundData && !pSoundData->IsSoundPlaying())
+						pSoundData->Play();
+				}
+
+				m_dwLastWolfSound = dwServerTime;
+			}
+		}
+		else if (pSoundManager)
+		{
+			auto pSoundData = pSoundManager->GetSoundData(107);
+			if (pSoundData && !pSoundData->IsSoundPlaying())
+				pSoundData->Stop();
+		}
+
+		if (RenderDevice::m_bDungeon == 3)
+		{
+			if (dwServerTime - m_dwLastDustTime > m_dwDustTerm && m_bSandWind == 1 && g_bCastleWar == 2 && !m_pSky->m_nState)
+			{
+				if (pSoundManager)
+				{
+					auto pSoundData = pSoundManager->GetSoundData(304);
+					if (pSoundData && pSoundData->IsSoundPlaying())
+						pSoundData->Play();
+				}
+				if (!g_bHideEffect)
+				{
+					for (int ii = 0; ii < 5; ++ii)
+					{
+						float fWidth = (float)(50 * (rand() % 5)) + 300.0f;
+						auto pCamera = g_pObjectManager->m_pCamera;
+						
+						auto pBillEffect = new TMEffectBillBoard4(193, 800 * ii + 3000, fWidth, fWidth, 1.0f, 1, 80);
+						if (pBillEffect)
+						{
+							pBillEffect->SetPosition(100 * ii - 900, 100 * ii);
+							pBillEffect->SetParticle(1600.0, 0.0);
+							m_pEffectContainer->AddChild(pBillEffect);
+						}
+					}
+				}
+				++m_nDustCount;
+				m_nDustCount %= 10;
+				if (m_nDustCount)
+					m_dwDustTerm = 1000;
+				else
+					m_dwDustTerm = 3000 * (rand() % 10 + 5);
+
+				m_dwLastDustTime = dwServerTime;
+			}		
+			if (dwServerTime - m_dwLastPappusTime > 2000)
+			{
+				for (int jj = 0; jj < 8; ++jj)
+				{
+					int nRand = rand() % 5;
+					int nRand2 = rand() % 5;
+
+					TMVector3 vecStart = TMVector3(
+						((float)(m_pMyHuman->m_vecPosition.x - 16.0f) + (float)jj) + (float)(4 * nRand),
+						m_pMyHuman->m_fHeight + 8.0f,
+						((float)(m_pMyHuman->m_vecPosition.y - 12.0f) + (float)jj) + (float)(2 * nRand2));
+
+					TMVector3 vecEnd = TMVector3(
+						(float)((float)(m_pMyHuman->m_vecPosition.x + 4.0f) + (float)jj) + (float)(2 * nRand),
+						m_pMyHuman->m_fHeight + 0.5f,
+						(float)((float)(m_pMyHuman->m_vecPosition.y + 4.0f) + (float)jj) + (float)nRand2
+					);
+
+					auto pStorm = new TMSkillMagicArrow(vecStart, vecEnd, 3, 0);
+					if (pStorm)
+						m_pEffectContainer->AddChild(pStorm);
+				}
+				m_dwLastPappusTime = dwServerTime;
+			}
+		}
+		m_dwWeatherTime = g_pTimerManager->GetServerTime();
 	}
 }
 }

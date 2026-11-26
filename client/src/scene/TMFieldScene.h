@@ -20,6 +20,7 @@ class TMEffectBillBoard;
 class TMEffectBillBoard2;
 class TMRain;
 class TMSnow;
+class CSoundManager;
 
 /// @brief Cena principal de jogo em campo (HUD, combate, entrada, pacotes e mundo).
 /// @details Implementação dividida por coesão (Fase 2, Ondas 1 e 4; Fase 3):
@@ -352,6 +353,7 @@ private:
 	void FrameMove_CastleWarState(unsigned int& dwServerTime, bool& bInTown);
 	void FrameMove_AffectTimers(unsigned int& dwServerTime);
 	void FrameMove_SendMoveStop(unsigned int& dwServerTime);
+	void FrameMove_WeatherSound(unsigned int& dwServerTime, CSoundManager*& pSoundManager);
 	/// @}
 
 public:
