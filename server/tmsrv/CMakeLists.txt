@@ -1,0 +1,101 @@
+set(TMSRV_SOURCES
+  core/CReadFiles.cpp
+  core/CReadFiles.h
+  core/Language.h
+  core/ProcessSecMinTimer.cpp
+  core/Server.cpp
+  core/Server.h
+  entities/CItem.cpp
+  entities/CItem.h
+  entities/CMob.cpp
+  entities/CMob.h
+  entities/CNPCGene.cpp
+  entities/CNPCGene.h
+  entities/CUser.cpp
+  entities/CUser.h
+  net/GetFunc.cpp
+  net/GetFunc.h
+  net/ProcessClientMessage.cpp
+  net/ProcessClientMessage.h
+  net/ProcessDBMessage.cpp
+  net/ProcessDBMessage.h
+  net/SendFunc.cpp
+  net/SendFunc.h
+  systems/CCastleZakum.cpp
+  systems/CCastleZakum.h
+  systems/CWarTower.cpp
+  systems/CWarTower.h
+  systems/MobKilled.cpp
+  systems/imple.cpp
+  handlers/account/_MSG_AccountLogin.cpp
+  handlers/account/_MSG_AccountSecure.cpp
+  handlers/account/_MSG_CharacterLogin.cpp
+  handlers/account/_MSG_CharacterLogout.cpp
+  handlers/account/_MSG_CreateCharacter.cpp
+  handlers/account/_MSG_DeleteCharacter.cpp
+  handlers/account/_MSG_Restart.cpp
+  handlers/combat/_MSG_Action.cpp
+  handlers/combat/_MSG_ApplyBonus.cpp
+  handlers/combat/_MSG_Attack.cpp
+  handlers/combat/_MSG_Motion.cpp
+  handlers/combat/_MSG_PKMode.cpp
+  handlers/combat/_MSG_SetShortSkill.cpp
+  handlers/combine/_MSG_CombineItem.cpp
+  handlers/combine/_MSG_CombineItemAgatha.cpp
+  handlers/combine/_MSG_CombineItemAilyn.cpp
+  handlers/combine/_MSG_CombineItemAlquimia.cpp
+  handlers/combine/_MSG_CombineItemEhre.cpp
+  handlers/combine/_MSG_CombineItemExtracao.cpp
+  handlers/combine/_MSG_CombineItemLindy.cpp
+  handlers/combine/_MSG_CombineItemOdin.cpp
+  handlers/combine/_MSG_CombineItemShany.cpp
+  handlers/combine/_MSG_CombineItemTiny.cpp
+  handlers/items/_MSG_Buy.cpp
+  handlers/items/_MSG_CapsuleInfo.cpp
+  handlers/items/_MSG_DeleteItem.cpp
+  handlers/items/_MSG_Deposit.cpp
+  handlers/items/_MSG_DropItem.cpp
+  handlers/items/_MSG_GetItem.cpp
+  handlers/items/_MSG_PutoutSeal.cpp
+  handlers/items/_MSG_Sell.cpp
+  handlers/items/_MSG_SplitItem.cpp
+  handlers/items/_MSG_UpdateItem.cpp
+  handlers/items/_MSG_UseItem.cpp
+  handlers/items/_MSG_Withdraw.cpp
+  handlers/social/_MSG_AcceptParty.cpp
+  handlers/social/_MSG_Challange.cpp
+  handlers/social/_MSG_ChallangeConfirm.cpp
+  handlers/social/_MSG_GuildAlly.cpp
+  handlers/social/_MSG_InviteGuild.cpp
+  handlers/social/_MSG_MessageChat.cpp
+  handlers/social/_MSG_MessageWhisper.cpp
+  handlers/social/_MSG_RemoveParty.cpp
+  handlers/social/_MSG_SendReqParty.cpp
+  handlers/social/_MSG_War.cpp
+  handlers/trade/_MSG_Deprivate.cpp
+  handlers/trade/_MSG_QuitTrade.cpp
+  handlers/trade/_MSG_REQShopList.cpp
+  handlers/trade/_MSG_ReqBuy.cpp
+  handlers/trade/_MSG_ReqTradeList.cpp
+  handlers/trade/_MSG_SendAutoTrade.cpp
+  handlers/trade/_MSG_Trade.cpp
+  handlers/trade/_MSG_TradingItem.cpp
+  handlers/world/_MSG_ChangeCity.cpp
+  handlers/world/_MSG_NoViewMob.cpp
+  handlers/world/_MSG_Quest.cpp
+  handlers/world/_MSG_ReqRanking.cpp
+  handlers/world/_MSG_ReqTeleport.cpp
+  resources/TMSrv.rc
+  resources/resource.h
+)
+
+add_executable(TMSrv WIN32 ${TMSRV_SOURCES})
+
+target_include_directories(TMSrv
+  PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(TMSrv PRIVATE w2pp_common)
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TMSRV_SOURCES})
