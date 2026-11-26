@@ -460,6 +460,65 @@ uint64_t CaseStrings()
 	return h.h;
 }
 
+/// @brief Entradas fora do domínio do jogo que antes liam ou gravavam fora de uma tabela.
+/// @details Conferidas com valores exatos (definidos pela correção), não por hash. Ver a seção
+/// "Corrigidos" de docs/BUGS_LATENTES.md.
+int CheckOutOfDomainInputs()
+{
+	int failures = 0;
+	auto check = [&](bool ok, const char* what) {
+		if (!ok)
+		{
+			std::printf("FALHA fora do dominio: %s\n", what);
+			++failures;
+		}
+	};
+
+	// sIndex == MAX_ITEMLIST: a guarda era `> MAX_ITEMLIST` e lia g_pItemList[MAX_ITEMLIST].
+	STRUCT_ITEM last{};
+	last.sIndex = MAX_ITEMLIST;
+	last.stEffect[0].cEffect = EF_DAMAGE;
+	last.stEffect[0].cValue = 50;
+	for (int t = 0; t < 128; ++t)
+	{
+		if (BASE_GetItemAbility(&last, (char)t) || BASE_GetStaticItemAbility(&last, (char)t) ||
+			BASE_GetBonusItemAbility(&last, (char)t) || BASE_GetBonusItemAbilityNosanc(&last, (char)t))
+		{
+			check(false, "habilidade de item com sIndex == MAX_ITEMLIST");
+			break;
+		}
+	}
+
+	// Coordenada negativa: o resto da divisão ficava negativo.
+	check(BASE_GetAttr(-4, 100) == 0, "BASE_GetAttr(-4, 100)");
+	check(BASE_GetAttr(100, -4) == 0, "BASE_GetAttr(100, -4)");
+	check(BASE_GetAttr(100, 100) == g_pAttribute[25][25], "BASE_GetAttr(100, 100)");
+
+	// MyTrade com -1 (slot vazio): antes limpava Dest[255], fora do inventário.
+	STRUCT_ITEM carry[MAX_CARRY]{};
+	for (int i = 0; i < MAX_CARRY; ++i)
+		carry[i].sIndex = (short)(i < 30 ? 1 + i : 0);
+	char myTrade[MAX_TRADE];
+	std::memset(myTrade, -1, sizeof(myTrade));
+	myTrade[0] = 3;
+	STRUCT_ITEM opponent[MAX_TRADE]{};
+	STRUCT_ITEM dest[MAX_CARRY]{};
+	check(BASE_CanTrade(dest, carry, myTrade, opponent) == 1, "BASE_CanTrade com -1");
+	check(dest[3].sIndex == 0 && dest[4].sIndex == 5 && dest[0].sIndex == 1, "BASE_CanTrade limpa só os slots marcados");
+
+	// EF_GRID fora de 0..7 num item do baú: vale como item de uma célula (o resultado de
+	// BASE_CanCargo do cliente é sempre 1; o que se confere aqui é não ler além de g_pItemGrid).
+	STRUCT_ITEMLIST saved = g_pItemList[2];
+	g_pItemList[2].stEffect[0].sEffect = EF_GRID;
+	g_pItemList[2].stEffect[0].sValue = 200;
+	STRUCT_ITEM cargo[MAX_CARGO]{};
+	cargo[9].sIndex = 2;
+	check(BASE_CanCargo(&cargo[9], cargo, 0, 0) == 1, "BASE_CanCargo com EF_GRID 200");
+	g_pItemList[2] = saved;
+
+	return failures;
+}
+
 struct Case
 {
 	const char* name;
@@ -497,7 +556,7 @@ int main(int argc, char** argv)
 	bool print = argc > 1 && std::strcmp(argv[1], "--print") == 0;
 	FillTables();
 
-	int failures = 0;
+	int failures = print ? 0 : CheckOutOfDomainInputs();
 	for (size_t i = 0; i < sizeof(kCases) / sizeof(kCases[0]); ++i)
 	{
 		uint64_t got = kCases[i].fn();

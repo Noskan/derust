@@ -236,6 +236,71 @@ void TestCarryCargoGrid()
 	CHECK(BASE_CanCarry(&item, carry, 9, 0, &error) == FALSE && error == -1); // fora da grade
 }
 
+/// @brief Testa entradas fora do domínio do jogo que antes liam além do fim de uma tabela.
+/// @details Ver a seção "Corrigidos" de docs/BUGS_LATENTES.md. Os valores conferidos são os
+/// definidos pela correção; no código antigo o resultado dependia do que havia depois da tabela.
+void TestOutOfDomainInputs()
+{
+	// sIndex == MAX_ITEMLIST: a guarda era `idx > MAX_ITEMLIST` e lia g_pItemList[MAX_ITEMLIST].
+	STRUCT_ITEM last{};
+	last.sIndex = MAX_ITEMLIST;
+	last.stEffect[0].cEffect = EF_DAMAGE;
+	last.stEffect[0].cValue = 50;
+	CHECK(BASE_GetItemAbility(&last, EF_DAMAGE) == 0);
+	CHECK(BASE_GetItemAbilityNosanc(&last, EF_DAMAGE) == 0);
+	CHECK(BASE_GetStaticItemAbility(&last, EF_DAMAGE) == 0);
+	CHECK(BASE_GetBonusItemAbility(&last, EF_DAMAGE) == 0);
+	CHECK(BASE_GetBonusItemAbilityNosanc(&last, EF_DAMAGE) == 0);
+
+	// Montaria com nível >= 120: g_pSancRate[2] tem 12 colunas (níveis 0..119).
+	STRUCT_ITEM mount{};
+	mount.sIndex = 2365;
+	mount.stEffect[1].cEffect = 115;
+	CHECK(BASE_GetGrowthRate(&mount) == 5); // última coluna da tabela
+	mount.stEffect[1].cEffect = 120;
+	CHECK(BASE_GetGrowthRate(&mount) == 0);
+	mount.stEffect[1].cEffect = 255;
+	CHECK(BASE_GetGrowthRate(&mount) == 0);
+
+	// EF_GRID fora de 0..7 (g_pItemGrid tem 8 formatos): vale como item de uma célula.
+	STRUCT_ITEMLIST saved = g_pItemList[2];
+	g_pItemList[2].stEffect[0].sEffect = EF_GRID;
+	g_pItemList[2].stEffect[0].sValue = 200;
+	STRUCT_ITEM bad{};
+	bad.sIndex = 2;
+	STRUCT_ITEM one{};
+	one.sIndex = 1;
+
+	STRUCT_ITEM cargo[MAX_CARGO]{};
+	cargo[9] = bad;                                    // linha 1, coluna 0
+	CHECK(BASE_CanCargo(&one, cargo, 0, 1) == FALSE);  // ocupa só a própria célula...
+	CHECK(BASE_CanCargo(&one, cargo, 0, 2) == TRUE);   // ...e não a de baixo
+	CHECK(BASE_CanCargo(&bad, cargo, 0, 0) == TRUE);
+	CHECK(BASE_CanCargo(&bad, cargo, 0, 1) == FALSE);
+
+	STRUCT_ITEM carry[MAX_CARRY]{};
+	carry[9] = bad;
+	int error = 0;
+	CHECK(BASE_CanCarry(&one, carry, 0, 1, &error) == FALSE && error == 10);
+	CHECK(BASE_CanCarry(&one, carry, 0, 2, &error) == TRUE);
+	CHECK(BASE_CanCarry(&bad, carry, 1, 1, &error) == TRUE);
+	g_pItemList[2] = saved;
+
+	// Item 2390 no slot de montaria: g_pMountBonus tem 30 linhas (2360..2389), então 2390
+	// não é montaria e não muda a velocidade (antes lia g_pMountBonus[30]).
+	auto attackRun = [](short mountIndex) {
+		STRUCT_MOB mob{};
+		mob.Equip[14].sIndex = mountIndex;
+		mob.Equip[14].stEffect[0].sValue = 100;
+		STRUCT_AFFECT affect[MAX_AFFECT]{};
+		STRUCT_MOBEXTRA extra{};
+		int expBonus = 0, forceMob = 0, accuracy = 0, absHp = 0, forceDamage = 0;
+		BASE_GetCurrentScore(mob, affect, &extra, &expBonus, &forceMob, 0, &accuracy, &absHp, &forceDamage);
+		return (int)mob.CurrentScore.AttackRun;
+	};
+	CHECK(attackRun(2390) == attackRun(0));
+}
+
 /// @brief Testa utilitários de string, validação de nomes e checksum legado.
 void TestStringAndChecksum()
 {
@@ -277,6 +342,7 @@ int main()
 	TestVisualCodes();
 	TestCombatHelpers();
 	TestCarryCargoGrid();
+	TestOutOfDomainInputs();
 	TestStringAndChecksum();
 
 	if (g_failures != 0)

@@ -63,7 +63,7 @@ int BASE_GetItemAbility(STRUCT_ITEM* item, char Type)
     int value = 0;
     int idx = item->sIndex;
 
-    if (idx <= 0 || idx > MAX_ITEMLIST)
+    if (idx <= 0 || idx >= MAX_ITEMLIST)
         return 0;
 
     int nUnique = g_pItemList[idx].nUnique;
@@ -345,7 +345,7 @@ int BASE_GetStaticItemAbility(STRUCT_ITEM* item, char Type)
     int value = 0;
     int idx = item->sIndex;
 
-    if (idx <= 0 || idx > MAX_ITEMLIST)
+    if (idx <= 0 || idx >= MAX_ITEMLIST)
         return value;
 
     if (idx >= 3200 && idx <= 3300)
@@ -538,8 +538,9 @@ int BASE_CanTrade(STRUCT_ITEM* Dest, STRUCT_ITEM* Carry, char* MyTrade, STRUCT_I
 
     for (int i = 0; i < MAX_TRADE; ++i)
     {
+        // -1 (255) marca slot vazio; antes a comparação com -1 era sempre verdadeira e limpava Dest[255].
         int pos = (unsigned char)MyTrade[i];
-        if (pos != -1)
+        if (pos < MAX_CARRY)
             BASE_ClearItem(&Dest[pos]);
     }
 
@@ -620,7 +621,11 @@ int BASE_CanCargo(STRUCT_ITEM* item, STRUCT_ITEM* cargo, int DestX, int DestY)
         if (cargo[i].sIndex)
         {
             char TempGrid[4][2]{};
-            memcpy((char*)TempGrid, (char*)g_pItemGrid[BASE_GetItemAbility(&cargo[i], EF_GRID)], 8u);
+            // EF_GRID fora de 0..7 (dado corrompido) vale como item de uma célula.
+            int cgrid = BASE_GetItemAbility(&cargo[i], EF_GRID);
+            if (cgrid < 0 || cgrid >= 8)
+                cgrid = 0;
+            memcpy((char*)TempGrid, (char*)g_pItemGrid[cgrid], 8u);
 
             int tx = i % 9;
             int ty = i / 9;
@@ -1001,7 +1006,7 @@ int BASE_CanEquip_RecvRes(STRUCT_REQ* req, STRUCT_ITEM* item, STRUCT_SCORE* scor
 
 int BASE_GetBonusItemAbilityNosanc(STRUCT_ITEM* item, char Type)
 {
-    if (item->sIndex <= 0 || item->sIndex > MAX_ITEMLIST)
+    if (item->sIndex <= 0 || item->sIndex >= MAX_ITEMLIST)
         return 0;
 
     if (item->sIndex >= 3200 && item->sIndex <= 3300)
@@ -1033,7 +1038,7 @@ int BASE_GetBonusItemAbilityNosanc(STRUCT_ITEM* item, char Type)
 
 int BASE_GetBonusItemAbility(STRUCT_ITEM* item, char Type)
 {
-    if (item->sIndex <= 0 || item->sIndex > 6500)
+    if (item->sIndex <= 0 || item->sIndex >= MAX_ITEMLIST)
         return 0;
 
     if (item->sIndex >= 3200 && item->sIndex <= 3300)

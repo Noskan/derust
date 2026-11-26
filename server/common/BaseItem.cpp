@@ -101,7 +101,7 @@ int BASE_GetItemAbilityNosanc(STRUCT_ITEM *item, unsigned char Type)
 	int value = 0;
 	int idx = item->sIndex;
 
-	if(idx <= 0 || idx > MAX_ITEMLIST)
+	if(idx <= 0 || idx >= MAX_ITEMLIST)
 		return value;
 
 	int nUnique = g_pItemList[idx].nUnique;
@@ -450,7 +450,7 @@ int BASE_GetStaticItemAbility(STRUCT_ITEM *item, unsigned char Type)
 	int value = 0;
 	int idx = item->sIndex;
 
-	if(idx <= 0 || idx > MAX_ITEMLIST)
+	if(idx <= 0 || idx >= MAX_ITEMLIST)
 		return value;
 
 	int nPos = g_pItemList[idx].nPos;
@@ -604,7 +604,7 @@ int BASE_GetBonusItemAbility(STRUCT_ITEM *item, unsigned char Type)
 
 	int idx = item->sIndex;
 
-	if(idx <= 0 || idx > MAX_ITEMLIST)
+	if(idx <= 0 || idx >= MAX_ITEMLIST)
 		return value;
 
 	int nPos = g_pItemList[idx].nPos;
@@ -664,7 +664,7 @@ int BASE_GetBonusItemAbilityNosanc(STRUCT_ITEM *item, unsigned char Type)
 
 	int idx = item->sIndex;
 
-	if(idx <= 0 || idx > MAX_ITEMLIST)
+	if(idx <= 0 || idx >= MAX_ITEMLIST)
 		return value;
 
 	for(int i = 0; i < 3; i++)
@@ -842,6 +842,12 @@ int BASE_GetGrowthRate(STRUCT_ITEM *item)
 
 	int sanc = item->stEffect[1].cEffect;
 	sanc /= 10;
+
+	// A tabela tem 12 colunas (níveis 0..119). Nível >= 120 é o máximo: não cresce mais
+	// (UseItem_Scrolls já recusa antes de chamar; antes lia além do fim de g_pSancRate).
+	if (sanc >= 12)
+		return 0;
+
 	int rate = g_pSancRate[2][sanc];
 
 	return rate;
@@ -1120,10 +1126,22 @@ int BASE_CanEquip(STRUCT_ITEM *item, STRUCT_SCORE *score, int Pos, int Class, ST
 	return TRUE;
 }
 
+/// Índice do formato do item em g_pItemGrid (EF_GRID). Valor fora de 0..7 (dado corrompido)
+/// vale como item de uma célula, em vez de ler além do fim de g_pItemGrid.
+static int ItemGridIndex(STRUCT_ITEM *item)
+{
+	int grid = BASE_GetItemAbility(item, EF_GRID);
+
+	if (grid < 0 || grid >= 8)
+		return 0;
+
+	return grid;
+}
+
 /// Verifica se ha espaco livre na grade do inventario (Carry) para o item.
 int BASE_CanCarry(STRUCT_ITEM *item, STRUCT_ITEM *carry, int DestX, int DestY, int *error)
 {
-	int grid = BASE_GetItemAbility(item, EF_GRID);
+	int grid = ItemGridIndex(item);
 
 	char SourGrid[8];
 
@@ -1138,7 +1156,7 @@ int BASE_CanCarry(STRUCT_ITEM *item, STRUCT_ITEM *carry, int DestX, int DestY, i
 		if(carry[i].sIndex == 0)
 			continue;
 
-		grid = BASE_GetItemAbility(&carry[i], EF_GRID);
+		grid = ItemGridIndex(&carry[i]);
 
 		char TempGrid[8];
 
@@ -1191,7 +1209,7 @@ int BASE_CanCarry(STRUCT_ITEM *item, STRUCT_ITEM *carry, int DestX, int DestY, i
 /// Verifica se ha espaco livre na grade do bau/armazem (Cargo) para o item.
 int BASE_CanCargo(STRUCT_ITEM *item, STRUCT_ITEM *cargo, int DestX, int DestY)
 {
-	int grid = BASE_GetItemAbility(item, EF_GRID);
+	int grid = ItemGridIndex(item);
 
 	char SourGrid[8];
 
@@ -1206,7 +1224,7 @@ int BASE_CanCargo(STRUCT_ITEM *item, STRUCT_ITEM *cargo, int DestX, int DestY)
 		if(cargo[i].sIndex == 0)
 			continue;
 
-		int grid = BASE_GetItemAbility(&cargo[i], EF_GRID);
+		int grid = ItemGridIndex(&cargo[i]);
 
 		char TempGrid[8];
 

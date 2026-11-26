@@ -1632,7 +1632,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 	{
 		int idx = MOB.Equip[p].sIndex;
 
-		if(idx <= 0 || idx > MAX_ITEMLIST)
+		if(idx <= 0 || idx >= MAX_ITEMLIST)
 			continue;
 
 		int sa = BASE_GetItemSanc(&MOB.Equip[p]);
@@ -1750,7 +1750,8 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 	int mount = MOB.Equip[14].sIndex;
 
-	if(face <= 4 && (mount >= 2360 && mount <= 2390 || mount >= 3980 && mount <= 3994))
+	// g_pMountBonus tem 30 linhas (2360..2389); 2390 lia além do fim.
+	if(face <= 4 && (mount >= 2360 && mount < 2390 || mount >= 3980 && mount <= 3994))
 	{
 		if (mount >= 3980 && mount <= 3994)
 		{

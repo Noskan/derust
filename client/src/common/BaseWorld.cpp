@@ -479,6 +479,10 @@ char BASE_GetAttribute(int x, int y)
 
 char BASE_GetAttr(int nX, int nY)
 {
+    // Coordenada negativa daria resto negativo e leria antes do início de g_pAttribute.
+    if (nX < 0 || nY < 0)
+        return 0;
+
     return g_pAttribute[nY / 4 % 1024][nX / 4 % 1024];
 }
 
