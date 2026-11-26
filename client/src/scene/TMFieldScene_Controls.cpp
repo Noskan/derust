@@ -2292,3 +2292,30 @@ int TMFieldScene::OnControl_CCModeMount(unsigned int idwControlID, unsigned int 
 
 	return 0;
 }
+
+/// Diálogo do modo CC: HP (`B_CCMODE_DLG_HP`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CCModeHP(unsigned int idwControlID, unsigned int idwEvent)
+{
+	g_GameAuto_hpValue += 10;
+
+	if (g_GameAuto_hpValue > 90)
+		g_GameAuto_hpValue = 0;
+
+	char szText[128]{};
+
+	if (g_GameAuto_hpValue)
+		sprintf_s(szText, g_pMessageStringTable[480], g_GameAuto_hpValue);
+	else
+		sprintf_s(szText, g_pMessageStringTable[479]);
+
+	auto pChatItem = new SListBoxItem(szText, 0xFFFFAAAA, 0.0f, 0.0f, 300.0f, 16.0f, 0, 0x77777777u, 1u, 0);
+
+	if (pChatItem)
+		m_pChatList->AddItem(pChatItem);
+
+	sprintf_s(szText, "%d%%", g_GameAuto_hpValue);
+
+	m_pCCModeHpSte->SetText(szText, 0);
+	return 0;
+}
