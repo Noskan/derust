@@ -520,80 +520,8 @@ if (pAttacker)
 			unsigned int dwKhepraDelay = 2000;
 			if (!bMyAttack)
 				dwKhepraDelay = 1000;
-			if (nDistance < 18)
-			{
-				if (dwKhepraDelay + m_pMyHuman->m_dwOldMovePacketTime < Now && !m_pMyHuman->m_cDie &&
-					m_pMyHuman->m_eMotion != ECHAR_MOTION::ECMOTION_DEAD && 
-					m_pMyHuman->m_eMotion != ECHAR_MOTION::ECMOTION_DIE)
-				{
-					int nRan = 4;
-					int nLength = 5;
-
-					if (!bMyAttack)
-					{
-						nRan = 8;
-						nLength = 9;
-					}
-
-					if (rand() % 10 < nRan)
-					{
-						m_pTargetHuman = nullptr;
-						if (!g_bRunning)
-							SetRunMode();
-
-						int x = (int)m_pMyHuman->m_vecPosition.x;
-						int y = (int)m_pMyHuman->m_vecPosition.y;
-
-						int nMoveX = 0;
-						int nMoveY = 0;
-						if (x <= 2362)
-							nMoveX = -nLength;
-						else if (x >= 2370)
-							nMoveX = nLength;
-						if (y <= 3927)
-							nMoveY = -nLength;
-						else if (y >= 3935)
-							nMoveY = nLength;
-
-						int targetx = (int)((float)nMoveX + m_pMyHuman->m_vecPosition.x);
-						int targety = (int)((float)nMoveY + m_pMyHuman->m_vecPosition.y);
-						if (targetx < 2341)
-							targetx = 2341;
-						else if (targetx > 2391)
-							targetx = 2391;
-						if (targety < 3907)
-							targetx = 3907;
-						else if (targety > 3952)
-							targety = 3952;
-
-						char Route[48]{};
-						BASE_GetRoute(x, y, &targetx, &targety, Route, 12, (char*)m_HeightMapData, 8);
-						if (!strlen(Route))
-							{ nReturnValue = 1; return true; }
-
-						MSG_Action Msg{};
-						Msg.Header.ID = m_pMyHuman->m_dwID;
-						Msg.Header.Type = MSG_Action_Opcode;
-						Msg.PosX = targetx;
-						Msg.PosY = targety;
-						Msg.Effect = 2;
-						Msg.TargetX = targetx;
-						Msg.TargetY = targety;
-
-						g_bLastStop = MSG_Action_Opcode;
-
-						m_stMoveStop.LastX = targetx;
-						m_stMoveStop.LastY = targety;
-						m_stMoveStop.NextX = targetx;
-						m_stMoveStop.NextY = targety;
-
-						SendOneMessage((char*)&Msg, sizeof(Msg));
-
-						m_pMyHuman->m_dwOldMovePacketTime = g_pTimerManager->GetServerTime();
-						m_pMyHuman->OnPacketEvent(MSG_Action_Opcode, (char*)&Msg);
-					}
-				}
-			}
+			if (PacketAttack_Skill110Knockback(bMyAttack, nDistance, Now, dwKhepraDelay, nReturnValue))
+				return true;
 		}
 		else if (pAttack->SkillIndex == 111)
 		{
@@ -1430,6 +1358,88 @@ void TMFieldScene::PacketAttack_Skill110Quake(TMHuman*& pAttacker)
 			pGround->m_vecEffset = pAttacker->m_vecPosition;
 		}
 	}
+}
+
+/// Skill 110 perto do meu personagem (`nDistance` < 18): chance de empurrá-lo para longe do centro (rota e pacote de movimento).
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::PacketAttack_Skill110Knockback(bool& bMyAttack, int& nDistance, unsigned int& Now, unsigned int& dwKhepraDelay, int& nReturnValue)
+{
+	if (nDistance < 18)
+	{
+		if (dwKhepraDelay + m_pMyHuman->m_dwOldMovePacketTime < Now && !m_pMyHuman->m_cDie &&
+			m_pMyHuman->m_eMotion != ECHAR_MOTION::ECMOTION_DEAD && 
+			m_pMyHuman->m_eMotion != ECHAR_MOTION::ECMOTION_DIE)
+		{
+			int nRan = 4;
+			int nLength = 5;
+
+			if (!bMyAttack)
+			{
+				nRan = 8;
+				nLength = 9;
+			}
+
+			if (rand() % 10 < nRan)
+			{
+				m_pTargetHuman = nullptr;
+				if (!g_bRunning)
+					SetRunMode();
+
+				int x = (int)m_pMyHuman->m_vecPosition.x;
+				int y = (int)m_pMyHuman->m_vecPosition.y;
+
+				int nMoveX = 0;
+				int nMoveY = 0;
+				if (x <= 2362)
+					nMoveX = -nLength;
+				else if (x >= 2370)
+					nMoveX = nLength;
+				if (y <= 3927)
+					nMoveY = -nLength;
+				else if (y >= 3935)
+					nMoveY = nLength;
+
+				int targetx = (int)((float)nMoveX + m_pMyHuman->m_vecPosition.x);
+				int targety = (int)((float)nMoveY + m_pMyHuman->m_vecPosition.y);
+				if (targetx < 2341)
+					targetx = 2341;
+				else if (targetx > 2391)
+					targetx = 2391;
+				if (targety < 3907)
+					targetx = 3907;
+				else if (targety > 3952)
+					targety = 3952;
+
+				char Route[48]{};
+				BASE_GetRoute(x, y, &targetx, &targety, Route, 12, (char*)m_HeightMapData, 8);
+				if (!strlen(Route))
+					{ nReturnValue = 1; return true; }
+
+				MSG_Action Msg{};
+				Msg.Header.ID = m_pMyHuman->m_dwID;
+				Msg.Header.Type = MSG_Action_Opcode;
+				Msg.PosX = targetx;
+				Msg.PosY = targety;
+				Msg.Effect = 2;
+				Msg.TargetX = targetx;
+				Msg.TargetY = targety;
+
+				g_bLastStop = MSG_Action_Opcode;
+
+				m_stMoveStop.LastX = targetx;
+				m_stMoveStop.LastY = targety;
+				m_stMoveStop.NextX = targetx;
+				m_stMoveStop.NextY = targety;
+
+				SendOneMessage((char*)&Msg, sizeof(Msg));
+
+				m_pMyHuman->m_dwOldMovePacketTime = g_pTimerManager->GetServerTime();
+				m_pMyHuman->OnPacketEvent(MSG_Action_Opcode, (char*)&Msg);
+			}
+		}
+	}
+	return false;
 }
 
 /// Aplica o ataque a cada alvo de `pAttack->Dam` quando a skill não é de área (`TargetType` != 3..6).
