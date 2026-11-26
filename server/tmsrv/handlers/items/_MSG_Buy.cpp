@@ -70,6 +70,17 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 	if (itemIndex <= 0 || itemIndex >= MAX_ITEMLIST)
 		return;
 
+	// Declaradas antes do `goto DonateBuy`, que pula para dentro do bloco de compra: na compra
+	// por doação o log e a mensagem de depuração mostram preço 0 em vez de lixo da pilha.
+	// GuildTax só é usado quando a cidade e o imposto são válidos (o mesmo teste do
+	// `goto LABEL_BUY1`), então o 0 inicial nunca chega ao cálculo.
+	int Price = 0;
+	int Price2 = 0;
+	int CityTax = 0;
+	int GuildTax = 0;
+	int bPrice = 0;
+	int Desconto = 0;
+
 	int Donate = BASE_GetItemAbility(ItemMob, EF_DONATE);
 
 	if(Donate)
@@ -101,14 +112,15 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 		goto DonateBuy;
 	}
 
-	int Price;
 	Price = g_pItemList[itemIndex].Price;
-	int Price2;
 	Price2 = Price;
 	int Village;
 	Village = BASE_GetVillage(pMob[TargetID].TargetX, pMob[TargetID].TargetY);
-	int CityTax;
-	CityTax = g_pGuildZone[Village].CityTax;
+
+	// Fora das cidades BASE_GetVillage devolve MAX_GUILDZONE; antes a tabela era lida com esse
+	// índice (além do fim) e o valor descartado pelo goto abaixo.
+	if (Village >= 0 && Village < MAX_GUILDZONE)
+		CityTax = g_pGuildZone[Village].CityTax;
 
 	if (Village < 0 || Village >= 5 || CityTax <= 0 || CityTax >= 30)
 		goto LABEL_BUY1;
@@ -122,14 +134,10 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 	if (Price < 0)
 		return;
 
-	int GuildTax;
 	GuildTax = (Price - Price2) / 2;
 LABEL_BUY1:
 
-	int bPrice;
 	bPrice = Price;
-	int Desconto;
-	Desconto = 0;
 	int TargetVillage;
 	TargetVillage = BASE_GetVillage(pMob[TargetID].TargetX, pMob[TargetID].TargetY);
 	int Guild;

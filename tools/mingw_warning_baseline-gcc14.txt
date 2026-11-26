@@ -44,7 +44,6 @@
 1 shadow server/tmsrv/entities/CUser.cpp
 4 shadow server/tmsrv/handlers/combat/_MSG_Attack.cpp
 2 maybe-uninitialized server/tmsrv/handlers/items/UseItem_Quests.cpp
-6 maybe-uninitialized server/tmsrv/handlers/items/_MSG_Buy.cpp
 1 overflow server/tmsrv/net/GetFunc.cpp
 2 shadow server/tmsrv/net/GetFunc.cpp
 2 shadow server/tmsrv/systems/CCastleZakum.cpp
