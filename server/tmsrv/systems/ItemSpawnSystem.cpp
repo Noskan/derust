@@ -1304,7 +1304,7 @@ int  CreateItem(int x, int y, STRUCT_ITEM *item, int rotate, int Create)
 //	sm.Height = pItem[empty].Height;
 
 	if (Create == 2)//Bau
-		sm.Height = -204;
+		sm.Height = static_cast<unsigned char>(-204); // unsigned char: vai como 52
 
 	GridMulticast(x, y, (MSG_STANDARD*)&sm, 0);
 
@@ -1803,7 +1803,7 @@ int  CreateTreasureBox(int x, int y, STRUCT_ITEM *item, int rotate, int State)
 	sm.Rotate = rotate;
 	sm.State = pItem[empty].State;
 
-	sm.Height = -204;
+	sm.Height = static_cast<unsigned char>(-204); // unsigned char: vai como 52
 
 	GridMulticast(x, y, (MSG_STANDARD*)&sm, 0);
 

@@ -1210,7 +1210,8 @@ void GetCreateItem(int idx, MSG_CreateItem *sm)
 
 	sm->State = pItem[idx].State;
 
-	sm->Height = -204;
+	// Height é unsigned char: -204 vai como 52, em qualquer compilador.
+	sm->Height = static_cast<unsigned char>(-204);
 
 	if(pItem[idx].ITEM.sIndex == 3145)
 	{
