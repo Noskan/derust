@@ -2927,3 +2927,18 @@ int TMFieldScene::OnControl_RpsRock(unsigned int idwControlID, unsigned int idwE
 	m_pRPSGamePanel->SetVisible(0);
 	return 0;
 }
+
+/// Pedra/papel/tesoura: controle 1618 (sussurro `_RPS_`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_RpsPaper(unsigned int idwControlID, unsigned int idwEvent)
+{
+	MSG_MessageWhisper stMsgWhisper{};
+	stMsgWhisper.Header.ID = g_pObjectManager->m_dwCharID;
+	stMsgWhisper.Header.Type = MSG_MessageWhisper_Opcode;
+
+	sprintf(stMsgWhisper.MobName, "_RPS_");
+	sprintf(stMsgWhisper.String, "paper");
+	SendOneMessage((char*)&stMsgWhisper, sizeof(stMsgWhisper));
+	m_pRPSGamePanel->SetVisible(0);
+	return 0;
+}
