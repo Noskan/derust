@@ -135,7 +135,7 @@ STRUCT_SCORE RandomScore(Lcg& r)
 	return s;
 }
 
-/// @brief STRUCT_MOB preenchida campo a campo pelo nome (o layout difere: 816 x 1024 bytes).
+/// @brief STRUCT_MOB preenchida campo a campo pelo nome (os nomes e alguns tipos diferem).
 /// Campos que só um lado tem ficam zerados; campos mais largos de um lado recebem valores que
 /// cabem no mais estreito.
 STRUCT_MOB RandomMob(Lcg& r)

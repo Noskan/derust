@@ -760,7 +760,8 @@ void ProcessDBMessage(char *Msg)
 										 strncpy(pMob[conn].Tab, "", sizeof(pMob[conn].Tab));
 										 strncpy(pMob[conn].Snd, "", sizeof(pMob[conn].Snd));
 
-										 memset(sm.Unk2, 0, sizeof(sm.Unk2));
+										 memset(sm.Ext1, 0, sizeof(sm.Ext1));
+										 memset(sm.Ext2, 0, sizeof(sm.Ext2));
 
 										 pMob[conn].MOB.BaseScore.Merchant = 0;
 
@@ -796,11 +797,10 @@ void ProcessDBMessage(char *Msg)
 										 sm.ClientID = conn;
 										 sm.Weather = CurrentWeather;
 
-										 memset(sm.Unk2, 0, sizeof(sm.Unk2));
-										 memset(sm.Unk, 0, sizeof(sm.Unk));
-										 memset(sm.unk, 0, sizeof(sm.unk));
-
-										 strncpy(&sm.Unk2[448], pUser[conn].AccountName, 12);
+										 memset(sm.Ext1, 0, sizeof(sm.Ext1));
+										 memset(sm.Ext2, 0, sizeof(sm.Ext2));
+										 // O layout antigo gravava o nome da conta em Unk2[448]; no layout do
+										 // cliente esse offset cai em STRUCT_EXT2::SubClass[1], então não vai mais.
 
 										 pMob[conn].LastTime = CurrentTime;
 										 pMob[conn].LastX = pMob[conn].TargetX = sm.mob.SPX;

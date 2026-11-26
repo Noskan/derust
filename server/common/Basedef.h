@@ -437,7 +437,14 @@ struct STRUCT_SCORE
 	short  Special[4]; // The mob's special points, affects it's skill tiers
 };
 
-/// @brief Estrutura principal do personagem/NPC em memória e persistência (816 bytes no servidor).
+/// @brief Estrutura principal do personagem/NPC em memória, persistência e pacotes (1024 bytes).
+/// @details Layout do cliente (`client/src/common/Basedef.h`), que é a versão alvo: vai dentro dos
+/// pacotes de login e de `MSG_CNFClientCharacterLogin`. Os nomes do servidor ficaram; os offsets e
+/// as larguras seguem o cliente (conferidos em ProtocolLayoutCheck.cpp). Em relação ao layout antigo
+/// de 816 bytes: Rsv e Quest trocam de largura (1 e 2 bytes) e Coin sobe para o offset 24; o
+/// segundo bloco de skills aprendidas (`SecLearnedSkill`, o `LearnedSkill[1]` do cliente) ocupa o
+/// offset que era de Magic; Magic, RegenHP e RegenMP têm 1 byte (o servidor já os limita a 254,
+/// 255 e 255 em BASE_GetCurrentScore); e o fim ganha a área reservada e os contadores de kills.
 struct STRUCT_MOB
 {
 	char		   MobName[NAME_LENGTH];	  // The name of the mob
@@ -445,8 +452,8 @@ struct STRUCT_MOB
 	unsigned char  Merchant;	  // The mob's merchant ID
 	unsigned short Guild;		  // The ID of the guild the mob belongs to
 	unsigned char  Class;		  // The mobs class
-	unsigned short  Rsv;
-	unsigned char Quest;
+	unsigned char  Rsv;			  // Flags RSV_* (todas cabem em 1 byte; RSV_IMUNIDADE não é usada)
+	unsigned short Quest;
 
 	int			   Coin;		  // The ammount of coins the mob has
 
@@ -462,8 +469,7 @@ struct STRUCT_MOB
 	STRUCT_ITEM	   Carry[MAX_CARRY];	 // The items the mob is carrying
 
 	long LearnedSkill; // The skills the mob learned, divided into four categories (00 _ 00 _ 00 _ 00)
-
-	unsigned int Magic;
+	unsigned int SecLearnedSkill; // Skills 200+ do cliente (LearnedSkill[1] lá); o servidor não as tem e envia 0
 
 	unsigned short ScoreBonus;   // The points the mob can use to increase score (Str, Int, Dex, Con)
 	unsigned short SpecialBonus; // The points the mob can use to increase special, to increase effect of learned skills (score->Special[4])
@@ -476,11 +482,16 @@ struct STRUCT_MOB
 
 	unsigned char  GuildLevel;   // The mob's guuld level, used to define if it's a guild member or leader
 
-	unsigned short  RegenHP;		 // UNK
-	unsigned short  RegenMP;		 // UNK
+	unsigned char  Magic;		 // Bônus de dano mágico, limitado a MAX_DAMAGE_MG (254)
+
+	unsigned char  RegenHP;		 // 0..255 (BASE_GetCurrentScore)
+	unsigned char  RegenMP;		 // 0..255 (BASE_GetCurrentScore)
 
 	char  Resist[4];	 // The mob's resistencies, to fire / ice / thunder / magic
 
+	char  Reserved[212];		 // Reservado no cliente (`dummy`); o servidor envia zerado
+	unsigned short CurrentKill;	 // Contadores de kills do cliente; o servidor não os usa
+	unsigned short TotalKill;
 };
 
 /// @brief Dados extras de evolução (Arch/Celestial/SubCelestial), quests e contadores temporais (536 bytes em Win32).
@@ -841,16 +852,16 @@ struct STRUCT_RANKING
 
 #pragma region File Structures
 
-/// @brief Registro completo de conta serializado em arquivo pelo DBSrv (7800 bytes em Win32).
+/// @brief Registro completo de conta serializado em arquivo pelo DBSrv (8632 bytes em Win32).
 struct STRUCT_ACCOUNTFILE
 {
 	STRUCT_ACCOUNTINFO Info; // 0 - 216
 
-	STRUCT_MOB	Char[MOB_PER_ACCOUNT]; // 216 - 3480
-	STRUCT_ITEM Cargo[MAX_CARGO]; // 3480 - 4504
-	int			Coin; // 4504 - 4508
+	STRUCT_MOB	Char[MOB_PER_ACCOUNT]; // 216 - 4312
+	STRUCT_ITEM Cargo[MAX_CARGO]; // 4312 - 5336
+	int			Coin; // 5336 - 5340
 
-	unsigned char ShortSkill[MOB_PER_ACCOUNT][16]; // 4508 - 4572
+	unsigned char ShortSkill[MOB_PER_ACCOUNT][16]; // 5340 - 5404
 
 	STRUCT_AFFECT affect[MOB_PER_ACCOUNT][MAX_AFFECT];
 	STRUCT_MOBEXTRA mobExtra[MOB_PER_ACCOUNT];
@@ -1360,8 +1371,6 @@ struct		  MSG_CNFCharacterLogin
 
 	STRUCT_MOB mob;
 
-	char unk[208];
-
 	unsigned short Slot;
 	unsigned short ClientID;
 	unsigned short Weather;
@@ -1375,6 +1384,8 @@ struct		  MSG_CNFCharacterLogin
 	STRUCT_MOBEXTRA mobExtra;
 	int Donate;
 };
+/// @brief Entrada no jogo (TMSrv → cliente, `_MSG_CNFCharacterLogin`), no layout do cliente
+/// (`MSG_CNFCharacterLogin` em client/src/common/Basedef.h, 1712 bytes).
 struct		  MSG_CNFClientCharacterLogin
 {
 	_MSG;
@@ -1383,16 +1394,17 @@ struct		  MSG_CNFClientCharacterLogin
 
 	STRUCT_MOB mob;
 
-	char unk[208];
-
 	unsigned short Slot;
 	unsigned short ClientID;
 	unsigned short Weather;
 
 	unsigned char ShortSkill[16];
-	char Unk[2];
 
-	char Unk2[765];
+	// STRUCT_EXT1 do cliente (Data[8] e Affect[32]) e STRUCT_EXT2 (quests, subclasses, senha de
+	// itens). O servidor não tem esses dados aqui: envia zerado, e os affects seguem no
+	// _MSG_SendAffect.
+	char Ext1[288];
+	char Ext2[362];
 };
 const short  _MSG_CharacterLogout			= (21 | FLAG_CLIENT2GAME);
 

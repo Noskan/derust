@@ -48,7 +48,7 @@ DATA = ROOT / "tests" / "data" / "server_boot"
 DB_PORT = 7514      # server/common/Basedef.h
 ADMIN_PORT = 8895   # server/common/Basedef.h
 GAME_PORT = 8281    # server/common/Basedef.h
-SIZEOF_STRUCT_MOB = 816  # Win32; o servidor lê até isso, um arquivo menor também passaria
+SIZEOF_STRUCT_MOB = 1024  # Win32, layout do cliente; o servidor lê até isso, um arquivo menor também passaria
 
 # Três itens sintéticos no formato de BASE_ReadItemListFile:
 # índice, nome, malha.textura, nível.for.int.des.con, único, preço, pos, extra, grau, (efeito, valor)*
