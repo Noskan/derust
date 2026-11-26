@@ -483,105 +483,10 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 	else if (m_cAutoAttack == 1 && m_pTargetHuman && m_pTargetHuman->m_cDie == 1)
 		m_pTargetHuman = 0;
 
-	if (m_pMyHuman)
 	{
-		auto bAttr = BASE_GetAttr((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
-		int nPosIndex = -1;
-		int x = (int)m_pMyHuman->m_vecPosition.x & 0xFFFC;
-		int y = (int)m_pMyHuman->m_vecPosition.y & 0xFFFC;
-
-		for (int ll = 0; ll < 37; ++ll)
-		{
-			if (g_TeleportTable[ll].nX == x && g_TeleportTable[ll].nY == y)
-			{
-				nPosIndex = ll;
-				break;
-			}
-		}
-		if (m_pMyHuman->m_eMotion == ECHAR_MOTION::ECMOTION_STAND01 || m_pMyHuman->m_eMotion == ECHAR_MOTION::ECMOTION_STAND02)
-		{
-			int bLastAttr = m_bLastMyAttr;
-			m_bLastMyAttr = bAttr;
-
-			if (bAttr & 0x10)
-			{
-				if (!m_bTeleportMsg)
-				{
-					m_bTeleportMsg = 1;
-					if (m_nLastPotal != -1)
-					{
-						int GridX = g_TeleportTable[nPosIndex].nX / 64;
-						int GridY = g_TeleportTable[nPosIndex].nY / 64;
-						int LstGridX = g_TeleportTable[m_nLastPotal].nX / 64;
-						int LstGridY = g_TeleportTable[m_nLastPotal].nY / 64;
-						if ((GridX != LstGridX || GridY != LstGridY) && bLastAttr == bAttr)
-						{
-							m_nLastPotal = nPosIndex;
-							return 1;
-						}
-					}
-					if ((int)m_pMyHuman->m_vecPosition.x > 1963 && (int)m_pMyHuman->m_vecPosition.x < 1970 &&
-						(int)m_pMyHuman->m_vecPosition.y > 1770 && (int)m_pMyHuman->m_vecPosition.y < 1777)
-					{
-						m_pMessagePanel->SetMessage(g_pMessageStringTable[160], 3000);
-						m_pMessagePanel->SetVisible(1, 1);
-					}
-					else
-					{
-						if ((int)m_pMyHuman->m_vecPosition.x >= 2370 && (int)m_pMyHuman->m_vecPosition.x <= 2411 &&
-							(int)m_pMyHuman->m_vecPosition.y >= 1728 && (int)m_pMyHuman->m_vecPosition.y <= 1759)
-						{
-							m_pMessagePanel->SetMessage(g_pMessageStringTable[258], 3000);
-							m_pMessagePanel->SetVisible(1, 1);
-							return 1;
-						}
-						if (!m_pMessageBox->IsVisible())
-						{
-							if (m_bAirMove == 1)
-								return 1;
-
-							if (m_pMyHuman->m_vecPosition.x > 1366.5f && m_pMyHuman->m_vecPosition.x < 3366.5f &&
-								m_pMyHuman->m_vecPosition.y > 2926.5f && m_pMyHuman->m_vecPosition.y < 4926.5f
-								&& m_dwKhepraID)
-							{
-								return 1;
-							}
-
-							m_nLastPotal = nPosIndex;
-							if (nPosIndex >= 0)
-							{
-								char szGoto[256]{};
-								sprintf(szGoto, g_pMessageStringTable[208], g_TeleportTable[nPosIndex].szTarget);
-								int nShowPrice = 0;
-								if (!m_cWarClan && m_pMyHuman->m_cMantua && m_pMyHuman->m_cMantua != 3)
-									nShowPrice = 1;
-								if (m_cWarClan == 7 && m_pMyHuman->m_cMantua != 1)
-									nShowPrice = 1;
-								if (m_cWarClan == 8 && m_pMyHuman->m_cMantua != 2)
-									nShowPrice = 1;
-								if (m_cWarClan == -1)
-									nShowPrice = 1;
-
-								if (g_TeleportTable[nPosIndex].nPrice > 0 && nShowPrice == 1)
-								{
-									char szPrice[256]{};
-									sprintf(szPrice, g_pMessageStringTable[207], g_TeleportTable[nPosIndex].nPrice);
-									m_pMessageBox->SetMessage(szGoto, 16, szPrice);
-								}
-								else
-								{
-									m_pMessageBox->SetMessage(szGoto, 16, 0);
-								}
-							}
-							m_pMessageBox->SetVisible(1);
-						}
-					}
-				}
-			}
-		}
-
-		if (!(bAttr & 0x10)	&& m_pMessageBox->IsVisible() == 1 && m_pMessageBox->m_dwMessage == 16)
-			m_pMessageBox->SetVisible(0);
+		int nReturnValue = 0;
+		if (FrameMove_PositionTriggers(nReturnValue))
+			return nReturnValue;
 	}
 
 	int nViewgridx = 33;
@@ -629,6 +534,114 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 	}
 
 	return 1;
+}
+
+/// Gatilhos por posição do personagem: tabela de teleporte, atributo do mapa e mensagens associadas.
+/// @note Extraído de `TMFieldScene::FrameMove` (Fase 3); locais da função passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::FrameMove_PositionTriggers(int& nReturnValue)
+{
+if (m_pMyHuman)
+{
+	auto bAttr = BASE_GetAttr((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
+	int nPosIndex = -1;
+	int x = (int)m_pMyHuman->m_vecPosition.x & 0xFFFC;
+	int y = (int)m_pMyHuman->m_vecPosition.y & 0xFFFC;
+
+	for (int ll = 0; ll < 37; ++ll)
+	{
+		if (g_TeleportTable[ll].nX == x && g_TeleportTable[ll].nY == y)
+		{
+			nPosIndex = ll;
+			break;
+		}
+	}
+	if (m_pMyHuman->m_eMotion == ECHAR_MOTION::ECMOTION_STAND01 || m_pMyHuman->m_eMotion == ECHAR_MOTION::ECMOTION_STAND02)
+	{
+		int bLastAttr = m_bLastMyAttr;
+		m_bLastMyAttr = bAttr;
+
+		if (bAttr & 0x10)
+		{
+			if (!m_bTeleportMsg)
+			{
+				m_bTeleportMsg = 1;
+				if (m_nLastPotal != -1)
+				{
+					int GridX = g_TeleportTable[nPosIndex].nX / 64;
+					int GridY = g_TeleportTable[nPosIndex].nY / 64;
+					int LstGridX = g_TeleportTable[m_nLastPotal].nX / 64;
+					int LstGridY = g_TeleportTable[m_nLastPotal].nY / 64;
+					if ((GridX != LstGridX || GridY != LstGridY) && bLastAttr == bAttr)
+					{
+						m_nLastPotal = nPosIndex;
+						{ nReturnValue = 1; return true; }
+					}
+				}
+				if ((int)m_pMyHuman->m_vecPosition.x > 1963 && (int)m_pMyHuman->m_vecPosition.x < 1970 &&
+					(int)m_pMyHuman->m_vecPosition.y > 1770 && (int)m_pMyHuman->m_vecPosition.y < 1777)
+				{
+					m_pMessagePanel->SetMessage(g_pMessageStringTable[160], 3000);
+					m_pMessagePanel->SetVisible(1, 1);
+				}
+				else
+				{
+					if ((int)m_pMyHuman->m_vecPosition.x >= 2370 && (int)m_pMyHuman->m_vecPosition.x <= 2411 &&
+						(int)m_pMyHuman->m_vecPosition.y >= 1728 && (int)m_pMyHuman->m_vecPosition.y <= 1759)
+					{
+						m_pMessagePanel->SetMessage(g_pMessageStringTable[258], 3000);
+						m_pMessagePanel->SetVisible(1, 1);
+						{ nReturnValue = 1; return true; }
+					}
+					if (!m_pMessageBox->IsVisible())
+					{
+						if (m_bAirMove == 1)
+							{ nReturnValue = 1; return true; }
+
+						if (m_pMyHuman->m_vecPosition.x > 1366.5f && m_pMyHuman->m_vecPosition.x < 3366.5f &&
+							m_pMyHuman->m_vecPosition.y > 2926.5f && m_pMyHuman->m_vecPosition.y < 4926.5f
+							&& m_dwKhepraID)
+						{
+							{ nReturnValue = 1; return true; }
+						}
+
+						m_nLastPotal = nPosIndex;
+						if (nPosIndex >= 0)
+						{
+							char szGoto[256]{};
+							sprintf(szGoto, g_pMessageStringTable[208], g_TeleportTable[nPosIndex].szTarget);
+							int nShowPrice = 0;
+							if (!m_cWarClan && m_pMyHuman->m_cMantua && m_pMyHuman->m_cMantua != 3)
+								nShowPrice = 1;
+							if (m_cWarClan == 7 && m_pMyHuman->m_cMantua != 1)
+								nShowPrice = 1;
+							if (m_cWarClan == 8 && m_pMyHuman->m_cMantua != 2)
+								nShowPrice = 1;
+							if (m_cWarClan == -1)
+								nShowPrice = 1;
+
+							if (g_TeleportTable[nPosIndex].nPrice > 0 && nShowPrice == 1)
+							{
+								char szPrice[256]{};
+								sprintf(szPrice, g_pMessageStringTable[207], g_TeleportTable[nPosIndex].nPrice);
+								m_pMessageBox->SetMessage(szGoto, 16, szPrice);
+							}
+							else
+							{
+								m_pMessageBox->SetMessage(szGoto, 16, 0);
+							}
+						}
+						m_pMessageBox->SetVisible(1);
+					}
+				}
+			}
+		}
+	}
+
+	if (!(bAttr & 0x10)	&& m_pMessageBox->IsVisible() == 1 && m_pMessageBox->m_dwMessage == 16)
+		m_pMessageBox->SetVisible(0);
+}
+	return false;
 }
 
 /// Atualiza o painel `m_pCPanel` quando visível.

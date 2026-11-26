@@ -351,6 +351,11 @@ private:
 	void SendAreaAttack(TMHuman*& pTarget, TMHuman*& pOver, char& cSkillIndex, int& nDX, int& nDY, MSG_Attack& stAttack, int& nTargetIndex);
 	/// @}
 
+	/// @name Etapas com retorno antecipado extraídas de FrameMove (Fase 3)
+	/// @{
+	bool FrameMove_PositionTriggers(int& nReturnValue);
+	/// @}
+
 	/// @name Etapas com retorno antecipado extraídas de OnControlEvent (Fase 3)
 	/// @{
 	bool OnControl_SysServer(unsigned int& idwControlID, int& nReturnValue);
