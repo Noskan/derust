@@ -342,79 +342,7 @@ int TMHuman::FrameMove(unsigned int dwServerTime)
         nWalkSndIndex = 1;
 
     FrameMove_Dust(dwServerTime, pScene, nWalkSndIndex);
-    if (m_nClass != 45 && !m_cHide)
-    {
-        unsigned dwFootTerm = (unsigned int)((1000.0f * m_fScale) / m_fMaxSpeed);
-        if (dwFootTerm > 230 && dwFootTerm < 350)
-            dwFootTerm = 230;
-        if (dwFootTerm > 340)
-            dwFootTerm = 340;
-        if (m_nLegType == 3)
-            dwFootTerm = 200;
-        if (m_nSkinMeshType == 11)
-            dwFootTerm *= 2;
-        if (m_nSkinMeshType == 39)
-            dwFootTerm *= 2;
-
-        if (dwServerTime - m_dwFootMastTime > dwFootTerm && m_nLegType > 0 && 
-            (m_eMotion == ECHAR_MOTION::ECMOTION_WALK || m_eMotion == ECHAR_MOTION::ECMOTION_RUN))
-        {
-            int isInPos = (int)m_vecPosition.x >> 7 <= 26 || (int)m_vecPosition.x >> 7 >= 31 || 
-                (int)m_vecPosition.y >> 7 <= 20 || (int)m_vecPosition.y >> 7 >= 25;
-
-            if (nWalkSndIndex == 9 || (nWalkSndIndex == 8 && !isInPos))
-            {
-                unsigned int dwCol = 0xFFFF8866;
-                if (nWalkSndIndex == 9)
-                    dwCol = 0x990000FF;
-
-                int nScale = 2;
-                int nFootType = 194;
-                if (m_cMount > 0)
-                    nFootType = 195;
-                switch (m_nLegType)
-                {
-                case 2:
-                    nFootType = 195;
-                    if (m_fScale > 1.3f)
-                        nScale = 3;
-                    break;
-                case 3:
-                    nFootType = 196;
-                    nScale = 3;
-                    dwCol = 0xFFFFAA88;
-                    break;
-                case 4:
-                    nFootType = 197;
-                    nScale = 4;
-                    break;
-                case 5:
-                    nFootType = 198;
-                    nScale = 4;
-                    break;
-                }
-
-                if (nFootType == 194 && m_fScale > 1.5f)
-                    nScale = 3;
-                if (m_nSkinMeshType == 39)
-                    nScale = 4;
-
-                TMShade* pFootMark = new TMShade(nScale, nFootType, 1.0f);
-                if (pFootMark)
-                {
-                    pFootMark->m_nFade = 1;
-                    pFootMark->m_bFI = 0;
-                    pFootMark->m_dwLifeTime = 3000;
-                    pFootMark->m_fAngle = m_fAngle - D3DXToRadian(90);
-                    pFootMark->SetColor(dwCol);
-                    pFootMark->SetPosition(m_vecPosition);
-
-                    g_pCurrentScene->m_pShadeContainer->AddChild(pFootMark);
-                    m_dwFootMastTime = dwServerTime;
-                }
-            }
-        }
-    }
+    FrameMove_Footsteps(dwServerTime, nWalkSndIndex);
     if (m_nSkinMeshType == 20 && (m_stLookInfo.HelmMesh == 2 || m_stLookInfo.HelmMesh == 4 && m_stLookInfo.HelmSkin == 1))
     {
         unsigned int dwTime = 1000;
@@ -1045,6 +973,85 @@ void TMHuman::FrameMove_Dust(unsigned int& dwServerTime, TMScene*& pScene, int& 
             }
         }
     }    
+}
+
+/// Passos: intervalo pelo tamanho e velocidade, e o som conforme o tipo de perna.
+/// @note Extraído de `TMHuman::FrameMove` (Fase 3); locais passadas por referência.
+void TMHuman::FrameMove_Footsteps(unsigned int& dwServerTime, int& nWalkSndIndex)
+{
+    if (m_nClass != 45 && !m_cHide)
+    {
+        unsigned dwFootTerm = (unsigned int)((1000.0f * m_fScale) / m_fMaxSpeed);
+        if (dwFootTerm > 230 && dwFootTerm < 350)
+            dwFootTerm = 230;
+        if (dwFootTerm > 340)
+            dwFootTerm = 340;
+        if (m_nLegType == 3)
+            dwFootTerm = 200;
+        if (m_nSkinMeshType == 11)
+            dwFootTerm *= 2;
+        if (m_nSkinMeshType == 39)
+            dwFootTerm *= 2;
+
+        if (dwServerTime - m_dwFootMastTime > dwFootTerm && m_nLegType > 0 && 
+            (m_eMotion == ECHAR_MOTION::ECMOTION_WALK || m_eMotion == ECHAR_MOTION::ECMOTION_RUN))
+        {
+            int isInPos = (int)m_vecPosition.x >> 7 <= 26 || (int)m_vecPosition.x >> 7 >= 31 || 
+                (int)m_vecPosition.y >> 7 <= 20 || (int)m_vecPosition.y >> 7 >= 25;
+
+            if (nWalkSndIndex == 9 || (nWalkSndIndex == 8 && !isInPos))
+            {
+                unsigned int dwCol = 0xFFFF8866;
+                if (nWalkSndIndex == 9)
+                    dwCol = 0x990000FF;
+
+                int nScale = 2;
+                int nFootType = 194;
+                if (m_cMount > 0)
+                    nFootType = 195;
+                switch (m_nLegType)
+                {
+                case 2:
+                    nFootType = 195;
+                    if (m_fScale > 1.3f)
+                        nScale = 3;
+                    break;
+                case 3:
+                    nFootType = 196;
+                    nScale = 3;
+                    dwCol = 0xFFFFAA88;
+                    break;
+                case 4:
+                    nFootType = 197;
+                    nScale = 4;
+                    break;
+                case 5:
+                    nFootType = 198;
+                    nScale = 4;
+                    break;
+                }
+
+                if (nFootType == 194 && m_fScale > 1.5f)
+                    nScale = 3;
+                if (m_nSkinMeshType == 39)
+                    nScale = 4;
+
+                TMShade* pFootMark = new TMShade(nScale, nFootType, 1.0f);
+                if (pFootMark)
+                {
+                    pFootMark->m_nFade = 1;
+                    pFootMark->m_bFI = 0;
+                    pFootMark->m_dwLifeTime = 3000;
+                    pFootMark->m_fAngle = m_fAngle - D3DXToRadian(90);
+                    pFootMark->SetColor(dwCol);
+                    pFootMark->SetPosition(m_vecPosition);
+
+                    g_pCurrentScene->m_pShadeContainer->AddChild(pFootMark);
+                    m_dwFootMastTime = dwServerTime;
+                }
+            }
+        }
+    }
 }
 
 void TMHuman::DelayDelete()

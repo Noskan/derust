@@ -85,6 +85,7 @@ public:
     void FrameMove_RouteHeight(TMScene*& pScene, float& fDieHeight, int& nRouteIndex, float& fProgressRate);
     bool FrameMove_RouteArrival(unsigned int& dwServerTime, TMScene*& pScene, int& nRouteIndex, TMVector2& vecNow, TMVector2& vecNext, int& nReturnValue);
     void FrameMove_Dust(unsigned int& dwServerTime, TMScene*& pScene, int& nWalkSndIndex);
+    void FrameMove_Footsteps(unsigned int& dwServerTime, int& nWalkSndIndex);
     void InitPosition(float fX, float fY, float fZ) final;
     void InitAngle(float fYaw, float fPitch, float fRoll) final;
     void SetAngle(float fYaw, float fPitch, float fRoll) final;
