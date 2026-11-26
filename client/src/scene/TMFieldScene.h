@@ -275,6 +275,7 @@ private:
 	int OnControl_GambleArrows(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_GambleStart(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_ChatInput(unsigned int idwControlID, unsigned int idwEvent, unsigned int dwServerTime, STRUCT_MOB* pMobData);
+	int OnControl_Money(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:

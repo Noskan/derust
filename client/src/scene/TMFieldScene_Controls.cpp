@@ -654,3 +654,46 @@ int TMFieldScene::OnControl_ChatInput(unsigned int idwControlID, unsigned int id
 		m_pMyHuman->SetChatMessage(istrText);
 	return 0;
 }
+
+/// Botão de gold do inventário (`B_MONEY`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_Money(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pMyHuman->m_cDie == 1)
+		return 1;
+
+	auto pText = static_cast<SText*>(m_pControlContainer->FindControl(T_INPUT_GOLD));
+	auto pEdit = m_pControlContainer->FindControl(E_INPUT_GOLD);
+
+	if (m_pCargoPanel1->IsVisible() == 1)
+	{
+		m_nCoinMsgType = 0;
+		pText->SetText(g_pMessageStringTable[136], 0);
+		m_pControlContainer->SetFocusedControl(pEdit);
+		m_pInputGoldPanel->SetVisible(1);
+	}
+	if (m_pCargoPanel->IsVisible() == 1)
+	{
+		m_nCoinMsgType = 0;
+		pText->SetText(g_pMessageStringTable[136], 0);
+		m_pControlContainer->SetFocusedControl(pEdit);
+		m_pInputGoldPanel->SetVisible(1);
+	}
+	else if (m_pTradePanel->IsVisible() == 1)
+	{
+		if (g_pObjectManager->m_stTrade.TradeMoney > 0)
+			return 1;
+
+		m_nCoinMsgType = 1;
+		pText->SetText(g_pMessageStringTable[137], 0);
+		m_pControlContainer->SetFocusedControl(pEdit);
+		m_pInputGoldPanel->SetVisible(1);
+	}
+	else
+	{
+		m_pInputGoldPanel->SetVisible(0);
+	}
+
+	m_pChatSelectPanel->SetVisible(0);
+	return 0;
+}
