@@ -2197,3 +2197,19 @@ int TMFieldScene::OnControl_InvClose(unsigned int idwControlID, unsigned int idw
 
 	return 0;
 }
+
+/// Fechar janela do personagem (`B_CHAR_CLOSE`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CharClose(unsigned int idwControlID, unsigned int idwEvent)
+{
+	SetVisibleCharInfo();
+
+	auto pCharBtn = static_cast<SButton*>(m_pControlContainer->FindControl(B_CHAR));
+
+	pCharBtn->SetSelected(m_pCPanel->m_bVisible);
+
+	if (g_nKeyType == 1)
+		m_pControlContainer->SetFocusedControl(m_pEditChat);
+
+	return 0;
+}

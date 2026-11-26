@@ -165,18 +165,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == B_INV_CLOSE)
 		return OnControl_InvClose(idwControlID, idwEvent);
 	if (idwControlID == B_CHAR_CLOSE)
-	{
-		SetVisibleCharInfo();
-
-		auto pCharBtn = static_cast<SButton*>(m_pControlContainer->FindControl(B_CHAR));
-
-		pCharBtn->SetSelected(m_pCPanel->m_bVisible);
-
-		if (g_nKeyType == 1)
-			m_pControlContainer->SetFocusedControl(m_pEditChat);
-
-		return 0;
-	}
+		return OnControl_CharClose(idwControlID, idwEvent);
 	if (idwControlID == B_SKILL_CLOSE)
 	{
 		SetVisibleSkill();
