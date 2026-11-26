@@ -54,7 +54,7 @@ python3 tools/mingw_check.py
 - **Fase 2 — Onda 2 (concluída)**: Fatiamento de `_MSG_UseItem.cpp` (5 sub-handlers), `_MSG_Quest.cpp` (3 sub-handlers), `MobKilled.cpp` (Exp/Drops/PvP), `CFileDB.cpp` (pacotes de conta e mundo), `SGrid.cpp` (4 TUs) e `TMGround.cpp` (3 TUs), além da suíte CTest [`w2pp_common_tests`](tests/w2pp_common_tests.cpp) integrada ao CI.
 - **Fase 2 — Onda 3 (concluída)**: Fatiamento de `dbsrv/core/Server.cpp` (Admin/Config/Logs), `ProcessSecMinTimer.cpp` (`ScheduledEventSystem` e `MobAISystem` em `tmsrv/systems/`), `RenderDevice.cpp` (Shaders/Rect/Geom), `client/src/common/Basedef.cpp` (`BaseItem`/`BaseCombat`/`BaseWorld`), `SControl.cpp` (Text/Buttons/List) e `TMScene.cpp` (Resources/Packets/Ground).
 - **Fase 2 — Onda 4 (concluída)**: Segunda passada isolando funções gigantes em TUs próprias: `tmsrv/core/Server.cpp` (Window/Config/Logs), `server/common/BaseLoaders.cpp`, `TMFieldScene_*` (Panels/HUD/MsgBox/PacketAttack/PacketItems/Init/FrameMove/AutoSkill/Items) e `TMHuman_*` (FrameMove/Render).
-- **Fase 3 (proposta)**: Job de CI com cross-compile mingw + testes no wine, remoção de construções exclusivas do MSVC e decomposição das funções gigantes (`OnControlEvent`, `OnPacketAttack`, `SkillUse`, `FrameMove`) por handler. Ver [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+- **Fase 3 (em andamento)**: Job de CI `mingw-check` (cross-compile mingw + testes no wine) e remoção das construções exclusivas do MSVC concluídos; decomposição das funções gigantes iniciada com 28 handlers de `OnControlEvent` em `TMFieldScene_Controls.cpp`. Seguem `OnPacketAttack`, `SkillUse` e `FrameMove`. Ver [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Histórico e Licença
 

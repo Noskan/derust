@@ -189,7 +189,7 @@ Depois da Onda 4, o tamanho restante está concentrado em poucas funções, e di
 
 | Função | Linhas |
 |---|---|
-| `TMFieldScene::OnControlEvent` | ~3.500 (cadeia de 153 `if (idwControlID == ...)`) |
+| `TMFieldScene::OnControlEvent` | ~3.500 → ~1.560 (28 handlers extraídos para `TMFieldScene_Controls.cpp`) |
 | `TMFieldScene::OnPacketAttack` | ~2.270 |
 | `TMFieldScene::SkillUse` | ~1.570 |
 | `TMFieldScene::FrameMove` / `InitializeScene` | ~1.500 cada |
@@ -198,7 +198,13 @@ Depois da Onda 4, o tamanho restante está concentrado em poucas funções, e di
 Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que podem cair para o próximo `if`, locais compartilhadas), o que deixa de ser movimentação de código. Rede de segurança (Fase 3, passos 1 e 2 — concluídos na branch `refactor/phase3-mingw-ci`):
 1. **Job `mingw-check` no CI** (`ubuntu-24.04`): [`tools/mingw_check.py`](../tools/mingw_check.py) compila todas as 256 TUs do servidor, do cliente e dos testes com mingw-w64 i686, linka o DBSrv e roda `w2pp_common_tests` no wine. Só as TUs listadas em [`tools/mingw_known_failures.txt`](../tools/mingw_known_failures.txt) podem falhar; uma falha nova quebra o job e uma TU consertada gera aviso para sair da lista.
 2. **Construções exclusivas do MSVC removidas**: `goto` que saltava `int x = expr;` (a declaração foi separada da atribuição, o que preserva o comportamento), `#pragma region` entre `}` e `else` ou dentro de inicializadores (virou comentário `// region`), `sizeof TIPO` sem parênteses e `std::exception(const char*)` (trocado por `std::runtime_error`). Hoje restam 3 TUs na lista, todas por APIs do DirectX SDK legado (`D3DXMATRIXA16`, `D3D9b_SDK_VERSION` e o `ID3DXSprite` antigo).
-3. **Próximo passo**: decompor as funções gigantes por handler (ex.: `OnControlEvent` → `OnControl_<Painel>`), um handler por commit, revisando o fluxo de `return`.
+3. **Decomposição de `OnControlEvent` (primeira leva, branch `refactor/phase3-oncontrolevent`)**: 28 blocos com 30+ linhas viraram métodos `OnControl_*` em `TMFieldScene_Controls.cpp`, um por commit. A função caiu de ~3.500 para ~1.560 linhas. Só entraram blocos que:
+   - terminam sempre em `return` no nível superior do corpo (não caem para o próximo `if`);
+   - não têm `else` acoplado nem `goto`/rótulos;
+   - leem apenas as locais `dwServerTime`, `pMobData` e `cktrans`, constantes depois do prólogo, que são passadas por valor com o mesmo nome.
+
+   O ponto de chamada mantém a condição original e vira `return OnControl_X(...)`. Cada extração foi conferida reinserindo o corpo no lugar (texto idêntico), e cada commit intermediário compila no mingw.
+4. **Próximo passo**: os blocos restantes de `OnControlEvent` (menores, ou que caem para o próximo `if`, ou com `else`) e depois `OnPacketAttack`, `SkillUse`, `FrameMove`/`InitializeScene`, com o mesmo critério.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.

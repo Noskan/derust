@@ -22,11 +22,12 @@ class TMRain;
 class TMSnow;
 
 /// @brief Cena principal de jogo em campo (HUD, combate, entrada, pacotes e mundo).
-/// @details Implementação dividida por coesão (Fase 2, Ondas 1 e 4):
+/// @details Implementação dividida por coesão (Fase 2, Ondas 1 e 4; Fase 3):
 /// - Núcleo: `TMFieldScene.cpp` (gates, clima, voo, afetos, caça automática),
 ///   `TMFieldScene_Init.cpp` (construtor/destrutor, `InitializeScene`) e
 ///   `TMFieldScene_FrameMove.cpp` (`FrameMove`, `TimeDelay`).
-/// - UI: `TMFieldScene_UI.cpp` (`OnControlEvent`), `TMFieldScene_Panels.cpp` (`SetVisible*`),
+/// - UI: `TMFieldScene_UI.cpp` (`OnControlEvent`), `TMFieldScene_Controls.cpp` (handlers
+///   `OnControl_*` extraídos dele na Fase 3), `TMFieldScene_Panels.cpp` (`SetVisible*`),
 ///   `TMFieldScene_HUD.cpp` (`UpdateScoreUI`, chat, câmera) e `TMFieldScene_MsgBox.cpp`
 ///   (`OnMsgBoxEvent`, `Guildmark_*`).
 /// - Entrada: `TMFieldScene_Input.cpp`.
