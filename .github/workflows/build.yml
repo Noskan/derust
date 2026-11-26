@@ -6,6 +6,7 @@ on:
       - main
       - "refactor/**"
       - "fix/**"
+      - "test/**"
   pull_request:
     branches:
       - main
@@ -33,13 +34,13 @@ jobs:
       # O espelho do Ubuntu às vezes entrega os ~290 MB de pacotes (mingw + wine32 i386) a ~1 MB/s,
       # o que já levou o passo a mais de 10 min. Os .deb ficam em cache: só a primeira execução
       # (ou uma mudança na lista de pacotes) baixa do espelho.
-      - name: Cache apt packages (mingw-w64, wine32)
+      - name: Cache apt packages (mingw-w64, wine32, xvfb)
         uses: actions/cache@v4
         with:
           path: ~/apt-archives
-          key: apt-mingw-wine32-${{ runner.os }}-ubuntu24.04-v1
+          key: apt-mingw-wine32-xvfb-${{ runner.os }}-ubuntu24.04-v1
 
-      - name: Install mingw-w64 and wine32
+      - name: Install mingw-w64, wine32 and xvfb
         timeout-minutes: 25
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -50,7 +51,7 @@ jobs:
           for attempt in 1 2 3; do
             echo "tentativa $attempt"
             if sudo -E timeout 600 apt-get $apt_opts update &&
-               sudo -E timeout 600 apt-get $apt_opts install -y --no-install-recommends g++-mingw-w64-i686 wine wine32:i386; then
+               sudo -E timeout 600 apt-get $apt_opts install -y --no-install-recommends g++-mingw-w64-i686 wine wine32:i386 xvfb; then
               break
             fi
             [ "$attempt" = 3 ] && exit 1
@@ -61,11 +62,26 @@ jobs:
           i686-w64-mingw32-g++ --version | head -n1
           wine --version
 
-      - name: Cross-compile all TUs, link DBSrv and run w2pp_common_tests under wine
+      - name: Cross-compile all TUs, link DBSrv/TMSrv and run the tests under wine
         env:
           WINEDEBUG: -all
           WINEPREFIX: ${{ runner.temp }}/wineprefix
-        run: python3 tools/mingw_check.py --jobs 4
+        run: python3 tools/mingw_check.py --jobs 4 --keep "$RUNNER_TEMP/mingw"
+
+      # Sobe DBSrv e TMSrv com dados sintéticos (prefixo do wine e Xvfb próprios).
+      - name: Boot DBSrv + TMSrv under wine (synthetic data)
+        timeout-minutes: 10
+        run: python3 tools/server_boot_smoke.py "$RUNNER_TEMP/mingw" --keep "$RUNNER_TEMP/server_boot"
+
+      - name: Upload server boot logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-boot-logs
+          path: |
+            ${{ runner.temp }}/server_boot/srv/*/Log/
+            ${{ runner.temp }}/server_boot/srv/*/wine.log
+          if-no-files-found: ignore
 
   build-windows:
     name: MSVC Win32 (${{ matrix.config }})
