@@ -33,6 +33,7 @@ extern int g_pDistanceTable[7][7];
 #define EF_REFLEVEL				EF_ITEMLEVEL	// 87
 #define EF_TRANS				EF_MOBTYPE		// 112
 #define EF_FAME					EF_ITEMTYPE		// 113: fama no cliente
+#define EF_MAXCOL EF_NOSANC	// 126: última tintura no item (cliente); no ItemList, o servidor a lê como "não refina"
 
 extern int g_pMountBonus[30][6];
 extern int g_pMountBonus2[20][6];

@@ -92,7 +92,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		if (dest->sIndex >= 2300 && dest->sIndex < 2330)
 			Egg = 1;
 
-		if (m->DestType == ITEM_PLACE_CARRY && m->DestPos < pMob[conn].MaxCarry)
+		if (m->DestType == ITEM_PLACE_CARRY && BASE_CarryUsable(pMob[conn].MOB.Carry, m->DestPos))
 		{
 			if (dest == NULL)
 			{
@@ -111,7 +111,8 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 				return true;
 			}
 
-			int isSanc = BASE_GetItemAbility(dest, EF_NOSANC);
+			// Só o efeito fixo do ItemList: no item, 126 é a última tintura do cliente (EF_MAXCOL).
+			int isSanc = BASE_GetStaticItemAbility(dest, EF_NOSANC);
 
 			if (isSanc)
 			{
@@ -288,7 +289,8 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 			return true;
 		}
 
-		int isSanc = BASE_GetItemAbility(dest, EF_NOSANC);
+		// Só o efeito fixo do ItemList: no item, 126 é a última tintura do cliente (EF_MAXCOL).
+		int isSanc = BASE_GetStaticItemAbility(dest, EF_NOSANC);
 
 		if (isSanc)
 		{

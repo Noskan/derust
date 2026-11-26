@@ -149,5 +149,6 @@
 #define EF_MOBTYPE				 112 // Restrição de classe de evolução (Mortal/Arch/Celestial)
 #define EF_ITEMTYPE				 113 // Categoria auxiliar de tipo de item
 
-// Só do servidor. No cliente, 126 é EF_MAXCOL, o fim da faixa de tinturas que carregam a refinação.
+// Só do servidor, e só como efeito fixo do ItemList. Num item, 126 é a última tintura do cliente
+// (EF_MAXCOL, alias em BasedefInternal.h), que carrega a refinação.
 #define EF_NOSANC				 126 // Impede refinação do item
