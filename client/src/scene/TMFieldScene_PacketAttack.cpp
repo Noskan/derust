@@ -96,986 +96,10 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 	}
 
 	unsigned int dwDelay = 0;
-	if (g_pSpell[pAttack->SkillIndex].TargetType != 3 && g_pSpell[pAttack->SkillIndex].TargetType != 4 && 
-		g_pSpell[pAttack->SkillIndex].TargetType != 5 && g_pSpell[pAttack->SkillIndex].TargetType != 6)
 	{
-		for (int i = 0; i < 13; i++)
-		{
-			if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-				break;
-
-			if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-				break;
-
-			auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-			if (pTargetHuman)
-			{
-				int nDamageRate = pTargetHuman->m_cDamageRate;
-				if (nDamageRate == 0)
-					nDamageRate = 1;
-
-				if (m_pMyHuman)
-				{
-					int nDistance = BASE_GetDistance((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y,
-						(int)pTargetHuman->m_vecPosition.x,	(int)pTargetHuman->m_vecPosition.y);
-
-					if (nDistance > 20)
-					{
-						OutputDebugString(">>> damage font error distance : %d\n");
-						return 0;
-					}
-				}
-				if (pAttacker != m_pMyHuman || pAttack->FlagLocal == 0 && pAttacker == m_pMyHuman)
-				{
-					if (pAttack->Dam[i].Damage == -3 || pAttack->Dam[i].Damage == -4)
-					{
-						int nTX = 0;
-						int nTY = 0;
-						if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nTX, &nTY))
-						{
-							bool bDrawFront = false;
-							if (g_bHideEffect)
-							{
-								if (pAttacker == m_pMyHuman)
-									bDrawFront = true;
-								if (pTargetHuman == m_pMyHuman)
-									bDrawFront = true;
-							}
-							else
-							{
-								bDrawFront = true;
-							}
-
-							if (bDrawFront)
-							{
-								char szStr[128]{};
-								sprintf(szStr, "miss");
-
-								auto pFont = new TMFont3(szStr, nTX, nTY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFFFFFFFF, 2.0f, dwDelay, 1, 1500, 0, 4);
-								m_pExtraContainer->AddChild(pFont);
-							}
-						}
-					}
-					else if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104 && 
-						g_pSpell[pAttack->SkillIndex].InstanceType == 6 && 
-						(pAttack->Dam[i].Damage >= 0 || pAttack->Dam[i].Damage <= -6))
-					{
-						if (!pAttack->FlagLocal)
-						{
-							if (!pTargetHuman->m_MaxBigHp)
-							{
-								int HealDam = pAttack->Dam[i].Damage / nDamageRate;
-								int Dam = pTargetHuman->m_stScore.Hp - HealDam;
-
-								if (Dam > pTargetHuman->m_stScore.MaxHp)
-									Dam = pTargetHuman->m_stScore.MaxHp;
-								if (Dam <= 0)
-									pTargetHuman->m_stScore.Hp = 0;
-								else
-									pTargetHuman->m_stScore.Hp = Dam;
-							}
-							else
-							{
-								int Dam = pAttack->Dam[i].Damage;
-								if (pTargetHuman->m_BigHp == Dam)
-									pTargetHuman->m_BigHp = 0;
-								else
-									pTargetHuman->m_BigHp -= Dam;
-								if (!nDamageRate)
-									nDamageRate = 1;
-
-								pTargetHuman->m_stScore.Hp = (short)(pTargetHuman->m_BigHp / nDamageRate);
-							}
-
-							if (pTargetHuman == m_pMyHuman)
-							{
-								int HealDam = pAttack->Dam[i].Damage / nDamageRate;
-								int Dam = HealDam + m_nReqHP;
-								// TODO: change to define
-								if (Dam > 100000)
-									Dam = 100000;
-								if (Dam <= 0)
-									m_nReqHP = 0;
-								else
-									m_nReqHP = Dam;
-
-								memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-							}
-						}
-						int nTX = 0;
-						int nTY = 0;
-						if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y,	&nTX, &nTY))
-						{
-							char szStr[128]{};
-							if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
-								(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
-								&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
-							{
-								sprintf(szStr, "?");
-							}
-							else
-								sprintf(szStr, "+ %d", -pAttack->Dam[i].Damage / ((pAttack->DoubleCritical & 1) + 1));
-
-							bool bDrawFront = false;
-							if (g_bHideEffect)
-							{
-								if (pAttacker == m_pMyHuman)
-									bDrawFront = true;
-								if (pTargetHuman == m_pMyHuman)
-									bDrawFront = true;
-							}
-							else
-							{
-								bDrawFront = true;
-							}
-
-							if (bDrawFront)
-							{
-								auto pFont = new TMFont3(szStr, nTX, nTY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFF5555FF, 2.0f, dwDelay, 1, 1500, 0, 2);
-								m_pExtraContainer->AddChild(pFont);
-							}
-						}
-						if (pAttack->AttackerID == m_pMyHuman->m_dwID)
-							SetMyHumanExp(pAttack->CurrentExp, pAttack->FakeExp);
-					}
-					else
-					{
-						if (!pAttack->FlagLocal)
-						{
-							int nValue = pAttack->Dam[i].Damage;
-							if (nValue > 1000000)
-								nValue = 0;
-							if (nValue >= 0)
-							{
-								if (!pTargetHuman->m_MaxBigHp)
-								{
-									nValue /= nDamageRate;
-									int hp = pTargetHuman->m_stScore.Hp - nValue;
-									if (hp < 0)
-										hp = 0;
-									pTargetHuman->m_stScore.Hp = hp;
-								}
-								else
-								{
-									pTargetHuman->m_BigHp -= nValue;
-									pTargetHuman->m_stScore.Hp = (short)(pTargetHuman->m_BigHp / nDamageRate);
-								}
-							}
-							if (pTargetHuman->m_stScore.Hp < 0)
-								pTargetHuman->m_stScore.Hp = 0;
-							if (pTargetHuman == m_pMyHuman)
-							{
-								if (m_nReqHP - pAttack->Dam[i].Damage > 0)
-									m_nReqHP -= nValue;
-								else
-									m_nReqHP = 0;
-
-								if ((int)pAttack->AttackerID > 1000)
-								{
-									if (pAttack->ReqMp > 0)
-										m_nReqMP -= pAttack->ReqMp;
-
-									pTargetHuman->m_stScore.Mp = m_nReqMP;
-								}
-
-								memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-							}
-						}
-
-						pTargetHuman->m_wAttackerID = pAttack->AttackerID;
-
-						int bInScreen = 0;
-						int nTX = 0;
-						int nTY = 0;
-						if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pTargetHuman && pAttacker)
-							bInScreen = BASE_Get3DTo2DPos(
-								(float)(pTargetHuman->m_vecPosition.x * 0.5f) + (float)(pAttacker->m_vecPosition.x * 0.5f),
-								pTargetHuman->m_fHeight - 1.0f,
-								(float)(pTargetHuman->m_vecPosition.y * 0.5f) + (float)(pAttacker->m_vecPosition.y * 0.5f),
-								&nTX,
-								&nTY);
-						else
-							bInScreen = BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nTX, &nTY);
-
-						if (bInScreen)
-						{
-							if (!pTargetHuman || !pAttacker)
-								return 1;
-
-							for (int bViewHalf = 0; bViewHalf < (pAttack->DoubleCritical & 1) + 1; bViewHalf++)
-							{
-								int nFlank = 0;
-								if (pAttack->DoubleCritical & 4)
-									nFlank = pAttack->Dam[1].Damage;
-
-								int nValue = (pAttack->Dam[i].Damage - nFlank) / ((pAttack->DoubleCritical & 1) + 1);
-								if (nValue > 1000000)
-									nValue = 0;
-
-								if (nValue > 0)
-								{
-									char szStr[128]{};
-									if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
-										((int)pTargetHuman->m_vecPosition.x >> 7 != 18 || (int)pTargetHuman->m_vecPosition.y >> 7 != 30) && 
-										(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
-										&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
-									{
-										sprintf(szStr, "?");
-									}
-									else if (!(pAttack->DoubleCritical & 4) || bViewHalf)
-									{
-										sprintf(szStr, "%d", nValue);
-									}
-									else if (pAttack->Dam[1].Damage > 0)
-									{
-										sprintf(szStr, "%d + %d", nValue, nFlank);
-									}
-
-									bool bDrawFront = false;
-									if (g_bHideEffect)
-									{
-										if (pAttacker == m_pMyHuman)
-											bDrawFront = true;
-										if (pTargetHuman == m_pMyHuman)
-											bDrawFront = true;
-									}
-									else
-									{
-										bDrawFront = true;
-									}
-
-									if (pAttack->TargetX == 1129 && pAttack->TargetY == 1707 || 
-										pAttack->TargetX == 1116 && pAttack->TargetY == 1707 ||
-										pAttack->TargetX == 1094 && pAttack->TargetY == 1690)
-									{
-										bDrawFront = false;
-									}
-
-									if (bDrawFront)
-									{
-										TMFont3* pFont = nullptr;
-										unsigned int dwColor = 0xFFFFFFFF;
-										float fSize = 1.0f;
-										if (i > 0 && pAttack->Dam[i].TargetID == pAttack->Dam[i - 1].TargetID)
-										{
-											m_pMyHuman->m_bCritical = 0;
-											if (!(pAttack->DoubleCritical & 2))
-											{
-												if (pTargetHuman == m_pMyHuman)
-												{
-													if (bInScreen)
-													{
-														pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
-															(int)(RenderDevice::m_fHeightRatio * 80.0f) + 
-															(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) - 
-																((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)), 
-															dwColor,
-															fSize, 
-															dwDelay,
-															1,
-															1200,
-															bViewHalf, 
-															4);
-													}
-												}
-												else if (bInScreen)
-												{
-													pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
-														(int)(RenderDevice::m_fHeightRatio * 80.0f) +
-														(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) -
-															((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-														dwColor,
-														fSize,
-														dwDelay,
-														1,
-														1200,
-														bViewHalf,
-														3);
-												}
-											}
-											else
-											{
-												m_pMyHuman->m_bCritical = 1;
-												if (bInScreen)
-												{
-													pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
-														(int)(RenderDevice::m_fHeightRatio * 80.0f) +
-														(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
-															((float)(40 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-														dwColor,
-														fSize,
-														dwDelay,
-														9,
-														300 * (pAttack->DoubleCritical & 2) + 1200,
-														bViewHalf,
-														5);
-												}
-											}
-										}
-										else
-										{
-											m_pMyHuman->m_bCritical = 0;
-											if (pAttack->DoubleCritical & 2)
-											{
-												m_pMyHuman->m_bCritical = 1;
-												if (bInScreen)
-												{
-													pFont = new TMFont3(szStr, nTX,
-														(int)(RenderDevice::m_fHeightRatio * 80.0f) +
-														(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) -
-															((float)(40 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-														dwColor,
-														fSize,
-														dwDelay,
-														9,
-														550 * (pAttack->DoubleCritical & 2) + 1000 * bViewHalf + 1000,
-														bViewHalf,
-														5);
-												}
-											}
-											else if (pTargetHuman == m_pMyHuman)
-											{
-												if (bInScreen)
-												{
-													pFont = new TMFont3(szStr, nTX,
-														(int)(RenderDevice::m_fHeightRatio * 40.0f) +
-														(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
-															((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-														dwColor,
-														fSize,
-														dwDelay,
-														1,
-														1000 * bViewHalf + 1000,
-														bViewHalf,
-														4);
-												}
-											}
-											else if (bInScreen)
-											{
-												pFont = new TMFont3(szStr, nTX,
-													(int)(RenderDevice::m_fHeightRatio * 40.0f) +
-													(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
-														((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-													dwColor,
-													fSize,
-													dwDelay,
-													1,
-													1000 * bViewHalf + 1000,
-													bViewHalf,
-													3);
-											}
-										}
-
-										if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pAttacker != m_pMyHuman)
-										{
-											if (pFont)
-											{
-												pFont->m_fScale = 0.5f;
-												if (pFont->m_nType == 5)
-													pFont->m_nType = 6;
-											}
-										}
-
-										m_pExtraContainer->AddChild(pFont);
-									}
-
-									if (pTargetHuman == m_pMyHuman && pAttacker)
-										sprintf(m_szLastAttackerName, "%s", pAttacker->m_szName);
-
-									if (pTargetHuman->m_cCriticalArmor == 1)
-									{
-										auto pEffectMesh = new TMEffectMesh(2838, 0xFF999999, pTargetHuman->m_fAngle, 4);
-
-										pEffectMesh->m_nTextureIndex = 413;
-										pEffectMesh->m_dwLifeTime = 500;
-										pEffectMesh->m_dwCycleTime = 500;
-																				
-										if (pTargetHuman->m_cMount == 1)
-										{
-											pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecSkinPos.x,
-												(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
-													* pTargetHuman->m_fScale)
-													/ 2.0f)
-													+ pTargetHuman->m_vecSkinPos.y)
-												- 0.30000001f,
-												pTargetHuman->m_vecSkinPos.z);
-										}
-										else
-										{
-											pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecPosition.x,
-												(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
-													* pTargetHuman->m_fScale)
-													/ 2.0f)
-													+ pTargetHuman->m_fHeight)
-												+ 0.30000001f,
-												pTargetHuman->m_vecPosition.y);
-										}
-
-										pEffectMesh->m_fScaleH = 2.5f;
-										pEffectMesh->m_fScaleV = 2.5f;
-										pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-										pEffectMesh->m_cShine = 0;
-
-										m_pEffectContainer->AddChild(pEffectMesh);
-									}
-								}
-							}
-						}
-					}
-
-					if (pTargetHuman->m_stScore.Hp < 0 && !pAttack->FlagLocal)
-					{
-						pTargetHuman->m_stScore.Hp = 0;
-						m_nReqHP = 0;
-					}
-					if (pTargetHuman->m_stScore.Hp > pTargetHuman->m_stScore.MaxHp && !pAttack->FlagLocal)
-						pTargetHuman->m_stScore.Hp = pTargetHuman->m_stScore.MaxHp;
-					if (pTargetHuman == m_pMyHuman && !pAttack->FlagLocal)
-						g_pObjectManager->m_stMobData.CurrentScore.Hp = pTargetHuman->m_stScore.Hp;
-
-					pTargetHuman->UpdateScore(0);
-
-					auto pPartyList = m_pPartyList;
-					if (pPartyList)
-					{
-						for (int i = 0; i < pPartyList->m_nNumItem; i++)
-						{
-							auto pPartyItem = (SListBoxPartyItem*)pPartyList->m_pItemList[i];
-							if (pPartyItem->m_dwCharID == pTargetHuman->m_dwID)
-							{
-								pPartyItem->m_pHpProgress->SetMaxProgress(pTargetHuman->m_stScore.MaxHp);
-								pPartyItem->m_pHpProgress->SetCurrentProgress(pTargetHuman->m_stScore.Hp);
-								break;
-							}
-						}
-					}
-				}
-				if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104 && pAttack->SkillIndex != 29)
-				{
-					if (g_pSpell[pAttack->SkillIndex].InstanceType == 8)
-						return 1;
-				}
-
-				if (pAttacker && pAttacker->m_nSkinMeshType == 11)
-					nClass = 4;
-
-				static const unsigned int dwDelayTable[36] = 
-				{
-					0, 0, 0, 0, 0, 0, 0, 0, 0, 1000, 1000, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 700, 700, 700,
-					1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000
-				};
-
-				if ((unsigned char)pAttack->Motion > 9)
-					pAttack->Motion = 9;
-
-				int nMotion = (unsigned char)pAttack->Motion - 4;
-				if (pAttack->SkillIndex == 151)
-					nClass = 5;
-				if (pAttacker != m_pMyHuman || !pAttack->FlagLocal && pAttacker == m_pMyHuman)
-				{
-					pTargetHuman->m_stPunchEvent.nDamage = pAttack->Dam[i].Damage / nDamageRate;
-					pTargetHuman->m_stPunchEvent.vecFrom = vecAttackerPos;
-					pTargetHuman->m_stPunchEvent.dwTime = 0 + dwDelayTable[6 * nClass + nMotion] + g_pTimerManager->GetServerTime();
-				}
-			}
-		}
-	}
-	else
-	{
-		float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY)) * 0.1f;
-		vecTarget = TMVector3((float)pAttack->TargetX, fY, (float)pAttack->TargetY);
-
-		if (pAttacker != m_pMyHuman || !pAttack->FlagLocal && pAttacker == m_pMyHuman)
-		{
-			for (int i = 0; i < 13; i++)
-			{
-				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-					break;
-
-				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-					break;
-
-				auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-				if (pTargetHuman)
-				{
-					int nDamageRate = pTargetHuman->m_cDamageRate;
-					if (nDamageRate == 0)
-						nDamageRate = 1;
-
-					if (pAttack->Dam[i].Damage == -3 || pAttack->Dam[i].Damage == -4)
-					{
-						int pX = 0;
-						int pY = 0;
-						if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &pX, &pY))
-						{
-							bool bDrawFront = false;
-							if (g_bHideEffect)
-							{
-								if (pAttacker == m_pMyHuman)
-									bDrawFront = true;
-								if (pTargetHuman == m_pMyHuman)
-									bDrawFront = true;
-							}
-							else
-							{
-								bDrawFront = true;
-							}
-
-							if (bDrawFront)
-							{
-								char szStr[128]{};
-								sprintf(szStr, "miss");
-								auto pFont = new TMFont3(szStr, pX, pY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFFFFFFFF, 2.0f, dwDelay, 1, 1500, 0, 4);
-								m_pExtraContainer->AddChild(pFont);
-							}
-						}
-					}
-					else if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104
-						&& g_pSpell[pAttack->SkillIndex].InstanceType == 6
-						&& (pAttack->Dam[i].Damage >= 0 || pAttack->Dam[i].Damage <= -6))
-					{
-						if (!pAttack->FlagLocal)
-						{
-							if (pTargetHuman->m_stScore.Hp - pAttack->Dam[i].Damage / nDamageRate <= 0)
-								pTargetHuman->m_stScore.Hp = 0;
-							else
-								pTargetHuman->m_stScore.Hp -= pAttack->Dam[i].Damage / nDamageRate;
-							if (pTargetHuman == m_pMyHuman)
-							{
-								if (m_nReqHP - pAttack->Dam[i].Damage <= 0)
-									m_nReqHP = 0;
-								else
-									m_nReqHP -= pAttack->Dam[i].Damage / nDamageRate;
-
-								memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-							}
-						}
-
-						int nStartX = 0;
-						int nStartY = 0;
-						if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nStartX, &nStartY))
-						{
-							char szStr[128]{};
-							if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
-								(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
-								&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
-							{
-								sprintf(szStr, "?");
-							}
-							else
-								sprintf(szStr, "+ %d", -pAttack->Dam[i].Damage / ((pAttack->DoubleCritical & 1) + 1));
-
-							bool bDrawFront = false;
-							if (g_bHideEffect)
-							{
-								if (pAttacker == m_pMyHuman)
-									bDrawFront = true;
-								if (pTargetHuman == m_pMyHuman)
-									bDrawFront = true;
-							}
-							else
-							{
-								bDrawFront = true;
-							}
-
-							if (bDrawFront)
-							{
-								auto pFont = new TMFont3(szStr, nStartX, nStartY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFF5555FF, 2.0f, dwDelay, 1, 1500, 0, 2);
-								m_pExtraContainer->AddChild(pFont);
-							}
-						}
-						if (pAttack->AttackerID == m_pMyHuman->m_dwID)
-							SetMyHumanExp(pAttack->CurrentExp, pAttack->FakeExp);
-					}
-					else
-					{
-						if (!pAttack->FlagLocal)
-						{
-							if (!pTargetHuman->m_MaxBigHp)
-							{
-								if (pTargetHuman->m_stScore.Hp - pAttack->Dam[i].Damage / nDamageRate <= 0)
-									pTargetHuman->m_stScore.Hp = 0;
-								else
-									pTargetHuman->m_stScore.Hp -= pAttack->Dam[i].Damage / nDamageRate;
-							}
-							else
-							{
-								if (pTargetHuman->m_BigHp == pAttack->Dam[i].Damage)
-									pTargetHuman->m_BigHp = 0;
-								else
-									pTargetHuman->m_BigHp -= pAttack->Dam[i].Damage;
-								pTargetHuman->m_stScore.Hp = (short)pTargetHuman->m_BigHp;
-							}
-							if (pTargetHuman == m_pMyHuman)
-							{
-								if (m_nReqHP - pAttack->Dam[i].Damage <= 0)
-									m_nReqHP = 0;
-								else
-									m_nReqHP -= pAttack->Dam[i].Damage / nDamageRate;
-
-								memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-							}
-						}
-
-						pTargetHuman->m_wAttackerID = pAttack->AttackerID;
-
-						int bInScreen = 0;
-						int nTX = 0;
-						int nTY = 0;
-						if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pTargetHuman && pAttacker)
-							bInScreen = BASE_Get3DTo2DPos(
-								(float)(pTargetHuman->m_vecPosition.x * 0.5f) + (float)(pAttacker->m_vecPosition.x * 0.5f),
-								pTargetHuman->m_fHeight - 1.0f,
-								(float)(pTargetHuman->m_vecPosition.y * 0.5f) + (float)(pAttacker->m_vecPosition.y * 0.5f),
-								&nTX,
-								&nTY);
-						else
-							bInScreen = BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nTX, &nTY);
-
-						if (bInScreen)
-						{
-							if (!pTargetHuman || !pAttacker)
-								return 1;
-
-							for (int bViewHalf = 0; bViewHalf < (pAttack->DoubleCritical & 1) + 1; bViewHalf++)
-							{
-								int nValue = pAttack->Dam[i].Damage / ((pAttack->DoubleCritical & 1) + 1);
-								
-								if (nValue > 0)
-								{
-									char szStr[128]{};
-									if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
-										((int)pTargetHuman->m_vecPosition.x >> 7 != 18 || (int)pTargetHuman->m_vecPosition.y >> 7 != 30) &&
-										(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
-										&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
-									{
-										sprintf(szStr, "?");
-									}
-									else 
-									{
-										sprintf(szStr, "%d", nValue);
-									}
-									
-									if (pAttack->SkillIndex == 79)
-										dwDelay += 100 * i;
-
-									bool bDrawFront = false;
-									if (g_bHideEffect)
-									{
-										if (pAttacker == m_pMyHuman)
-											bDrawFront = true;
-										if (pTargetHuman == m_pMyHuman)
-											bDrawFront = true;
-									}
-									else
-									{
-										bDrawFront = true;
-									}
-
-									TMFont3* pFont = nullptr;
-									unsigned int dwColor = 0xFFFFFFFF;
-									float fSize = 1.0f;
-									if (bDrawFront)
-									{
-										if (!(pAttack->DoubleCritical & 2))
-										{
-											if (pTargetHuman == m_pMyHuman)
-											{
-												if (bInScreen)
-												{
-													pFont = new TMFont3(szStr, nTX - 10 * i,
-														(int)(RenderDevice::m_fHeightRatio * 80.0f) +
-														(int)(((float)nTY - (float)(20.0f * i)) * RenderDevice::m_fHeightRatio),
-														dwColor,
-														fSize,
-														dwDelay,
-														1,
-														1200,
-														0,
-														4);
-												}
-											}
-											else if (bInScreen)
-											{
-												pFont = new TMFont3(szStr, nTX - 10 * i,
-													(int)(RenderDevice::m_fHeightRatio * 80.0f) +
-													(int)(((float)nTY - (float)(20.0f * i)) * RenderDevice::m_fHeightRatio),
-													dwColor,
-													fSize,
-													dwDelay,
-													1,
-													1200,
-													0,
-													3);
-											}
-										}
-										else if (bInScreen)
-										{
-											pFont = new TMFont3(szStr, nTX - 10 * i,
-												(int)(RenderDevice::m_fHeightRatio * 80.0f) +
-												(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) - ((float)(40 * i) * RenderDevice::m_fHeightRatio) + 
-													(float)(RenderDevice::m_fHeightRatio * 80.0f)),
-												dwColor,
-												fSize,
-												dwDelay,
-												1,
-												1200,
-												0,
-												5);
-										}
-
-										if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pAttacker != m_pMyHuman)
-										{
-											if (pFont)
-											{
-												pFont->m_fScale = 0.5f;
-												if (pFont->m_nType == 5)
-													pFont->m_nType = 6;
-											}
-										}
-
-										m_pExtraContainer->AddChild(pFont);										
-									}
-
-									if (pTargetHuman == m_pMyHuman && pAttacker)
-										sprintf(m_szLastAttackerName, "%s", pAttacker->m_szName);
-
-									if (pTargetHuman->m_cCriticalArmor == 1)
-									{
-										auto pEffectMesh = new TMEffectMesh(2838, 0xFF999999, pTargetHuman->m_fAngle, 4);
-
-										pEffectMesh->m_nTextureIndex = 413;
-										pEffectMesh->m_dwLifeTime = 500;
-										pEffectMesh->m_dwCycleTime = 500;
-
-										if (pTargetHuman->m_cMount == 1)
-										{
-											pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecSkinPos.x,
-												(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
-													* pTargetHuman->m_fScale)
-													/ 2.0f)
-													+ pTargetHuman->m_vecSkinPos.y)
-												- 0.30000001f,
-												pTargetHuman->m_vecSkinPos.z);
-										}
-										else
-										{
-											pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecPosition.x,
-												(float)((float)((float)(TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
-													* pTargetHuman->m_fScale)
-													/ 2.0f)
-													+ pTargetHuman->m_fHeight)
-												+ 0.30000001f,
-												pTargetHuman->m_vecPosition.y);
-										}
-
-										pEffectMesh->m_fScaleH = 2.5f;
-										pEffectMesh->m_fScaleV = 2.5f;
-										pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-										pEffectMesh->m_cShine = 0;
-
-										m_pEffectContainer->AddChild(pEffectMesh);
-									}
-								}
-							}
-						}
-					}
-					if (pTargetHuman->m_stScore.Hp < 0 && !pAttack->FlagLocal)
-					{
-						pTargetHuman->m_stScore.Hp = 0;
-						if (pTargetHuman == m_pMyHuman)
-							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-
-						m_nReqHP = 0;
-					}
-					if (pTargetHuman->m_stScore.Hp > pTargetHuman->m_stScore.MaxHp && !pAttack->FlagLocal)
-					{
-						pTargetHuman->m_stScore.Hp = pTargetHuman->m_stScore.MaxHp;
-						if (pTargetHuman == m_pMyHuman)
-							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-					}
-					if (pTargetHuman == m_pMyHuman && !pAttack->FlagLocal)
-					{
-						g_pObjectManager->m_stMobData.CurrentScore.Hp = pTargetHuman->m_stScore.Hp;
-						if (pTargetHuman == m_pMyHuman)
-							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-					}
-					pTargetHuman->UpdateScore(0);
-				}
-			}
-		}
-		if (pAttacker != m_pMyHuman || (pAttack->FlagLocal == 1 && pAttacker == m_pMyHuman))
-		{
-			if (pAttack->SkillIndex == 0)
-			{
-				auto pHeavensDust = new TMSkillHeavensDust(vecTarget, 0);
-
-				m_pEffectContainer->AddChild(pHeavensDust);
-			}
-			else if (pAttack->SkillIndex == 1)
-			{
-				TMVector3 vecPos{vecStart.x, vecStart.y - 0.5f, vecStart.z};
-
-				auto pHollyTouch = new TMSkillHolyTouch(vecPos, 0);
-
-				m_pEffectContainer->AddChild(pHollyTouch);
-			}
-			else if (pAttack->SkillIndex == 26)
-			{
-				TMVector3 vecPos{ vecStart.x, vecStart.y - 0.5f, vecStart.z };
-
-				auto pFlash = new TMSkillFlash(vecPos, 0);
-
-				m_pEffectContainer->AddChild(pFlash);
-
-				if (!pAttacker)
-					return 1;
-				if (m_pMyHuman->IsInTown() == 1)
-					return 1;
-				if (pAttacker->m_usGuild && m_pMyHuman->m_usGuild && (m_pMyHuman->m_usGuild == pAttacker->m_usGuild || g_pObjectManager->m_usAllyGuild == pAttacker->m_usGuild))
-					return 1;
-
-				bool bFound = false;
-				for (int i = 0; i < 13; i++)
-				{
-					if (pAttack->Dam[i].TargetID == m_pMyHuman->m_dwID)
-					{
-						bFound = true;
-						break;
-					}
-				}
-
-				if (bFound && pAttacker != m_pMyHuman && !pAttacker->m_bParty)
-				{
-					float fFlashTerm = 0.0f;
-					if (m_pMyHuman->m_stScore.Level <= 0)
-						fFlashTerm = (((float)m_pMyHuman->m_stScore.Level * 4000.0f)
-							* (float)pAttacker->m_stScore.Special[1])
-						/ 100.0f;
-					else
-						fFlashTerm = (((float)(pAttacker->m_stScore.Level / m_pMyHuman->m_stScore.Level)
-							* 4000.0f)
-							* (float)pAttacker->m_stScore.Special[1])
-						/ 100.0f;
-					if (fFlashTerm < 2000.0)
-						fFlashTerm = 2000.0;
-					if (fFlashTerm > 4000.0)
-						fFlashTerm = 4000.0;
-
-					m_fFlashTerm = fFlashTerm;
-					m_dwStartFlashTime = g_pTimerManager->GetServerTime();
-				}
-			}
-			else if (pAttack->SkillIndex == 7)
-			{
-				for (int i = 0; i < 13; i++)
-				{
-					if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-						break;
-
-					if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-						break;
-
-					auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pTargetHuman)
-					{
-						float fTarget = 0.0f;
-						if (pAttacker)
-							fTarget = pAttacker->m_fHeight;
-
-						vecStart = TMVector3(pTargetHuman->m_vecPosition.x,
-							fTarget + 0.5f,
-							pTargetHuman->m_vecPosition.y);
-
-						vecTarget = TMVector3(vecStart.x + 3.0f, vecStart.y + 5.0f, vecStart.z - 3.0f);
-
-						auto pArrow = new TMArrow(vecTarget, vecStart, 0, 10001, 0, 0, 0);
-
-						m_pEffectContainer->AddChild(pArrow);
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 35)
-			{
-				vecTarget.y += 1.0f;
-
-				auto pMeteor = new TMSkillMeteorStorm(TMVector3(0.0f, 0.0f, 0.0f), vecTarget, 0, nullptr);
-
-				m_pEffectContainer->AddChild(pMeteor);
-			}
-			else if (pAttack->SkillIndex == 39 && !bomb)
-			{
-				vecTarget.y += 1.0f;
-
-				TMVector3 vecSt{};
-
-				for (int i = 0; i < 4; i++)
-				{
-					auto pMeteor = new TMSkillMeteorStorm(vecSt, TMVector3((float)(vecTarget.x - 1.8f) + ((float)(i % 2) * 3.5999999f),
-						vecTarget.y,
-						(float)(vecTarget.z - 1.8f) + ((float)(i / 2) * 3.5999999f)), 4, nullptr);
-
-					pMeteor->m_dwStartTime += 200 * i;
-					m_pEffectContainer->AddChild(pMeteor);
-				}	
-
-				auto pMeteor = new TMSkillMeteorStorm(vecSt, TMVector3(vecTarget.x, vecTarget.y, vecTarget.z), 4, nullptr);
-
-				pMeteor->m_dwStartTime += 270;
-				m_pEffectContainer->AddChild(pMeteor);
-			}
-			else if (pAttack->SkillIndex == 39 && bomb)
-			{
-				vecTarget.y += 2.0f;
-
-				TMVector3 vecSt{};
-
-				for (int i = 0; i < 4; i++)
-				{
-					auto pMeteor = new TMSkillMeteorStorm(vecSt, TMVector3((float)(vecTarget.x - 0.89999998f) + ((float)(i % 2) * 1.8f),
-						vecTarget.y,
-						(float)(vecTarget.z - 0.89999998f) + ((float)(i / 2) * 1.8f)), 4, nullptr);
-
-					m_pEffectContainer->AddChild(pMeteor);
-				}
-
-				vecTarget.y += 0.30000001f;
-
-				auto pMeteor = new TMSkillMeteorStorm(vecSt, TMVector3(vecTarget.x, vecTarget.y, vecTarget.z), 10, nullptr);
-				m_pEffectContainer->AddChild(pMeteor);
-			}
-			else if (pAttack->SkillIndex == 97)
-			{
-				vecTarget.y += 1.0f;
-				for (int i = 0; i < 100; i++)
-				{
-					auto pItem = (TMCannon*)g_pObjectManager->GetItemByID(i + 15001);
-					if (pItem)
-					{
-						if (pItem->m_stItem.sIndex == 746)
-						{
-							if (vecStart.x == pItem->m_vecBasePosition.x && vecStart.z == pItem->m_vecBasePosition.y)
-							{
-								pItem->m_cFire = 1;
-								vecStart.x = (float)(pItem->m_fCosF * pItem->m_fCannonLen) + vecStart.x;
-								vecStart.z = vecStart.z - (float)(pItem->m_fSinF * pItem->m_fCannonLen);
-								break;
-							}
-						}
-					}
-				}
-
-				float fx = vecTarget.x - m_pMyHuman->m_vecPosition.x;
-				float fy = vecTarget.z - m_pMyHuman->m_vecPosition.y;
-
-				auto pMeteor = new TMSkillMeteorStorm(vecStart, vecTarget, 2, 0);
-
-				pMeteor->m_fDestLength = sqrt((float)(fx * fx) + (float)(fy * fy));
-
-				m_pEffectContainer->AddChild(pMeteor);
-				return 1;
-			}
-		}
+		int nReturnValue = 0;
+		if (PacketAttack_ApplyTargets(pAttack, pAttacker, bomb, vecAttackerPos, nClass, vecStart, vecTarget, dwDelay, nReturnValue))
+			return nReturnValue;
 	}
 
 	if (!pAttack->FlagLocal)
@@ -2340,6 +1364,995 @@ else
 		stParm.Header.Type = 0x369;
 		stParm.Parm = pAttack->AttackerID;
 		SendOneMessage((char*)&stParm, sizeof(stParm));
+	}
+}
+	return false;
+}
+
+/// Aplica o ataque a cada alvo de `pAttack->Dam` quando a skill não é de área (`TargetType` != 3..6).
+/// @note Extraído de `TMFieldScene::OnPacketAttack` (Fase 3); locais da função passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::PacketAttack_ApplyTargets(MSG_Attack*& pAttack, TMHuman*& pAttacker, bool& bomb, TMVector2& vecAttackerPos, int& nClass, TMVector3& vecStart, TMVector3& vecTarget, unsigned int& dwDelay, int& nReturnValue)
+{
+if (g_pSpell[pAttack->SkillIndex].TargetType != 3 && g_pSpell[pAttack->SkillIndex].TargetType != 4 && 
+	g_pSpell[pAttack->SkillIndex].TargetType != 5 && g_pSpell[pAttack->SkillIndex].TargetType != 6)
+{
+	for (int i = 0; i < 13; i++)
+	{
+		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+			break;
+
+		if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+			break;
+
+		auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+		if (pTargetHuman)
+		{
+			int nDamageRate = pTargetHuman->m_cDamageRate;
+			if (nDamageRate == 0)
+				nDamageRate = 1;
+
+			if (m_pMyHuman)
+			{
+				int nDistance = BASE_GetDistance((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y,
+					(int)pTargetHuman->m_vecPosition.x,	(int)pTargetHuman->m_vecPosition.y);
+
+				if (nDistance > 20)
+				{
+					OutputDebugString(">>> damage font error distance : %d\n");
+					{ nReturnValue = 0; return true; }
+				}
+			}
+			if (pAttacker != m_pMyHuman || pAttack->FlagLocal == 0 && pAttacker == m_pMyHuman)
+			{
+				if (pAttack->Dam[i].Damage == -3 || pAttack->Dam[i].Damage == -4)
+				{
+					int nTX = 0;
+					int nTY = 0;
+					if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nTX, &nTY))
+					{
+						bool bDrawFront = false;
+						if (g_bHideEffect)
+						{
+							if (pAttacker == m_pMyHuman)
+								bDrawFront = true;
+							if (pTargetHuman == m_pMyHuman)
+								bDrawFront = true;
+						}
+						else
+						{
+							bDrawFront = true;
+						}
+
+						if (bDrawFront)
+						{
+							char szStr[128]{};
+							sprintf(szStr, "miss");
+
+							auto pFont = new TMFont3(szStr, nTX, nTY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFFFFFFFF, 2.0f, dwDelay, 1, 1500, 0, 4);
+							m_pExtraContainer->AddChild(pFont);
+						}
+					}
+				}
+				else if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104 && 
+					g_pSpell[pAttack->SkillIndex].InstanceType == 6 && 
+					(pAttack->Dam[i].Damage >= 0 || pAttack->Dam[i].Damage <= -6))
+				{
+					if (!pAttack->FlagLocal)
+					{
+						if (!pTargetHuman->m_MaxBigHp)
+						{
+							int HealDam = pAttack->Dam[i].Damage / nDamageRate;
+							int Dam = pTargetHuman->m_stScore.Hp - HealDam;
+
+							if (Dam > pTargetHuman->m_stScore.MaxHp)
+								Dam = pTargetHuman->m_stScore.MaxHp;
+							if (Dam <= 0)
+								pTargetHuman->m_stScore.Hp = 0;
+							else
+								pTargetHuman->m_stScore.Hp = Dam;
+						}
+						else
+						{
+							int Dam = pAttack->Dam[i].Damage;
+							if (pTargetHuman->m_BigHp == Dam)
+								pTargetHuman->m_BigHp = 0;
+							else
+								pTargetHuman->m_BigHp -= Dam;
+							if (!nDamageRate)
+								nDamageRate = 1;
+
+							pTargetHuman->m_stScore.Hp = (short)(pTargetHuman->m_BigHp / nDamageRate);
+						}
+
+						if (pTargetHuman == m_pMyHuman)
+						{
+							int HealDam = pAttack->Dam[i].Damage / nDamageRate;
+							int Dam = HealDam + m_nReqHP;
+							// TODO: change to define
+							if (Dam > 100000)
+								Dam = 100000;
+							if (Dam <= 0)
+								m_nReqHP = 0;
+							else
+								m_nReqHP = Dam;
+
+							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+						}
+					}
+					int nTX = 0;
+					int nTY = 0;
+					if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y,	&nTX, &nTY))
+					{
+						char szStr[128]{};
+						if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
+							(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
+							&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
+						{
+							sprintf(szStr, "?");
+						}
+						else
+							sprintf(szStr, "+ %d", -pAttack->Dam[i].Damage / ((pAttack->DoubleCritical & 1) + 1));
+
+						bool bDrawFront = false;
+						if (g_bHideEffect)
+						{
+							if (pAttacker == m_pMyHuman)
+								bDrawFront = true;
+							if (pTargetHuman == m_pMyHuman)
+								bDrawFront = true;
+						}
+						else
+						{
+							bDrawFront = true;
+						}
+
+						if (bDrawFront)
+						{
+							auto pFont = new TMFont3(szStr, nTX, nTY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFF5555FF, 2.0f, dwDelay, 1, 1500, 0, 2);
+							m_pExtraContainer->AddChild(pFont);
+						}
+					}
+					if (pAttack->AttackerID == m_pMyHuman->m_dwID)
+						SetMyHumanExp(pAttack->CurrentExp, pAttack->FakeExp);
+				}
+				else
+				{
+					if (!pAttack->FlagLocal)
+					{
+						int nValue = pAttack->Dam[i].Damage;
+						if (nValue > 1000000)
+							nValue = 0;
+						if (nValue >= 0)
+						{
+							if (!pTargetHuman->m_MaxBigHp)
+							{
+								nValue /= nDamageRate;
+								int hp = pTargetHuman->m_stScore.Hp - nValue;
+								if (hp < 0)
+									hp = 0;
+								pTargetHuman->m_stScore.Hp = hp;
+							}
+							else
+							{
+								pTargetHuman->m_BigHp -= nValue;
+								pTargetHuman->m_stScore.Hp = (short)(pTargetHuman->m_BigHp / nDamageRate);
+							}
+						}
+						if (pTargetHuman->m_stScore.Hp < 0)
+							pTargetHuman->m_stScore.Hp = 0;
+						if (pTargetHuman == m_pMyHuman)
+						{
+							if (m_nReqHP - pAttack->Dam[i].Damage > 0)
+								m_nReqHP -= nValue;
+							else
+								m_nReqHP = 0;
+
+							if ((int)pAttack->AttackerID > 1000)
+							{
+								if (pAttack->ReqMp > 0)
+									m_nReqMP -= pAttack->ReqMp;
+
+								pTargetHuman->m_stScore.Mp = m_nReqMP;
+							}
+
+							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+						}
+					}
+
+					pTargetHuman->m_wAttackerID = pAttack->AttackerID;
+
+					int bInScreen = 0;
+					int nTX = 0;
+					int nTY = 0;
+					if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pTargetHuman && pAttacker)
+						bInScreen = BASE_Get3DTo2DPos(
+							(float)(pTargetHuman->m_vecPosition.x * 0.5f) + (float)(pAttacker->m_vecPosition.x * 0.5f),
+							pTargetHuman->m_fHeight - 1.0f,
+							(float)(pTargetHuman->m_vecPosition.y * 0.5f) + (float)(pAttacker->m_vecPosition.y * 0.5f),
+							&nTX,
+							&nTY);
+					else
+						bInScreen = BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nTX, &nTY);
+
+					if (bInScreen)
+					{
+						if (!pTargetHuman || !pAttacker)
+							{ nReturnValue = 1; return true; }
+
+						for (int bViewHalf = 0; bViewHalf < (pAttack->DoubleCritical & 1) + 1; bViewHalf++)
+						{
+							int nFlank = 0;
+							if (pAttack->DoubleCritical & 4)
+								nFlank = pAttack->Dam[1].Damage;
+
+							int nValue = (pAttack->Dam[i].Damage - nFlank) / ((pAttack->DoubleCritical & 1) + 1);
+							if (nValue > 1000000)
+								nValue = 0;
+
+							if (nValue > 0)
+							{
+								char szStr[128]{};
+								if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
+									((int)pTargetHuman->m_vecPosition.x >> 7 != 18 || (int)pTargetHuman->m_vecPosition.y >> 7 != 30) && 
+									(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
+									&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
+								{
+									sprintf(szStr, "?");
+								}
+								else if (!(pAttack->DoubleCritical & 4) || bViewHalf)
+								{
+									sprintf(szStr, "%d", nValue);
+								}
+								else if (pAttack->Dam[1].Damage > 0)
+								{
+									sprintf(szStr, "%d + %d", nValue, nFlank);
+								}
+
+								bool bDrawFront = false;
+								if (g_bHideEffect)
+								{
+									if (pAttacker == m_pMyHuman)
+										bDrawFront = true;
+									if (pTargetHuman == m_pMyHuman)
+										bDrawFront = true;
+								}
+								else
+								{
+									bDrawFront = true;
+								}
+
+								if (pAttack->TargetX == 1129 && pAttack->TargetY == 1707 || 
+									pAttack->TargetX == 1116 && pAttack->TargetY == 1707 ||
+									pAttack->TargetX == 1094 && pAttack->TargetY == 1690)
+								{
+									bDrawFront = false;
+								}
+
+								if (bDrawFront)
+								{
+									TMFont3* pFont = nullptr;
+									unsigned int dwColor = 0xFFFFFFFF;
+									float fSize = 1.0f;
+									if (i > 0 && pAttack->Dam[i].TargetID == pAttack->Dam[i - 1].TargetID)
+									{
+										m_pMyHuman->m_bCritical = 0;
+										if (!(pAttack->DoubleCritical & 2))
+										{
+											if (pTargetHuman == m_pMyHuman)
+											{
+												if (bInScreen)
+												{
+													pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
+														(int)(RenderDevice::m_fHeightRatio * 80.0f) + 
+														(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) - 
+															((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)), 
+														dwColor,
+														fSize, 
+														dwDelay,
+														1,
+														1200,
+														bViewHalf, 
+														4);
+												}
+											}
+											else if (bInScreen)
+											{
+												pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
+													(int)(RenderDevice::m_fHeightRatio * 80.0f) +
+													(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) -
+														((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+													dwColor,
+													fSize,
+													dwDelay,
+													1,
+													1200,
+													bViewHalf,
+													3);
+											}
+										}
+										else
+										{
+											m_pMyHuman->m_bCritical = 1;
+											if (bInScreen)
+											{
+												pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
+													(int)(RenderDevice::m_fHeightRatio * 80.0f) +
+													(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
+														((float)(40 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+													dwColor,
+													fSize,
+													dwDelay,
+													9,
+													300 * (pAttack->DoubleCritical & 2) + 1200,
+													bViewHalf,
+													5);
+											}
+										}
+									}
+									else
+									{
+										m_pMyHuman->m_bCritical = 0;
+										if (pAttack->DoubleCritical & 2)
+										{
+											m_pMyHuman->m_bCritical = 1;
+											if (bInScreen)
+											{
+												pFont = new TMFont3(szStr, nTX,
+													(int)(RenderDevice::m_fHeightRatio * 80.0f) +
+													(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) -
+														((float)(40 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+													dwColor,
+													fSize,
+													dwDelay,
+													9,
+													550 * (pAttack->DoubleCritical & 2) + 1000 * bViewHalf + 1000,
+													bViewHalf,
+													5);
+											}
+										}
+										else if (pTargetHuman == m_pMyHuman)
+										{
+											if (bInScreen)
+											{
+												pFont = new TMFont3(szStr, nTX,
+													(int)(RenderDevice::m_fHeightRatio * 40.0f) +
+													(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
+														((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+													dwColor,
+													fSize,
+													dwDelay,
+													1,
+													1000 * bViewHalf + 1000,
+													bViewHalf,
+													4);
+											}
+										}
+										else if (bInScreen)
+										{
+											pFont = new TMFont3(szStr, nTX,
+												(int)(RenderDevice::m_fHeightRatio * 40.0f) +
+												(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
+													((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+												dwColor,
+												fSize,
+												dwDelay,
+												1,
+												1000 * bViewHalf + 1000,
+												bViewHalf,
+												3);
+										}
+									}
+
+									if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pAttacker != m_pMyHuman)
+									{
+										if (pFont)
+										{
+											pFont->m_fScale = 0.5f;
+											if (pFont->m_nType == 5)
+												pFont->m_nType = 6;
+										}
+									}
+
+									m_pExtraContainer->AddChild(pFont);
+								}
+
+								if (pTargetHuman == m_pMyHuman && pAttacker)
+									sprintf(m_szLastAttackerName, "%s", pAttacker->m_szName);
+
+								if (pTargetHuman->m_cCriticalArmor == 1)
+								{
+									auto pEffectMesh = new TMEffectMesh(2838, 0xFF999999, pTargetHuman->m_fAngle, 4);
+
+									pEffectMesh->m_nTextureIndex = 413;
+									pEffectMesh->m_dwLifeTime = 500;
+									pEffectMesh->m_dwCycleTime = 500;
+																			
+									if (pTargetHuman->m_cMount == 1)
+									{
+										pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecSkinPos.x,
+											(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
+												* pTargetHuman->m_fScale)
+												/ 2.0f)
+												+ pTargetHuman->m_vecSkinPos.y)
+											- 0.30000001f,
+											pTargetHuman->m_vecSkinPos.z);
+									}
+									else
+									{
+										pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecPosition.x,
+											(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
+												* pTargetHuman->m_fScale)
+												/ 2.0f)
+												+ pTargetHuman->m_fHeight)
+											+ 0.30000001f,
+											pTargetHuman->m_vecPosition.y);
+									}
+
+									pEffectMesh->m_fScaleH = 2.5f;
+									pEffectMesh->m_fScaleV = 2.5f;
+									pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+									pEffectMesh->m_cShine = 0;
+
+									m_pEffectContainer->AddChild(pEffectMesh);
+								}
+							}
+						}
+					}
+				}
+
+				if (pTargetHuman->m_stScore.Hp < 0 && !pAttack->FlagLocal)
+				{
+					pTargetHuman->m_stScore.Hp = 0;
+					m_nReqHP = 0;
+				}
+				if (pTargetHuman->m_stScore.Hp > pTargetHuman->m_stScore.MaxHp && !pAttack->FlagLocal)
+					pTargetHuman->m_stScore.Hp = pTargetHuman->m_stScore.MaxHp;
+				if (pTargetHuman == m_pMyHuman && !pAttack->FlagLocal)
+					g_pObjectManager->m_stMobData.CurrentScore.Hp = pTargetHuman->m_stScore.Hp;
+
+				pTargetHuman->UpdateScore(0);
+
+				auto pPartyList = m_pPartyList;
+				if (pPartyList)
+				{
+					for (int i = 0; i < pPartyList->m_nNumItem; i++)
+					{
+						auto pPartyItem = (SListBoxPartyItem*)pPartyList->m_pItemList[i];
+						if (pPartyItem->m_dwCharID == pTargetHuman->m_dwID)
+						{
+							pPartyItem->m_pHpProgress->SetMaxProgress(pTargetHuman->m_stScore.MaxHp);
+							pPartyItem->m_pHpProgress->SetCurrentProgress(pTargetHuman->m_stScore.Hp);
+							break;
+						}
+					}
+				}
+			}
+			if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104 && pAttack->SkillIndex != 29)
+			{
+				if (g_pSpell[pAttack->SkillIndex].InstanceType == 8)
+					{ nReturnValue = 1; return true; }
+			}
+
+			if (pAttacker && pAttacker->m_nSkinMeshType == 11)
+				nClass = 4;
+
+			static const unsigned int dwDelayTable[36] = 
+			{
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 1000, 1000, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 700, 700, 700,
+				1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000
+			};
+
+			if ((unsigned char)pAttack->Motion > 9)
+				pAttack->Motion = 9;
+
+			int nMotion = (unsigned char)pAttack->Motion - 4;
+			if (pAttack->SkillIndex == 151)
+				nClass = 5;
+			if (pAttacker != m_pMyHuman || !pAttack->FlagLocal && pAttacker == m_pMyHuman)
+			{
+				pTargetHuman->m_stPunchEvent.nDamage = pAttack->Dam[i].Damage / nDamageRate;
+				pTargetHuman->m_stPunchEvent.vecFrom = vecAttackerPos;
+				pTargetHuman->m_stPunchEvent.dwTime = 0 + dwDelayTable[6 * nClass + nMotion] + g_pTimerManager->GetServerTime();
+			}
+		}
+	}
+}
+else
+{
+	float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY)) * 0.1f;
+	vecTarget = TMVector3((float)pAttack->TargetX, fY, (float)pAttack->TargetY);
+
+	if (pAttacker != m_pMyHuman || !pAttack->FlagLocal && pAttacker == m_pMyHuman)
+	{
+		for (int i = 0; i < 13; i++)
+		{
+			if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+				break;
+
+			if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+				break;
+
+			auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+			if (pTargetHuman)
+			{
+				int nDamageRate = pTargetHuman->m_cDamageRate;
+				if (nDamageRate == 0)
+					nDamageRate = 1;
+
+				if (pAttack->Dam[i].Damage == -3 || pAttack->Dam[i].Damage == -4)
+				{
+					int pX = 0;
+					int pY = 0;
+					if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &pX, &pY))
+					{
+						bool bDrawFront = false;
+						if (g_bHideEffect)
+						{
+							if (pAttacker == m_pMyHuman)
+								bDrawFront = true;
+							if (pTargetHuman == m_pMyHuman)
+								bDrawFront = true;
+						}
+						else
+						{
+							bDrawFront = true;
+						}
+
+						if (bDrawFront)
+						{
+							char szStr[128]{};
+							sprintf(szStr, "miss");
+							auto pFont = new TMFont3(szStr, pX, pY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFFFFFFFF, 2.0f, dwDelay, 1, 1500, 0, 4);
+							m_pExtraContainer->AddChild(pFont);
+						}
+					}
+				}
+				else if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104
+					&& g_pSpell[pAttack->SkillIndex].InstanceType == 6
+					&& (pAttack->Dam[i].Damage >= 0 || pAttack->Dam[i].Damage <= -6))
+				{
+					if (!pAttack->FlagLocal)
+					{
+						if (pTargetHuman->m_stScore.Hp - pAttack->Dam[i].Damage / nDamageRate <= 0)
+							pTargetHuman->m_stScore.Hp = 0;
+						else
+							pTargetHuman->m_stScore.Hp -= pAttack->Dam[i].Damage / nDamageRate;
+						if (pTargetHuman == m_pMyHuman)
+						{
+							if (m_nReqHP - pAttack->Dam[i].Damage <= 0)
+								m_nReqHP = 0;
+							else
+								m_nReqHP -= pAttack->Dam[i].Damage / nDamageRate;
+
+							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+						}
+					}
+
+					int nStartX = 0;
+					int nStartY = 0;
+					if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nStartX, &nStartY))
+					{
+						char szStr[128]{};
+						if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
+							(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
+							&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
+						{
+							sprintf(szStr, "?");
+						}
+						else
+							sprintf(szStr, "+ %d", -pAttack->Dam[i].Damage / ((pAttack->DoubleCritical & 1) + 1));
+
+						bool bDrawFront = false;
+						if (g_bHideEffect)
+						{
+							if (pAttacker == m_pMyHuman)
+								bDrawFront = true;
+							if (pTargetHuman == m_pMyHuman)
+								bDrawFront = true;
+						}
+						else
+						{
+							bDrawFront = true;
+						}
+
+						if (bDrawFront)
+						{
+							auto pFont = new TMFont3(szStr, nStartX, nStartY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFF5555FF, 2.0f, dwDelay, 1, 1500, 0, 2);
+							m_pExtraContainer->AddChild(pFont);
+						}
+					}
+					if (pAttack->AttackerID == m_pMyHuman->m_dwID)
+						SetMyHumanExp(pAttack->CurrentExp, pAttack->FakeExp);
+				}
+				else
+				{
+					if (!pAttack->FlagLocal)
+					{
+						if (!pTargetHuman->m_MaxBigHp)
+						{
+							if (pTargetHuman->m_stScore.Hp - pAttack->Dam[i].Damage / nDamageRate <= 0)
+								pTargetHuman->m_stScore.Hp = 0;
+							else
+								pTargetHuman->m_stScore.Hp -= pAttack->Dam[i].Damage / nDamageRate;
+						}
+						else
+						{
+							if (pTargetHuman->m_BigHp == pAttack->Dam[i].Damage)
+								pTargetHuman->m_BigHp = 0;
+							else
+								pTargetHuman->m_BigHp -= pAttack->Dam[i].Damage;
+							pTargetHuman->m_stScore.Hp = (short)pTargetHuman->m_BigHp;
+						}
+						if (pTargetHuman == m_pMyHuman)
+						{
+							if (m_nReqHP - pAttack->Dam[i].Damage <= 0)
+								m_nReqHP = 0;
+							else
+								m_nReqHP -= pAttack->Dam[i].Damage / nDamageRate;
+
+							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+						}
+					}
+
+					pTargetHuman->m_wAttackerID = pAttack->AttackerID;
+
+					int bInScreen = 0;
+					int nTX = 0;
+					int nTY = 0;
+					if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pTargetHuman && pAttacker)
+						bInScreen = BASE_Get3DTo2DPos(
+							(float)(pTargetHuman->m_vecPosition.x * 0.5f) + (float)(pAttacker->m_vecPosition.x * 0.5f),
+							pTargetHuman->m_fHeight - 1.0f,
+							(float)(pTargetHuman->m_vecPosition.y * 0.5f) + (float)(pAttacker->m_vecPosition.y * 0.5f),
+							&nTX,
+							&nTY);
+					else
+						bInScreen = BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nTX, &nTY);
+
+					if (bInScreen)
+					{
+						if (!pTargetHuman || !pAttacker)
+							{ nReturnValue = 1; return true; }
+
+						for (int bViewHalf = 0; bViewHalf < (pAttack->DoubleCritical & 1) + 1; bViewHalf++)
+						{
+							int nValue = pAttack->Dam[i].Damage / ((pAttack->DoubleCritical & 1) + 1);
+							
+							if (nValue > 0)
+							{
+								char szStr[128]{};
+								if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
+									((int)pTargetHuman->m_vecPosition.x >> 7 != 18 || (int)pTargetHuman->m_vecPosition.y >> 7 != 30) &&
+									(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
+									&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
+								{
+									sprintf(szStr, "?");
+								}
+								else 
+								{
+									sprintf(szStr, "%d", nValue);
+								}
+								
+								if (pAttack->SkillIndex == 79)
+									dwDelay += 100 * i;
+
+								bool bDrawFront = false;
+								if (g_bHideEffect)
+								{
+									if (pAttacker == m_pMyHuman)
+										bDrawFront = true;
+									if (pTargetHuman == m_pMyHuman)
+										bDrawFront = true;
+								}
+								else
+								{
+									bDrawFront = true;
+								}
+
+								TMFont3* pFont = nullptr;
+								unsigned int dwColor = 0xFFFFFFFF;
+								float fSize = 1.0f;
+								if (bDrawFront)
+								{
+									if (!(pAttack->DoubleCritical & 2))
+									{
+										if (pTargetHuman == m_pMyHuman)
+										{
+											if (bInScreen)
+											{
+												pFont = new TMFont3(szStr, nTX - 10 * i,
+													(int)(RenderDevice::m_fHeightRatio * 80.0f) +
+													(int)(((float)nTY - (float)(20.0f * i)) * RenderDevice::m_fHeightRatio),
+													dwColor,
+													fSize,
+													dwDelay,
+													1,
+													1200,
+													0,
+													4);
+											}
+										}
+										else if (bInScreen)
+										{
+											pFont = new TMFont3(szStr, nTX - 10 * i,
+												(int)(RenderDevice::m_fHeightRatio * 80.0f) +
+												(int)(((float)nTY - (float)(20.0f * i)) * RenderDevice::m_fHeightRatio),
+												dwColor,
+												fSize,
+												dwDelay,
+												1,
+												1200,
+												0,
+												3);
+										}
+									}
+									else if (bInScreen)
+									{
+										pFont = new TMFont3(szStr, nTX - 10 * i,
+											(int)(RenderDevice::m_fHeightRatio * 80.0f) +
+											(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) - ((float)(40 * i) * RenderDevice::m_fHeightRatio) + 
+												(float)(RenderDevice::m_fHeightRatio * 80.0f)),
+											dwColor,
+											fSize,
+											dwDelay,
+											1,
+											1200,
+											0,
+											5);
+									}
+
+									if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pAttacker != m_pMyHuman)
+									{
+										if (pFont)
+										{
+											pFont->m_fScale = 0.5f;
+											if (pFont->m_nType == 5)
+												pFont->m_nType = 6;
+										}
+									}
+
+									m_pExtraContainer->AddChild(pFont);										
+								}
+
+								if (pTargetHuman == m_pMyHuman && pAttacker)
+									sprintf(m_szLastAttackerName, "%s", pAttacker->m_szName);
+
+								if (pTargetHuman->m_cCriticalArmor == 1)
+								{
+									auto pEffectMesh = new TMEffectMesh(2838, 0xFF999999, pTargetHuman->m_fAngle, 4);
+
+									pEffectMesh->m_nTextureIndex = 413;
+									pEffectMesh->m_dwLifeTime = 500;
+									pEffectMesh->m_dwCycleTime = 500;
+
+									if (pTargetHuman->m_cMount == 1)
+									{
+										pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecSkinPos.x,
+											(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
+												* pTargetHuman->m_fScale)
+												/ 2.0f)
+												+ pTargetHuman->m_vecSkinPos.y)
+											- 0.30000001f,
+											pTargetHuman->m_vecSkinPos.z);
+									}
+									else
+									{
+										pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecPosition.x,
+											(float)((float)((float)(TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
+												* pTargetHuman->m_fScale)
+												/ 2.0f)
+												+ pTargetHuman->m_fHeight)
+											+ 0.30000001f,
+											pTargetHuman->m_vecPosition.y);
+									}
+
+									pEffectMesh->m_fScaleH = 2.5f;
+									pEffectMesh->m_fScaleV = 2.5f;
+									pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+									pEffectMesh->m_cShine = 0;
+
+									m_pEffectContainer->AddChild(pEffectMesh);
+								}
+							}
+						}
+					}
+				}
+				if (pTargetHuman->m_stScore.Hp < 0 && !pAttack->FlagLocal)
+				{
+					pTargetHuman->m_stScore.Hp = 0;
+					if (pTargetHuman == m_pMyHuman)
+						memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+
+					m_nReqHP = 0;
+				}
+				if (pTargetHuman->m_stScore.Hp > pTargetHuman->m_stScore.MaxHp && !pAttack->FlagLocal)
+				{
+					pTargetHuman->m_stScore.Hp = pTargetHuman->m_stScore.MaxHp;
+					if (pTargetHuman == m_pMyHuman)
+						memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+				}
+				if (pTargetHuman == m_pMyHuman && !pAttack->FlagLocal)
+				{
+					g_pObjectManager->m_stMobData.CurrentScore.Hp = pTargetHuman->m_stScore.Hp;
+					if (pTargetHuman == m_pMyHuman)
+						memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+				}
+				pTargetHuman->UpdateScore(0);
+			}
+		}
+	}
+	if (pAttacker != m_pMyHuman || (pAttack->FlagLocal == 1 && pAttacker == m_pMyHuman))
+	{
+		if (pAttack->SkillIndex == 0)
+		{
+			auto pHeavensDust = new TMSkillHeavensDust(vecTarget, 0);
+
+			m_pEffectContainer->AddChild(pHeavensDust);
+		}
+		else if (pAttack->SkillIndex == 1)
+		{
+			TMVector3 vecPos{vecStart.x, vecStart.y - 0.5f, vecStart.z};
+
+			auto pHollyTouch = new TMSkillHolyTouch(vecPos, 0);
+
+			m_pEffectContainer->AddChild(pHollyTouch);
+		}
+		else if (pAttack->SkillIndex == 26)
+		{
+			TMVector3 vecPos{ vecStart.x, vecStart.y - 0.5f, vecStart.z };
+
+			auto pFlash = new TMSkillFlash(vecPos, 0);
+
+			m_pEffectContainer->AddChild(pFlash);
+
+			if (!pAttacker)
+				{ nReturnValue = 1; return true; }
+			if (m_pMyHuman->IsInTown() == 1)
+				{ nReturnValue = 1; return true; }
+			if (pAttacker->m_usGuild && m_pMyHuman->m_usGuild && (m_pMyHuman->m_usGuild == pAttacker->m_usGuild || g_pObjectManager->m_usAllyGuild == pAttacker->m_usGuild))
+				{ nReturnValue = 1; return true; }
+
+			bool bFound = false;
+			for (int i = 0; i < 13; i++)
+			{
+				if (pAttack->Dam[i].TargetID == m_pMyHuman->m_dwID)
+				{
+					bFound = true;
+					break;
+				}
+			}
+
+			if (bFound && pAttacker != m_pMyHuman && !pAttacker->m_bParty)
+			{
+				float fFlashTerm = 0.0f;
+				if (m_pMyHuman->m_stScore.Level <= 0)
+					fFlashTerm = (((float)m_pMyHuman->m_stScore.Level * 4000.0f)
+						* (float)pAttacker->m_stScore.Special[1])
+					/ 100.0f;
+				else
+					fFlashTerm = (((float)(pAttacker->m_stScore.Level / m_pMyHuman->m_stScore.Level)
+						* 4000.0f)
+						* (float)pAttacker->m_stScore.Special[1])
+					/ 100.0f;
+				if (fFlashTerm < 2000.0)
+					fFlashTerm = 2000.0;
+				if (fFlashTerm > 4000.0)
+					fFlashTerm = 4000.0;
+
+				m_fFlashTerm = fFlashTerm;
+				m_dwStartFlashTime = g_pTimerManager->GetServerTime();
+			}
+		}
+		else if (pAttack->SkillIndex == 7)
+		{
+			for (int i = 0; i < 13; i++)
+			{
+				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+					break;
+
+				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+					break;
+
+				auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+				if (pTargetHuman)
+				{
+					float fTarget = 0.0f;
+					if (pAttacker)
+						fTarget = pAttacker->m_fHeight;
+
+					vecStart = TMVector3(pTargetHuman->m_vecPosition.x,
+						fTarget + 0.5f,
+						pTargetHuman->m_vecPosition.y);
+
+					vecTarget = TMVector3(vecStart.x + 3.0f, vecStart.y + 5.0f, vecStart.z - 3.0f);
+
+					auto pArrow = new TMArrow(vecTarget, vecStart, 0, 10001, 0, 0, 0);
+
+					m_pEffectContainer->AddChild(pArrow);
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 35)
+		{
+			vecTarget.y += 1.0f;
+
+			auto pMeteor = new TMSkillMeteorStorm(TMVector3(0.0f, 0.0f, 0.0f), vecTarget, 0, nullptr);
+
+			m_pEffectContainer->AddChild(pMeteor);
+		}
+		else if (pAttack->SkillIndex == 39 && !bomb)
+		{
+			vecTarget.y += 1.0f;
+
+			TMVector3 vecSt{};
+
+			for (int i = 0; i < 4; i++)
+			{
+				auto pMeteor = new TMSkillMeteorStorm(vecSt, TMVector3((float)(vecTarget.x - 1.8f) + ((float)(i % 2) * 3.5999999f),
+					vecTarget.y,
+					(float)(vecTarget.z - 1.8f) + ((float)(i / 2) * 3.5999999f)), 4, nullptr);
+
+				pMeteor->m_dwStartTime += 200 * i;
+				m_pEffectContainer->AddChild(pMeteor);
+			}	
+
+			auto pMeteor = new TMSkillMeteorStorm(vecSt, TMVector3(vecTarget.x, vecTarget.y, vecTarget.z), 4, nullptr);
+
+			pMeteor->m_dwStartTime += 270;
+			m_pEffectContainer->AddChild(pMeteor);
+		}
+		else if (pAttack->SkillIndex == 39 && bomb)
+		{
+			vecTarget.y += 2.0f;
+
+			TMVector3 vecSt{};
+
+			for (int i = 0; i < 4; i++)
+			{
+				auto pMeteor = new TMSkillMeteorStorm(vecSt, TMVector3((float)(vecTarget.x - 0.89999998f) + ((float)(i % 2) * 1.8f),
+					vecTarget.y,
+					(float)(vecTarget.z - 0.89999998f) + ((float)(i / 2) * 1.8f)), 4, nullptr);
+
+				m_pEffectContainer->AddChild(pMeteor);
+			}
+
+			vecTarget.y += 0.30000001f;
+
+			auto pMeteor = new TMSkillMeteorStorm(vecSt, TMVector3(vecTarget.x, vecTarget.y, vecTarget.z), 10, nullptr);
+			m_pEffectContainer->AddChild(pMeteor);
+		}
+		else if (pAttack->SkillIndex == 97)
+		{
+			vecTarget.y += 1.0f;
+			for (int i = 0; i < 100; i++)
+			{
+				auto pItem = (TMCannon*)g_pObjectManager->GetItemByID(i + 15001);
+				if (pItem)
+				{
+					if (pItem->m_stItem.sIndex == 746)
+					{
+						if (vecStart.x == pItem->m_vecBasePosition.x && vecStart.z == pItem->m_vecBasePosition.y)
+						{
+							pItem->m_cFire = 1;
+							vecStart.x = (float)(pItem->m_fCosF * pItem->m_fCannonLen) + vecStart.x;
+							vecStart.z = vecStart.z - (float)(pItem->m_fSinF * pItem->m_fCannonLen);
+							break;
+						}
+					}
+				}
+			}
+
+			float fx = vecTarget.x - m_pMyHuman->m_vecPosition.x;
+			float fy = vecTarget.z - m_pMyHuman->m_vecPosition.y;
+
+			auto pMeteor = new TMSkillMeteorStorm(vecStart, vecTarget, 2, 0);
+
+			pMeteor->m_fDestLength = sqrt((float)(fx * fx) + (float)(fy * fy));
+
+			m_pEffectContainer->AddChild(pMeteor);
+			{ nReturnValue = 1; return true; }
+		}
 	}
 }
 	return false;
