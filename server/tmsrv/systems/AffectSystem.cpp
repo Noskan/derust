@@ -1098,7 +1098,7 @@ LABEL_59:
 		dam.ID = idx;
 
 		dam.Hp = pMob[idx].MOB.CurrentScore.Hp;
-		dam.Dam = Damage;
+		dam.Dam = SetHpDamValue(Damage);
 
 		GridMulticast(pMob[idx].TargetX, pMob[idx].TargetY, (MSG_STANDARD*)&dam, 0);
 	}

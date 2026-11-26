@@ -126,6 +126,26 @@ W2_FIELD(MSG_SendReqParty, TargetID, 40, 4);
 static_assert(sizeof(MSG_CNFAddParty) == 40, "MSG_CNFAddParty deve ter 40 bytes (MSG_AddParty).");
 W2_FIELD(MSG_CNFAddParty, Party, 12, 26);
 W2_FIELD(MSG_RemoveParty, Leaderconn, 12, 4);                // (MSG_STANDARDPARM::Parm)
+W2_FIELD(MSG_DecayItem, ItemID, 12, 4);                      // (MSG_STANDARDPARM::Parm)
+
+static_assert(sizeof(MSG_SetHpDam) == 20, "MSG_SetHpDam deve ter 20 bytes (cliente).");
+W2_FIELD(MSG_SetHpDam, Dam, 16, 2);
+static_assert(sizeof(MSG_CreateItem) == 32, "MSG_CreateItem deve ter 32 bytes (cliente).");
+W2_FIELD(MSG_CreateItem, Owner, 30, 2);
+static_assert(sizeof(MSG_UpdateScore) == 152, "MSG_UpdateScore deve ter 152 bytes (cliente).");
+W2_FIELD(MSG_UpdateScore, CurrHp, 136, 4);                   // (ReqHp)
+W2_FIELD(MSG_UpdateScore, Magic, 144, 2);
+W2_FIELD(MSG_UpdateScore, LearnedSkill, 148, 1);
+static_assert(sizeof(MSG_CreateMob) == 232, "MSG_CreateMob deve ter 232 bytes (cliente).");
+W2_FIELD(MSG_CreateMob, Server, 228, 1);
+static_assert(sizeof(MSG_CreateMobTrade) == 256, "MSG_CreateMobTrade deve ter 256 bytes (cliente).");
+W2_FIELD(MSG_CreateMobTrade, Desc, 228, 24);
+W2_FIELD(MSG_CreateMobTrade, Server, 252, 1);
+static_assert(sizeof(MSG_UpdateItem) == 20, "MSG_UpdateItem deve ter 20 bytes (cliente).");
+W2_FIELD(MSG_UpdateItem, State, 16, 2);
+W2_FIELD(MSG_UpdateItem, Height, 18, 1);
+W2_FIELD(MSG_TradingItem, WarpID, 16, 2);                    // (MSG_SwapItem::TargetID)
+W2_FIELD(MSG_SetShortSkill, Skill, 12, 20);
 
 static_assert(sizeof(STRUCT_DAM) == 8, "STRUCT_DAM deve ter 8 bytes (cliente).");
 W2_FIELD(STRUCT_DAM, TargetID, 0, 2);

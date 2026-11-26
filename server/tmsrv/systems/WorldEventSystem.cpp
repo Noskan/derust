@@ -263,7 +263,7 @@ void SendDamage(int x1, int y1, int x2, int y2)
 		sm.ID = i;
 
 		sm.Hp = dam;
-		sm.Dam = req_hp;
+		sm.Dam = SetHpDamValue(req_hp);
 
 		GridMulticast(pMob[i].TargetX, pMob[i].TargetY, (MSG_STANDARD*)&sm, 0);
 	}
@@ -321,7 +321,7 @@ void SendDamageKingdom(int x1, int y1, int x2, int y2, int Clan)
 		sm.ID = i;
 
 		sm.Hp = dam;
-		sm.Dam = req_hp;
+		sm.Dam = SetHpDamValue(req_hp);
 
 		GridMulticast(pMob[i].TargetX, pMob[i].TargetY, (MSG_STANDARD*)&sm, 0);
 	}
@@ -415,7 +415,7 @@ void SendDamageLeader(int x1, int y1, int x2, int y2)
 		sm.ID = i;
 
 		sm.Hp = dam;
-		sm.Dam = req_hp;
+		sm.Dam = SetHpDamValue(req_hp);
 
 		GridMulticast(pMob[i].TargetX, pMob[i].TargetY, (MSG_STANDARD*)&sm, 0);
 	}

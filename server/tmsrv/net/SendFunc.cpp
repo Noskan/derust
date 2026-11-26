@@ -516,7 +516,6 @@ void SendRemoveItem(int dest, int itemid, int bSend)
 	sm_deci.Size = sizeof(MSG_DecayItem);
 	sm_deci.ID = ESCENE_FIELD;
 	sm_deci.ItemID = 10000 + itemid;
-	sm_deci.unk = 0;
 
 	pUser[dest].cSock.AddMessage((char*)&sm_deci, sizeof(MSG_DecayItem));
 
@@ -1162,11 +1161,6 @@ void SendScore(int conn)
 	sm_vus.Resist[1] = pMob[conn].MOB.Resist[1];
 	sm_vus.Resist[2] = pMob[conn].MOB.Resist[2];
 	sm_vus.Resist[3] = pMob[conn].MOB.Resist[3];
-
-	sm_vus.Special[0] = 0xCC;
-	sm_vus.Special[1] = 0xCC;
-	sm_vus.Special[2] = 0xCC;
-	sm_vus.Special[3] = 0xCC;
 
 	sm_vus.Magic = pMob[conn].MOB.Magic;
 

@@ -817,6 +817,7 @@ void ProcessMinTimer()
 				pItem[ipg].Delay = 0;
 
 				MSG_CreateItem sm;
+				memset(&sm, 0, sizeof(MSG_CreateItem)); // Height, Create e Owner iam sem valor
 
 				sm.Type = _MSG_CreateItem;
 				sm.Size = sizeof(MSG_CreateItem);

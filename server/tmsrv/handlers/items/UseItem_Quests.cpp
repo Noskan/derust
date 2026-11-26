@@ -961,8 +961,8 @@ lbl_a_noparty:
 		sm_sss.ID = ESCENE_FIELD;
 		sm_sss.Type = _MSG_SetShortSkill;
 							 
-		memcpy(sm_sss.Skill1, pMob[conn].extra.SaveCelestial[ncl].SkillBar1, 4);
-		memcpy(sm_sss.Skill2, pMob[conn].extra.SaveCelestial[ncl].SkillBar2, 16);
+		memcpy(sm_sss.Skill, pMob[conn].extra.SaveCelestial[ncl].SkillBar1, 4);
+		memcpy(sm_sss.Skill + 4, pMob[conn].extra.SaveCelestial[ncl].SkillBar2, 16);
 
 		pUser[conn].cSock.AddMessage((char*)&sm_sss, sizeof(MSG_SetShortSkill));
 

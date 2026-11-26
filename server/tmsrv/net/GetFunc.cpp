@@ -1010,7 +1010,7 @@ int GetCreateMob(int mob, MSG_CreateMob *sm)
 		sm->CreateType = sm->CreateType | 0x40;
 
 
-	sm->Hold = pMob[mob].extra.Hold;
+	sm->Server = (unsigned char)pMob[mob].extra.Citizen;
 
 	strncpy(sm->Tab, pMob[mob].Tab, 26);
 
@@ -1165,6 +1165,7 @@ int GetCreateMobTrade(int mob, MSG_CreateMobTrade *sm)
 
 	strncpy(sm->Tab, pMob[mob].Tab, 26);
 	strncpy(sm->Desc, pUser[mob].AutoTrade.Title, MAX_AUTOTRADETITLE-1);
+	sm->Server = (unsigned char)pMob[mob].extra.Citizen;
 
 	GetAffect(sm->Affect,pMob[mob].Affect);
 

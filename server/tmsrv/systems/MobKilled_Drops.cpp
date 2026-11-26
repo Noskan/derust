@@ -1367,7 +1367,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 							hpDam.Size = sizeof(MSG_SetHpDam);
 							hpDam.ID = conn;
 							hpDam.Hp = pMob[conn].MOB.CurrentScore.Hp;
-							hpDam.Dam = pMob[conn].MOB.CurrentScore.Hp - myhp;
+							hpDam.Dam = SetHpDamValue(pMob[conn].MOB.CurrentScore.Hp - myhp);
 
 							GridMulticast(pMob[conn].TargetX, pMob[conn].TargetY, (MSG_STANDARD*)&hpDam, 0);
 							}

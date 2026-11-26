@@ -66,7 +66,6 @@ void Exec_MSG_GetItem(int conn, char *pMsg)
 		sm_deci.Size = sizeof(MSG_DecayItem);
 		sm_deci.ID = ESCENE_FIELD;
 		sm_deci.ItemID = m->ItemID;
-		sm_deci.unk = 0;
 		pUser[conn].cSock.AddMessage((char*)&sm_deci, sizeof(MSG_DecayItem));
 		return;
 	}
@@ -115,7 +114,6 @@ void Exec_MSG_GetItem(int conn, char *pMsg)
 			sm_deci.Size = sizeof(MSG_DecayItem);
 			sm_deci.ID = ESCENE_FIELD;
 			sm_deci.ItemID = m->ItemID;
-			sm_deci.unk = 0;
 			GridMulticast(pItem[itemID].PosX, pItem[itemID].PosY, (MSG_STANDARD*)&sm_deci, 0);
 
 			pMob[conn].MOB.SkillBonus += 9;
@@ -138,7 +136,6 @@ void Exec_MSG_GetItem(int conn, char *pMsg)
 		sm_deci.Size = sizeof(MSG_DecayItem);
 		sm_deci.ID = ESCENE_FIELD;
 		sm_deci.ItemID = m->ItemID;
-		sm_deci.unk = 0;
 		GridMulticast(pItem[itemID].PosX, pItem[itemID].PosY, (MSG_STANDARD*)&sm_deci, 0);
 	}
 
@@ -152,7 +149,6 @@ void Exec_MSG_GetItem(int conn, char *pMsg)
 	sm_deci.Size = sizeof(MSG_DecayItem);
 	sm_deci.ID = ESCENE_FIELD;
 	sm_deci.ItemID = m->ItemID;
-	sm_deci.unk = 0;
 
 	if (itemX < 0 || itemX >= MAX_GRIDX || itemY <= 0 || itemY >= MAX_GRIDY)
 	{

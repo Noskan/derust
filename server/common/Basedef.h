@@ -1492,7 +1492,6 @@ struct		  MSG_UpdateCarry
 	int Coin;
 };
 
-#pragma pack(push, 1)
 const short  _MSG_UpdateScore				= (54 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 struct		  MSG_UpdateScore
 {
@@ -1512,14 +1511,13 @@ struct		  MSG_UpdateScore
 	unsigned char RegenHP;
 	unsigned char RegenMP;
 
-	int CurrHp;
-	int CurrMp;
+	int CurrHp;				// ReqHp no cliente (em NPC, 1 reinicia a barra de HP grande)
+	int CurrMp;				// ReqMp no cliente
 
-	int Magic;
-	unsigned char Special[4];
-
+	unsigned short Magic;	// O servidor limita Magic a 254 (BASE_GetCurrentScore)
+	unsigned short Rsv;
+	char LearnedSkill;		// O cliente não lê; antes ia 0xCC aqui (Special[0])
 };
-#pragma pack(pop)
 
 const short  _MSG_UpdateEtc					= (55 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 struct		  MSG_UpdateEtc
@@ -1578,6 +1576,8 @@ struct		  MSG_CreateMobTrade
 
 
 	char           Desc[MAX_AUTOTRADETITLE];
+
+	unsigned char  Server;	// Cidadania, como em MSG_CreateMob
 };
 
 const short  _MSG_CreateMob					= (100 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
@@ -1604,7 +1604,7 @@ struct		  MSG_CreateMob
 	unsigned char AnctCode[16];
 	char Tab[26];
 
-	int Hold;
+	unsigned char Server;	// Cidadania (extra.Citizen); o cliente a guarda em m_citizen. Antes ia o Hold
 };
 
 const short  _MSG_NoViewMob					= (105 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
@@ -1634,6 +1634,7 @@ struct		  MSG_CreateItem
 	unsigned char  Height;
 	unsigned char  Create;
 
+	unsigned short Owner;	// O cliente não o usa; vai 0
 };
 
 const short	 _MSG_DecayItem					= (111 | FLAG_GAME2CLIENT);
@@ -1641,8 +1642,7 @@ struct		  MSG_DecayItem
 {
 	_MSG;
 
-	short ItemID;
-	short unk;
+	int ItemID;				// MSG_STANDARDPARM::Parm no cliente
 };
 
 const short  _MSG_GetItem					= (112 | FLAG_CLIENT2GAME);
@@ -1716,9 +1716,14 @@ struct		  MSG_SetHpDam
 {
 	_MSG;
 	int Hp;
-	int Dam;
-
+	short Dam;				// 2 bytes no cliente; use SetHpDamValue para saturar
 };
+
+/// @brief Dano para MSG_SetHpDam::Dam (short no cliente), saturado em vez de dar a volta.
+inline short SetHpDamValue(int dam)
+{
+	return (short)(dam > 32767 ? 32767 : dam < -32768 ? -32768 : dam);
+}
 
 const short	_MSG_Action						= (108 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 const short	_MSG_Action2					= (102 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
@@ -1765,15 +1770,14 @@ struct		 MSG_TradingItem
 	unsigned char SrcPlace;
 	unsigned char SrcSlot;
 
-	int WarpID;
+	unsigned short WarpID;	// TargetID (2 bytes) no cliente
 };
 
 const short _MSG_SetShortSkill				= (120 | FLAG_CLIENT2GAME | FLAG_GAME2CLIENT);
 struct		 MSG_SetShortSkill
 {
 	_MSG;
-	unsigned char  Skill1[4];
-	unsigned char  Skill2[16];
+	unsigned char  Skill[20];	// [0..3]: SkillBar do MOB; [4..19]: CharShortSkill
 };
 
 const short _MSG_Buy						= (121 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
@@ -1811,7 +1815,6 @@ struct		 MSG_REQShopList
 {
 	_MSG;
 	unsigned short Target;
-	unsigned short Unk;
 };
 
 const short _MSG_Restart					= (137 | FLAG_CLIENT2GAME); // STANDARD
@@ -1872,8 +1875,9 @@ struct		  MSG_UpdateItem
 	_MSG;
 	int ItemID;
 
-	//short  Height;
-	int State;
+	short State;			// 2 bytes no cliente; antes o int engolia o Height
+	char  Height;			// O servidor envia 0 (os cálculos de altura estão comentados nos envios)
+	char  dummy;
 };
 
 
