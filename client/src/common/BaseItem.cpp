@@ -534,6 +534,9 @@ int BASE_CanTrade(STRUCT_ITEM* Dest, STRUCT_ITEM* Carry, char* MyTrade, STRUCT_I
 {
     STRUCT_ITEM OpponentTemp[MAX_TRADE]{};
 
+    // A reconstrução não copiava os itens do outro lado: OpponentTemp ficava vazio e a troca sempre cabia.
+    memcpy(OpponentTemp, OpponentTrade, sizeof(OpponentTemp));
+
     memcpy(Dest, Carry, sizeof(STRUCT_ITEM) * MAX_CARRY);
 
     for (int i = 0; i < MAX_TRADE; ++i)
@@ -615,6 +618,9 @@ int BASE_CanCargo(STRUCT_ITEM* item, STRUCT_ITEM* cargo, int DestX, int DestY)
 
     char SourGrid[4][2]{};
     char CargoGrid[14][9]{};
+
+    // A reconstrução não copiava a grade do item: SourGrid ficava vazia e o baú sempre cabia.
+    memcpy((char*)SourGrid, (char*)g_pItemGrid[grid], 8u);
 
     for (int i = 0; i < MAX_CARGO; ++i)
     {
@@ -1199,7 +1205,8 @@ int BASE_GetItemAbilityNosanc(STRUCT_ITEM* item, char type)
 
             int tvalue = g_pItemList[itemId].stEffect[i].sValue;
 
-            if (itemId == EF_ATTSPEED && tvalue == 1)
+            // A reconstrução comparava o índice do item (itemId) com EF_ATTSPEED.
+            if (type == EF_ATTSPEED && tvalue == 1)
                 tvalue = 10;
 
             value += tvalue;

@@ -303,13 +303,15 @@ int BASE_GetMobAbility(STRUCT_MOB* mob, char Type)
     int nUnique[16]{};
     for (int i = 0; i < 16; ++i)
     {
-        if (!mob->Equip[i].sIndex && i == 7)
+        // A reconstrução tinha `i == 7` aqui e `Type == 60 || i == 7` abaixo: a posição 7 era sempre
+        // pulada e o dano das duas mãos (ramo i == 7) nunca era somado.
+        if (!mob->Equip[i].sIndex && i != 7)
             continue;
 
         if (i >= 1 && i <= 5)
             nUnique[i] = g_pItemList[mob->Equip[i].sIndex].nUnique;
 
-        if ((Type == 2 && i == 6) || (Type == 60 || i == 7))
+        if ((Type == 2 && i == 6) || (Type == 60 && i == 7))
             continue;
 
         if (i == 7 && Type == 2)

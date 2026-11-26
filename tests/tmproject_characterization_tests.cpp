@@ -543,11 +543,11 @@ const struct
 	const char* name;
 	uint64_t hash;
 } kExpected[] = {
-	{ "ItemAbility", 0xba651a92727573d2ull },
+	{ "ItemAbility", 0x393f6ea542d818c0ull },
 	{ "ItemSancAndColor", 0x17120ba33e0148ceull },
-	{ "EquipCarryTrade", 0xe7dcd9fdb0faea97ull },
-	{ "Combat", 0x3bae9037bdb69946ull },
-	{ "World", 0x9f42c7c0d5518942ull },
+	{ "EquipCarryTrade", 0xc8aa3ff1bf557a6aull },
+	{ "Combat", 0xf878e16dd2d152b6ull },
+	{ "World", 0x76117c6002db538aull },
 	{ "Strings", 0xff7b3c1c5a0c6e8eull },
 };
 

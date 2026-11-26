@@ -462,7 +462,8 @@ int BASE_GetVillage(int x, int y)
 {
     for (int i = 0; i < 5; ++i)
     {
-        if (x >= g_pGuildZone[i].vx1 && g_pGuildZone[i].vx2 && g_pGuildZone[i].vy1 && g_pGuildZone[i].vy2)
+        // A reconstrução só comparava x >= vx1 (os outros três limites viravam testes de diferente de zero).
+        if (x >= g_pGuildZone[i].vx1 && x <= g_pGuildZone[i].vx2 && y >= g_pGuildZone[i].vy1 && y <= g_pGuildZone[i].vy2)
             return i;
     }
 
