@@ -547,17 +547,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == TMB_HELP_BUTTON2)
 		return OnControl_HelpButton2(idwControlID, idwEvent);
 	if (idwControlID == TMB_HELP_BUTTON3)
-	{
-		if (m_pHelpInterface)
-			m_pHelpInterface->SetVisible(0);
-		if (m_pHelpList[1])
-			m_pHelpList[1]->SetVisible(0);
-		if (m_pHelpList[2])
-			m_pHelpList[2]->SetVisible(1);
-		if (m_pHelpList[3])
-			m_pHelpList[3]->SetVisible(0);
-		return 1;
-	}
+		return OnControl_HelpButton3(idwControlID, idwEvent);
 	if (idwControlID == TMB_HELP_BUTTON4)
 	{
 		if (m_pHelpInterface)
