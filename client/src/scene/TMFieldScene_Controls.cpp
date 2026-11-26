@@ -697,3 +697,377 @@ int TMFieldScene::OnControl_Money(unsigned int idwControlID, unsigned int idwEve
 	m_pChatSelectPanel->SetVisible(0);
 	return 0;
 }
+
+/// Confirmação da caixa de entrada de texto/valor (`B_IG_OK`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_InputOk(unsigned int idwControlID, unsigned int idwEvent)
+{
+	auto pInputText = static_cast<SEditableText*>(m_pControlContainer->FindControl(E_INPUT_GOLD));
+
+	char* inputText = pInputText->GetText();
+
+	int inputTextLen = strlen(inputText);
+
+	if (strcmp(inputText, "all"))
+	{
+		bool bFind = false;
+
+		for (int n = 0; n < inputTextLen; ++n)
+		{
+			if (inputText[n] < '0' || inputText[n] > '9')
+			{
+				bFind = true;
+				break;
+			}
+		}
+
+		for (int n = 0; n < inputTextLen; ++n)
+		{
+			if (inputText[n] == '%')
+				inputText[n] = '!';
+		}
+
+		long long nInputValue = _atoi64(pInputText->GetText());
+
+		if (strlen(pInputText->GetText()) <= 0)
+		{
+			m_pControlContainer->SetFocusedControl(pInputText);
+			return 1;
+		}
+
+		if (m_nCoinMsgType != 12 &&
+			m_nCoinMsgType != 11 &&
+			m_nCoinMsgType != 8 &&
+			m_nCoinMsgType != 3 &&
+			m_nCoinMsgType != 6)
+		{
+			if (bFind == true || nInputValue < 0 || nInputValue > g_pObjectManager->m_stMobData.Coin && !m_nCoinMsgType)
+			{
+				m_pMessagePanel->SetMessage(g_pMessageStringTable[34], 1000);
+				m_pMessagePanel->SetVisible(1, 1);
+				m_pControlContainer->SetFocusedControl(pInputText);
+				m_pChatSelectPanel->SetVisible(0);
+				return 1;
+			}
+		}
+
+		if (bFind == true && m_nCoinMsgType == 12)
+		{
+			m_pMessagePanel->SetMessage(g_pMessageStringTable[409], 1000);
+			m_pMessagePanel->SetVisible(1, 1);
+			m_pControlContainer->SetFocusedControl(pInputText);
+			return 1;
+		}
+
+		if (m_nCoinMsgType == 4 && nInputValue > 1999999999)
+		{
+			char istrMessage[128]{};
+
+			sprintf_s(istrMessage, g_pMessageStringTable[143], 2000000000);
+
+			m_pMessagePanel->SetMessage(istrMessage, 1000);
+			m_pMessagePanel->SetVisible(1, 1);
+
+			m_pControlContainer->SetFocusedControl(pInputText);
+			return 1;
+		}
+
+		switch (m_nCoinMsgType)
+		{
+		case 2:
+		{
+			MSG_STANDARDPARM stWithdraw{};
+
+			stWithdraw.Header.Type = MSG_Withdraw_Opcode;
+			stWithdraw.Header.ID = m_pMyHuman->m_dwID;
+			stWithdraw.Parm = static_cast<int>(nInputValue);
+			SendOneMessage((char*)&stWithdraw, sizeof(stWithdraw));
+		}
+		break;
+		case 0:
+		{
+			MSG_STANDARDPARM stDeposit{};
+
+			stDeposit.Header.Type = MSG_Deposit_Opcode;
+			stDeposit.Header.ID = m_pMyHuman->m_dwID;
+			stDeposit.Parm = static_cast<int>(nInputValue);
+			SendOneMessage((char*)&stDeposit, sizeof(stDeposit));
+		}
+		break;
+		case 1:
+		{
+			auto pMyCheckButton = static_cast<SButton*>(m_pControlContainer->FindControl(617u));
+			auto pOpCheckButton = static_cast<SButton*>(m_pControlContainer->FindControl(601u));
+
+			pMyCheckButton->m_bSelected = 0;
+			pOpCheckButton->m_bSelected = 0;
+
+			m_dwLastCheckTime = g_pApp->m_pTimerManager->GetServerTime();
+
+			g_pObjectManager->m_stTrade.MyCheck = pMyCheckButton->m_bSelected;
+			g_pObjectManager->m_stTrade.TradeMoney = static_cast<int>(nInputValue);
+			g_pObjectManager->m_stTrade.Header.Type = MSG_Trade_Opcode;
+
+			SendOneMessage((char*)&g_pObjectManager->m_stTrade, sizeof(g_pObjectManager->m_stTrade));
+
+			auto pMyGold = static_cast<SText*>(m_pControlContainer->FindControl(619u));
+
+			char szText[11]{};
+
+			sprintf_s(szText, "%10lld", nInputValue);
+
+			pMyGold->SetText(szText, 0);
+		}
+		break;
+		case 3:
+		{
+			auto pATradeTitle = (SText*)m_pControlContainer->FindControl(TMT_ATRADE_TITLE);
+			auto pATradeName = (SText*)m_pControlContainer->FindControl(TMT_ATRADE_ID);
+
+			if (pATradeTitle)
+			{
+				pATradeTitle->SetText(pInputText->GetText(), 0);
+			}
+
+			pATradeName->SetText(m_pMyHuman->m_szName, 1);
+
+			m_stAutoTrade.TargetID = m_pMyHuman->m_dwID;
+
+			sprintf_s(m_stAutoTrade.Desc, "%s", pInputText->GetText());
+
+			if (m_pInputBG2)
+				m_pInputBG2->SetVisible(0);
+
+			pInputText->m_nMaxStringLen = 10;
+
+			for (int i = 0; i < 10; ++i)
+			{
+				SGridControlItem* pAutoTradeItem = m_pGridAutoTrade[i]->PickupAtItem(0, 0);
+
+				auto pCargoItem = m_pCargoGrid->GetAtItem(m_stAutoTrade.CarryPos[i] % 5, m_stAutoTrade.CarryPos[i] / 5);
+
+				if (pCargoItem)
+					pCargoItem->m_GCObj.dwColor = -1;
+
+				if (g_pCursor->m_pAttachedItem && g_pCursor->m_pAttachedItem == pAutoTradeItem)
+					g_pCursor->m_pAttachedItem = nullptr;
+
+				if (pAutoTradeItem)
+				{
+					delete pAutoTradeItem;
+
+					pAutoTradeItem = nullptr;
+				}
+			}
+			SetVisibleAutoTrade(1, 1);
+		}
+		break;
+		case 11:
+		{
+			sprintf_s(m_stPass, "%s", pInputText->GetText());
+
+			m_pitemPassGrid->SellItem2();
+
+			memset(m_stPass, 0, sizeof(m_stPass));
+		}
+		break;
+		case 4:
+		{
+			if (m_nLastAutoTradePos >= 0)
+			{
+				for (int j = 0; j < 10; ++j)
+				{
+					SGridControl* pParent = m_pGridAutoTrade[j];
+					SGridControlItem* pAutoTradeItem = pParent->GetAtItem(0, 0);
+
+					SGridControl* pCargoGrid = m_pCargoGridList[m_nLastAutoTradePos / 40];
+					SGridControlItem* pCargoItem = pCargoGrid->GetAtItem(m_nLastAutoTradePos % 40 % 5, m_nLastAutoTradePos % 40 / 5);
+
+					if (!pAutoTradeItem)
+					{
+						if (!pCargoItem)
+							return 1;
+
+						auto pItem = new STRUCT_ITEM;
+
+						memcpy(pItem, pCargoItem->m_pItem, sizeof(STRUCT_ITEM));
+
+						pParent->AddItem(new SGridControlItem(pParent, pItem, 0.0f, 0.0f), 0, 0);
+
+						pCargoItem->m_GCObj.dwColor = 0xFFFF0000;
+
+						m_stAutoTrade.CarryPos[j] = m_nLastAutoTradePos;
+						m_stAutoTrade.TradeMoney[j] = static_cast<int>(nInputValue);
+
+						memcpy(&m_stAutoTrade.Item[j], pItem, sizeof(STRUCT_ITEM));
+
+						pParent->m_nTradeMoney = static_cast<int>(nInputValue);
+						break;
+					}
+
+					if (pAutoTradeItem && j == 11)
+					{
+						m_pMessagePanel->SetMessage(g_pMessageStringTable[1], 2000);
+						m_pMessagePanel->SetVisible(1, 1);
+
+						pCargoItem->m_GCObj.dwColor = 0xFFFFFFFF;
+					}
+				}
+				m_nLastAutoTradePos = -1;
+			}
+		}
+		break;
+		case 6:
+			SendCapsuleItem();
+			break;
+		case 7:
+		{
+			MSG_STANDARDPARM stPacket{};
+
+			stPacket.Header.Type = 977;
+			stPacket.Header.ID = m_pMyHuman->m_dwID;
+			stPacket.Parm = static_cast<int>(nInputValue);
+			SendOneMessage((char*)&stPacket, sizeof(stPacket));
+		}
+		break;
+		case 8:
+		{
+			char str2[128]{};
+
+			sprintf_s(str2, "%s %s", m_pPGTOver->m_szName, inputText);
+
+			MSG_MessageWhisper stMessageWhisper{};
+
+			stMessageWhisper.Header.ID = g_pObjectManager->m_dwCharID;
+			stMessageWhisper.Header.Type = MSG_MessageWhisper_Opcode;
+			sprintf_s(stMessageWhisper.MobName, "subcreate");
+			sprintf_s(stMessageWhisper.String, "%s", str2);
+
+			if (strlen(str2) >= 16)
+			{
+				str2[15] = 0;
+				str2[14] = 0;
+			}
+
+			if (!CheckGuildName(stMessageWhisper.String, 1))
+			{
+				m_pMessagePanel->SetMessage(g_pMessageStringTable[370], 2000);
+				m_pMessagePanel->SetVisible(1, 1);
+				return 1;
+			}
+			if (m_szWhisperList[0][0])
+			{
+				if (strcmp((char*)m_szWhisperList, str2) != 0)
+				{
+					for (int i = 4; i > 0; --i)
+						memcpy(m_szWhisperList[i], m_szWhisperList[i - 1], 16);
+
+					sprintf_s(m_szWhisperList[0], "%s", str2);
+				}
+			}
+			else
+			{
+				for (int i = 0; i < 5; ++i)
+					sprintf_s(m_szWhisperList[i], "%s", str2);
+			}
+			m_sWhisperIndex = 0;
+
+			char* text = pInputText->GetText();
+
+			if (text[strlen(str2) + 1])
+			{
+				sprintf(stMessageWhisper.String, "%s", &text[strlen(str2) + 2]);
+			}
+
+			BASE_TransCurse(stMessageWhisper.String);
+			pInputText->SetText((char*)"");
+			SendOneMessage((char*)&stMessageWhisper, sizeof(stMessageWhisper));
+		}
+		break;
+		case 9:
+		{
+			MSG_STANDARDPARM stPacket{};
+
+			stPacket.Header.Type = 0xED7;
+			stPacket.Header.ID = m_pMyHuman->m_dwID;
+			stPacket.Parm = static_cast<int>(nInputValue);
+			SendOneMessage((char*)&stPacket, sizeof(stPacket));
+		}
+		break;
+		case 10:
+		{
+			MSG_STANDARDPARM stPacket{};
+
+			stPacket.Header.Type = 0xED8;
+			stPacket.Header.ID = m_pMyHuman->m_dwID;
+			stPacket.Parm = static_cast<int>(nInputValue);
+			SendOneMessage((char*)&stPacket, sizeof(stPacket));
+		}
+		break;
+		case 12:
+		{
+			int nItemAmount = BASE_GetItemAmount(SGridControl::m_pSellItem->m_pItem);
+
+			if (nInputValue >= nItemAmount)
+			{
+				m_pControlContainer->SetFocusedControl(nullptr);
+				m_pInputGoldPanel->SetVisible(0);
+				pInputText->SetText((char*)"");
+				return 0;
+			}
+
+			if (m_pGridInv->CheckType(
+				SGridControl::m_pSellItem->m_pGridControl->m_eItemType,
+				SGridControl::m_pSellItem->m_pGridControl->m_eGridType) != 1)
+			{
+				return 1;
+			}
+
+			int pos = SGridControl::m_pSellItem->m_nCellIndexX + 5 * SGridControl::m_pSellItem->m_nCellIndexY;
+			int page = 15 * (SGridControl::m_pSellItem->m_pGridControl->m_dwControlID - 67072);
+
+			if (page < 0 || page > 45)
+				page = 0;
+
+			pos += page;
+
+			MSG_STANDARDPARM3 stPacket{};
+
+			stPacket.Header.Type = MSG_SplitItem_Opcode;
+			stPacket.Header.ID = m_pMyHuman->m_dwID;
+			stPacket.Parm1 = pos;
+			stPacket.Parm2 = SGridControl::m_pSellItem->m_pItem->sIndex;
+			stPacket.Parm3 = static_cast<int>(nInputValue);
+			SendOneMessage((char*)&stPacket, sizeof(stPacket));
+		}
+		break;
+		}
+
+		m_pControlContainer->SetFocusedControl(0);
+		m_pInputGoldPanel->SetVisible(0);
+
+		pInputText->SetText((char*)"");
+
+		if (g_nKeyType == 1)
+			m_pControlContainer->SetFocusedControl(m_pEditChat);
+	}
+	else
+	{
+		char szText[11]{};
+
+		if (!m_nCoinMsgType || m_nCoinMsgType == 1 || m_nCoinMsgType == 7)
+		{
+			sprintf_s(szText, "%d", g_pObjectManager->m_stMobData.Coin);
+
+			pInputText->SetText(szText);
+		}
+		else if (m_nCoinMsgType == 2)
+		{
+			sprintf_s(szText, "%d", g_pObjectManager->m_nCargoCoin);
+
+			pInputText->SetText(szText);
+		}
+	}
+
+	return 1;
+}
