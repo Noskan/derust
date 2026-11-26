@@ -14,6 +14,9 @@ struct FileTileInfo
 };
 
 class TMSea;
+/// @brief Bloco 128x128 de terreno, tilemap, picking, água e renderização no cliente.
+/// @details Implementação dividida entre [TMGround.cpp](TMGround.cpp), [TMGround_Render.cpp](TMGround_Render.cpp)
+///          e [TMGround_Tables.cpp](TMGround_Tables.cpp).
 class TMGround : public TreeNode
 {
 public:
@@ -23,10 +26,13 @@ public:
     void RestoreDeviceObjects() override;
     void SetPos(int nX, int nY);
     int Attach(TMGround* pGround);
+    /// @brief Carrega dados de altura, textura e máscaras do mapa de tiles.
     int LoadTileMap(const char* szFileName);
     int Render() override;
     int FrameMove(unsigned int dwServerTime) override;
+    /// @brief Calcula a interseção 3D do cursor sobre o terreno.
     D3DXVECTOR3 GetPickPos();
+    /// @brief Interpola a altura do terreno na posição mundial informada.
     float GetHeight(TMVector2 vecPosition);
     int GetMask(TMVector2 vecPosition);
     D3DCOLORVALUE GetColor(TMVector2 vecPosition);

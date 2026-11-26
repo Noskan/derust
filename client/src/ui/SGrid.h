@@ -52,6 +52,9 @@ static int g_pItemGridXY[8][2] =
 };
 
 class SGridControlItem;
+/// @brief Controle de grade de inventário, loja, troca, atalhos e composição da UI.
+/// @details Implementação dividida entre [SGrid.cpp](SGrid.cpp), [SGrid_Trade.cpp](SGrid_Trade.cpp),
+///          [SGrid_Input.cpp](SGrid_Input.cpp) e [SGrid_Tooltip.cpp](SGrid_Tooltip.cpp).
 class SGridControl : public SPanel
 {
 public:
@@ -59,6 +62,8 @@ public:
     ~SGridControl();
     int OnMouseEvent(unsigned int dwFlags, unsigned int wParam, int nX, int nY) override;
     void FrameMove2(stGeomList* pDrawList, TMVector2 ivParentPos, int inParentLayer, int nFlag) override;
+    /// @name Gerenciamento de células da grade
+    /// @{
     int CanItAdd(int* bFilledBuffer, int inCellIndexX, int inCellIndexY, int inCellWidth, int inCellHeight);
     int AddItem(SGridControlItem* ipNewItem, int inCellIndexX, int inCellIndexY);
     int AddSkillItem(SGridControlItem* ipNewItem, int inCellIndexX, int inCellIndexY);
@@ -73,10 +78,13 @@ public:
     SGridControlItem* GetItem(int inCellIndexX, int inCellIndexY);
     SGridControlItem* GetAtItem(int inCellIndexX, int inCellIndexY);
     SGridControlItem* GetItem(int nCount);
+    /// @}
     int OnKeyDownEvent(unsigned int iKeyCode);
     void Empty();
     short CheckType(TMEITEMTYPE eType, TMEGRIDTYPE eGridType);
     short CheckPos(TMEITEMTYPE eType);
+    /// @name Operações comerciais, tooltips e entrada do usuário
+    /// @{
     void BuyItem(int nCellX, int nCellY);
     int TradeItem(int nCellX, int nCellY);
     int SellItem(int nCellX, int nCellY, unsigned int dwFlags, unsigned int wParam);
@@ -88,6 +96,7 @@ public:
     char AutoSellShowPrice(char* Price);
     char automove(int nCellX, int nCellY);
     int Check_ItemRightClick(int nType, int nItemSIndex);
+    /// @}
 
 public:
     TMEITEMTYPE m_eItemType;

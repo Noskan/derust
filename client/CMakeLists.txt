@@ -142,8 +142,13 @@ set(TMPROJECT_SOURCES
   src/ui/SControl.cpp
   src/ui/SControlContainer.cpp
   src/ui/SGrid.cpp
+  src/ui/SGrid_Input.cpp
+  src/ui/SGrid_Tooltip.cpp
+  src/ui/SGrid_Trade.cpp
   src/world/TMGate.cpp
   src/world/TMGround.cpp
+  src/world/TMGround_Render.cpp
+  src/world/TMGround_Tables.cpp
   src/world/TMHouse.cpp
   src/world/TMRain.cpp
   src/world/TMSea.cpp
