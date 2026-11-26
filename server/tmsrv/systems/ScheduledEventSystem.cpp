@@ -291,7 +291,7 @@ void ProcessRuneQuestPortals(int bb)
 					continue;
 
 				int inv = 0;
-				for (inv = 0; inv < pMob[bb].MaxCarry && inv < MAX_CARRY; inv++)
+				for (inv = 0; inv < MAX_CARRY - 4; inv = BASE_NextCarry(pMob[bb].MOB.Carry, inv))
 				{
 					if(pMob[bb].MOB.Carry[inv].sIndex == 4032)
 					{
@@ -301,7 +301,7 @@ void ProcessRuneQuestPortals(int bb)
 					}
 				}
 
-				if(inv == pMob[bb].MaxCarry)
+				if(inv == MAX_CARRY - 4)
 					continue;
 
 				DoTeleport(Pista[5].Party[x].LeaderID, tx, ty);

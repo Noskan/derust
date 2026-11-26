@@ -212,7 +212,7 @@ void Exec_MSG_GetItem(int conn, char *pMsg)
 
 		if (can == 0)
 		{
-			if (m->DestPos > 0 && m->DestPos <= pMob[conn].MaxCarry)
+			if (m->DestPos > 0 && BASE_CarryUsable(pMob[conn].MOB.Carry, m->DestPos - 1))
 			{
 				m->DestPos--;
 				SendItem(conn, ITEM_PLACE_CARRY, m->DestPos, &pMob[conn].MOB.Carry[m->DestPos]);

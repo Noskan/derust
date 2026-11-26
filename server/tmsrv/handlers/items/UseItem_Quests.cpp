@@ -1178,7 +1178,7 @@ lbl_a_noparty:
 				int sSol = 0;
 				int sVento = 0;
 
-				for (int i = 0; i < pMob[conn].MaxCarry; i++)
+				for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 				{
 					if (pMob[conn].MOB.Carry[i].sIndex == 5334)
 						sAgua = 1;
@@ -1195,7 +1195,7 @@ lbl_a_noparty:
 
 				if (sAgua == 1 && sTerra == 1 && sSol == 1 && sVento == 1)
 				{
-					for (int i = 0; i < pMob[conn].MaxCarry; i++)
+					for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 					{
 						if (pMob[conn].MOB.Carry[i].sIndex == 5334 && sAgua == 1)
 						{

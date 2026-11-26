@@ -168,7 +168,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 							int i = 0;
 
-							for (i = 0; i < pMob[conn].MaxCarry; i++)
+							for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 							{
 								if (pMob[conn].MOB.Carry[i].sIndex != 4038)
 									continue;
@@ -178,7 +178,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 								break;
 							}
 
-							if (i == pMob[conn].MaxCarry)
+							if (i == MAX_CARRY - 4)
 							{
 								sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4038].Name);
 								SendSay(npcIndex, temp);
@@ -213,7 +213,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 							int i = 0;
 
-							for (i = 0; i < pMob[conn].MaxCarry; i++)
+							for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 							{
 								if (pMob[conn].MOB.Carry[i].sIndex != 4039)
 									continue;
@@ -223,7 +223,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 								break;
 							}
 
-							if (i == pMob[conn].MaxCarry)
+							if (i == MAX_CARRY - 4)
 							{
 								sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4039].Name);
 								SendSay(npcIndex, temp);
@@ -257,7 +257,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 						int i = 0;
 
-						for (i = 0; i < pMob[conn].MaxCarry; i++)
+						for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 						{
 							if (pMob[conn].MOB.Carry[i].sIndex != 4040)
 								continue;
@@ -267,7 +267,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 							break;
 						}
 
-						if (i == pMob[conn].MaxCarry)
+						if (i == MAX_CARRY - 4)
 						{
 							sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4040].Name);
 							SendSay(npcIndex, temp);
@@ -301,7 +301,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 						int i = 0;
 
-						for (i = 0; i < pMob[conn].MaxCarry; i++)
+						for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 						{
 							if (pMob[conn].MOB.Carry[i].sIndex != 4041)
 								continue;
@@ -311,7 +311,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 							break;
 						}
 
-						if (i == pMob[conn].MaxCarry)
+						if (i == MAX_CARRY - 4)
 						{
 							sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4041].Name);
 							SendSay(npcIndex, temp);
@@ -345,7 +345,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 						int i = 0;
 
-						for (i = 0; i < pMob[conn].MaxCarry; i++)
+						for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 						{
 							if (pMob[conn].MOB.Carry[i].sIndex != 4042)
 								continue;
@@ -355,7 +355,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 							break;
 						}
 
-						if (i == pMob[conn].MaxCarry)
+						if (i == MAX_CARRY - 4)
 						{
 							sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[4042].Name);
 							SendSay(npcIndex, temp);
@@ -421,7 +421,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 						int Ori = 0;
 						int Lac = 0;
 
-						for (int i = 0; i < pMob[conn].MaxCarry; i++)
+						for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 						{
 							if (pMob[conn].MOB.Carry[i].sIndex == 419)
 								Ori += pMob[conn].MOB.Carry[i].stEffect[0].cEffect == 61 ? pMob[conn].MOB.Carry[i].stEffect[0].cValue : 1;
@@ -558,13 +558,13 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 		}
 		int i = 0;
 
-		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if(pMob[conn].MOB.Carry[i].sIndex == 451)
 				break;
 		}
 
-		if (i == pMob[conn].MaxCarry)
+		if (i == MAX_CARRY - 4)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Cheerup1]);
 			break;
@@ -601,13 +601,13 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 		}
 		int i = 0;
 
-		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if(pMob[conn].MOB.Carry[i].sIndex == 452)
 				break;
 		}
 
-		if (i == pMob[conn].MaxCarry)
+		if (i == MAX_CARRY - 4)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Cheerup2]);
 			break;
@@ -655,13 +655,13 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 		}
 		int i = 0;
 
-		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if(pMob[conn].MOB.Carry[i].sIndex == 453)
 				break;
 		}
 
-		if (i == pMob[conn].MaxCarry)
+		if (i == MAX_CARRY - 4)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Cheerup3]);
 			break;
@@ -709,13 +709,13 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 		}
 		int i = 0;
 
-		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if(pMob[conn].MOB.Carry[i].sIndex == 524)
 				break;
 		}
 
-		if (i == pMob[conn].MaxCarry)
+		if (i == MAX_CARRY - 4)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_NewbieQuest_Cheerup4]);
 			break;

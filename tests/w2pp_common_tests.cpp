@@ -239,6 +239,39 @@ void TestCarryCargoGrid()
 /// @brief Testa entradas fora do domínio do jogo que antes liam além do fim de uma tabela.
 /// @details Ver a seção "Corrigidos" de docs/BUGS_LATENTES.md. Os valores conferidos são os
 /// definidos pela correção; no código antigo o resultado dependia do que havia depois da tabela.
+// Inventário pelas posições que cada bolsa libera (regra do cliente): 0..29 sempre, 30..44 com a
+// bolsa em Carry[60], 45..59 com a bolsa em Carry[61]; 60..63 guardam as bolsas.
+void TestCarryBags()
+{
+	STRUCT_ITEM carry[MAX_CARRY]{};
+	auto walk = [&]() {
+		int n = 0, last = -1, i = 0;
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(carry, i))
+		{
+			CHECK(BASE_CarryUsable(carry, i));
+			++n;
+			last = i;
+		}
+		CHECK(i == MAX_CARRY - 4);
+		return n * 100 + last;
+	};
+
+	CHECK(walk() == 30 * 100 + 29);
+	CHECK(BASE_CarryUsable(carry, 29) && !BASE_CarryUsable(carry, 30) && !BASE_CarryUsable(carry, 45));
+	CHECK(!BASE_CarryUsable(carry, -1) && !BASE_CarryUsable(carry, 60) && !BASE_CarryUsable(carry, 63));
+
+	carry[61].sIndex = 3467;	// só a segunda bolsa: o MaxCarry antigo (45) liberava 30..44 no lugar
+	CHECK(walk() == 45 * 100 + 59);
+	CHECK(BASE_NextCarry(carry, 29) == 45);
+	CHECK(!BASE_CarryUsable(carry, 30) && !BASE_CarryUsable(carry, 44) && BASE_CarryUsable(carry, 45));
+
+	carry[60].sIndex = 3467;
+	CHECK(walk() == 60 * 100 + 59);
+	carry[61].sIndex = 0;
+	CHECK(walk() == 45 * 100 + 44);
+	CHECK(BASE_NextCarry(carry, 44) == MAX_CARRY - 4);
+}
+
 void TestOutOfDomainInputs()
 {
 	// sIndex == MAX_ITEMLIST: a guarda era `idx > MAX_ITEMLIST` e lia g_pItemList[MAX_ITEMLIST].
@@ -347,6 +380,7 @@ int main()
 	TestVisualCodes();
 	TestCombatHelpers();
 	TestCarryCargoGrid();
+	TestCarryBags();
 	TestOutOfDomainInputs();
 	TestStringAndChecksum();
 

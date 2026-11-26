@@ -93,7 +93,6 @@ public:
 	int PvPDamage;
 	int ReflectPvP; 
 
-	int MaxCarry;
 	int QuestFlag;
 
 	int LastReqParty;

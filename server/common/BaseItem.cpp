@@ -1460,10 +1460,28 @@ int BASE_CanCarry(STRUCT_ITEM *Carry, int pos)
 	return 0;
 }
 
+/// @brief A posição `pos` do inventário (0..59) existe e está liberada? As posições 60..63 guardam as
+/// bolsas e não são inventário; BASE_CanCarry, como no cliente, não as recusa.
+int BASE_CarryUsable(STRUCT_ITEM *Carry, int pos)
+{
+	return pos >= 0 && pos < MAX_CARRY - 4 && BASE_CanCarry(Carry, pos);
+}
+
+/// @brief Próxima posição liberada depois de `pos`, ou MAX_CARRY - 4 se não há mais. Para percorrer o
+/// inventário pulando a área de uma bolsa ausente: com só a bolsa de Carry[61], vai de 29 para 45.
+int BASE_NextCarry(STRUCT_ITEM *Carry, int pos)
+{
+	do
+		++pos;
+	while (pos < MAX_CARRY - 4 && !BASE_CanCarry(Carry, pos));
+
+	return pos;
+}
+
 int BASE_CanTrade(STRUCT_ITEM *Dest, STRUCT_ITEM *Carry, unsigned char *MyTrade, STRUCT_ITEM *OpponentTrade)
 {
 	// Regra do cliente: os itens recebidos vão para as posições livres que BASE_CanCarry libera (as
-	// 60 visíveis), em vez das MaxCarry primeiras.
+	// 60 visíveis), em vez das primeiras 30 + 15 por bolsa.
 	STRUCT_ITEM OpponentTemp[MAX_TRADE];
 
 	memcpy(OpponentTemp, OpponentTrade, sizeof(OpponentTemp));

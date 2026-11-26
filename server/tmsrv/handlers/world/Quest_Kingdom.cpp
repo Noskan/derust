@@ -109,7 +109,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 					int sVento = 0;
 
 
-					for (int i = 0; i < pMob[conn].MaxCarry; i++)
+					for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 					{
 						if (pMob[conn].MOB.Carry[i].sIndex == 5334)
 							sAgua = 1;
@@ -126,7 +126,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 					if (sAgua == 1 && sTerra == 1 && sSol == 1 && sVento == 1)
 					{
-						for (int i = 0; i < pMob[conn].MaxCarry; i++)
+						for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 						{
 							if (pMob[conn].MOB.Carry[i].sIndex == 5334 && sAgua == 1)
 							{
@@ -218,7 +218,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 					int NumSepInv = 0;
 
-					for (int i = 0; i < pMob[conn].MaxCarry; i++)
+					for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 					{
 						if (pMob[conn].MOB.Carry[i].sIndex == 697)
 							NumSepInv++;
@@ -246,7 +246,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 					DBServerSocket.SendOneMessage((char*)&sm_us, sizeof(MSG_STANDARD));
 
-					for (int i = 0; i < pMob[conn].MaxCarry && Saphire > 0; i++)
+					for (int i = 0; i < MAX_CARRY - 4 && Saphire > 0; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 					{
 						if (pMob[conn].MOB.Carry[i].sIndex == 697)
 						{
@@ -320,7 +320,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 				{
 					int NumSepInv = 0;
 										
-					for (int i = 0; i < pMob[conn].MaxCarry; i++)
+					for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 					{
 						if (pMob[conn].MOB.Carry[i].sIndex == 697)
 							NumSepInv++;
@@ -348,7 +348,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 					DBServerSocket.SendOneMessage((char*)&sm_us, sizeof(MSG_STANDARD));
 
-					for (int i = 0; i < pMob[conn].MaxCarry && Saphire > 0 && pMob[conn].MOB.Equip[13].sIndex != 4081; i++)
+					for (int i = 0; i < MAX_CARRY - 4 && Saphire > 0 && pMob[conn].MOB.Equip[13].sIndex != 4081; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 					{
 						if (pMob[conn].MOB.Carry[i].sIndex == 697)
 						{
@@ -496,7 +496,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 					int Saphire = 16;
 					int NumSepInv = 0;
 
-					for (int i = 0; i < pMob[conn].MaxCarry; i++)
+					for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 					{
 						if (pMob[conn].MOB.Carry[i].sIndex == 697)
 							NumSepInv++;
@@ -514,7 +514,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 
 
-					for (int i = 0; i < pMob[conn].MaxCarry && Saphire > 0; i++)
+					for (int i = 0; i < MAX_CARRY - 4 && Saphire > 0; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 					{
 						if (pMob[conn].MOB.Carry[i].sIndex == 697)
 						{
@@ -669,7 +669,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 		int sala = -1;
 
-		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if (pMob[conn].MOB.Carry[i].sIndex != 5134)
 				continue;
@@ -682,7 +682,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 			break;
 		}
 
-		if (i == pMob[conn].MaxCarry)
+		if (i == MAX_CARRY - 4)
 		{
 			sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[5134].Name);
 			SendClientMessage(conn, temp);
@@ -740,7 +740,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 		int Materiais[5] = {0, 0, 0, 0, 0};
 
-		for (int i = 0; i < pMob[conn].MaxCarry; i++)
+		for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if(pMob[conn].MOB.Carry[i].sIndex < 1721 || pMob[conn].MOB.Carry[i].sIndex > 1725)
 				continue;
@@ -773,7 +773,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 		for(int x = 0;x < 5; x++)
 		{
-			for (int i = 0; i < pMob[conn].MaxCarry && Materiais[x] > 0; i++)
+			for (int i = 0; i < MAX_CARRY - 4 && Materiais[x] > 0; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 			{
 				if (pMob[conn].MOB.Carry[i].sIndex == (1721 + x))
 				{
@@ -818,13 +818,13 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 			int x = 0;
 
-			for (x = 0; x < pMob[conn].MaxCarry; x++)
+			for (x = 0; x < MAX_CARRY - 4; x = BASE_NextCarry(pMob[conn].MOB.Carry, x))
 			{
 				if(pMob[conn].MOB.Carry[x].sIndex == g_pTreasure[i].Source)
 					break;
 			}
 
-			if (x != pMob[conn].MaxCarry)
+			if (x != MAX_CARRY - 4)
 			{
 				char itemlog[1024];
 
@@ -883,7 +883,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 		int Cristais[7] = {-1, -1, -1, -1, -1, -1, -1};
 		int NumCristal = 0;
 
-		for (int i = 0; i < pMob[conn].MaxCarry; i++)
+		for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			int ItemId = pMob[conn].MOB.Carry[i].sIndex;
 								

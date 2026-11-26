@@ -748,13 +748,6 @@ void ProcessDBMessage(char *Msg)
 
 										 memcpy(pMob[conn].Affect, m->affect, sizeof(m->affect));
 
-										 pMob[conn].MaxCarry = 30;
-
-										 if (pMob[conn].MOB.Carry[60].sIndex == 3467)
-											 pMob[conn].MaxCarry += 15;
-
-										 if (pMob[conn].MOB.Carry[61].sIndex == 3467)
-											 pMob[conn].MaxCarry += 15;
 
 
 										 strncpy(pMob[conn].Tab, "", sizeof(pMob[conn].Tab));

@@ -23,7 +23,7 @@ void Exec_MSG_CombineItemExtracao(int conn, char *pMsg)
 
 	int ItemSlot = m->Parm2;
 
-	if (ItemSlot < 0 || ItemSlot >= pMob[conn].MaxCarry)
+	if (!BASE_CarryUsable(pMob[conn].MOB.Carry, ItemSlot))
 		return;
 
 	int item = pMob[conn].MOB.Carry[ItemSlot].sIndex;
@@ -44,7 +44,7 @@ void Exec_MSG_CombineItemExtracao(int conn, char *pMsg)
 
 	int i = 0;
 
-	for (i = 0; i < pMob[conn].MaxCarry; i++)
+	for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 	{
 		if (pMob[conn].MOB.Carry[i].sIndex != 1774)
 			continue;
@@ -54,7 +54,7 @@ void Exec_MSG_CombineItemExtracao(int conn, char *pMsg)
 		break;
 	}
 
-	if (i == pMob[conn].MaxCarry)
+	if (i == MAX_CARRY - 4)
 		return;
 		
 	int _rnd = rand()%115;

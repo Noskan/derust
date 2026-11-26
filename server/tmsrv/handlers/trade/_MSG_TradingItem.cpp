@@ -149,7 +149,7 @@ void Exec_MSG_TradingItem(int conn, char *pMsg)
 		SrcPlace = 1;
 	}
 
-	if (m->DestPlace == ITEM_PLACE_CARRY && m->DestSlot >= pMob[conn].MaxCarry)
+	if (m->DestPlace == ITEM_PLACE_CARRY && !BASE_CarryUsable(pMob[conn].MOB.Carry, m->DestSlot))
 		return;
 
 	if (DestItem == NULL || SrcItem == NULL)
@@ -195,7 +195,7 @@ void Exec_MSG_TradingItem(int conn, char *pMsg)
 			{
 				if (!Can)
 				{
-					if (error > 0 && error <= pMob[conn].MaxCarry)
+					if (error > 0 && BASE_CarryUsable(pMob[conn].MOB.Carry, error - 1))
 					{
 						error--;
 						SendItem(conn, ITEM_PLACE_CARRY, error, &pMob[conn].MOB.Carry[error]);
@@ -215,7 +215,7 @@ void Exec_MSG_TradingItem(int conn, char *pMsg)
 			{
 				if (!YouCan)
 				{
-					if (error > 0 && error <= pMob[conn].MaxCarry)
+					if (error > 0 && BASE_CarryUsable(pMob[conn].MOB.Carry, error - 1))
 					{
 						error--;
 						SendItem(conn, ITEM_PLACE_CARRY, error, &pMob[conn].MOB.Carry[error]);

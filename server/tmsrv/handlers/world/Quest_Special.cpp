@@ -48,7 +48,7 @@ bool HandleQuest_Special(int conn, int npcIndex, int confirm, int npcMode, int n
 
 		int RetornoHab = 0;
 
-		for (int i = 0; i < pMob[conn].MaxCarry; i++)
+		for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if(pMob[conn].MOB.Carry[i].sIndex == 697)
 				NumSappInv++;
@@ -69,7 +69,7 @@ bool HandleQuest_Special(int conn, int npcIndex, int confirm, int npcMode, int n
 
 		if(RetornoHab == 1)
 		{
-			for (int i = 0; i < pMob[conn].MaxCarry; i++)
+			for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 			{
 				if(pMob[conn].MOB.Carry[i].sIndex == 3336)
 				{
@@ -85,7 +85,7 @@ bool HandleQuest_Special(int conn, int npcIndex, int confirm, int npcMode, int n
 		if(NumSappInv > StatSapphire)
 			NumSappInv = StatSapphire;
 
-		for (int i = 0; i < pMob[conn].MaxCarry && NumSappInv > 0; i++)
+		for (int i = 0; i < MAX_CARRY - 4 && NumSappInv > 0; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if(pMob[conn].MOB.Carry[i].sIndex == 697)
 			{
@@ -187,7 +187,7 @@ DiretoReset:
 
 		for(int j = 0; j < 8; j++)
 		{
-			for (int i = 0; i < pMob[conn].MaxCarry; i++)
+			for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 			{
 				if (pMob[conn].MOB.Carry[i].sIndex != (1744 + j))
 					continue;
@@ -213,7 +213,7 @@ DiretoReset:
 
 		for(int j = 0; j < 8; j++)
 		{
-			for (int i = 0; i < pMob[conn].MaxCarry; i++)
+			for (int i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 			{
 				if (pMob[conn].MOB.Carry[i].sIndex != (1744 + j))
 					continue;
@@ -245,13 +245,13 @@ DiretoReset:
 	{
 		int i = 0;
 
-		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if(pMob[conn].MOB.Carry[i].sIndex == 1740)
 				break;
 		}
 
-		if (i == pMob[conn].MaxCarry)
+		if (i == MAX_CARRY - 4)
 		{
 			SendSay(npcIndex, g_pMessageStringTable[_NN_Set_Soul]);
 			break;
@@ -267,7 +267,7 @@ DiretoReset:
 		int NumSepInv = 0;
 		int j = 0;
 
-		for (j = 0; j < pMob[conn].MaxCarry; j++)
+		for (j = 0; j < MAX_CARRY - 4; j = BASE_NextCarry(pMob[conn].MOB.Carry, j))
 		{
 			if (pMob[conn].MOB.Carry[j].sIndex == 697)
 				NumSepInv++;
@@ -284,7 +284,7 @@ DiretoReset:
 		}
 		int Saphire = 10;
 
-		for (j = 0; j < pMob[conn].MaxCarry && Saphire > 0; j++)
+		for (j = 0; j < MAX_CARRY - 4 && Saphire > 0; j = BASE_NextCarry(pMob[conn].MOB.Carry, j))
 		{
 			if (pMob[conn].MOB.Carry[j].sIndex == 697)
 			{
@@ -367,7 +367,7 @@ DiretoReset:
 	{
 		int i = 0;
 
-		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if (pMob[conn].MOB.Carry[i].sIndex != pMob[npcIndex].MOB.Carry[0].sIndex)
 				continue;
@@ -375,7 +375,7 @@ DiretoReset:
 			break;
 		}
 
-		if (i == pMob[conn].MaxCarry)
+		if (i == MAX_CARRY - 4)
 		{
 			sprintf(temp, g_pMessageStringTable[_SN_BRINGITEM], g_pItemList[pMob[npcIndex].MOB.Carry[0].sIndex].Name);
 			SendSay(npcIndex, temp);
@@ -439,7 +439,7 @@ DiretoReset:
 		{
 			int i = 0;
 
-			for (i = 0; i < pMob[conn].MaxCarry; i++)
+			for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 			{
 				if (pMob[conn].MOB.Carry[i].sIndex != 420)
 					continue;
@@ -447,7 +447,7 @@ DiretoReset:
 				break;
 			}
 
-			if (i != pMob[conn].MaxCarry)
+			if (i != MAX_CARRY - 4)
 			{
 				BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
 				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
@@ -488,7 +488,7 @@ DiretoReset:
 
 			int stones[4] = {5334, 5336, 5335, 5337};
 
-			for (i = 0; i < pMob[conn].MaxCarry; i++)
+			for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 			{
 				if (pMob[conn].MOB.Carry[i].sIndex != stones[pMob[conn].MOB.Class])
 					continue;
@@ -496,7 +496,7 @@ DiretoReset:
 				break;
 			}
 
-			if (i != pMob[conn].MaxCarry)
+			if (i != MAX_CARRY - 4)
 			{
 				BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
 				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
@@ -533,7 +533,7 @@ DiretoReset:
 	case SOBREVIVENTE:
 	{
 		int i = 0;
-		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if (pMob[conn].MOB.Carry[i].sIndex != 4127)
 				continue;
@@ -541,7 +541,7 @@ DiretoReset:
 			break;
 		}
 
-		if (i != pMob[conn].MaxCarry)
+		if (i != MAX_CARRY - 4)
 		{
 			BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
 			SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
@@ -563,7 +563,7 @@ DiretoReset:
 			int ItemReq = 4055;
 
 			int i = 0;
-			for (i = 0; i < pMob[conn].MaxCarry; i++)
+			for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 			{
 				if (pMob[conn].MOB.Carry[i].sIndex != ItemReq)
 					continue;
@@ -571,7 +571,7 @@ DiretoReset:
 				break;
 			}
 
-			if (i != pMob[conn].MaxCarry)
+			if (i != MAX_CARRY - 4)
 			{
 				BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
 				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);

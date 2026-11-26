@@ -314,13 +314,6 @@ lbl_PST1:
 				BASE_ClearItem(&pMob[user].MOB.Carry[60]);
 				SendItem(user, ITEM_PLACE_CARRY, 60, &pMob[user].MOB.Carry[60]);
 
-				pMob[user].MaxCarry = 30;
-
-				if (pMob[user].MOB.Carry[60].sIndex == 3467)
-					pMob[user].MaxCarry += 15;
-
-				if (pMob[user].MOB.Carry[61].sIndex == 3467)
-					pMob[user].MaxCarry += 15;
 			}
 
 			if (pMob[user].MOB.Carry[61].sIndex == 3467 && BASE_CheckItemDate(&pMob[user].MOB.Carry[61]))
@@ -328,13 +321,6 @@ lbl_PST1:
 				BASE_ClearItem(&pMob[user].MOB.Carry[61]);
 				SendItem(user, ITEM_PLACE_CARRY, 61, &pMob[user].MOB.Carry[61]);
 
-				pMob[user].MaxCarry = 30;
-
-				if (pMob[user].MOB.Carry[60].sIndex == 3467)
-					pMob[user].MaxCarry += 15;
-
-				if (pMob[user].MOB.Carry[61].sIndex == 3467)
-					pMob[user].MaxCarry += 15;
 			}
 		}
 	}

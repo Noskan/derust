@@ -912,13 +912,6 @@ bool UseItem_ExtractionsAndSpecials(int conn, MSG_UseItem* m, STRUCT_ITEM* item,
 		SendScore(conn);
 		SendEtc(conn);
 
-		pMob[conn].MaxCarry = 30;
-
-		if (pMob[conn].MOB.Carry[60].sIndex == 3467)
-			pMob[conn].MaxCarry += 15;
-
-		if (pMob[conn].MOB.Carry[61].sIndex == 3467)
-			pMob[conn].MaxCarry += 15;
 
 		if (amount > 1)
 			BASE_SetItemAmount(item, amount - 1);

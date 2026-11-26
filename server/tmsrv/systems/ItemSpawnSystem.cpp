@@ -52,13 +52,13 @@ BOOL PutItem(int conn, STRUCT_ITEM *item)
 
 	int pos = 0;
 
-	for (pos = 0; pos < pMob[conn].MaxCarry && pos < MAX_CARRY; pos++)
+	for (pos = 0; pos < MAX_CARRY - 4; pos = BASE_NextCarry(pMob[conn].MOB.Carry, pos))
 	{
 		if (pMob[conn].MOB.Carry[pos].sIndex == 0)
 			break;
 	}
 
-	if (pos >= 0 && pos < pMob[conn].MaxCarry && pos < MAX_CARRY)
+	if (BASE_CarryUsable(pMob[conn].MOB.Carry, pos))
 	{
 		memcpy(&pMob[conn].MOB.Carry[pos], item, sizeof(STRUCT_ITEM));
 

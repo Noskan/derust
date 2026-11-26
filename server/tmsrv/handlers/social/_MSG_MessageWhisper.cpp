@@ -105,7 +105,7 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 			return;
 		}
 
-		for (i = 0; i < pMob[conn].MaxCarry; i++)
+		for (i = 0; i < MAX_CARRY - 4; i = BASE_NextCarry(pMob[conn].MOB.Carry, i))
 		{
 			if (pMob[conn].MOB.Carry[i].sIndex != 3330)
 				continue;
@@ -121,7 +121,7 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 			break;
 		}
 
-		if (i == pMob[conn].MaxCarry)
+		if (i == MAX_CARRY - 4)
 			return;
 			
 		MSG_MagicTrumpet sm_mt;

@@ -28,7 +28,7 @@ void Exec_MSG_CombineItemAilyn(int conn, char *pMsg)
 
 		int invPos = m->InvenPos[i];
 
-		if (invPos < 0 || invPos >= pMob[conn].MaxCarry)
+		if (!BASE_CarryUsable(pMob[conn].MOB.Carry, invPos))
 		{
 			RemoveTrade(conn);
 			return;

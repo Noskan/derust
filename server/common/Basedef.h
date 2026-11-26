@@ -2413,6 +2413,8 @@ int  BASE_CanCargo(STRUCT_ITEM *item, STRUCT_ITEM *cargo, int DestX, int DestY);
 void BASE_SortTradeItem(STRUCT_ITEM *Item, int Type);
 int  BASE_CanTrade(STRUCT_ITEM *Dest, STRUCT_ITEM *Carry, unsigned char *MyTrade, STRUCT_ITEM *OpponentTrade);
 int  BASE_CanCarry(STRUCT_ITEM *Carry, int pos);
+int  BASE_CarryUsable(STRUCT_ITEM *Carry, int pos);
+int  BASE_NextCarry(STRUCT_ITEM *Carry, int pos);
 void BASE_InitializeMessage(char *file);
 void BASE_InitializeMobname(char *file, int offset);
 void BASE_WriteMessageBin();

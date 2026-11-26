@@ -75,7 +75,7 @@ void Exec_MSG_DropItem(int conn, char *pMsg)
 	{
 		if (m->SourType == ITEM_PLACE_CARRY)
 		{
-			if (m->SourPos < 0 || m->SourPos >= pMob[conn].MaxCarry)
+			if (!BASE_CarryUsable(pMob[conn].MOB.Carry, m->SourPos))
 			{
 				Log("err,dropitem - carry equip", pUser[conn].AccountName, pUser[conn].IP);
 				return;

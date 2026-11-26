@@ -60,7 +60,7 @@ void Exec_MSG_SplitItem(int conn, char *pMsg)
 	int x = 0;
 	int invfree = 0;
 
-	for (x = 0; x < pMob[conn].MaxCarry; x++)
+	for (x = 0; x < MAX_CARRY - 4; x = BASE_NextCarry(pMob[conn].MOB.Carry, x))
 	{
 		if(pMob[conn].MOB.Carry[x].sIndex == 0)
 			invfree++;
