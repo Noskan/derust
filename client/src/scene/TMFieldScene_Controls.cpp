@@ -2870,3 +2870,22 @@ int TMFieldScene::OnControl_PlayerMenu818(unsigned int idwControlID, unsigned in
 
 	return 1;
 }
+
+/// Menu de contexto do jogador alvo, controle 862 (mensagem 221).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_PlayerMenu862(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pMessageBox->IsVisible())
+	{
+		m_pPGTPanel->SetVisible(0);
+		return 0;
+	}
+	if (m_pPGTOver)
+	{
+		m_pMessageBox->SetMessage(g_pMessageStringTable[221], 862, 0);
+		m_pMessageBox->m_dwArg = m_pPGTOver->m_usGuild;
+		m_pMessageBox->SetVisible(1);
+		m_pPGTOver = 0;
+	}
+	return 1;
+}
