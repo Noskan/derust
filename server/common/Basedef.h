@@ -137,7 +137,8 @@
 #define		TIMER_MIN				1
 
 #define		MAX_ITEMLIST			6500
-#define		MAX_SKILLINDEX			103
+#define		MAX_SKILLINDEX			103		// Skills que o servidor trata; as outras são recusadas
+#define		MAX_SPELL_LIST			248		// Entradas da tabela de skills, como no cliente (SkillData.bin)
 #define		MAX_INITITEM			256
 #define		MAX_EFFECTINDEX			128
 #define		ITEMNAME_LENGTH			64
@@ -2484,7 +2485,7 @@ extern char g_pGuildName[10][16][MAX_GUILD][GUILDNAME_LENGTH];
 extern char g_pMessageStringTable[MAX_STRING][128];
 extern char EffectNameTable[MAX_EFFECTINDEX][24];
 
-extern STRUCT_SPELL g_pSpell[MAX_SKILLINDEX];
+extern STRUCT_SPELL g_pSpell[MAX_SPELL_LIST];
 extern STRUCT_INITITEM g_pInitItem[MAX_INITITEM];
 
 extern STRUCT_ITEMLIST g_pItemList[MAX_ITEMLIST];

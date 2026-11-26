@@ -35,11 +35,10 @@ namespace
 
 #if defined(DIV_CLIENT)
 using TypeArg = char;
-const int kSpellCount = MAX_SPELL_LIST;
 #else
 using TypeArg = unsigned char;
-const int kSpellCount = MAX_SKILLINDEX;
 #endif
+const int kSpellCount = MAX_SPELL_LIST;	// 248 entradas nos dois lados
 
 struct Lcg
 {
@@ -206,8 +205,7 @@ const int kHeightPos = 2000;
 const int kHeightSize = 256;
 std::vector<char> g_height;
 
-/// @brief Mesmos valores nos dois lados; cada índice usa o próprio gerador, para que a contagem
-/// diferente de entradas (MAX_SKILLINDEX x MAX_SPELL_LIST) não desalinhe as demais.
+/// @brief Mesmos valores nos dois lados; cada índice usa o próprio gerador.
 void FillTables()
 {
 	static const short staticEffects[] = { EF_LEVEL, EF_REQ_STR, EF_REQ_INT, EF_REQ_DEX, EF_REQ_CON, EF_POS,

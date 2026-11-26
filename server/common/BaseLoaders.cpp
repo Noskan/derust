@@ -43,7 +43,7 @@
 
 void BASE_WriteSkillBin()
 {
-	int size = sizeof(STRUCT_SPELL) * MAX_SKILLINDEX;
+	int size = sizeof(STRUCT_SPELL) * MAX_SPELL_LIST;
 	char *temp = (char*)g_pSpell;
 
 	for(int i = 0; i < size; i++)
@@ -55,7 +55,7 @@ void BASE_WriteSkillBin()
 
 	if(fp != NULL)
 	{	
-		fwrite(g_pSpell, sizeof(STRUCT_SPELL), MAX_SKILLINDEX , fp);
+		fwrite(g_pSpell, sizeof(STRUCT_SPELL), MAX_SPELL_LIST , fp);
 
 		int sum = BASE_GetSum2((char*)g_pSpell, size);
 		int nRand = rand();
@@ -139,7 +139,7 @@ void BASE_WriteItemList(int nItemList)
 
 int BASE_ReadSkillBin()
 {
-	int size = sizeof(STRUCT_SPELL) * MAX_SKILLINDEX;
+	int size = sizeof(STRUCT_SPELL) * MAX_SPELL_LIST;
 	char *temp = (char*)g_pSpell;
 	int tsum = 0;
 
@@ -1100,7 +1100,8 @@ void BASE_InitializeSkill()
 								&temp.AffectType,   &temp.AffectValue, &temp.AffectTime,    act1,				act2, &temp.InstanceAttribute,
 								&temp.TickAttribute,&temp.Aggressive,	&temp.MaxTarget,	&temp.bParty,		&temp.AffectResist,&temp.Passive);
 		
-		if(Index < 0 || Index >= MAX_SKILLINDEX)
+		// A tabela tem as 248 entradas do cliente; o combate só aceita as primeiras MAX_SKILLINDEX.
+		if(Index < 0 || Index >= MAX_SPELL_LIST)
 			continue;
 
 		temp.AffectTime = temp.AffectTime / 4;

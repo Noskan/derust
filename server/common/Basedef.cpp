@@ -1090,7 +1090,7 @@ char g_pClientGuildName[16][MAX_GUILD][4][GUILDNAME_LENGTH];
 char EffectNameTable[MAX_EFFECTINDEX][24];
 char g_pMessageStringTable[MAX_STRING][128];
 
-STRUCT_SPELL g_pSpell[MAX_SKILLINDEX];
+STRUCT_SPELL g_pSpell[MAX_SPELL_LIST];
 STRUCT_INITITEM g_pInitItem[MAX_INITITEM];
 
 char g_pEnglish[MAX_ENGLISH][3][NAME_LENGTH];

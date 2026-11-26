@@ -60,9 +60,9 @@ W2_FIELD(STRUCT_SCORE, AttackRun, 13, 1);
 W2_FIELD(STRUCT_SCORE, MaxHp, 16, 4);
 W2_FIELD(STRUCT_SCORE, Special, 40, 8);
 
-// Skill no layout do SkillData.bin do cliente (registros de 96 bytes). O cliente tem 248 skills e o
-// servidor 103, então o arquivo inteiro ainda não é o mesmo.
+// Skill no layout do SkillData.bin do cliente: 248 registros de 96 bytes (g_pSpell[MAX_SPELL_LIST]).
 static_assert(sizeof(STRUCT_SPELL) == 96, "STRUCT_SPELL deve ter 96 bytes (cliente).");
+static_assert(sizeof(g_pSpell) == 96 * 248, "g_pSpell deve ter o tamanho do SkillData.bin do cliente.");
 W2_FIELD(STRUCT_SPELL, AffectTime, 44, 4);
 W2_FIELD(STRUCT_SPELL, Act1, 48, 8);
 W2_FIELD(STRUCT_SPELL, Act2, 56, 8);
