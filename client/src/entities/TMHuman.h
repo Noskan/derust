@@ -74,6 +74,7 @@ public:
     void InitObject_DodgeGlow();
     void InitObject_Class32EyeFire();
     void InitObject_Class16EyeFire();
+    void InitObject_Class39EyeFire();
     int Render() final;
     int FrameMove(unsigned int dwServerTime) final;
     void InitPosition(float fX, float fY, float fZ) final;

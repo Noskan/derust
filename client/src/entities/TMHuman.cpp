@@ -607,49 +607,7 @@ int TMHuman::InitObject()
     }
     InitObject_Class32EyeFire();
     InitObject_Class16EyeFire();
-    if (m_nClass == 39)
-    {
-        int nTextureIndex[4]{};
-        nTextureIndex[0] = 56;
-        nTextureIndex[1] = 56;
-        nTextureIndex[2] = 101;
-        nTextureIndex[3] = 101;
-
-        int nTexCount[4]{};
-        nTexCount[0] = 1;
-        nTexCount[1] = 1;
-        nTexCount[2] = 8;
-        nTexCount[3] = 8;
-
-        for (int i = 0; i < 4; ++i)
-        {
-            if (m_pEyeFire[i])
-            {
-                g_pObjectManager->DeleteObject(m_pEyeFire[i]);
-                m_pEyeFire[i] = 0;
-            }
-
-            m_pEyeFire[i] = new TMEffectBillBoard(
-                nTextureIndex[i],
-                0,
-                1.0f * m_fScale,
-                1.0f * m_fScale,
-                1.0f * m_fScale,
-                0.0,
-                nTexCount[i],
-                80);
-
-            if (m_pEyeFire[i])
-            {
-                m_pEyeFire[i]->SetColor(0x0FFFF5500);
-                m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                m_pEyeFire[i]->m_nFade = 0;
-                m_pEyeFire[i]->m_vecPosition = m_vecTempPos[0];
-                m_pEyeFire[i]->m_bFrameMove = 0;
-                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
-            }
-        }
-    }
+    InitObject_Class39EyeFire();
     if (m_nClass == 38 && m_cMantua > 0 && !m_pEyeFire[1])
     {
         int nPosIndex[7]{};
@@ -1502,6 +1460,55 @@ void TMHuman::InitObject_Class16EyeFire()
                 m_pEyeFire2[i - 7]->m_vecPosition = m_vecTempPos[i];
                 m_pEyeFire2[i - 7]->m_bFrameMove = 0;
                 g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire2[i - 7]);
+            }
+        }
+    }
+}
+
+/// Classe 39: pontos de fogo com quatro texturas.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_Class39EyeFire()
+{
+    if (m_nClass == 39)
+    {
+        int nTextureIndex[4]{};
+        nTextureIndex[0] = 56;
+        nTextureIndex[1] = 56;
+        nTextureIndex[2] = 101;
+        nTextureIndex[3] = 101;
+
+        int nTexCount[4]{};
+        nTexCount[0] = 1;
+        nTexCount[1] = 1;
+        nTexCount[2] = 8;
+        nTexCount[3] = 8;
+
+        for (int i = 0; i < 4; ++i)
+        {
+            if (m_pEyeFire[i])
+            {
+                g_pObjectManager->DeleteObject(m_pEyeFire[i]);
+                m_pEyeFire[i] = 0;
+            }
+
+            m_pEyeFire[i] = new TMEffectBillBoard(
+                nTextureIndex[i],
+                0,
+                1.0f * m_fScale,
+                1.0f * m_fScale,
+                1.0f * m_fScale,
+                0.0,
+                nTexCount[i],
+                80);
+
+            if (m_pEyeFire[i])
+            {
+                m_pEyeFire[i]->SetColor(0x0FFFF5500);
+                m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                m_pEyeFire[i]->m_nFade = 0;
+                m_pEyeFire[i]->m_vecPosition = m_vecTempPos[0];
+                m_pEyeFire[i]->m_bFrameMove = 0;
+                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
             }
         }
     }
