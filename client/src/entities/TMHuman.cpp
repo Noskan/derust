@@ -617,87 +617,7 @@ int TMHuman::InitObject()
         m_pShade = 0;
     }
 
-    if (!g_bHideEffect && !g_pDevice->m_bSavage && !g_pDevice->m_bIntel)
-    {
-        switch (m_nSkinMeshType)
-        {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-        case 5:
-            if (m_cMount <= 0)
-                m_pShade = new TMShade(3, 4, m_fScale);
-            else
-                m_pShade = new TMShade(5, 4, m_fScale);
-            break;
-        case 6:
-        case 8:
-        case 9:
-        case 10:
-        case 13:
-        case 14:
-        case 15:
-        case 16:
-        case 17:
-        case 18:
-        case 19:
-        case 21:
-        case 22:
-        case 23:
-        case 25:
-        case 26:
-        case 27:
-        case 28:
-        case 30:
-        case 31:
-        case 33:
-        case 40:
-        case 41:
-        case 43:
-            m_pShade = new TMShade(3, 4, m_fScale);
-            break;
-        case 7:
-        case 29:
-            m_pShade = new TMShade(4, 4, m_fScale);
-            break;
-        case 11:
-        case 35:
-        case 42:
-            m_pShade = new TMShade(6, 4, m_fScale);
-            break;
-        case 12:
-        case 24:
-        case 32:
-            m_pShade = new TMShade(2, 4, m_fScale);
-            break;
-        case 20:
-            if (!m_stLookInfo.HelmMesh)
-                m_pShade = new TMShade(6, 4, m_fScale);
-            break;
-        case 34:
-        case 36:
-        case 44:
-            m_pShade = new TMShade(8, 4, m_fScale);
-            break;
-        case 37:
-            m_pShade = new TMShade(2, 203, m_fScale);
-            break;
-        case 38:
-            m_pShade = new TMShade(5, 4, m_fScale);
-            break;
-        case 39:
-            m_pShade = new TMShade(6, 4, m_fScale);
-            break;
-        }
-
-        if (m_pShade)
-        {
-            m_pShade->SetPosition(TMVector2(0.0f, 0.0f));
-            g_pCurrentScene->m_pShadeContainer->AddChild(m_pShade);
-        }
-    }
+    InitObject_Shade();
 
     GetLegType();
 
@@ -1524,6 +1444,93 @@ void TMHuman::InitObject_Class33EyeFire()
                 m_pEyeFire[i]->m_bFrameMove = 0;
                 g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
             }
+        }
+    }
+}
+
+/// Cria a sombra (`m_pShade`) conforme o tipo de malha, quando os efeitos estão ligados.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_Shade()
+{
+    if (!g_bHideEffect && !g_pDevice->m_bSavage && !g_pDevice->m_bIntel)
+    {
+        switch (m_nSkinMeshType)
+        {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            if (m_cMount <= 0)
+                m_pShade = new TMShade(3, 4, m_fScale);
+            else
+                m_pShade = new TMShade(5, 4, m_fScale);
+            break;
+        case 6:
+        case 8:
+        case 9:
+        case 10:
+        case 13:
+        case 14:
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+        case 19:
+        case 21:
+        case 22:
+        case 23:
+        case 25:
+        case 26:
+        case 27:
+        case 28:
+        case 30:
+        case 31:
+        case 33:
+        case 40:
+        case 41:
+        case 43:
+            m_pShade = new TMShade(3, 4, m_fScale);
+            break;
+        case 7:
+        case 29:
+            m_pShade = new TMShade(4, 4, m_fScale);
+            break;
+        case 11:
+        case 35:
+        case 42:
+            m_pShade = new TMShade(6, 4, m_fScale);
+            break;
+        case 12:
+        case 24:
+        case 32:
+            m_pShade = new TMShade(2, 4, m_fScale);
+            break;
+        case 20:
+            if (!m_stLookInfo.HelmMesh)
+                m_pShade = new TMShade(6, 4, m_fScale);
+            break;
+        case 34:
+        case 36:
+        case 44:
+            m_pShade = new TMShade(8, 4, m_fScale);
+            break;
+        case 37:
+            m_pShade = new TMShade(2, 203, m_fScale);
+            break;
+        case 38:
+            m_pShade = new TMShade(5, 4, m_fScale);
+            break;
+        case 39:
+            m_pShade = new TMShade(6, 4, m_fScale);
+            break;
+        }
+
+        if (m_pShade)
+        {
+            m_pShade->SetPosition(TMVector2(0.0f, 0.0f));
+            g_pCurrentScene->m_pShadeContainer->AddChild(m_pShade);
         }
     }
 }

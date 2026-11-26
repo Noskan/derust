@@ -77,6 +77,7 @@ public:
     void InitObject_Class39EyeFire();
     void InitObject_Class38EyeFire();
     void InitObject_Class33EyeFire();
+    void InitObject_Shade();
     int Render() final;
     int FrameMove(unsigned int dwServerTime) final;
     void InitPosition(float fX, float fY, float fZ) final;
