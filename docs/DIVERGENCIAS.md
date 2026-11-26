@@ -9,8 +9,8 @@ servidor teria de mudar para falar com este cliente, ou uma decisão a tomar.
 
 - **Pacotes**, casados pelo valor do opcode e pela struct que cada lado envia ou lê (uma "direção" é um opcode num sentido): **2 direções em que quem lê espera mais bytes do que o outro lado envia** e **1 em que os campos lidos não estão nos offsets enviados**. Outras 16 batem em offsets mas trocam nomes de campos, e 90 batem por inteiro. Em 39, o cliente envia ou espera um pacote que o servidor não lê ou não envia; em 47, é o servidor que envia ou lê algo que o cliente não usa (fora 53 do tráfego com o DBSrv).
 - **Structs de jogo e de arquivo** de mesmo nome: 13, das quais 10 diferem. `STRUCT_MOB` tem 1024 bytes no servidor e 1024 no cliente, e vai dentro dos pacotes de login.
-- **Regras `BASE_*`** comparadas com as mesmas entradas: 30. **22 divergem** em ao menos uma entrada; 8 concordam em todas.
-- **Só de um lado**: 49 funções `BASE_*` só no servidor e 29 só no cliente.
+- **Regras `BASE_*`** comparadas com as mesmas entradas: 29. **0 divergem** em ao menos uma entrada; 29 concordam em todas.
+- **Só de um lado**: 50 funções `BASE_*` só no servidor e 26 só no cliente.
 
 ## Como foi medido
 
@@ -263,44 +263,43 @@ Chamadas com a mesma entrada nos dois lados. O exemplo é a primeira entrada em 
 
 | Função | Chamadas | Divergem | Exemplo: entrada → servidor / cliente | Observação |
 |---|---|---|---|---|
-| `BASE_CanTrade` | 3000 | 100.0% | `amostra 0` → `1 f81502ba2eac79ed97083298321a09db9c09057...` / `1 000000000000000097083298321a09db0000000...` | servidor recebe `MaxCarry` (= MAX_CARRY) |
-| `BASE_GetDoubleCritical` | 3000 | 99.9% | `mob(class 0, lvl 78, str 27659, int 21671...` → `1 1715 1715 0` / `0 643 643 0` | STRUCT_MOB preenchida campo a campo pelo nome |
-| `BASE_CanCargo` | 3000 | 98.3% | `item(3288;78:206,42:90,100:254) x 2 y 11` → `0` / `1` |  |
-| `BASE_UpdateItem2` | 3000 | 81.3% | `mask 4 0->2 at 2186,2147 rot 1 h 49` → `1` / `1 37562=49 37818=49 38074=49 38330=49` |  |
-| `BASE_GetVillage` | 12000 | 74.4% | `1678,172` → `5` / `4` |  |
-| `BASE_GetSkillDamage` | 3000 | 72.5% | `mob(class 0, lvl 78, str 27659, int 21671...` → `101675` / `101207` | cliente recebe `OriginalFace` (= Class) |
-| `BASE_GetSpeed` | 3000 | 55.0% | `mob(class 2, lvl 305, str 6528, int 7981,...` → `6` / `7` |  |
-| `BASE_GetSubGuild` | 12000 | 39.5% | `item 7` → `0` / `2` |  |
-| `BASE_GetRoute` | 12000 | 19.4% | `2049,2193 -> 2022,2204 dist 5` → `1 2046,2197 38373737000000000000000000000...` / `1 2049,2194 38000000000000000000000000000...` | cliente recebe `MH` (= 8, o `#define MH` do servidor) |
-| `BASE_GetMobAbility` | 384000 | 18.3% | `mob(class 0, lvl 78, str 27659, int 21671...` → `3334` / `3043` | STRUCT_MOB preenchida campo a campo pelo nome |
-| `BASE_SortTradeItem` | 3000 | 17.7% | `amostra 4 type 1` → `6a1373b80a807b31530906f959aa7b26650a32204...` / `6a1373b80a807b31530906f959aa7b26650a32204...` |  |
-| `BASE_GetItemSanc` | 12000 | 11.1% | `item(1359;115:171,50:239,7:225)` → `0` / `1` |  |
-| `BASE_GetItemSancSuccess` | 12000 | 10.5% | `item(1359;115:171,50:239,7:225)` → `0` / `17` |  |
-| `BASE_GetMaxAbility` | 384000 | 5.9% | `mob(class 0, lvl 78, str 27659, int 21671...` → `75` / `105` | STRUCT_MOB preenchida campo a campo pelo nome |
-| `BASE_GetItemAbility` | 384000 | 2.1% | `item(2335;66:249,63:62,77:143) type 1` → `62` / `351` |  |
-| `BASE_CheckValidString` | 12000 | 1.6% | `"6539717730632d397163c1"` → `1` / `0` |  |
-| `BASE_GetItemAbilityNosanc` | 384000 | 1.5% | `item(2335;66:249,63:62,77:143) type 1` → `62` / `351` |  |
-| `BASE_CanEquip` | 3000 | 1.5% | `item(3295;43:38,59:37,101:16) pos 4 class...` → `1` / `0` | servidor recebe `STRUCT_MOBEXTRA*` (zerada); cliente recebe `OriginalFace` (= Class) e `hasSoulLimitSkill` (= false) |
-| `BASE_GetStaticItemAbility` | 384000 | 0.8% | `item(1787;62:58,119:193,118:95) type 38` → `119` / `92` |  |
-| `BASE_GetBonusItemAbility` | 384000 | 0.4% | `item(3894;115:233,10:130,59:161) type 10` → `130` / `260` |  |
-| `BASE_GetBonusItemAbilityNosanc` | 384000 | 0.2% | `item(3236;72:153,9:40,9:115) type 9` → `155` / `0` |  |
-| `BASE_SetItemAmount` | 12000 | 0.2% | `item(2398;74:28,7:164,59:160) amount 257` → `5e094a1c07a43ba0` / `5e094a1c07a43d01` |  |
 | `BASE_ApplyAttribute` | 16 | 0 |  |  |
+| `BASE_CanCargo` | 3000 | 0 |  |  |
+| `BASE_CanEquip` | 3000 | 0 |  |  |
+| `BASE_CanTrade` | 3000 | 0 |  |  |
+| `BASE_CheckValidString` | 12000 | 0 |  |  |
 | `BASE_ClearItem` | 12000 | 0 |  |  |
+| `BASE_GetBonusItemAbility` | 384000 | 0 |  |  |
+| `BASE_GetBonusItemAbilityNosanc` | 384000 | 0 |  |  |
 | `BASE_GetDistance` | 12000 | 0 |  |  |
+| `BASE_GetDoubleCritical` | 3000 | 0 |  | STRUCT_MOB preenchida campo a campo pelo nome |
+| `BASE_GetItemAbility` | 384000 | 0 |  |  |
+| `BASE_GetItemAbilityNosanc` | 384000 | 0 |  |  |
 | `BASE_GetItemAmount` | 12000 | 0 |  |  |
+| `BASE_GetItemSanc` | 12000 | 0 |  |  |
+| `BASE_GetItemSancSuccess` | 12000 | 0 |  |  |
 | `BASE_GetManaSpent` | 3000 | 0 |  |  |
+| `BASE_GetMaxAbility` | 384000 | 0 |  | STRUCT_MOB preenchida campo a campo pelo nome |
+| `BASE_GetMobAbility` | 384000 | 0 |  | STRUCT_MOB preenchida campo a campo pelo nome |
+| `BASE_GetRoute` | 12000 | 0 |  |  |
+| `BASE_GetSkillDamage` | 3000 | 0 |  |  |
+| `BASE_GetSpeed` | 3000 | 0 |  |  |
+| `BASE_GetStaticItemAbility` | 384000 | 0 |  |  |
 | `BASE_GetSum` | 12000 | 0 |  |  |
 | `BASE_GetSum2` | 12000 | 0 |  |  |
+| `BASE_GetVillage` | 12000 | 0 |  |  |
+| `BASE_SetItemAmount` | 12000 | 0 |  |  |
+| `BASE_SortTradeItem` | 3000 | 0 |  |  |
 | `BASE_UnderBarToSpace` | 12000 | 0 |  |  |
+| `BASE_UpdateItem2` | 3000 | 0 |  |  |
 
 Em comum, mas fora da comparação (leem arquivo, rede ou relógio, ou os parâmetros não têm
-correspondência): `BASE_CanCarry`, `BASE_GetHttpRequest`, `BASE_GetWeekNumber`, `BASE_InitModuleDir`, `BASE_InitializeAttribute`, `BASE_InitializeBaseDef`, `BASE_InitializeHitRate`, `BASE_InitializeServerList`, `BASE_ReadInitItem`, `BASE_ReadItemList`, `BASE_ReadMessageBin`, `BASE_ReadSkillBin`.
+correspondência): `BASE_CanCarry`, `BASE_ChangeOrAddEffectValue`, `BASE_GetHttpRequest`, `BASE_GetSancEffValue`, `BASE_GetWeekNumber`, `BASE_HasSancAdd`, `BASE_InitModuleDir`, `BASE_InitializeAttribute`, `BASE_InitializeBaseDef`, `BASE_InitializeHitRate`, `BASE_InitializeServerList`, `BASE_ReadInitItem`, `BASE_ReadItemList`, `BASE_ReadMessageBin`, `BASE_ReadSkillBin`, `BASE_RemoveEffect`.
 
 ## Só de um lado
 
-- Funções `BASE_*` só no cliente (29): `BASE_CanEquip_RecvRes`, `BASE_CanRefine`, `BASE_ChangeOrAddEffectValue`, `BASE_CheckChatValid`, `BASE_DefineSkinMeshType`, `BASE_Get3DTo2DPos`, `BASE_GetAttr`, `BASE_GetAttribute`, `BASE_GetColorCount`, `BASE_GetEffectValue`, `BASE_GetHitPosition`, `BASE_GetHitPosition2`, `BASE_GetItemColor`, `BASE_GetItemColorEffect`, `BASE_GetItemTenColor`, `BASE_GetMeshIndex`, `BASE_GetMountScale`, `BASE_GetOptionColor`, `BASE_GetSancEffValue`, `BASE_HasSancAdd`, `BASE_InitEffectString`, `BASE_InitialItemRePrice`, `BASE_IsInLowZone`, `BASE_ReadItemPrice`, `BASE_ReadTOTOList`, `BASE_RemoveEffect`, `BASE_ScreenResize`, `BASE_SetBit`, `BASE_TransCurse`.
-- Funções `BASE_*` só no servidor (49): `BASE_CheckFairyDate`, `BASE_CheckHangul`, `BASE_CheckItemDate`, `BASE_CheckPacket`, `BASE_ClearMob`, `BASE_ClearMobExtra`, `BASE_GetAccuracyRate`, `BASE_GetArena`, `BASE_GetBonusScorePoint`, `BASE_GetBonusSkillPoint`, `BASE_GetClientGuildName`, `BASE_GetCurrentScore`, `BASE_GetDamage`, `BASE_GetDamageRate`, `BASE_GetDestByAction`, `BASE_GetEnglish`, `BASE_GetFirstKey`, `BASE_GetGrowthRate`, `BASE_GetGuild`, `BASE_GetGuildName`, `BASE_GetHitRate`, `BASE_GetHpMp`, `BASE_GetIndex`, `BASE_GetItemCode`, `BASE_GetItemGem`, `BASE_GetKorFirst`, `BASE_GetLanguage`, `BASE_GetMobCheckSum`, `BASE_GetSuccessRate`, `BASE_InitializeClientGuildName`, `BASE_InitializeEffectName`, `BASE_InitializeGuildName`, `BASE_InitializeInitItem`, `BASE_InitializeItemList`, `BASE_InitializeMessage`, `BASE_InitializeMobname`, `BASE_InitializeSkill`, `BASE_NeedLog`, `BASE_ReadItemListFile`, `BASE_SetItemDate`, `BASE_SetItemSanc`, `BASE_SpaceToUnderBar`, `BASE_UpdateItem`, `BASE_VisualAnctCode`, `BASE_VisualItemCode`, `BASE_WriteInitItem`, `BASE_WriteItemList`, `BASE_WriteMessageBin`, `BASE_WriteSkillBin`.
+- Funções `BASE_*` só no cliente (26): `BASE_CanEquip_RecvRes`, `BASE_CanRefine`, `BASE_CheckChatValid`, `BASE_DefineSkinMeshType`, `BASE_Get3DTo2DPos`, `BASE_GetAttr`, `BASE_GetAttribute`, `BASE_GetColorCount`, `BASE_GetEffectValue`, `BASE_GetHitPosition`, `BASE_GetHitPosition2`, `BASE_GetItemColor`, `BASE_GetItemColorEffect`, `BASE_GetItemTenColor`, `BASE_GetMeshIndex`, `BASE_GetMountScale`, `BASE_GetOptionColor`, `BASE_GetSubGuild`, `BASE_InitEffectString`, `BASE_InitialItemRePrice`, `BASE_IsInLowZone`, `BASE_ReadItemPrice`, `BASE_ReadTOTOList`, `BASE_ScreenResize`, `BASE_SetBit`, `BASE_TransCurse`.
+- Funções `BASE_*` só no servidor (50): `BASE_CheckFairyDate`, `BASE_CheckHangul`, `BASE_CheckItemDate`, `BASE_CheckPacket`, `BASE_ClearMob`, `BASE_ClearMobExtra`, `BASE_GetAccuracyRate`, `BASE_GetArena`, `BASE_GetBonusScorePoint`, `BASE_GetBonusSkillPoint`, `BASE_GetClientGuildName`, `BASE_GetCurrentScore`, `BASE_GetDamage`, `BASE_GetDamageRate`, `BASE_GetDestByAction`, `BASE_GetEnglish`, `BASE_GetFirstKey`, `BASE_GetGrowthRate`, `BASE_GetGuild`, `BASE_GetGuildName`, `BASE_GetHitRate`, `BASE_GetHpMp`, `BASE_GetIndex`, `BASE_GetItemCode`, `BASE_GetItemGem`, `BASE_GetKorFirst`, `BASE_GetLanguage`, `BASE_GetMobCheckSum`, `BASE_GetSubGuildByMedal`, `BASE_GetSuccessRate`, `BASE_InitializeClientGuildName`, `BASE_InitializeEffectName`, `BASE_InitializeGuildName`, `BASE_InitializeInitItem`, `BASE_InitializeItemList`, `BASE_InitializeMessage`, `BASE_InitializeMobname`, `BASE_InitializeSkill`, `BASE_NeedLog`, `BASE_ReadItemListFile`, `BASE_SetItemDate`, `BASE_SetItemSanc`, `BASE_SpaceToUnderBar`, `BASE_UpdateItem`, `BASE_VisualAnctCode`, `BASE_VisualItemCode`, `BASE_WriteInitItem`, `BASE_WriteItemList`, `BASE_WriteMessageBin`, `BASE_WriteSkillBin`.
 - Opcodes que o servidor envia e o cliente não trata (22): `0x101`, `0x102`, `0x117`, `0x119`, `0x11A`, `0x11B`, `0x11C`, `0x11D`, `0x166`, `0x20D`, `0x20F`, `0x211`, `0x213`, `0x2CD`, `0x3A5`, `0x3AB`, `0x7A9`, `0xE0E`, `0xE12`, `0xE13`, `0xFDF`, `0x4501`.
 - Opcodes que o servidor lê e o cliente não envia (25): `0x28C`, `0x28F`, `0x290`, `0x2C3`, `0x2C4`, `0x2D2`, `0x2D3`, `0x2D4`, `0x2E1`, `0x2E2`, `0x338`, `0x364`, `0x397`, `0x3A6`, `0x3B5`, `0x3BA`, `0x3C0`, `0x3CC`, `0xD1D`, `0xD1F`, `0xE0E`, `0xE12`, `0xE13`, `0xFDF`, `0x4501`.
 
