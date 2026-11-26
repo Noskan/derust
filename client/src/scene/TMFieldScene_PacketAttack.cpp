@@ -141,41 +141,7 @@ bool TMFieldScene::PacketAttack_Attacker(MSG_Attack*& pAttack, TMHuman*& pAttack
 {
 if (pAttacker)
 {
-	if (pAttack->DoubleCritical & 8)
-	{
-		unsigned int dwStartTime = g_pTimerManager->GetServerTime();
-		if (pAttacker->m_pSkinMesh->m_pSwingEffect[0])
-		{
-			if (pAttacker->m_nSkinMeshType == 3 || pAttacker->m_nSkinMeshType == 8 || pAttacker->m_nClass == 40)
-				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 5;
-			else if(pAttacker->m_nWeaponTypeL == 101)
-				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 2;
-			else if (pAttacker->m_nWeaponTypeL == 41)
-				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 3;
-			else if (pAttacker->m_nWeaponTypeL == 103)
-				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 4;
-			else
-				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 1;
-
-			pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwStartTime;
-		}
-
-		if (pAttacker->m_pSkinMesh->m_pSwingEffect[1])
-		{
-			if (pAttacker->m_nSkinMeshType == 3 || pAttacker->m_nSkinMeshType == 8 || pAttacker->m_nClass == 40)
-				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 5;
-			else if (pAttacker->m_nWeaponTypeL == 101)
-				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 2;
-			else if (pAttacker->m_nWeaponTypeL == 41)
-				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 3;
-			else if (pAttacker->m_nWeaponTypeL == 103)
-				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 4;
-			else
-				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 1;
-
-			pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwStartTime;
-		}
-	}
+	PacketAttack_SwingEffect(pAttack, pAttacker);
 	if (pAttacker->m_nClass == 32 && pAttack->Motion == 4 && pTarget == m_pMyHuman)
 		pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime();
 
@@ -1367,6 +1333,47 @@ else
 	}
 }
 	return false;
+}
+
+/// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_SwingEffect(MSG_Attack*& pAttack, TMHuman*& pAttacker)
+{
+	if (pAttack->DoubleCritical & 8)
+	{
+		unsigned int dwStartTime = g_pTimerManager->GetServerTime();
+		if (pAttacker->m_pSkinMesh->m_pSwingEffect[0])
+		{
+			if (pAttacker->m_nSkinMeshType == 3 || pAttacker->m_nSkinMeshType == 8 || pAttacker->m_nClass == 40)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 5;
+			else if(pAttacker->m_nWeaponTypeL == 101)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 2;
+			else if (pAttacker->m_nWeaponTypeL == 41)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 3;
+			else if (pAttacker->m_nWeaponTypeL == 103)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 4;
+			else
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 1;
+
+			pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwStartTime;
+		}
+
+		if (pAttacker->m_pSkinMesh->m_pSwingEffect[1])
+		{
+			if (pAttacker->m_nSkinMeshType == 3 || pAttacker->m_nSkinMeshType == 8 || pAttacker->m_nClass == 40)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 5;
+			else if (pAttacker->m_nWeaponTypeL == 101)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 2;
+			else if (pAttacker->m_nWeaponTypeL == 41)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 3;
+			else if (pAttacker->m_nWeaponTypeL == 103)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 4;
+			else
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 1;
+
+			pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwStartTime;
+		}
+	}
 }
 
 /// Aplica o ataque a cada alvo de `pAttack->Dam` quando a skill não é de área (`TargetType` != 3..6).
