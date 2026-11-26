@@ -155,7 +155,9 @@ STRUCT_MOB RandomMob(Lcg& r)
 	for (int i = 0; i < MAX_CARRY; ++i)
 		m.Carry[i] = r.Range(0, 2) ? RandomItem(r) : STRUCT_ITEM{};
 	m.LearnedSkill = (long)(r.Next() | (r.Next() << 24));
-	m.Magic = r.Next() | (r.Next() << 24);
+	// Domínio do jogo: BASE_GetCurrentScore limita Magic a MAX_DAMAGE_MG (254) e RegenHP/RegenMP
+	// a 0..255; o cliente guarda os três em 1 byte.
+	m.Magic = (r.Next() | (r.Next() << 24)) % (MAX_DAMAGE_MG + 1);   // mesmo consumo do gerador de antes
 	m.ScoreBonus = (unsigned short)r.Range(0, 3000);
 	m.SpecialBonus = (unsigned short)r.Range(0, 300);
 	m.SkillBonus = (unsigned short)r.Range(0, 300);
@@ -164,11 +166,42 @@ STRUCT_MOB RandomMob(Lcg& r)
 	for (int i = 0; i < 4; ++i)
 		m.SkillBar[i] = (unsigned char)r.Range(0, 255);
 	m.GuildLevel = (unsigned char)r.Range(0, 9);
-	m.RegenHP = (unsigned short)r.Range(0, 1000);
-	m.RegenMP = (unsigned short)r.Range(0, 1000);
+	m.RegenHP = (unsigned short)r.Range(0, 255);
+	m.RegenMP = (unsigned short)r.Range(0, 255);
 	for (int i = 0; i < 4; ++i)
 		m.Resist[i] = (char)r.Range(0, 100);
 	return m;
+}
+
+/// @brief Hash campo a campo de STRUCT_SCORE e STRUCT_MOB: valores, não bytes, para que o
+/// resultado não dependa do layout (offsets, preenchimento, largura dos campos).
+void HashScore(Hash& h, const STRUCT_SCORE& s)
+{
+	h.Int(s.Level); h.Int(s.Ac); h.Int(s.Damage);
+	h.Int(s.Merchant); h.Int(s.AttackRun); h.Int(s.Direction); h.Int(s.ChaosRate);
+	h.Int(s.MaxHp); h.Int(s.MaxMp); h.Int(s.Hp); h.Int(s.Mp);
+	h.Int(s.Str); h.Int(s.Int); h.Int(s.Dex); h.Int(s.Con);
+	for (int i = 0; i < 4; ++i)
+		h.Int(s.Special[i]);
+}
+
+void HashMob(Hash& h, const STRUCT_MOB& m)
+{
+	h.Bytes(m.MobName, sizeof(m.MobName));
+	h.Int(m.Clan); h.Int(m.Merchant); h.Int(m.Guild); h.Int(m.Class); h.Int(m.Rsv); h.Int(m.Quest);
+	h.Int(m.Coin); h.Int(m.Exp); h.Int(m.SPX); h.Int(m.SPY);
+	HashScore(h, m.BaseScore);
+	HashScore(h, m.CurrentScore);
+	h.Bytes(m.Equip, sizeof(m.Equip));
+	h.Bytes(m.Carry, sizeof(m.Carry));
+	h.Int(m.LearnedSkill); h.Int(m.Magic);
+	h.Int(m.ScoreBonus); h.Int(m.SpecialBonus); h.Int(m.SkillBonus);
+	h.Int(m.Critical); h.Int(m.SaveMana);
+	for (int i = 0; i < 4; ++i)
+		h.Int(m.SkillBar[i]);
+	h.Int(m.GuildLevel); h.Int(m.RegenHP); h.Int(m.RegenMP);
+	for (int i = 0; i < 4; ++i)
+		h.Int(m.Resist[i]);
 }
 
 STRUCT_MOBEXTRA RandomExtra(Lcg& r)
@@ -348,7 +381,7 @@ uint64_t CaseMobScores()
 			h.Int(BASE_GetMobAbility(&m, (unsigned char)t));
 			h.Int(BASE_GetMaxAbility(&m, (unsigned char)t));
 		}
-		h.Bytes(&m, sizeof(m));
+		HashMob(h, m);
 	}
 	return h.h;
 }
@@ -372,7 +405,7 @@ uint64_t CaseCurrentScore()
 		}
 		int expBonus = 0, forceMob = 0, accuracy = 0, absHp = 0, forceDamage = 0;
 		BASE_GetCurrentScore(m, aff, &e, &expBonus, &forceMob, r.Range(0, 1), &accuracy, &absHp, &forceDamage);
-		h.Bytes(&m, sizeof(m));
+		HashMob(h, m);
 		h.Int(expBonus); h.Int(forceMob); h.Int(accuracy); h.Int(absHp); h.Int(forceDamage);
 	}
 	return h.h;
@@ -477,14 +510,18 @@ struct Expected
 /// (padrão do MSVC Win32; o mingw usa `-msse2 -mfpmath=sse`), com uma mudança intencional:
 /// - `CanEquipCarry` foi regravado na correção da largura da linha em BASE_CanCarry/CanCargo
 ///   (ver TestCarryCargoGrid em w2pp_common_tests.cpp e docs/BUGS_LATENTES.md).
+/// - `MobScores`, `CurrentScore` e `CombatFormulas` foram regravados quando as entradas de Magic e
+///   RegenHP/RegenMP passaram ao domínio do jogo e STRUCT_MOB passou a ser hasheada campo a campo
+///   (preparação para o layout do cliente). Gerados com o código de então, que conferia com os
+///   valores da `pre-modularization` para as entradas antigas; só o teste mudou.
 const Expected kExpected[] = {
 	{ "ItemAbility", 0x4be087df618daaaaull },
 	{ "ItemSancAndAmount", 0xfcec5af4597c1fbeull },
 	{ "VisualCodes", 0x6fcaf7a9a9970a97ull },
 	{ "CanEquipCarry", 0x1c5586b9a0b19b5aull },
-	{ "MobScores", 0xd7d142ebb152a56eull },
-	{ "CurrentScore", 0x6d5c84b4dd23e63dull },
-	{ "CombatFormulas", 0xc76e7e2a252190c8ull },
+	{ "MobScores", 0x8ad5ddf56925da79ull },
+	{ "CurrentScore", 0x36ca43e8359dd755ull },
+	{ "CombatFormulas", 0xc7456554f8eaef60ull },
 	{ "World", 0xa676176912029d1dull },
 	{ "Strings", 0x3965cf4e379fe8e6ull },
 };
