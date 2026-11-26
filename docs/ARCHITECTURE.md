@@ -233,7 +233,24 @@ Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que p
    - o `gameconfig.txt` padrão que o TMSrv grava ([`tests/data/server_boot/`](../tests/data/server_boot/)).
 
    Sobe o DBSrv e o TMSrv num prefixo do wine e num Xvfb próprios (job `mingw-check`) e, nativos, os binários MSVC Debug e Release (job `build-windows`, branch `test/server-boot-windows`). No Windows, as MessageBox (e as asserções do CRT de Debug) são lidas das janelas de diálogo do processo, e `SEM_NOGPFAULTERRORBOX` faz uma exceção encerrar o processo em vez de abrir o WER; os servidores saem por `WM_QUIT`, porque o `Log()` não faz `fflush` e matar o processo perderia o log. Antes de cada partida, um autoteste sobe o DBSrv sem o `SkillData.csv` e exige que a caixa seja vista. Falha em qualquer MessageBox (capturada pelo canal `relay`), exceção não tratada (o wine abre o depurador e o processo fica pendurado, então "vivo" não basta), porta que não abre, queda da conexão TMSrv–DBSrv ou falta de `sys,start server` no log. Na primeira execução, achou um crash do DBSrv no accept da porta admin (ver [`BUGS_LATENTES.md`](BUGS_LATENTES.md)).
-8. **Próximo passo**: as etapas grandes (`PacketAttack_Attacker`, `PacketAttack_ApplyTargets`, `SkillUse_CastSelfOrArea`, `AutoSkillUse_CastSelfOrArea`) e `TMHuman::InitObject`/`FrameMove` podem ser decompostas com as mesmas técnicas. Ampliar a caracterização para o cliente e linkar o TMSrv no mingw (base para um teste de fumaça no wine) aumentaria a cobertura antes disso.
+8. **Quarta leva, decomposição recursiva (branch `refactor/phase3-giant-functions-2`)**: 59 métodos novos, um commit por extração.
+
+   | Função | Antes | Depois |
+   |---|---|---|
+   | `PacketAttack_Attacker` | 1.231 | 575 |
+   | `PacketAttack_ApplyTargets` | 985 | 281 |
+   | `SkillUse_CastSelfOrArea` | 953 | 405 |
+   | `AutoSkillUse_CastSelfOrArea` | 642 | 295 |
+   | `TMHuman::InitObject` | 1.027 | 260 |
+   | `TMHuman::FrameMove` | 945 | 291 |
+
+   As quatro etapas da cena eram um único `if` envolvendo o corpo inteiro, então a extração desce pelos blocos aninhados. Um bloco filho de 25 a 250 linhas vira método; um bloco maior fica no lugar e os filhos dele são extraídos. O plano é calculado uma vez sobre o código original, para que nenhum candidato contenha outro. As regras novas em relação às levas anteriores:
+   - passam por referência as locais de todos os blocos que envolvem o candidato, não só as de nível 1, e as variáveis de cabeçalho de `for`. Locais `auto` só cruzam a fronteira quando o tipo é inferível (`new T`, `(T*)`, `static_cast<T*>`, `GetHumanByID`);
+   - `break`/`continue` têm de mirar um laço ou `switch` interno ao candidato;
+   - dentro de uma etapa `bool ...(..., int& nReturnValue)`, um sub-bloco com retorno mantém o mesmo protocolo (a chamada vira `if (Sub(...)) return true;`), sem reescrever nenhum `return`.
+
+   Verificação: ida e volta em cada passo; a TU compila no mingw em cada commit; os cabeçalhos só ganharam declarações; toda linha removida reaparece entre as adicionadas; avisos idênticos (78). Contra a troca silenciosa de uma local por um membro ou global de mesmo nome: toda local que sombreia algo gera `-Wshadow`, e as 8 dessas funções são reconhecidas pelo analisador; qualquer outra local não reconhecida só causaria erro de compilação.
+9. **Próximo passo**: o que sobra nas seis funções são sequências de statements curtos e os blocos acima de 250 linhas que ficaram no lugar (o maior, em `PacketAttack_Attacker`, é a cadeia `if`/`else if` por skill). Decompô-los exige outra técnica, por exemplo transformar a cadeia por skill numa tabela de handlers.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.
