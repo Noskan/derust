@@ -450,39 +450,7 @@ int TMHuman::InitObject()
         m_stLookInfo.RightMesh = 0;
     }
     InitObject_SkinMesh26Look();
-    if (m_nClass == 39 || m_nClass == 40 || m_nClass == 63)
-    {
-        m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
-        m_stLookInfo.CoatMesh = m_stLookInfo.HelmMesh;
-        m_stLookInfo.PantsMesh = m_stLookInfo.CoatMesh;
-        m_stLookInfo.GlovesMesh = m_stLookInfo.PantsMesh;
-        m_stLookInfo.BootsMesh = m_stLookInfo.GlovesMesh;
-        m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
-        m_stLookInfo.CoatSkin = m_stLookInfo.HelmSkin;
-        m_stLookInfo.PantsSkin = m_stLookInfo.CoatSkin;
-        m_stLookInfo.GlovesSkin = m_stLookInfo.PantsSkin;
-        m_stLookInfo.BootsSkin = m_stLookInfo.GlovesSkin;
-        m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
-        m_stSancInfo.Sanc2 = m_stSancInfo.Sanc1;
-        m_stSancInfo.Sanc3 = m_stSancInfo.Sanc2;
-        m_stSancInfo.Sanc4 = m_stSancInfo.Sanc3;
-        m_stSancInfo.Sanc5 = m_stSancInfo.Sanc4;
-        m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
-        m_stSancInfo.Legend2 = m_stSancInfo.Legend1;
-        m_stSancInfo.Legend3 = m_stSancInfo.Legend2;
-        m_stSancInfo.Legend4 = m_stSancInfo.Legend3;
-        m_stSancInfo.Legend5 = m_stSancInfo.Legend4;
-        m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
-        m_stColorInfo.Sanc2 = m_stColorInfo.Sanc1;
-        m_stColorInfo.Sanc3 = m_stColorInfo.Sanc2;
-        m_stColorInfo.Sanc4 = m_stColorInfo.Sanc3;
-        m_stColorInfo.Sanc5 = m_stColorInfo.Sanc4;
-    }
-    else if (m_nClass == 62 && m_stLookInfo.FaceMesh == 2)
-    {
-        m_stSancInfo.Sanc0 = 4;
-        m_stSancInfo.Sanc1 = 4;
-    }
+    InitObject_Class39Look();
 
     int bExpand = 0;
     if (m_nClass == 4
@@ -1455,6 +1423,45 @@ void TMHuman::InitObject_SkinMesh26Look()
         m_stColorInfo.Sanc2 = m_stColorInfo.Sanc1;
         m_stColorInfo.Sanc3 = m_stColorInfo.Sanc2;
         m_stColorInfo.Sanc4 = m_stColorInfo.Sanc3;
+    }
+}
+
+/// Classes 39, 40 e 63: todas as partes seguem o rosto.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_Class39Look()
+{
+    if (m_nClass == 39 || m_nClass == 40 || m_nClass == 63)
+    {
+        m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
+        m_stLookInfo.CoatMesh = m_stLookInfo.HelmMesh;
+        m_stLookInfo.PantsMesh = m_stLookInfo.CoatMesh;
+        m_stLookInfo.GlovesMesh = m_stLookInfo.PantsMesh;
+        m_stLookInfo.BootsMesh = m_stLookInfo.GlovesMesh;
+        m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
+        m_stLookInfo.CoatSkin = m_stLookInfo.HelmSkin;
+        m_stLookInfo.PantsSkin = m_stLookInfo.CoatSkin;
+        m_stLookInfo.GlovesSkin = m_stLookInfo.PantsSkin;
+        m_stLookInfo.BootsSkin = m_stLookInfo.GlovesSkin;
+        m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
+        m_stSancInfo.Sanc2 = m_stSancInfo.Sanc1;
+        m_stSancInfo.Sanc3 = m_stSancInfo.Sanc2;
+        m_stSancInfo.Sanc4 = m_stSancInfo.Sanc3;
+        m_stSancInfo.Sanc5 = m_stSancInfo.Sanc4;
+        m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
+        m_stSancInfo.Legend2 = m_stSancInfo.Legend1;
+        m_stSancInfo.Legend3 = m_stSancInfo.Legend2;
+        m_stSancInfo.Legend4 = m_stSancInfo.Legend3;
+        m_stSancInfo.Legend5 = m_stSancInfo.Legend4;
+        m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
+        m_stColorInfo.Sanc2 = m_stColorInfo.Sanc1;
+        m_stColorInfo.Sanc3 = m_stColorInfo.Sanc2;
+        m_stColorInfo.Sanc4 = m_stColorInfo.Sanc3;
+        m_stColorInfo.Sanc5 = m_stColorInfo.Sanc4;
+    }
+    else if (m_nClass == 62 && m_stLookInfo.FaceMesh == 2)
+    {
+        m_stSancInfo.Sanc0 = 4;
+        m_stSancInfo.Sanc1 = 4;
     }
 }
 
