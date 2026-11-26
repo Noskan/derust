@@ -2832,3 +2832,22 @@ int TMFieldScene::OnControl_PlayerMenu816(unsigned int idwControlID, unsigned in
 	m_pMessageBox->SetVisible(1);
 	return 1;
 }
+
+/// Menu de contexto do jogador alvo, controle 817 (mensagem 158).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_PlayerMenu817(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pMessageBox->IsVisible())
+	{
+		m_pPGTPanel->SetVisible(0);
+		return 0;
+	}
+	if (m_pPGTOver)
+	{
+		m_pMessageBox->SetMessage(g_pMessageStringTable[158], 817u, 0);
+		m_pMessageBox->m_dwArg = m_pPGTOver->m_usGuild;
+		m_pMessageBox->SetVisible(1);
+		m_pPGTOver = 0;
+	}
+	return 1;
+}
