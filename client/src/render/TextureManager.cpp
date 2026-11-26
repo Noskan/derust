@@ -2,6 +2,7 @@
 #include "render/TextureManager.h"
 #include "core/TMGlobal.h"
 #include "core/TMLog.h"
+#include <stdexcept>
 
 int TextureManager::DYNAMIC_TEXTURE_WIDTH = 256;
 int TextureManager::DYNAMIC_TEXTURE_HEIGHT = 256;
@@ -9,7 +10,7 @@ int TextureManager::DYNAMIC_TEXTURE_HEIGHT = 256;
 TextureManager::TextureManager()
 {
 	if (g_pTextureManager != nullptr)
-		throw std::exception("TextureManager already initialized");
+		throw std::runtime_error("TextureManager already initialized");
 
 	m_LastLoadTime = 0;
 	sprintf(m_szTGAHeader, "TRUEVISION-XFILE");

@@ -186,9 +186,9 @@ int TMSelectServerScene::InitializeScene()
 	g_pObjectManager->m_cCharacterSlot = -1;
 	g_pObjectManager->m_cSelectShortSkill = 0;
 
-	memset(&g_pObjectManager->m_stSelCharData, 0, sizeof STRUCT_SELCHAR);
-	memset(g_pObjectManager->m_stItemCargo, 0, sizeof STRUCT_ITEM * MAX_CARGO);
-	memset(&g_pObjectManager->m_stMobData, 0, sizeof STRUCT_MOB);
+	memset(&g_pObjectManager->m_stSelCharData, 0, sizeof(STRUCT_SELCHAR));
+	memset(g_pObjectManager->m_stItemCargo, 0, sizeof(STRUCT_ITEM) * MAX_CARGO);
+	memset(&g_pObjectManager->m_stMobData, 0, sizeof(STRUCT_MOB));
 
 	for (int i = 0; i < 4; ++i)
 		g_pObjectManager->m_stMobData.ShortSkill[i] = -1;
@@ -757,7 +757,7 @@ int TMSelectServerScene::OnControlEvent(unsigned int idwControlID, unsigned int 
 			for (int i = 0; i < nLen1; ++i)
 				g_pObjectManager->m_szAccountPass[i] += i;
 
-			g_pSocketManager->SendOneMessage(reinterpret_cast<char*>(&stAccountLogin), sizeof MSG_AccountLogin);
+			g_pSocketManager->SendOneMessage(reinterpret_cast<char*>(&stAccountLogin), sizeof(MSG_AccountLogin));
 			LastSendMsgTime = g_pTimerManager->GetServerTime();
 		}
 		break;
@@ -835,7 +835,7 @@ int TMSelectServerScene::OnPacketEvent(unsigned int dwCode, char* buf)
 		g_pTimerManager->SetServerTime(packet->Tick);
 
 		auto selChar = reinterpret_cast<MSG_CNFAccountLogin*>(buf);
-		memcpy(&g_pObjectManager->m_stSelCharData, &selChar->SelChar, sizeof STRUCT_SELCHAR);
+		memcpy(&g_pObjectManager->m_stSelCharData, &selChar->SelChar, sizeof(STRUCT_SELCHAR));
 		memcpy(g_pObjectManager->m_stItemCargo, selChar->Cargo, sizeof(STRUCT_ITEM) * MAX_CARGO);
 
 		g_pObjectManager->m_nCargoCoin = selChar->Coin;

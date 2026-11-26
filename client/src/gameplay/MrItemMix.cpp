@@ -600,7 +600,7 @@ void CItemMix::ClickInvItem(SGridControlItem* pItem, SGridControl** GridInvList,
                             if (!m_stCombineItem.Item[ki].sIndex)
                             {
                                 pItem->m_GCObj.dwColor = -65536;
-                                memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof STRUCT_ITEM);
+                                memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof(STRUCT_ITEM));
 
                                 m_stCombineItem.CarryPos[ki] = 15 * Sourpage + 5 * pItem->m_nCellIndexY + pItem->m_nCellIndexX;
                                 break;
@@ -656,7 +656,7 @@ void CItemMix::ClickInvItem(SGridControlItem* pItem, SGridControl** GridInvList,
                             if (!m_stCombineItem.Item[ki].sIndex)
                             {
                                 pItem->m_GCObj.dwColor = -65536;
-                                memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof STRUCT_ITEM);
+                                memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof(STRUCT_ITEM));
 
                                 m_stCombineItem.CarryPos[ki] = 15 * Sourpage + 5 * pItem->m_nCellIndexY + pItem->m_nCellIndexX;
                                 break;
@@ -727,7 +727,7 @@ void CItemMix::ClickInvItem(SGridControlItem* pItem, SGridControl** GridInvList,
                                     if (!m_stCombineItem.Item[ki].sIndex)
                                     {
                                         pItem->m_GCObj.dwColor = -65536;
-                                        memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof STRUCT_ITEM);
+                                        memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof(STRUCT_ITEM));
 
                                         m_stCombineItem.CarryPos[ki] = 15 * Sourpage + 5 * pItem->m_nCellIndexY + pItem->m_nCellIndexX;
                                         break;
@@ -783,7 +783,7 @@ void CItemMix::ClickInvItem(SGridControlItem* pItem, SGridControl** GridInvList,
                             if (!m_stCombineItem.Item[ki].sIndex)
                             {
                                 pItem->m_GCObj.dwColor = -65536;
-                                memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof STRUCT_ITEM);
+                                memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof(STRUCT_ITEM));
 
                                 m_stCombineItem.CarryPos[ki] = 15 * Sourpage + 5 * pItem->m_nCellIndexY + pItem->m_nCellIndexX;
                                 break;
@@ -838,7 +838,7 @@ void CItemMix::ClickInvItem(SGridControlItem* pItem, SGridControl** GridInvList,
                     if (!m_stCombineItem.Item[ki].sIndex)
                     {
                         pItem->m_GCObj.dwColor = -65536;
-                        memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof STRUCT_ITEM);
+                        memcpy((char*)&m_stCombineItem.Item[ki], pItem->m_pItem, sizeof(STRUCT_ITEM));
 
                         m_stCombineItem.CarryPos[ki] = 15 * Sourpage + 5 * pItem->m_nCellIndexY + pItem->m_nCellIndexX;
                         break;
