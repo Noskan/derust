@@ -608,61 +608,7 @@ int TMHuman::InitObject()
     InitObject_Class32EyeFire();
     InitObject_Class16EyeFire();
     InitObject_Class39EyeFire();
-    if (m_nClass == 38 && m_cMantua > 0 && !m_pEyeFire[1])
-    {
-        int nPosIndex[7]{};
-        nPosIndex[0] = 8;
-        nPosIndex[1] = 9;
-        nPosIndex[2] = 1;
-        nPosIndex[3] = 6;
-        nPosIndex[4] = 7;
-        nPosIndex[5] = 2;
-        nPosIndex[6] = 3;
-
-        float fSizeX[7]{};
-        fSizeX[0] = 0.2f;
-        fSizeX[1] = 0.2f;
-        fSizeX[2] = 0.8f;
-        fSizeX[3] = 0.6f;
-        fSizeX[4] = 0.6f;
-        fSizeX[5] = 0.8f;
-        fSizeX[6] = 0.8f;
-
-        float fSizeY[7]{};
-        fSizeY[0] = 0.3f;
-        fSizeY[1] = 0.3f;
-        fSizeY[2] = 1.0f;
-        fSizeY[3] = 0.8f;
-        fSizeY[4] = 0.8f;
-        fSizeY[5] = 1.0f;
-        fSizeY[6] = 1.0f;
-
-        unsigned int dwColor = 0xFF005588;
-        if (m_stLookInfo.LeftMesh == 930)
-            dwColor = 0xFF008855;
-
-        for (int i = 1; i < 7; ++i)
-        {
-            m_pEyeFire[i] = new TMEffectBillBoard(123,
-                0,
-                fSizeX[i] * m_fScale,
-                fSizeY[i] * m_fScale,
-                fSizeX[i] * m_fScale,
-                0.0f,
-                1,
-                80);
-
-            if (m_pEyeFire[i])
-            {
-                m_pEyeFire[i]->SetColor(dwColor);
-                m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                m_pEyeFire[i]->m_nFade = 2;
-                m_pEyeFire[i]->m_vecPosition = m_vecTempPos[nPosIndex[i]];
-                m_pEyeFire[i]->m_bFrameMove = 0;
-                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
-            }
-        }
-    }
+    InitObject_Class38EyeFire();
     if (m_nClass == 33 && m_stLookInfo.FaceMesh == 1 && RenderDevice::m_bDungeon == 2 && !m_pEyeFire[0])
     {
         unsigned int dwColor = 0xFF005588;
@@ -1507,6 +1453,67 @@ void TMHuman::InitObject_Class39EyeFire()
                 m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
                 m_pEyeFire[i]->m_nFade = 0;
                 m_pEyeFire[i]->m_vecPosition = m_vecTempPos[0];
+                m_pEyeFire[i]->m_bFrameMove = 0;
+                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
+            }
+        }
+    }
+}
+
+/// Classe 38 com capa: sete pontos de fogo nos ossos listados.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_Class38EyeFire()
+{
+    if (m_nClass == 38 && m_cMantua > 0 && !m_pEyeFire[1])
+    {
+        int nPosIndex[7]{};
+        nPosIndex[0] = 8;
+        nPosIndex[1] = 9;
+        nPosIndex[2] = 1;
+        nPosIndex[3] = 6;
+        nPosIndex[4] = 7;
+        nPosIndex[5] = 2;
+        nPosIndex[6] = 3;
+
+        float fSizeX[7]{};
+        fSizeX[0] = 0.2f;
+        fSizeX[1] = 0.2f;
+        fSizeX[2] = 0.8f;
+        fSizeX[3] = 0.6f;
+        fSizeX[4] = 0.6f;
+        fSizeX[5] = 0.8f;
+        fSizeX[6] = 0.8f;
+
+        float fSizeY[7]{};
+        fSizeY[0] = 0.3f;
+        fSizeY[1] = 0.3f;
+        fSizeY[2] = 1.0f;
+        fSizeY[3] = 0.8f;
+        fSizeY[4] = 0.8f;
+        fSizeY[5] = 1.0f;
+        fSizeY[6] = 1.0f;
+
+        unsigned int dwColor = 0xFF005588;
+        if (m_stLookInfo.LeftMesh == 930)
+            dwColor = 0xFF008855;
+
+        for (int i = 1; i < 7; ++i)
+        {
+            m_pEyeFire[i] = new TMEffectBillBoard(123,
+                0,
+                fSizeX[i] * m_fScale,
+                fSizeY[i] * m_fScale,
+                fSizeX[i] * m_fScale,
+                0.0f,
+                1,
+                80);
+
+            if (m_pEyeFire[i])
+            {
+                m_pEyeFire[i]->SetColor(dwColor);
+                m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                m_pEyeFire[i]->m_nFade = 2;
+                m_pEyeFire[i]->m_vecPosition = m_vecTempPos[nPosIndex[i]];
                 m_pEyeFire[i]->m_bFrameMove = 0;
                 g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
             }
