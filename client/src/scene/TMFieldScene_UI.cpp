@@ -200,33 +200,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == B_CHATLIST_LIGHT)
-	{
-		static short Color = 0;
-		switch (Color)
-		{
-		case 0:
-			m_pChatBack->m_GCPanel.dwColor = 0x66000000;
-			Color = 1;
-			break;
-		case 1:
-			m_pChatBack->m_GCPanel.dwColor = 0x88000000;
-			Color = 2;
-			break;
-		case 2:
-			m_pChatBack->m_GCPanel.dwColor = 0xAA000000;
-			Color = 3;
-			break;
-		case 3:
-			m_pChatBack->m_GCPanel.dwColor = 0xFF000000;
-			Color = 4;
-			break;
-		case 4:
-			m_pChatBack->m_GCPanel.dwColor = 0;
-			Color = 0;
-			break;
-		}
-		return 0;
-	}
+		return OnControl_ChatListLight(idwControlID, idwEvent);
 	if (idwControlID == B_CHAT_SELECT)
 	{
 		if (m_pChatListPanel->IsVisible())

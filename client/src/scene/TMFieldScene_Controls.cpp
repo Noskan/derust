@@ -2349,3 +2349,34 @@ int TMFieldScene::OnControl_CCModeMode(unsigned int idwControlID, unsigned int i
 
 	return 0;
 }
+
+/// Realce da lista de chat (`B_CHATLIST_LIGHT`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_ChatListLight(unsigned int idwControlID, unsigned int idwEvent)
+{
+	static short Color = 0;
+	switch (Color)
+	{
+	case 0:
+		m_pChatBack->m_GCPanel.dwColor = 0x66000000;
+		Color = 1;
+		break;
+	case 1:
+		m_pChatBack->m_GCPanel.dwColor = 0x88000000;
+		Color = 2;
+		break;
+	case 2:
+		m_pChatBack->m_GCPanel.dwColor = 0xAA000000;
+		Color = 3;
+		break;
+	case 3:
+		m_pChatBack->m_GCPanel.dwColor = 0xFF000000;
+		Color = 4;
+		break;
+	case 4:
+		m_pChatBack->m_GCPanel.dwColor = 0;
+		Color = 0;
+		break;
+	}
+	return 0;
+}
