@@ -1501,91 +1501,7 @@ int TMFieldScene::SkillUse(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwServe
 	}
 	stAttack.Dam[nTargetIndex].TargetID = pTarget->m_dwID;
 	stAttack.Dam[nTargetIndex++].Damage = -1;
-	if (cSkillIndex == 16 || cSkillIndex == 12 || cSkillIndex == 28)
-	{
-		nDX = (int)pTarget->m_vecPosition.x - (int)m_pMyHuman->m_vecPosition.x;
-		nDY = (int)pTarget->m_vecPosition.y - (int)m_pMyHuman->m_vecPosition.y;
-		if (nDX > 0)
-			nDX = 1;
-		else if (nDX < 0)
-			nDX = -1;
-		if (nDY > 0)
-			nDY = 1;
-		else if (nDY < 0)
-			nDY = -1;
-
-		int TX = nDX + (int)pTarget->m_vecPosition.x;
-		int TY = nDY + (int)pTarget->m_vecPosition.y;
-		TMHuman* pNode = (TMHuman*)m_pHumanContainer->m_pDown;
-
-		while (pNode->m_pNextLink)
-		{
-			if (pNode == m_pMyHuman	|| pNode == pTarget
-				|| (int)pNode->m_vecPosition.x != TX
-				|| (int)pNode->m_vecPosition.y != TY)
-			{
-				pNode = (TMHuman*)pNode->m_pNextLink;
-				continue;
-			}
-
-			if (pNode->m_dwID > 0 && pNode->m_dwID < 1000)
-			{
-				if (!pNode->IsInPKZone() || !TMFieldScene::m_bPK || pNode->m_bParty == 1)
-				{
-					pNode = (TMHuman*)pNode->m_pNextLink;
-					continue;
-				}
-				if (!TMFieldScene::m_bPK && g_pObjectManager->m_usWarGuild != pNode->m_usGuild && !g_bCastleWar)
-				{
-					pNode = (TMHuman*)pNode->m_pNextLink;
-					continue;
-				}
-				if (!TMFieldScene::m_bPK
-					&& m_pMyHuman->m_cMantua > 0
-					&& m_pMyHuman->m_cMantua == pNode->m_cMantua
-					&& g_bCastleWar > 0)
-				{
-					pNode = (TMHuman*)pNode->m_pNextLink;
-					continue;
-				}
-				if (!TMFieldScene::m_bPK
-					&& g_bCastleWar > 0
-					&& m_pMyHuman->m_cMantua == 3
-					&& (pNode->m_dwID > 0 && pNode->m_dwID < 1000 || (pNode->m_cMantua > 0 && pNode->m_cMantua != 4)))
-				{
-					pNode = (TMHuman*)pNode->m_pNextLink;
-					continue;
-				}
-				if (!TMFieldScene::m_bPK && g_bCastleWar > 0 && !pNode->IsInCastleZone())
-				{
-					pNode = (TMHuman*)pNode->m_pNextLink;
-					continue;
-				}
-			}
-			else if (!TMFieldScene::m_bPK
-				&& pNode->m_cSummons == 1
-				&& (g_pObjectManager->m_usWarGuild != pNode->m_usGuild && pNode->m_usGuild || !pNode->m_usGuild))
-			{
-				if (!pNode->IsInCastleZone() && g_bCastleWar > 0 || !g_bCastleWar)
-				{
-					pNode = (TMHuman*)pNode->m_pNextLink;
-					continue;
-				}
-			}
-			else if (pOver && !TMFieldScene::m_bPK && pNode->m_cSummons == 1 && pNode->m_usGuild)
-			{
-				if (!pNode->IsInCastleZone() && g_bCastleWar > 0 || !g_bCastleWar)
-				{
-					pNode = (TMHuman*)pNode->m_pNextLink;
-					continue;
-				}
-			}
-
-			stAttack.Dam[nTargetIndex].TargetID = pNode->m_dwID;
-			stAttack.Dam[nTargetIndex++].Damage = -1;
-			break;
-		}
-	}
+	SendAreaAttack(pTarget, pOver, cSkillIndex, nDX, nDY, stAttack, nTargetIndex);
 
 	stAttack.TargetX = (int)pOver->m_vecPosition.x;
 	stAttack.TargetY = (int)pOver->m_vecPosition.y;
@@ -1626,6 +1542,97 @@ int TMFieldScene::SkillUse(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwServe
 	m_pMyHuman->m_pMoveSkillTargetHuman = 0;
 
 	return 1;
+}
+
+/// Monta e envia o ataque em área das skills 12, 16 e 28 (alvos ao redor de `nDX`/`nDY`).
+/// @note Extraído de `TMFieldScene::SkillUse` (Fase 3); locais da função passadas por referência.
+void TMFieldScene::SendAreaAttack(TMHuman*& pTarget, TMHuman*& pOver, char& cSkillIndex, int& nDX, int& nDY, MSG_Attack& stAttack, int& nTargetIndex)
+{
+if (cSkillIndex == 16 || cSkillIndex == 12 || cSkillIndex == 28)
+{
+	nDX = (int)pTarget->m_vecPosition.x - (int)m_pMyHuman->m_vecPosition.x;
+	nDY = (int)pTarget->m_vecPosition.y - (int)m_pMyHuman->m_vecPosition.y;
+	if (nDX > 0)
+		nDX = 1;
+	else if (nDX < 0)
+		nDX = -1;
+	if (nDY > 0)
+		nDY = 1;
+	else if (nDY < 0)
+		nDY = -1;
+
+	int TX = nDX + (int)pTarget->m_vecPosition.x;
+	int TY = nDY + (int)pTarget->m_vecPosition.y;
+	TMHuman* pNode = (TMHuman*)m_pHumanContainer->m_pDown;
+
+	while (pNode->m_pNextLink)
+	{
+		if (pNode == m_pMyHuman	|| pNode == pTarget
+			|| (int)pNode->m_vecPosition.x != TX
+			|| (int)pNode->m_vecPosition.y != TY)
+		{
+			pNode = (TMHuman*)pNode->m_pNextLink;
+			continue;
+		}
+
+		if (pNode->m_dwID > 0 && pNode->m_dwID < 1000)
+		{
+			if (!pNode->IsInPKZone() || !TMFieldScene::m_bPK || pNode->m_bParty == 1)
+			{
+				pNode = (TMHuman*)pNode->m_pNextLink;
+				continue;
+			}
+			if (!TMFieldScene::m_bPK && g_pObjectManager->m_usWarGuild != pNode->m_usGuild && !g_bCastleWar)
+			{
+				pNode = (TMHuman*)pNode->m_pNextLink;
+				continue;
+			}
+			if (!TMFieldScene::m_bPK
+				&& m_pMyHuman->m_cMantua > 0
+				&& m_pMyHuman->m_cMantua == pNode->m_cMantua
+				&& g_bCastleWar > 0)
+			{
+				pNode = (TMHuman*)pNode->m_pNextLink;
+				continue;
+			}
+			if (!TMFieldScene::m_bPK
+				&& g_bCastleWar > 0
+				&& m_pMyHuman->m_cMantua == 3
+				&& (pNode->m_dwID > 0 && pNode->m_dwID < 1000 || (pNode->m_cMantua > 0 && pNode->m_cMantua != 4)))
+			{
+				pNode = (TMHuman*)pNode->m_pNextLink;
+				continue;
+			}
+			if (!TMFieldScene::m_bPK && g_bCastleWar > 0 && !pNode->IsInCastleZone())
+			{
+				pNode = (TMHuman*)pNode->m_pNextLink;
+				continue;
+			}
+		}
+		else if (!TMFieldScene::m_bPK
+			&& pNode->m_cSummons == 1
+			&& (g_pObjectManager->m_usWarGuild != pNode->m_usGuild && pNode->m_usGuild || !pNode->m_usGuild))
+		{
+			if (!pNode->IsInCastleZone() && g_bCastleWar > 0 || !g_bCastleWar)
+			{
+				pNode = (TMHuman*)pNode->m_pNextLink;
+				continue;
+			}
+		}
+		else if (pOver && !TMFieldScene::m_bPK && pNode->m_cSummons == 1 && pNode->m_usGuild)
+		{
+			if (!pNode->IsInCastleZone() && g_bCastleWar > 0 || !g_bCastleWar)
+			{
+				pNode = (TMHuman*)pNode->m_pNextLink;
+				continue;
+			}
+		}
+
+		stAttack.Dam[nTargetIndex].TargetID = pNode->m_dwID;
+		stAttack.Dam[nTargetIndex++].Damage = -1;
+		break;
+	}
+}
 }
 
 /// Inicia ataque basico contra o alvo selecionado ou move ate alcance valido.

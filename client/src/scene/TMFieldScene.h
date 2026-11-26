@@ -346,6 +346,11 @@ private:
 	int OnControl_TradeCheck(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
+	/// @name Etapas extraídas de SkillUse (Fase 3)
+	/// @{
+	void SendAreaAttack(TMHuman*& pTarget, TMHuman*& pOver, char& cSkillIndex, int& nDX, int& nDY, MSG_Attack& stAttack, int& nTargetIndex);
+	/// @}
+
 	/// @name Etapas extraídas de FrameMove (Fase 3)
 	/// @{
 	void FrameMove_CPanel(unsigned int& dwServerTime, SPanel*& pCPanel);
