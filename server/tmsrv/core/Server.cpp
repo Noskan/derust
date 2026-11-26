@@ -1233,8 +1233,8 @@ void DoRemoveHide(int conn)
 			continue;
 
 		pMob[conn].Affect[i].Type = 0;
-		pMob[conn].Affect[i].Value = 0;
 		pMob[conn].Affect[i].Level = 0;
+		pMob[conn].Affect[i].Value = 0;
 		pMob[conn].Affect[i].Time = 0;
 
 		pMob[conn].GetCurrentScore(conn);
@@ -1255,8 +1255,8 @@ void DoRemoveSamaritano(int conn)
 			continue;
 
 		pMob[conn].Affect[i].Type = 0;
-		pMob[conn].Affect[i].Value = 0;
 		pMob[conn].Affect[i].Level = 0;
+		pMob[conn].Affect[i].Value = 0;
 		pMob[conn].Affect[i].Time = 0;
 
 		pMob[conn].GetCurrentScore(conn);

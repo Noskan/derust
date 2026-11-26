@@ -280,8 +280,8 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 		if (sItem == 0)
 		{
 			pMob[MobEmpty].Affect[0].Type = 24;
-			pMob[MobEmpty].Affect[0].Value = 0;
 			pMob[MobEmpty].Affect[0].Level = 0;
+			pMob[MobEmpty].Affect[0].Value = 0;
 			pMob[MobEmpty].Affect[0].Time = 20;
 
 			if (SummonID >= 28 && SummonID <= 37)

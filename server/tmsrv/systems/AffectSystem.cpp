@@ -342,8 +342,8 @@ LABEL_59:
 
 		int MaxHp = pMob[idx].MOB.CurrentScore.MaxHp;
 		int Hp = pMob[idx].MOB.CurrentScore.Hp;
-		int AffectValue = pMob[idx].Affect[i].Value;
-		int AffectLevel = pMob[idx].Affect[i].Level;
+		int AffectValue = pMob[idx].Affect[i].Level;
+		int AffectLevel = pMob[idx].Affect[i].Value;
 		int Level = pMob[idx].MOB.CurrentScore.Level;
 
 		if(pMob[idx].extra.ClassMaster != MORTAL && pMob[idx].extra.ClassMaster != ARCH)
@@ -1075,8 +1075,8 @@ LABEL_59:
 
 			pMob[idx].Affect[i].Type = 0;
 			pMob[idx].Affect[i].Time = 0;
-			pMob[idx].Affect[i].Value = 0;
 			pMob[idx].Affect[i].Level = 0;
+			pMob[idx].Affect[i].Value = 0;
 			upScore = 1;
 		}
 
@@ -1138,7 +1138,7 @@ BOOL SetAffect(int conn, int skillnum, int time, int Level)
 	int sType = pMob[conn].Affect[EmptyAffect].Type;
 
 	pMob[conn].Affect[EmptyAffect].Type = sAffectType;
-	pMob[conn].Affect[EmptyAffect].Value = g_pSpell[skillnum].AffectValue;
+	pMob[conn].Affect[EmptyAffect].Level = g_pSpell[skillnum].AffectValue;
 
 	int sTime = (g_pSpell[skillnum].AffectTime + 1) * time / 100;
 
@@ -1151,11 +1151,11 @@ BOOL SetAffect(int conn, int skillnum, int time, int Level)
 	else
 		pMob[conn].Affect[EmptyAffect].Time = sTime;
 
-	if (sType == sAffectType && Level > pMob[conn].Affect[EmptyAffect].Level)
-		pMob[conn].Affect[EmptyAffect].Level = Level;
+	if (sType == sAffectType && Level > pMob[conn].Affect[EmptyAffect].Value)
+		pMob[conn].Affect[EmptyAffect].Value = Level;
 
 	else
-		pMob[conn].Affect[EmptyAffect].Level = Level;
+		pMob[conn].Affect[EmptyAffect].Value = Level;
 
 	if (time >= 2139062143)
 		pMob[conn].Affect[EmptyAffect].Time = 2139062143;
@@ -1183,7 +1183,7 @@ BOOL SetTick(int mob, int skillnum, int Delay, int Level)
 	if (sTickType > 0 && EmptyAffect >= 0 && EmptyAffect < MAX_AFFECT)
 	{
 		pMob[mob].Affect[EmptyAffect].Type = sTickType;
-		pMob[mob].Affect[EmptyAffect].Value = g_pSpell[skillnum].TickValue;
+		pMob[mob].Affect[EmptyAffect].Level = g_pSpell[skillnum].TickValue;
 		pMob[mob].Affect[EmptyAffect].Time = (Delay * (g_pSpell[skillnum].AffectTime + 1)) / 100;
 
 		if (Delay >= 500000000)
@@ -1192,7 +1192,7 @@ BOOL SetTick(int mob, int skillnum, int Delay, int Level)
 		if(pMob[mob].Affect[EmptyAffect].Time >= 3 && (sTickType == 1 || sTickType == 3 || sTickType == 10))
 			pMob[mob].Affect[EmptyAffect].Time = 2;
 
-		pMob[mob].Affect[EmptyAffect].Level = Level;
+		pMob[mob].Affect[EmptyAffect].Value = Level;
 
 		pMob[mob].GetCurrentScore(mob);
 

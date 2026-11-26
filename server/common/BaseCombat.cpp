@@ -969,8 +969,8 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 		if(Type == 0)
 			continue;
 
-		int Value = Affect[i].Value;
-		int Level = Affect[i].Level;
+		int Value = Affect[i].Level;
+		int Level = Affect[i].Value;
 
 		if(Type == 1) // Lentidão (?)
 		{
@@ -1494,8 +1494,8 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 		if(Type == 0)
 			continue;
 
-		int Value = Affect[i].Value;
-		int Level = Affect[i].Level;
+		int Value = Affect[i].Level;
+		int Level = Affect[i].Value;
 
 		if(Type == 8)
 		{

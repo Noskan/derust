@@ -1395,7 +1395,7 @@ lbl_a_noparty:
 	{
 		int sAffect = GetEmptyAffect(conn, 30);
 
-		if (sAffect == -1 || pMob[conn].Affect[sAffect].Type == 30 && pMob[conn].Affect[sAffect].Value != 500)
+		if (sAffect == -1 || pMob[conn].Affect[sAffect].Type == 30 && pMob[conn].Affect[sAffect].Level != 500)
 		{
 			SendClientMessage(conn, g_pMessageStringTable[_NN_CantEatMore]);
 			SendItem(conn, m->SourType, m->SourPos, item);
@@ -1403,8 +1403,8 @@ lbl_a_noparty:
 		}
 
 		pMob[conn].Affect[sAffect].Type = 30;
-		pMob[conn].Affect[sAffect].Value = 1;
-		pMob[conn].Affect[sAffect].Level = 500;
+		pMob[conn].Affect[sAffect].Level = 1;
+		pMob[conn].Affect[sAffect].Value = 500;
 		pMob[conn].Affect[sAffect].Time = 100;
 
 		if (pMob[conn].Affect[sAffect].Time >= 324000)
@@ -1429,7 +1429,7 @@ lbl_a_noparty:
 	{
 		int sAffect = GetEmptyAffect(conn, 30);
 
-		if (sAffect == -1 || pMob[conn].Affect[sAffect].Type == 30 && pMob[conn].Affect[sAffect].Value != 2000)
+		if (sAffect == -1 || pMob[conn].Affect[sAffect].Type == 30 && pMob[conn].Affect[sAffect].Level != 2000)
 		{
 			SendClientMessage(conn, g_pMessageStringTable[_NN_CantEatMore]);
 			SendItem(conn, m->SourType, m->SourPos, item);
@@ -1437,8 +1437,8 @@ lbl_a_noparty:
 		}
 
 		pMob[conn].Affect[sAffect].Type = 30;
-		pMob[conn].Affect[sAffect].Value = 1;
-		pMob[conn].Affect[sAffect].Level = 2000;
+		pMob[conn].Affect[sAffect].Level = 1;
+		pMob[conn].Affect[sAffect].Value = 2000;
 		pMob[conn].Affect[sAffect].Time = item->sIndex != 3378 ? AFFECT_1H : AFFECT_1D*30;
 
 		if (pMob[conn].Affect[sAffect].Time >= 324000)

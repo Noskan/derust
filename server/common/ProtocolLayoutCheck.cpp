@@ -50,6 +50,13 @@ W2_FIELD(STRUCT_MOB, Reserved, 808, 212);         // (dummy)
 W2_FIELD(STRUCT_MOB, CurrentKill, 1020, 2);
 W2_FIELD(STRUCT_MOB, TotalKill, 1022, 2);
 
+// Affect como o cliente o lê em _MSG_SendAffect e no login: Level no byte 1, Value (2 bytes) no 2.
+static_assert(sizeof(STRUCT_AFFECT) == 8, "STRUCT_AFFECT deve ter 8 bytes (cliente).");
+W2_FIELD(STRUCT_AFFECT, Type, 0, 1);
+W2_FIELD(STRUCT_AFFECT, Level, 1, 1);
+W2_FIELD(STRUCT_AFFECT, Value, 2, 2);
+W2_FIELD(STRUCT_AFFECT, Time, 4, 4);
+
 // Pacotes do login, na ordem do fluxo: conta, senha numérica, criação/exclusão e entrada.
 static_assert(sizeof(MSG_AccountLogin) == 120, "MSG_AccountLogin deve ter 120 bytes (cliente).");
 W2_FIELD(MSG_AccountLogin, AccountPassword, 12, 16);         // (AccountPass)

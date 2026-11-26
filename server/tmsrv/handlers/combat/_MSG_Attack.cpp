@@ -1121,8 +1121,8 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 					if (Type == 19)
 					{
 						pMob[idx].Affect[k].Type = 0;
-						pMob[idx].Affect[k].Value = 0;
 						pMob[idx].Affect[k].Level = 0;
+						pMob[idx].Affect[k].Value = 0;
 						pMob[idx].Affect[k].Time = 0;
 
 						pMob[idx].GetCurrentScore(idx);

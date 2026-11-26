@@ -583,12 +583,12 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 		if(pMob[conn].Affect[sAffect].Type != 8)
 		{
 			pMob[conn].Affect[sAffect].Type = 8;
-			pMob[conn].Affect[sAffect].Level = 1 << joia;
-			pMob[conn].Affect[sAffect].Value = 0;
+			pMob[conn].Affect[sAffect].Value = 1 << joia;
+			pMob[conn].Affect[sAffect].Level = 0;
 		}
 
-		else if((pMob[conn].Affect[sAffect].Level & (1 << joia)) == 0)
-			pMob[conn].Affect[sAffect].Level |= 1 << joia;
+		else if((pMob[conn].Affect[sAffect].Value & (1 << joia)) == 0)
+			pMob[conn].Affect[sAffect].Value |= 1 << joia;
 
 		pMob[conn].Affect[sAffect].Time = AFFECT_1H;
 		pMob[conn].GetCurrentScore(conn);

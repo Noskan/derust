@@ -1605,7 +1605,7 @@ void ProcessImple(int conn, int level, char * str)
 		{
 			pMob[conn].Affect[0].Type = ival1;
 			pMob[conn].Affect[0].Time = 162000;
-			pMob[conn].Affect[0].Value = 0;
+			pMob[conn].Affect[0].Level = 0;
 
 			SendScore(conn);
 			SendClientMessage(conn, "BUFF");
@@ -1617,9 +1617,9 @@ void ProcessImple(int conn, int level, char * str)
 			{
 
 				pMob[conn].Affect[i].Type = 0;
-				pMob[conn].Affect[i].Level = 0;
-				pMob[conn].Affect[i].Time = 0;
 				pMob[conn].Affect[i].Value = 0;
+				pMob[conn].Affect[i].Time = 0;
+				pMob[conn].Affect[i].Level = 0;
 			}
 			SendScore(conn);
 			SendClientMessage(conn, "NOBUFF");

@@ -834,8 +834,8 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 
 
 		pMob[conn].Affect[sAffect].Type = 34;
-		pMob[conn].Affect[sAffect].Level = 1;
-		pMob[conn].Affect[sAffect].Value = 0;
+		pMob[conn].Affect[sAffect].Value = 1;
+		pMob[conn].Affect[sAffect].Level = 0;
 		pMob[conn].Affect[sAffect].Time = 2000000000;
 
 		BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
@@ -868,8 +868,8 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		}
 
 		pMob[conn].Affect[sAffect].Type = 35;
-		pMob[conn].Affect[sAffect].Level = 1;
-		pMob[conn].Affect[sAffect].Value = 0;
+		pMob[conn].Affect[sAffect].Value = 1;
+		pMob[conn].Affect[sAffect].Level = 0;
 		pMob[conn].Affect[sAffect].Time = AFFECT_1H;
 
 		BASE_GetHpMp(&pMob[conn].MOB, &pMob[conn].extra);
@@ -902,8 +902,8 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		}
 
 		pMob[conn].Affect[sAffect].Type = 39;
-		pMob[conn].Affect[sAffect].Level = 0;
 		pMob[conn].Affect[sAffect].Value = 0;
+		pMob[conn].Affect[sAffect].Level = 0;
 		pMob[conn].Affect[sAffect].Time += AFFECT_1H * 2;
 
 		if (pMob[conn].Affect[sAffect].Time >= 324000)
@@ -929,7 +929,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 	{
 		int sAffect = GetEmptyAffect(conn, 30);
 
-		if (sAffect == -1 || (pMob[conn].Affect[sAffect].Value != 2000 && pMob[conn].Affect[sAffect].Time == 30))
+		if (sAffect == -1 || (pMob[conn].Affect[sAffect].Level != 2000 && pMob[conn].Affect[sAffect].Time == 30))
 		{
 			SendClientMessage(conn, g_pMessageStringTable[_NN_CantEatMore]);
 			SendItem(conn, m->SourType, m->SourPos, item);
@@ -937,8 +937,8 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		}
 
 		pMob[conn].Affect[sAffect].Type = 30;
-		pMob[conn].Affect[sAffect].Level = 1000;
-		pMob[conn].Affect[sAffect].Value = 0;
+		pMob[conn].Affect[sAffect].Value = 1000;
+		pMob[conn].Affect[sAffect].Level = 0;
 		pMob[conn].Affect[sAffect].Time = AFFECT_1H * 4;
 
 		if (pMob[conn].Affect[sAffect].Time >= 324000)

@@ -609,8 +609,8 @@ struct STRUCT_MOBEXTRA
 struct STRUCT_AFFECT
 {
 	unsigned char Type;
-	unsigned char Value;
-	unsigned short Level;
+	unsigned char Level;	// Nome do cliente; antes `Value` (mesmo byte)
+	unsigned short Value;	// Nome do cliente; antes `Level` (mesmos bytes). Bits das joias no tipo 8
 	unsigned int Time;
 };
 

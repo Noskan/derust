@@ -1785,23 +1785,23 @@ void SendAffect(int conn)
 				pMob[conn].Affect[i].Time = 450;
 
 				sm.Affect[i].Type = pMob[conn].Affect[i].Type;
-				sm.Affect[i].Value = pMob[conn].Affect[i].Value;
 				sm.Affect[i].Level = pMob[conn].Affect[i].Level;
+				sm.Affect[i].Value = pMob[conn].Affect[i].Value;
 				sm.Affect[i].Time = pMob[conn].Affect[i].Time;
 
 				continue;
 			}
 
 			sm.Affect[i].Type = pMob[conn].Affect[i].Type;
-			sm.Affect[i].Value = pMob[conn].Affect[i].Value;
 			sm.Affect[i].Level = pMob[conn].Affect[i].Level;
+			sm.Affect[i].Value = pMob[conn].Affect[i].Value;
 			sm.Affect[i].Time = (int)(((pMob[conn].extra.DivineEnd - now) / 60 / 60 / 24 * AFFECT_1D) - 1);
 		}
 		else if (pMob[conn].Affect[i].Type >= 1)
 		{
 			sm.Affect[i].Type = pMob[conn].Affect[i].Type;
-			sm.Affect[i].Value = pMob[conn].Affect[i].Value;
 			sm.Affect[i].Level = pMob[conn].Affect[i].Level;
+			sm.Affect[i].Value = pMob[conn].Affect[i].Value;
 			sm.Affect[i].Time = pMob[conn].Affect[i].Time;
 		}
 	}

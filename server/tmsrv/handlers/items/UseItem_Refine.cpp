@@ -1187,7 +1187,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 
 		for(int i = 0; i < MAX_AFFECT; i++)
 		{
-			if(pMob[conn].Affect[i].Type == 4 && pMob[conn].Affect[i].Value == value)
+			if(pMob[conn].Affect[i].Type == 4 && pMob[conn].Affect[i].Level == value)
 			{
 				EmptyAffect = i;
 				break;
@@ -1206,8 +1206,8 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		if(EmptyAffect != -1)
 		{
 			pMob[conn].Affect[EmptyAffect].Type = 4;
-			pMob[conn].Affect[EmptyAffect].Level = 0;
-			pMob[conn].Affect[EmptyAffect].Value = value;
+			pMob[conn].Affect[EmptyAffect].Value = 0;
+			pMob[conn].Affect[EmptyAffect].Level = value;
 			pMob[conn].Affect[EmptyAffect].Time = tempo;
 
 			pMob[conn].GetCurrentScore(conn);

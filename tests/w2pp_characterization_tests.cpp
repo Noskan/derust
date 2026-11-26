@@ -399,8 +399,8 @@ uint64_t CaseCurrentScore()
 			if (r.Range(0, 2))
 				continue;
 			aff[a].Type = (unsigned char)r.Range(1, 60);
-			aff[a].Value = (unsigned char)r.Range(0, 255);
-			aff[a].Level = (unsigned short)r.Range(0, 400);
+			aff[a].Level = (unsigned char)r.Range(0, 255);
+			aff[a].Value = (unsigned short)r.Range(0, 400);
 			aff[a].Time = (unsigned int)r.Range(0, 10000);
 		}
 		int expBonus = 0, forceMob = 0, accuracy = 0, absHp = 0, forceDamage = 0;
