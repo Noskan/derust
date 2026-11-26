@@ -324,6 +324,7 @@ private:
 	int OnControl_HelpButton4(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_CCPotion(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_ShortSkillToggle1(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_ShortSkillToggle2(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:

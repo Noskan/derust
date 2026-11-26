@@ -629,22 +629,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == B_SHORTSKILL_TGL1)
 		return OnControl_ShortSkillToggle1(idwControlID, idwEvent);
 	if (idwControlID == B_SHORTSKILL_TGL2)
-	{
-		m_pGridSkillBelt2->SetVisible(0);
-		m_pGridSkillBelt3->SetVisible(1);
-
-		m_pShortSkillTglBtn1->SetSelected(0);
-		m_pShortSkillTglBtn2->SetSelected(1);
-
-		GetSoundAndPlay(53, 0, 0);
-
-		m_pControlContainer->SetFocusedControl(0);
-		m_pShortSkill_Txt->SetText((char*)"2", 0);
-		OnKeyShortSkill(49, 0);
-		m_bSkillBeltSwitch = 1;
-
-		return 0;
-	}
+		return OnControl_ShortSkillToggle2(idwControlID, idwEvent);
 	if (idwControlID == B_HELP)
 	{
 		m_pControlContainer->SetFocusedControl(0);

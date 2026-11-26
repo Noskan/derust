@@ -2697,3 +2697,23 @@ int TMFieldScene::OnControl_ShortSkillToggle1(unsigned int idwControlID, unsigne
 
 	return 0;
 }
+
+/// Alterna barra de atalhos de skill 2 (`B_SHORTSKILL_TGL2`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_ShortSkillToggle2(unsigned int idwControlID, unsigned int idwEvent)
+{
+	m_pGridSkillBelt2->SetVisible(0);
+	m_pGridSkillBelt3->SetVisible(1);
+
+	m_pShortSkillTglBtn1->SetSelected(0);
+	m_pShortSkillTglBtn2->SetSelected(1);
+
+	GetSoundAndPlay(53, 0, 0);
+
+	m_pControlContainer->SetFocusedControl(0);
+	m_pShortSkill_Txt->SetText((char*)"2", 0);
+	OnKeyShortSkill(49, 0);
+	m_bSkillBeltSwitch = 1;
+
+	return 0;
+}
