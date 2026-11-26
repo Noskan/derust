@@ -665,7 +665,9 @@ void ProcessScheduledWorldEvents()
 				Prize.stEffect[0].cEffect = 43;
 				Prize.stEffect[0].cValue = 4;
 
-				PutItem(Pista[3].Party[3].LeaderID, &Prize);
+				// Party[1] é o grupo vencedor deste bloco. Estava Party[3], além do fim de Party[3]
+				// (caía em Pista[4].Party[0], o líder de outra pista).
+				PutItem(Pista[3].Party[1].LeaderID, &Prize);
 
 				sprintf(temp, "etc,questRune complete +3 party2");
 				Log(temp, "-system", 0);
