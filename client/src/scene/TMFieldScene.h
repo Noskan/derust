@@ -369,6 +369,11 @@ private:
 	bool FrameMove_PositionTriggers(int& nReturnValue);
 	/// @}
 
+	/// @name Etapas com retorno antecipado extraídas de OnPacketAttack (Fase 3)
+	/// @{
+	bool PacketAttack_Attacker(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget, TMVector2& vecAttackerPos, int& nClass, float& fHeight, int& nReturnValue);
+	/// @}
+
 	/// @name Etapas com retorno antecipado extraídas de OnControlEvent (Fase 3)
 	/// @{
 	bool OnControl_SysServer(unsigned int& idwControlID, int& nReturnValue);

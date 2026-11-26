@@ -78,1232 +78,10 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 	int nClass = 0;
 	float fHeight = 1.5f;
 
-	if (pAttacker)
 	{
-		if (pAttack->DoubleCritical & 8)
-		{
-			unsigned int dwStartTime = g_pTimerManager->GetServerTime();
-			if (pAttacker->m_pSkinMesh->m_pSwingEffect[0])
-			{
-				if (pAttacker->m_nSkinMeshType == 3 || pAttacker->m_nSkinMeshType == 8 || pAttacker->m_nClass == 40)
-					pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 5;
-				else if(pAttacker->m_nWeaponTypeL == 101)
-					pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 2;
-				else if (pAttacker->m_nWeaponTypeL == 41)
-					pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 3;
-				else if (pAttacker->m_nWeaponTypeL == 103)
-					pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 4;
-				else
-					pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 1;
-
-				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwStartTime;
-			}
-
-			if (pAttacker->m_pSkinMesh->m_pSwingEffect[1])
-			{
-				if (pAttacker->m_nSkinMeshType == 3 || pAttacker->m_nSkinMeshType == 8 || pAttacker->m_nClass == 40)
-					pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 5;
-				else if (pAttacker->m_nWeaponTypeL == 101)
-					pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 2;
-				else if (pAttacker->m_nWeaponTypeL == 41)
-					pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 3;
-				else if (pAttacker->m_nWeaponTypeL == 103)
-					pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 4;
-				else
-					pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 1;
-
-				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwStartTime;
-			}
-		}
-		if (pAttacker->m_nClass == 32 && pAttack->Motion == 4 && pTarget == m_pMyHuman)
-			pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime();
-
-		for (int i = 0; i < 13; ++i)
-		{
-			if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-				break;
-			if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-				break;
-
-			pAttacker->m_usTargetID[i] = pAttack->Dam[i].TargetID;
-		}
-
-		SetSkillColor(pAttacker, static_cast<char>(pAttack->SkillIndex));
-
-		vecAttackerPos = pAttacker->m_vecPosition;
-		if (pAttacker->m_nSkinMeshType == 20 && pAttacker->m_stLookInfo.HelmMesh == 0)
-			nClass = 1;
-
-		if ((pAttacker != m_pMyHuman || !pAttack->FlagLocal && pAttacker == m_pMyHuman)	&& 
-			pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104)
-		{
-			pAttacker->m_stScore.Mp = pAttack->CurrentMp;
-			if (pAttacker == m_pMyHuman)
-			{
-				g_pObjectManager->m_stMobData.CurrentScore.Mp = pAttack->CurrentMp;
-				auto pMPBar = (SProgressBar*)m_pControlContainer->FindControl(1170);
-				auto pCurrentMPText = (SText*)m_pControlContainer->FindControl(65616);
-
-				if (pMPBar)
-					pMPBar->SetCurrentProgress(pAttacker->m_stScore.Mp);
-				if (pCurrentMPText)
-				{
-					char szText[128]{};
-					sprintf(szText, "%d", pAttacker->m_stScore.Mp);
-					pCurrentMPText->SetText(szText, 0);
-				}
-			}
-		}
-		// Maybe the skills names are wrong rsrs.
-		if (pAttacker != m_pMyHuman || pAttack->FlagLocal == 1 && pAttacker == m_pMyHuman || !pAttack->FlagLocal && 
-			pAttacker == m_pMyHuman && (unsigned char)pAttack->Motion == 254)
-		{
-			if (pAttack->SkillIndex == 4) // Possuído
-			{
-				pAttacker->m_cPunish = 1;
-				pAttacker->m_dwPunishedTime = g_pTimerManager->GetServerTime();
-			}
-
-			float fAngle = pAttacker->m_fWantAngle;
-
-			if (!pTarget)
-				pAttacker->Attack((ECHAR_MOTION)pAttack->Motion, TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY), static_cast<char>(pAttack->SkillIndex));
-			else if ((unsigned char)pAttack->Motion != 254)
-			{
-				if (pAttacker->m_sHeadIndex <= 50)
-					pAttacker->Attack((ECHAR_MOTION)pAttack->Motion, pTarget, pAttack->SkillIndex);
-				else
-					pAttacker->Attack((ECHAR_MOTION)pAttack->Motion, pTarget, *(unsigned char*)&pAttack->SkillIndex);
-
-				fHeight = pTarget->m_fHeight + 1.5f;
-
-				if (pAttacker != pTarget)
-					fAngle = atan2f(pTarget->m_vecPosition.x - pAttacker->m_vecPosition.x, pTarget->m_vecPosition.y - pAttacker->m_vecPosition.y) + D3DXToRadian(90);
-			}
-
-			if (pAttack->SkillIndex == 98) // Canhão Superior
-				fAngle = atan2f((float)pAttack->TargetX - pAttacker->m_vecPosition.x, (float)pAttack->TargetY - pAttacker->m_vecPosition.y) + D3DXToRadian(90);
-			if (pAttack->DoubleCritical & 1)
-				pAttacker->m_bDoubleAttack = 1;
-			if (pAttacker->m_nClass != 44)
-				pAttacker->SetWantAngle(fAngle);
-
-			if (pTarget && pTarget != pAttacker && pTarget != m_pMyHuman && (pTarget->m_nClass != 56 || pTarget->m_stLookInfo.FaceMesh)	&&
-				pAttack->SkillIndex != 27)
-			{
-				pTarget->SetWantAngle(fAngle + D3DXToRadian(180));
-			}
-
-			if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104 || 
-				pAttack->SkillIndex >= 151 && pAttack->SkillIndex <= 155 || 
-				pAttack->SkillIndex == 104 || pAttack->SkillIndex == 105 || pAttack->SkillIndex == 111)
-			{
-				pAttacker->m_stEffectEvent.sEffectIndex = pAttack->SkillIndex;
-				pAttacker->m_stEffectEvent.sEffectLevel = (unsigned char)pAttack->SkillParm;
-				if ((unsigned char)pAttack->Motion == 254)
-					pAttacker->m_stEffectEvent.sEffectLevel = 1;
-
-				if (!pTarget)
-				{
-					float iY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY)) * 0.1f;
-					pAttacker->m_stEffectEvent.vecTo = TMVector3((float)pAttack->TargetX, iY, (float)pAttack->TargetY);
-					pAttacker->m_stEffectEvent.pTarget = 0;
-				}
-				else
-				{
-					pAttacker->m_stEffectEvent.pTarget = pTarget;
-					if (pTarget && pAttacker && pTarget->m_nClass == 56 && !pTarget->m_stLookInfo.FaceMesh)
-					{
-						TMVector3 Len{ pTarget->m_vecPosition.x - pAttacker->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y - pAttacker->m_vecPosition.y };
-						pAttacker->m_stEffectEvent.vecTo = TMVector3((float)(Len.x / 2.0f) + pAttacker->m_vecPosition.x, pTarget->m_fHeight, (float)(Len.z / 2.0f) + pAttacker->m_vecPosition.y);
-					}
-					else
-						pAttacker->m_stEffectEvent.vecTo = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
-				}
-
-				if (pAttack->SkillIndex >= 151 && pAttack->SkillIndex <= 153 || 
-					pAttack->SkillIndex == 104 || pAttack->SkillIndex == 105)
-				{
-					pAttacker->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 200;
-				}
-				else
-				{
-					pAttacker->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
-				}
-			}
-			if (pAttacker->m_nClass == 62 && pAttacker->m_stLookInfo.FaceMesh == 2 && pAttack->SkillIndex == 108 && pTarget)
-			{
-				TMVector3 vecStart{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-				TMVector3 vecDest{ pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y };
-
-				vecDest.y += 1.0f;
-				vecStart.y += 1.0f;
-
-				auto pMagic = new TMSkillMagicArrow(vecStart, vecDest, 5, nullptr);
-				if (pMagic && m_pEffectContainer)
-					m_pEffectContainer->AddChild(pMagic);
-			}
-			else if (pAttack->SkillIndex == 6) // Aura da Vida
-			{
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-				
-				auto pEffect = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFF5555FF, 0xFF222299, 1000, 1.0f, 5, 0.0f);
-				if (pEffect && m_pEffectContainer)
-					m_pEffectContainer->AddChild(pEffect);
-			}
-			else if (pAttack->SkillIndex == 3) // Perseguição
-			{
-				if (pAttacker)
-				{
-					TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-					vecPos.y -= 0.5f;
-
-					auto pHoly = new TMSkillHolyTouch(vecPos, 1);
-
-					if (pHoly && m_pEffectContainer)
-						m_pEffectContainer->AddChild(pHoly);
-				}
-			}
-			else if (pAttack->SkillIndex == 5) // Fanatismo
-			{
-				if (pAttacker)
-				{
-					TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-					vecPos.y -= 0.5f;
-
-					auto pEffect = new TMEffectStart(vecPos, 2, nullptr);
-					if (pEffect && m_pEffectContainer)
-						m_pEffectContainer->AddChild(pEffect);
-
-					GetSoundAndPlay(151, 0, 0);
-				}
-			}
-			else if (pAttack->SkillIndex == 45) // Arma Mágica
-			{
-				float fY = (float)pAttack->TargetY + 0.5f;
-				TMVector3 vecTarget{ (float)pAttack->TargetX + 0.5f, (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, fY)) * 0.1f, fY };
-
-				if (pTarget)
-					vecTarget = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 1.0f, pTarget->m_vecPosition.y);
-
-				auto pParticle = new TMEffectParticle(vecTarget, 0, 20, 0.1f, 0, 1, 56, 1.0f, 1, TMVector3(0.0f, 0.0f, 0.0f), 1000);
-				if (pParticle && m_pEffectContainer)
-					m_pEffectContainer->AddChild(pParticle);
-
-				GetSoundAndPlay(158, 0, 0);
-			}
-			else if (pAttack->SkillIndex == 34 && (unsigned char)pAttack->Motion == 254) // Relampago
-			{
-				if (pAttacker && pAttacker->m_pFamiliar)
-				{
-					auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
-					if (pEffect)
-					{
-						pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-						pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
-						pEffect->SetColor(0xFFAAEEFF);
-						m_pEffectContainer->AddChild(pEffect);
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 32 && (unsigned char)pAttack->Motion == 254) // Renascimento
-			{
-				if (pAttacker && pAttacker->m_pFamiliar)
-				{
-					auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
-					if (pEffect)
-					{
-						pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-						pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
-						pEffect->SetColor(0xFFFFAA00);
-						m_pEffectContainer->AddChild(pEffect);
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 36) // Tempestade de Meteoros
-			{
-				if ((unsigned char)pAttack->Motion == 254 && pAttacker && pAttacker->m_pFamiliar)
-				{
-					auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
-					if (pEffect)
-					{
-						pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-						pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
-						pEffect->SetColor(0xFFAAEEFF);
-						m_pEffectContainer->AddChild(pEffect);
-					}
-				}
-
-				TMVector3 vecPos{};
-				if (pTarget)
-					vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
-				else
-				{
-					float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
-					vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fY, (float)pAttack->TargetY + 0.5f);
-				}
-
-				for (int i = 0; i < 6; i++)
-				{
-					auto pMeteor = new TMSkillMeteorStorm(TMVector3(0.0f, 0.0f, 0.0f), TMVector3(((float)(i % 3) * 0.3f) + vecPos.x,
-						vecPos.y, ((float)((i + 3) % 5) * 0.3f) + vecPos.z), 1, 0);
-
-					if (pMeteor && m_pEffectContainer)
-						m_pEffectContainer->AddChild(pMeteor);
-				}
-			}
-			// Nevoa Venenosa, Choque Divino, Ataque de Fogo, Toque Sagrado
-			else if (pAttack->SkillIndex == 41 || pAttack->SkillIndex == 29	|| pAttack->SkillIndex == 33 || pAttack->SkillIndex == 2)
-			{
-				for (int i = 0; i < 13; i++)
-				{
-					if ((unsigned char)pAttack->Motion == 254)
-					{
-						if (i >= 4)
-							break;
-					}
-					else if (g_pSpell[pAttack->SkillIndex].MaxTarget <= i)
-						break;
-
-					auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pTargetHuman && pTargetHuman != pAttacker)
-					{
-						if (pAttack->SkillIndex == 33)
-						{
-							if (!pAttack->FlagLocal || pAttack->FlagLocal == 1 && pAttacker && pAttacker == m_pMyHuman)
-							{
-								int nValue = 0;
-								if ((unsigned char)pAttack->Motion == 254)
-									nValue = 1;
-								if ((unsigned char)pAttack->Motion == 253)
-									nValue = 2;
-								if ((unsigned char)pAttack->Motion == 252)
-								{
-									auto vecPos = TMVector3((float)pAttack->PosX + 0.5f, 1.0f, (float)pAttack->PosY + 0.5f);
-									if (pAttacker)
-										vecPos = TMVector3(pAttacker->m_vecPosition.x, (float)(pAttacker->m_fScale * 5.5999999f) + pAttacker->m_fHeight, pAttacker->m_vecPosition.y);
-
-									auto pEffect = new TMEffectSpark(vecPos, pTargetHuman, TMVector3(0.0f, 0.0f, 0.0f),
-										0xFF5555FF, 0xFF222299, 1000, 1.0f, 5, 0.0f);
-
-									if (pEffect && m_pEffectContainer)
-										m_pEffectContainer->AddChild(pEffect);
-								}
-								else
-								{
-									auto pThunder = new TMSkillThunderBolt(TMVector3(pTargetHuman->m_vecPosition.x,
-										pTargetHuman->m_fHeight,
-										pTargetHuman->m_vecPosition.y), nValue);
-
-									if (pThunder && m_pEffectContainer)
-										m_pEffectContainer->AddChild(pThunder);
-								}
-							}
-						}
-						else
-						{						
-							pTargetHuman->m_stEffectEvent.sEffectIndex = pAttack->SkillIndex;
-							pTargetHuman->m_stEffectEvent.sEffectLevel = (unsigned char)pAttack->SkillParm;
-							pTargetHuman->m_stEffectEvent.pTarget = pTargetHuman;
-
-							if (pTargetHuman && pAttacker && pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh)
-							{
-								TMVector3 Len{ pTargetHuman->m_vecPosition.x - pAttacker->m_vecPosition.x, pTargetHuman->m_fHeight,
-									pTargetHuman->m_vecPosition.y - pAttacker->m_vecPosition.y };
-
-								pAttacker->m_stEffectEvent.vecTo = TMVector3((float)(Len.x / 2.0) + pAttacker->m_vecPosition.x,
-									pTargetHuman->m_fHeight,
-									(float)(Len.z / 2.0) + pAttacker->m_vecPosition.y);
-							}
-							else
-							{
-								pTargetHuman->m_stEffectEvent.vecTo = TMVector3(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight, pTargetHuman->m_vecPosition.y);
-							}
-
-							pTargetHuman->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
-						}
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 52) // Enfraquecer
-			{
-				if ((unsigned char)pAttack->Motion == 254)
-				{
-					TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-					if (pTarget)
-					{
-						TMVector3 vecTarget{ pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y };
-
-						auto pSlowSlash = new TMSkillSlowSlash(vecPos, vecTarget, 2, pTarget);
-						if (pSlowSlash)
-							m_pEffectContainer->AddChild(pSlowSlash);
-
-						unsigned int dwServerTime = g_pTimerManager->GetServerTime();
-
-						auto pLevelUp = new TMEffectLevelUp(vecTarget, 2);
-						if (pLevelUp)
-							m_pEffectContainer->AddChild(pLevelUp);
-
-						if (pTarget->m_pEleStream2)
-							pTarget->m_pEleStream2->StartVisible(dwServerTime);
-
-						GetSoundAndPlay(156, 0, 0);
-					}
-				}
-				else
-				{
-					TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-					TMVector3 vecTarget;
-					if (pTarget)
-						vecTarget = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
-					else
-					{
-						float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
-						vecTarget = TMVector3((float)pAttack->TargetX + 0.5f, fY, (float)pAttack->TargetY + 0.5f);
-					}
-					auto result = ((vecTarget - vecPos) / 7.0f);
-					vecTarget = vecPos + result;
-
-					auto pFreeze = new TMSkillFreezeBlade(vecTarget, 2, 0, 0);
-					if (pFreeze)
-						pFreeze->m_vecNextD = TMVector2(result.x, result.z);
-
-					if (m_pEffectContainer && pFreeze)
-						m_pEffectContainer->AddChild(pFreeze);
-				}
-			}
-			// Recuperar, Exterminar
-			else if (pAttack->SkillIndex == 30 || pAttack->SkillIndex == 23)
-			{
-				if (pAttacker)
-				{
-					TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pAttacker->m_vecPosition.y };
-					int nType = 0;
-					if (pAttack->SkillIndex == 23)
-					{
-						nType = 2;
-
-						if (pTarget)
-							vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 0.5f, pTarget->m_vecPosition.y);
-						else
-							vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fHeight + 0.5f, (float)pAttack->TargetY + 0.5f);
-					}
-
-					auto pJudgement = new TMSkillJudgement(vecPos, nType, 0.1f);
-					if (pJudgement)
-						m_pEffectContainer->AddChild(pJudgement);
-				}
-			}
-			else if (pAttack->SkillIndex == 55) // Aura Bestial
-			{
-				TMVector3 vecPos;
-				if (pTarget)
-				{
-					vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 0.2f, pTarget->m_vecPosition.y);
-
-					auto pJudgement = new TMSkillJudgement(vecPos, 3, 0.1f);
-					if (pJudgement)
-						m_pEffectContainer->AddChild(pJudgement);
-				}
-				else
-				{
-					float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
-					vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fY + 0.2f, (float)pAttack->TargetY + 0.5f);
-				}
-
-				for (int i = 0; i < 13; i++)
-				{
-					if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-						break;
-
-					if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-						break;
-
-					auto pOwner = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pOwner)
-					{
-						auto pEffect = new TMEffectStart(TMVector3(pOwner->m_vecPosition.x, pOwner->m_fHeight + 0.5f, pOwner->m_vecPosition.y), 5, pOwner);
-
-						if (pEffect)
-						{
-							pEffect->m_dwLifeTime = 2000;
-							m_pEffectContainer->AddChild(pEffect);
-						}
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 76) // Imunidade
-			{
-				GetSoundAndPlay(34, 0, 0);
-			}
-			else if (pAttack->SkillIndex == 77) // Meditação
-			{
-				GetSoundAndPlay(36, 0, 0);
-			}
-			else if (pAttack->SkillIndex == 87) // Escudo Dourado
-			{
-				if (!g_bHideEffect)
-				{
-					for (int i = 0; i < 10; i++)
-					{
-						int nRand = rand() % 5;
-
-						auto pBill = new TMEffectBillBoard(
-							56,
-							150 * i + 1000,
-							((float)(i % 2) * 0.1f) + 0.2f,
-							((float)(i % 2) * 0.1f) + 0.2f,
-							((float)(i % 2) * 0.1f) + 0.2f,
-							0.0f,
-							1,
-							80);
-
-						if (pBill)
-						{
-							pBill->m_fParticleH = (float)((float)(i % 3) * 0.15f) + 1.1f;
-							pBill->m_fParticleV = -2.0f;
-							pBill->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-							pBill->m_nParticleType = 3;
-
-							pBill->m_vecStartPos = TMVector3((pAttacker->m_vecPosition.x + 0.5f) + ((float)(nRand - 3) * 0.1f),
-								((pAttacker->m_fHeight + 0.5f) + ((float)(nRand - 3) * 0.1f)) + 2.0f,
-								(pAttacker->m_vecPosition.y + 0.5f) + ((float)(nRand - 3) * 0.1f));
-
-							pBill->SetColor(0xFF4444FF);
-
-							m_pEffectContainer->AddChild(pBill);
-						}
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 86) // Explosão Etérea
-			{
-				if (pAttacker)
-				{
-					TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pAttacker->m_vecPosition.y };
-					TMVector2 vecSum{};
-
-					int nCount = 0;
-					for (int i = 0; i < 13; i++)
-					{
-						if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-							break;
-
-						if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-							break;
-
-						auto pOwner = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-						if (pOwner)
-						{
-							TMVector3 vecDest{ pOwner->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pOwner->m_vecPosition.y };
-
-							vecSum.x += pOwner->m_vecPosition.x;
-							vecSum.y += pOwner->m_vecPosition.y;
-							++nCount;
-
-							auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
-
-							m_pEffectContainer->AddChild(pArrow);
-						}
-					}
-
-					TMVector2 vecDNormal{};
-					if (nCount <= 0)
-						vecDNormal = TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f);
-					else
-						vecDNormal = vecSum / static_cast<const float>(nCount);
-
-					float fAng = atan2f(vecDNormal.x - pAttacker->m_vecPosition.x, -vecDNormal.y + pAttacker->m_vecPosition.y);
-					fAng -= D3DXToRadian(90);
-
-					if (fAng < 0.0f)
-						fAng += D3DXToRadian(360);
-					if (fAng > D3DXToRadian(360))
-						fAng -= D3DXToRadian(360);
-
-					int nIndex = (int)((fAng * 12.0f) / D3DXToRadian(360));
-					int nMin = nIndex - 3;
-					int nMax = nIndex + 3;
-
-					if (nMin < 0 || nMax > 12)
-					{
-						int nLow = 0;
-						int nHigh = 0;
-
-						if (nMin >= 0)
-						{
-							nLow = nMin;
-							nHigh = nMax - 12;
-						}
-						else
-						{
-							nLow = nMin + 12;
-							nHigh = nMax;
-						}
-
-						for (int i = 0; i < nHigh; i++)
-						{
-							TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
-							TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
-
-							auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
-
-							m_pEffectContainer->AddChild(pArrow);
-						}
-						for (int i = nLow; i < 12; i++)
-						{
-							TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
-							TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
-
-							auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
-
-							m_pEffectContainer->AddChild(pArrow);
-						}
-					}
-					else
-					{
-						for (int i = nMin; i < nMax; i++)
-						{
-							TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
-							TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
-
-							auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
-
-							m_pEffectContainer->AddChild(pArrow);
-						}
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 99) // Muro de Espinhos
-			{
-				if (pTarget)
-				{
-					bool bExpand = false;
-					if (pTarget->m_nClass == 4 || pTarget->m_nClass == 8)
-						bExpand = 1;
-
-					auto pEffectSkinMesh = new TMEffectSkinMesh(
-						pTarget->m_nSkinMeshType,
-						TMVector3(0.0f, 0.0f, 0.0f), 
-						TMVector3(0.0f, 0.0f, 0.0f), 
-						0,
-						nullptr);
-
-					if (pTarget && pTarget->m_cMount > 0 && pTarget->m_pMount)
-					{
-						pEffectSkinMesh->m_nSkinMeshType = pTarget->m_nMountSkinMeshType;
-						memcpy(&pEffectSkinMesh->m_stLookInfo, &pTarget->m_stMountLook, sizeof(pTarget->m_stMountLook));
-						pEffectSkinMesh->m_nSkinMeshType2 = pTarget->m_nSkinMeshType;
-						memcpy(&pEffectSkinMesh->m_stLookInfo2, &pTarget->m_stLookInfo, sizeof(pTarget->m_stLookInfo));
-					}
-					else
-					{
-						memcpy(&pEffectSkinMesh->m_stLookInfo, &pTarget->m_stLookInfo, sizeof(pTarget->m_stLookInfo));
-					}
-
-					pEffectSkinMesh->m_StartColor.r = 0.5f;
-					pEffectSkinMesh->m_StartColor.g = 0.5f;
-					pEffectSkinMesh->m_StartColor.b = 0.5f;
-					pEffectSkinMesh->InitObject(bExpand);
-					pEffectSkinMesh->m_nFade = 1;
-					pEffectSkinMesh->m_dwLifeTime = 3000;
-					pEffectSkinMesh->InitPosition(pTarget->m_vecPosition.x, pTarget->m_fHeight + 6.0f, pTarget->m_vecPosition.y);
-
-					if (pTarget->m_cMount > 0 && pTarget->m_pMount)
-					{
-						if (pEffectSkinMesh->m_pSkinMesh)
-							pEffectSkinMesh->m_pSkinMesh->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType].dwAniTable[0]);
-						if (pEffectSkinMesh->m_pSkinMesh2)
-							pEffectSkinMesh->m_pSkinMesh2->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType2].dwAniTable[24]);
-					}
-					else
-					{
-						pEffectSkinMesh->m_pSkinMesh->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType].dwAniTable[0]);
-					}
-
-					pEffectSkinMesh->m_fStartAngle = pTarget->m_fAngle;
-					pEffectSkinMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-					pEffectSkinMesh->m_nMotionType = 8;
-
-					m_pEffectContainer->AddChild(pEffectSkinMesh);
-				}
-
-				unsigned int dwColor = 0xAAAAAAAA;
-
-				for(int i = -1; i < 2; i++)
-				{
-					auto pEffectMesh = new TMEffectMesh(506, dwColor, 0.0f, 0);
-
-					pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-					pEffectMesh->m_cShine = 1;
-					pEffectMesh->m_dwCycleTime = 3000;
-					pEffectMesh->m_dwLifeTime = 3000;
-					pEffectMesh->m_fScaleH = 1.5f;
-					pEffectMesh->m_fScaleV = 3.0f;
-					pEffectMesh->m_vecPosition = TMVector3(((float)i * 0.2f) + pTarget->m_vecPosition.x, pTarget->m_fHeight - 0.5f, ((float)i * 0.2f) + pTarget->m_vecPosition.y);
-
-					m_pEffectContainer->AddChild(pEffectMesh);
-				}
-
-				auto pShade = new TMShade(4, 118, 1.0f);
-
-				pShade->m_dwLifeTime = 8000;
-				pShade->SetColor(dwColor);
-				pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-				pShade->SetPosition(TMVector2(pTarget->m_vecPosition.x, pTarget->m_vecPosition.y));
-				
-				m_pEffectContainer->AddChild(pShade);
-
-				GetSoundAndPlay(1, 0, 0);
-			}
-			else if (pAttack->SkillIndex == 100) // Ressureição
-			{
-				GetSoundAndPlay(156, 0, 0);
-			}
-			else if (pAttack->SkillIndex == 106 || pAttack->SkillIndex == 108)
-			{
-				int nSkill = 0;
-				if (pAttack->SkillIndex == 108)
-					nSkill = 1;
-
-				if (pTarget && pAttacker)
-					pAttacker->Fire(pTarget, nSkill);
-			}
-			else if (pAttack->SkillIndex == 107)
-			{
-				if (pTarget && pAttacker)
-				{
-					fHeight = ((float)(TMHuman::m_vecPickSize[pAttacker->m_nSkinMeshType].y	* pAttacker->m_fScale) * 0.69999999f) + pAttacker->m_fHeight;
-					if(pAttacker->m_nSkinMeshType == 8)
-						fHeight = (float)(1.0f * pAttacker->m_fScale) + fHeight;
-
-					TMVector3 vecPos{ pAttacker->m_vecPosition.x, fHeight, pAttacker->m_vecPosition.y };
-
-					auto pEffectSpark = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFFFFAA00, 0xFF554411, 1000, 1.0f, 5, 0.0f);
-
-					m_pEffectContainer->AddChild(pEffectSpark);
-				}
-			}
-			else if (pAttack->SkillIndex == 109)
-			{
-				if (pTarget && pAttacker)
-				{
-					fHeight = ((float)(TMHuman::m_vecPickSize[pAttacker->m_nSkinMeshType].y * pAttacker->m_fScale) * 0.69999999f) + pAttacker->m_fHeight;
-					if (pAttacker->m_nSkinMeshType == 42)
-						fHeight = (float)(1.0f * pAttacker->m_fScale) + fHeight;
-
-					TMVector3 vecPos{ pAttacker->m_vecPosition.x, fHeight, pAttacker->m_vecPosition.y };
-
-					auto pEffectSpark = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFF550000, 0xAA663311, 1000, 1.0f, 5, 0.0f);
-
-					m_pEffectContainer->AddChild(pEffectSpark);
-				}
-			}
-			else if (pAttack->SkillIndex == 110) // Skill Kefra
-			{
-				TMVector3 vecTarget{};
-				TMVector3 vecStart{};
-				bool bMyAttack = false;
-				for (int i = 0; i < 13; i++)
-				{
-					if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-						break;
-
-					if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-						break;
-
-					int rndx = rand() % 18;
-					int rndy = rand() % 18;
-
-					auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-
-					if (pMultiTarget)
-					{
-						if (pMultiTarget == m_pMyHuman)
-							bMyAttack = true;
-
-						vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-							pMultiTarget->m_fHeight - 5.0f,
-							pMultiTarget->m_vecPosition.y);
-
-						vecStart = vecTarget;
-						vecStart.y = 1.0f;
-
-						auto pMeteor = new TMSkillMeteorStorm(vecStart, vecTarget, 3, nullptr);
-						pMeteor->m_dwStartTime += rand() % 1000;
-						
-						m_pEffectContainer->AddChild(pMeteor);
-					}
-					else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
-					{
-						auto pMeteor = new TMSkillMeteorStorm(
-							TMVector3(((float)rndx + vecStart.x) - 9.0f, vecStart.y, ((float)rndy + vecStart.z) - 9.0f), 
-							TMVector3(((float)rndx + vecTarget.x) - 9.0f, vecTarget.y, ((float)rndy + vecTarget.z) - 9.0f), 
-							3, nullptr);
-
-						pMeteor->m_dwStartTime += rand() % 1000;
-
-						m_pEffectContainer->AddChild(pMeteor);
-					}
-				}
-
-				if (pAttacker->m_dwEarthQuakeTime + 1700 < g_pTimerManager->GetServerTime())
-				{
-					pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime() - 1000;
-
-					for (int i = -3; i < 3; i++)
-					{
-						for (int j = -3; i < 3; i++)
-						{
-							auto pBill = new TMEffectBillBoard(193, 4000, 2.0f, 2.0f, 2.0f, 0.001f, 1, 80);
-
-							pBill->m_bStickGround = i % 2;
-							pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x, pAttacker->m_fHeight, ((float)j * 2.0f) + pAttacker->m_vecPosition.y);
-							pBill->SetColor(0xFF777799);
-
-							m_pEffectContainer->AddChild(pBill);
-						}
-					}
-
-					auto pGround = m_pGround;
-					if (pGround)
-					{
-						pGround->m_dwEffStart = g_pTimerManager->GetServerTime();
-						pGround->m_vecEffset = pAttacker->m_vecPosition;
-					}
-				}
-
-				int nDistance = BASE_GetDistance((int)pAttacker->m_vecPosition.x, (int)pAttacker->m_vecPosition.y, 
-					(int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
-
-				unsigned int Now = g_pTimerManager->GetServerTime();
-
-				unsigned int dwKhepraDelay = 2000;
-				if (!bMyAttack)
-					dwKhepraDelay = 1000;
-				if (nDistance < 18)
-				{
-					if (dwKhepraDelay + m_pMyHuman->m_dwOldMovePacketTime < Now && !m_pMyHuman->m_cDie &&
-						m_pMyHuman->m_eMotion != ECHAR_MOTION::ECMOTION_DEAD && 
-						m_pMyHuman->m_eMotion != ECHAR_MOTION::ECMOTION_DIE)
-					{
-						int nRan = 4;
-						int nLength = 5;
-
-						if (!bMyAttack)
-						{
-							nRan = 8;
-							nLength = 9;
-						}
-
-						if (rand() % 10 < nRan)
-						{
-							m_pTargetHuman = nullptr;
-							if (!g_bRunning)
-								SetRunMode();
-
-							int x = (int)m_pMyHuman->m_vecPosition.x;
-							int y = (int)m_pMyHuman->m_vecPosition.y;
-
-							int nMoveX = 0;
-							int nMoveY = 0;
-							if (x <= 2362)
-								nMoveX = -nLength;
-							else if (x >= 2370)
-								nMoveX = nLength;
-							if (y <= 3927)
-								nMoveY = -nLength;
-							else if (y >= 3935)
-								nMoveY = nLength;
-
-							int targetx = (int)((float)nMoveX + m_pMyHuman->m_vecPosition.x);
-							int targety = (int)((float)nMoveY + m_pMyHuman->m_vecPosition.y);
-							if (targetx < 2341)
-								targetx = 2341;
-							else if (targetx > 2391)
-								targetx = 2391;
-							if (targety < 3907)
-								targetx = 3907;
-							else if (targety > 3952)
-								targety = 3952;
-
-							char Route[48]{};
-							BASE_GetRoute(x, y, &targetx, &targety, Route, 12, (char*)m_HeightMapData, 8);
-							if (!strlen(Route))
-								return 1;
-
-							MSG_Action Msg{};
-							Msg.Header.ID = m_pMyHuman->m_dwID;
-							Msg.Header.Type = MSG_Action_Opcode;
-							Msg.PosX = targetx;
-							Msg.PosY = targety;
-							Msg.Effect = 2;
-							Msg.TargetX = targetx;
-							Msg.TargetY = targety;
-
-							g_bLastStop = MSG_Action_Opcode;
-
-							m_stMoveStop.LastX = targetx;
-							m_stMoveStop.LastY = targety;
-							m_stMoveStop.NextX = targetx;
-							m_stMoveStop.NextY = targety;
-
-							SendOneMessage((char*)&Msg, sizeof(Msg));
-
-							m_pMyHuman->m_dwOldMovePacketTime = g_pTimerManager->GetServerTime();
-							m_pMyHuman->OnPacketEvent(MSG_Action_Opcode, (char*)&Msg);
-						}
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 111)
-			{
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-
-				auto pShade = new TMShade(70, 118, 1.0f);
-
-				pShade->SetColor(0xAA660000);
-				pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-				pShade->SetPosition(TMVector2(pAttacker->m_vecPosition.x, pAttacker->m_vecPosition.y));
-				pShade->m_dwLifeTime = 3200;
-				m_pEffectContainer->AddChild(pShade);
-
-				TMVector3 vecTarget{};
-				TMVector3 vecTarget2{};
-				TMVector3 vecD{};
-				TMVector3 vecPos2{};
-				D3DXVECTOR3 vecDNormal{};
-
-				for (int i = 0; i < 13; i++)
-				{
-					if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-						break;
-
-					if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-						break;
-
-					int rndx = rand() % 18;
-					int rndy = rand() % 18;
-					auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pMultiTarget)
-					{
-						vecTarget = TMVector3(pMultiTarget->m_vecPosition.x, pMultiTarget->m_fHeight, pMultiTarget->m_vecPosition.y);
-						vecTarget2 = vecTarget;
-
-						auto pFreeze = new TMSkillFreezeBlade(vecTarget2, 8, 1, 0);
-						pFreeze->m_vecNextD = TMVector2(vecD.x, vecD.z);
-
-						m_pEffectContainer->AddChild(pFreeze);
-					}
-					else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
-					{
-						vecTarget2 = TMVector3(((float)rndx + vecTarget.x) - 9.0f, vecTarget.y, ((float)rndy + vecTarget.z) - 9.0f);
-						
-						auto pFreeze = new TMSkillFreezeBlade(vecTarget2, 8, 1, 0);
-						pFreeze->m_vecNextD = TMVector2(vecD.x, vecD.z);
-
-						m_pEffectContainer->AddChild(pFreeze);
-					}
-				}
-			}
-			else if (pAttacker->m_nClass == 56 && !pAttacker->m_stLookInfo.FaceMesh)
-			{
-				TMVector3 vecSpTarget = pAttacker->m_vecTempPos[2];
-				TMVector3 vecSpStart = pAttacker->m_vecTempPos[1];
-				TMVector3 vecStart{};
-				TMVector3 vecTarget{};
-				for (int i = 0; i < 13; i++)
-				{
-					if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-						break;
-
-					if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-						break;
-
-					int rndx = rand() % 18;
-					int rndy = rand() % 18;
-
-					auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pMultiTarget)
-					{
-						TMVector3 vecStart = pAttacker->m_vecTempPos[i % 2 + 1];
-						TMVector3 vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-							pMultiTarget->m_fHeight + 1.0f,
-							pMultiTarget->m_vecPosition.y);
-
-						auto pEffectSpark = new TMEffectSpark(vecStart,
-							pMultiTarget,
-							TMVector3(0.0f, 0.0f, 0.0f),
-							0xFFFF0000,
-							0xFF222299,
-							1000,
-							1.0f,
-							5,
-							0.0);
-
-						pEffectSpark->m_fRange = 0.2f;
-						m_pEffectContainer->AddChild(pEffectSpark);
-					}
-					else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
-					{
-						vecStart = pAttacker->m_vecTempPos[i % 2 + 1];
-
-						auto pEffectSpark = new TMEffectSpark(vecStart,
-							nullptr,
-							TMVector3(((float)rndx + vecTarget.x) - 9.0f,
-								vecTarget.y,
-								(float)((float)rndy + vecTarget.z) - 9.0f),
-							0xFFFF0000,
-							0xFF222299,
-							1000,
-							1.0f,
-							5,
-							0.0);
-
-						pEffectSpark->m_fRange = 0.4f;
-						m_pEffectContainer->AddChild(pEffectSpark);
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 113)
-			{
-				pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
-				unsigned int dwColor = 0xFF33FF66;
-
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-
-				auto pShade = new TMShade(70, 118, 1.0f);
-				pShade->SetColor(0xAA660000);
-				pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-				pShade->SetPosition(TMVector2(pAttacker->m_vecPosition.x, pAttacker->m_vecPosition.y));
-				pShade->m_dwLifeTime = 3200;
-				m_pEffectContainer->AddChild(pShade);
-
-				TMVector3 vecTarget{};
-				TMVector3 vecD{};
-				TMVector3 vecPos2{};
-				D3DXVECTOR3 vecDNormal{};
-
-				for (int i = 0; i < 13; i++)
-				{
-					auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pMultiTarget)
-					{
-						vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-							pMultiTarget->m_fHeight,
-							pMultiTarget->m_vecPosition.y);
-
-						auto pFreeze = new TMSkillFreezeBlade(vecTarget, 8, 1, 0);
-						m_pEffectContainer->AddChild(pFreeze);
-
-						auto pPoison = new TMSkillPoison(vecTarget, dwColor, 10, 1, 0);
-						m_pEffectContainer->AddChild(pPoison);
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 114)
-			{
-				TMVector3 vecTarget{};
-				TMVector3 vecStart{};
-
-				bool bMyAttack = false;
-				pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
-
-				for (int i = 0; i < 13; i++)
-				{
-					auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pMultiTarget)
-					{
-						vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-							pMultiTarget->m_fHeight - 5.0f,
-							pMultiTarget->m_vecPosition.y);
-						vecTarget = vecStart;
-						vecStart.y = 1.0f;
-
-						auto pJudgement = new TMSkillJudgement(vecStart, 2, 0.1f);
-
-						m_pEffectContainer->AddChild(pJudgement);
-
-						TMVector3 vec{};
-						for (int j = 0; j < 4; j++)
-						{
-							vec = TMVector3(((float)(2 * (j % 2)) + vecTarget.x) - 1.0f,
-								vecTarget.y,
-								((float)(2 * (j / 2)) + vecTarget.z) - 1.0f);
-
-							auto pFreeze = new TMSkillFreezeBlade(
-								vec, 1, 0, 0
-							);
-
-							m_pEffectContainer->AddChild(pFreeze);
-						}
-
-						TMVector3 vecDest{ pMultiTarget->m_vecPosition.x,
-								  pMultiTarget->m_fHeight + 0.5f,
-								  pMultiTarget->m_vecPosition.y };
-
-						vecStart = TMVector3(vecDest.x + 3.0f, vecDest.y + 5.0f, vecDest.z - 3.0f);
-
-						auto pArrow = new TMArrow(vecStart, vecDest, 0, 10001, 0, 0, 0);
-						pArrow->m_nColor = 0xFFFFFF00;
-
-						m_pEffectContainer->AddChild(pArrow);
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 115)
-			{
-				TMVector3 vecTarget{};
-				TMVector3 vecStart{};
-				if (pAttacker->m_nClass != 73)
-					pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
-
-				for (int i = 0; i < 13; i++)
-				{
-					auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pMultiTarget)
-					{
-						vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-							pMultiTarget->m_fHeight - 5.0f,
-							pMultiTarget->m_vecPosition.y);
-
-						vecStart = vecTarget;
-						vecStart.y = 10.0f;
-
-						auto pMeteor = new TMSkillMeteorStorm(vecStart,
-							vecTarget,
-							3,
-							nullptr);
-
-						m_pEffectContainer->AddChild(pMeteor);
-					}
-				}
-
-				int ran = rand() % 10;
-
-				if (ran >= 6)
-				{
-					if (pAttacker->m_dwEarthQuakeTime + 4000 < g_pTimerManager->GetServerTime())
-					{
-						pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime() - 2000;
-
-						for (int i = -3; i < 3; i++)
-						{
-							for (int j = -3; j < 3; j++)
-							{
-								auto pBill = new TMEffectBillBoard(193,
-									4000,
-									2.0f,
-									2.0f,
-									2.0f,
-									0.001f,
-									1,
-									80);
-
-								pBill->m_bStickGround = i % 2;
-								pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x,
-									pAttacker->m_fHeight,
-									(float)((float)j * 2.0f) + pAttacker->m_vecPosition.y);
-								pBill->SetColor(0xFF777799);
-
-								m_pEffectContainer->AddChild(pBill);
-							}
-						}
-
-						auto pGround = m_pGround;
-						if (pGround)
-						{
-							pGround->m_dwEffStart = g_pTimerManager->GetServerTime();
-							pGround->m_vecOffset = pAttacker->m_vecPosition;
-						}
-
-						auto pCamera = g_pObjectManager->GetCamera();
-						pCamera->EarthQuake(11);
-						
-						GetSoundAndPlay(160, 0, 0);
-					}
-				}
-			}
-			else if (pAttack->SkillIndex == 116)
-			{
-				TMVector3 vecTarget{};
-				TMVector3 vecStart{};
-				pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
-				
-				for (int i = 0; i < 13; i++)
-				{
-					auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-					if (pMultiTarget)
-					{
-						vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-							pMultiTarget->m_fHeight - 5.0f,
-							pMultiTarget->m_vecPosition.y);
-
-						vecStart = vecTarget;
-						vecStart.y = 10.0f;
-
-						auto pMeteor = new TMSkillMeteorStorm(vecStart, 
-							vecTarget,
-							3, 
-							0);
-
-						m_pEffectContainer->AddChild(pMeteor);
-					}
-				}
-
-				for (int i = -3; i < 3; i++)
-				{
-					for (int j = -3; j < 3; j++)
-					{
-						auto pBill = new TMEffectBillBoard(193,
-							4000,
-							2.0f,
-							2.0f,
-							2.0f,
-							0.001f,
-							1,
-							80);
-
-						pBill->m_bStickGround = i % 2;
-						pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x,
-							pAttacker->m_fHeight,
-							(float)((float)j * 2.0f) + pAttacker->m_vecPosition.y);
-						pBill->SetColor(0xFF777799);
-
-						m_pEffectContainer->AddChild(pBill);
-					}
-				}
-			}
-		}
-	}
-	else
-	{
-		bool bFind = false;
-		for (int i = 0; i < 13; i++)
-		{
-			if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-				break;
-
-			if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-				break;
-
-			if (pAttack->Dam[i].TargetID = m_pMyHuman->m_dwID)
-			{
-				bFind = true;
-				break;
-			}
-		}
-
-		if (bFind || pAttack->SkillIndex > 55 && pAttack->SkillIndex > 63)
-		{
-			TMVector2 vecAttackerPos{ (float)pAttack->PosX + 0.5f, (float)pAttack->PosY + 0.5f };
-
-			MSG_STANDARDPARM stParm{};
-			stParm.Header.ID = g_pObjectManager->m_dwCharID;
-			stParm.Header.Type = 0x369;
-			stParm.Parm = pAttack->AttackerID;
-			SendOneMessage((char*)&stParm, sizeof(stParm));
-		}
+		int nReturnValue = 0;
+		if (PacketAttack_Attacker(pAttack, pAttacker, pTarget, vecAttackerPos, nClass, fHeight, nReturnValue))
+			return nReturnValue;
 	}
 
 	TMVector3 vecStart{};
@@ -2330,4 +1108,1239 @@ int TMFieldScene::OnPacketAttack(MSG_STANDARD* pStd)
 	}
 
 	return 1;
+}
+
+/// Lado do atacante: animação, efeitos e estado conforme a skill (`pAttacker` presente ou não).
+/// @note Extraído de `TMFieldScene::OnPacketAttack` (Fase 3); locais da função passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::PacketAttack_Attacker(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget, TMVector2& vecAttackerPos, int& nClass, float& fHeight, int& nReturnValue)
+{
+if (pAttacker)
+{
+	if (pAttack->DoubleCritical & 8)
+	{
+		unsigned int dwStartTime = g_pTimerManager->GetServerTime();
+		if (pAttacker->m_pSkinMesh->m_pSwingEffect[0])
+		{
+			if (pAttacker->m_nSkinMeshType == 3 || pAttacker->m_nSkinMeshType == 8 || pAttacker->m_nClass == 40)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 5;
+			else if(pAttacker->m_nWeaponTypeL == 101)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 2;
+			else if (pAttacker->m_nWeaponTypeL == 41)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 3;
+			else if (pAttacker->m_nWeaponTypeL == 103)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 4;
+			else
+				pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_cSForce = 1;
+
+			pAttacker->m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwStartTime;
+		}
+
+		if (pAttacker->m_pSkinMesh->m_pSwingEffect[1])
+		{
+			if (pAttacker->m_nSkinMeshType == 3 || pAttacker->m_nSkinMeshType == 8 || pAttacker->m_nClass == 40)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 5;
+			else if (pAttacker->m_nWeaponTypeL == 101)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 2;
+			else if (pAttacker->m_nWeaponTypeL == 41)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 3;
+			else if (pAttacker->m_nWeaponTypeL == 103)
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 4;
+			else
+				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 1;
+
+			pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwStartTime;
+		}
+	}
+	if (pAttacker->m_nClass == 32 && pAttack->Motion == 4 && pTarget == m_pMyHuman)
+		pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime();
+
+	for (int i = 0; i < 13; ++i)
+	{
+		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+			break;
+		if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+			break;
+
+		pAttacker->m_usTargetID[i] = pAttack->Dam[i].TargetID;
+	}
+
+	SetSkillColor(pAttacker, static_cast<char>(pAttack->SkillIndex));
+
+	vecAttackerPos = pAttacker->m_vecPosition;
+	if (pAttacker->m_nSkinMeshType == 20 && pAttacker->m_stLookInfo.HelmMesh == 0)
+		nClass = 1;
+
+	if ((pAttacker != m_pMyHuman || !pAttack->FlagLocal && pAttacker == m_pMyHuman)	&& 
+		pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104)
+	{
+		pAttacker->m_stScore.Mp = pAttack->CurrentMp;
+		if (pAttacker == m_pMyHuman)
+		{
+			g_pObjectManager->m_stMobData.CurrentScore.Mp = pAttack->CurrentMp;
+			auto pMPBar = (SProgressBar*)m_pControlContainer->FindControl(1170);
+			auto pCurrentMPText = (SText*)m_pControlContainer->FindControl(65616);
+
+			if (pMPBar)
+				pMPBar->SetCurrentProgress(pAttacker->m_stScore.Mp);
+			if (pCurrentMPText)
+			{
+				char szText[128]{};
+				sprintf(szText, "%d", pAttacker->m_stScore.Mp);
+				pCurrentMPText->SetText(szText, 0);
+			}
+		}
+	}
+	// Maybe the skills names are wrong rsrs.
+	if (pAttacker != m_pMyHuman || pAttack->FlagLocal == 1 && pAttacker == m_pMyHuman || !pAttack->FlagLocal && 
+		pAttacker == m_pMyHuman && (unsigned char)pAttack->Motion == 254)
+	{
+		if (pAttack->SkillIndex == 4) // Possuído
+		{
+			pAttacker->m_cPunish = 1;
+			pAttacker->m_dwPunishedTime = g_pTimerManager->GetServerTime();
+		}
+
+		float fAngle = pAttacker->m_fWantAngle;
+
+		if (!pTarget)
+			pAttacker->Attack((ECHAR_MOTION)pAttack->Motion, TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY), static_cast<char>(pAttack->SkillIndex));
+		else if ((unsigned char)pAttack->Motion != 254)
+		{
+			if (pAttacker->m_sHeadIndex <= 50)
+				pAttacker->Attack((ECHAR_MOTION)pAttack->Motion, pTarget, pAttack->SkillIndex);
+			else
+				pAttacker->Attack((ECHAR_MOTION)pAttack->Motion, pTarget, *(unsigned char*)&pAttack->SkillIndex);
+
+			fHeight = pTarget->m_fHeight + 1.5f;
+
+			if (pAttacker != pTarget)
+				fAngle = atan2f(pTarget->m_vecPosition.x - pAttacker->m_vecPosition.x, pTarget->m_vecPosition.y - pAttacker->m_vecPosition.y) + D3DXToRadian(90);
+		}
+
+		if (pAttack->SkillIndex == 98) // Canhão Superior
+			fAngle = atan2f((float)pAttack->TargetX - pAttacker->m_vecPosition.x, (float)pAttack->TargetY - pAttacker->m_vecPosition.y) + D3DXToRadian(90);
+		if (pAttack->DoubleCritical & 1)
+			pAttacker->m_bDoubleAttack = 1;
+		if (pAttacker->m_nClass != 44)
+			pAttacker->SetWantAngle(fAngle);
+
+		if (pTarget && pTarget != pAttacker && pTarget != m_pMyHuman && (pTarget->m_nClass != 56 || pTarget->m_stLookInfo.FaceMesh)	&&
+			pAttack->SkillIndex != 27)
+		{
+			pTarget->SetWantAngle(fAngle + D3DXToRadian(180));
+		}
+
+		if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104 || 
+			pAttack->SkillIndex >= 151 && pAttack->SkillIndex <= 155 || 
+			pAttack->SkillIndex == 104 || pAttack->SkillIndex == 105 || pAttack->SkillIndex == 111)
+		{
+			pAttacker->m_stEffectEvent.sEffectIndex = pAttack->SkillIndex;
+			pAttacker->m_stEffectEvent.sEffectLevel = (unsigned char)pAttack->SkillParm;
+			if ((unsigned char)pAttack->Motion == 254)
+				pAttacker->m_stEffectEvent.sEffectLevel = 1;
+
+			if (!pTarget)
+			{
+				float iY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY)) * 0.1f;
+				pAttacker->m_stEffectEvent.vecTo = TMVector3((float)pAttack->TargetX, iY, (float)pAttack->TargetY);
+				pAttacker->m_stEffectEvent.pTarget = 0;
+			}
+			else
+			{
+				pAttacker->m_stEffectEvent.pTarget = pTarget;
+				if (pTarget && pAttacker && pTarget->m_nClass == 56 && !pTarget->m_stLookInfo.FaceMesh)
+				{
+					TMVector3 Len{ pTarget->m_vecPosition.x - pAttacker->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y - pAttacker->m_vecPosition.y };
+					pAttacker->m_stEffectEvent.vecTo = TMVector3((float)(Len.x / 2.0f) + pAttacker->m_vecPosition.x, pTarget->m_fHeight, (float)(Len.z / 2.0f) + pAttacker->m_vecPosition.y);
+				}
+				else
+					pAttacker->m_stEffectEvent.vecTo = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
+			}
+
+			if (pAttack->SkillIndex >= 151 && pAttack->SkillIndex <= 153 || 
+				pAttack->SkillIndex == 104 || pAttack->SkillIndex == 105)
+			{
+				pAttacker->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 200;
+			}
+			else
+			{
+				pAttacker->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
+			}
+		}
+		if (pAttacker->m_nClass == 62 && pAttacker->m_stLookInfo.FaceMesh == 2 && pAttack->SkillIndex == 108 && pTarget)
+		{
+			TMVector3 vecStart{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+			TMVector3 vecDest{ pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y };
+
+			vecDest.y += 1.0f;
+			vecStart.y += 1.0f;
+
+			auto pMagic = new TMSkillMagicArrow(vecStart, vecDest, 5, nullptr);
+			if (pMagic && m_pEffectContainer)
+				m_pEffectContainer->AddChild(pMagic);
+		}
+		else if (pAttack->SkillIndex == 6) // Aura da Vida
+		{
+			TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+			
+			auto pEffect = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFF5555FF, 0xFF222299, 1000, 1.0f, 5, 0.0f);
+			if (pEffect && m_pEffectContainer)
+				m_pEffectContainer->AddChild(pEffect);
+		}
+		else if (pAttack->SkillIndex == 3) // Perseguição
+		{
+			if (pAttacker)
+			{
+				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+				vecPos.y -= 0.5f;
+
+				auto pHoly = new TMSkillHolyTouch(vecPos, 1);
+
+				if (pHoly && m_pEffectContainer)
+					m_pEffectContainer->AddChild(pHoly);
+			}
+		}
+		else if (pAttack->SkillIndex == 5) // Fanatismo
+		{
+			if (pAttacker)
+			{
+				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+				vecPos.y -= 0.5f;
+
+				auto pEffect = new TMEffectStart(vecPos, 2, nullptr);
+				if (pEffect && m_pEffectContainer)
+					m_pEffectContainer->AddChild(pEffect);
+
+				GetSoundAndPlay(151, 0, 0);
+			}
+		}
+		else if (pAttack->SkillIndex == 45) // Arma Mágica
+		{
+			float fY = (float)pAttack->TargetY + 0.5f;
+			TMVector3 vecTarget{ (float)pAttack->TargetX + 0.5f, (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, fY)) * 0.1f, fY };
+
+			if (pTarget)
+				vecTarget = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 1.0f, pTarget->m_vecPosition.y);
+
+			auto pParticle = new TMEffectParticle(vecTarget, 0, 20, 0.1f, 0, 1, 56, 1.0f, 1, TMVector3(0.0f, 0.0f, 0.0f), 1000);
+			if (pParticle && m_pEffectContainer)
+				m_pEffectContainer->AddChild(pParticle);
+
+			GetSoundAndPlay(158, 0, 0);
+		}
+		else if (pAttack->SkillIndex == 34 && (unsigned char)pAttack->Motion == 254) // Relampago
+		{
+			if (pAttacker && pAttacker->m_pFamiliar)
+			{
+				auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
+				if (pEffect)
+				{
+					pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+					pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
+					pEffect->SetColor(0xFFAAEEFF);
+					m_pEffectContainer->AddChild(pEffect);
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 32 && (unsigned char)pAttack->Motion == 254) // Renascimento
+		{
+			if (pAttacker && pAttacker->m_pFamiliar)
+			{
+				auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
+				if (pEffect)
+				{
+					pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+					pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
+					pEffect->SetColor(0xFFFFAA00);
+					m_pEffectContainer->AddChild(pEffect);
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 36) // Tempestade de Meteoros
+		{
+			if ((unsigned char)pAttack->Motion == 254 && pAttacker && pAttacker->m_pFamiliar)
+			{
+				auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
+				if (pEffect)
+				{
+					pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+					pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
+					pEffect->SetColor(0xFFAAEEFF);
+					m_pEffectContainer->AddChild(pEffect);
+				}
+			}
+
+			TMVector3 vecPos{};
+			if (pTarget)
+				vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
+			else
+			{
+				float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
+				vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fY, (float)pAttack->TargetY + 0.5f);
+			}
+
+			for (int i = 0; i < 6; i++)
+			{
+				auto pMeteor = new TMSkillMeteorStorm(TMVector3(0.0f, 0.0f, 0.0f), TMVector3(((float)(i % 3) * 0.3f) + vecPos.x,
+					vecPos.y, ((float)((i + 3) % 5) * 0.3f) + vecPos.z), 1, 0);
+
+				if (pMeteor && m_pEffectContainer)
+					m_pEffectContainer->AddChild(pMeteor);
+			}
+		}
+		// Nevoa Venenosa, Choque Divino, Ataque de Fogo, Toque Sagrado
+		else if (pAttack->SkillIndex == 41 || pAttack->SkillIndex == 29	|| pAttack->SkillIndex == 33 || pAttack->SkillIndex == 2)
+		{
+			for (int i = 0; i < 13; i++)
+			{
+				if ((unsigned char)pAttack->Motion == 254)
+				{
+					if (i >= 4)
+						break;
+				}
+				else if (g_pSpell[pAttack->SkillIndex].MaxTarget <= i)
+					break;
+
+				auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+				if (pTargetHuman && pTargetHuman != pAttacker)
+				{
+					if (pAttack->SkillIndex == 33)
+					{
+						if (!pAttack->FlagLocal || pAttack->FlagLocal == 1 && pAttacker && pAttacker == m_pMyHuman)
+						{
+							int nValue = 0;
+							if ((unsigned char)pAttack->Motion == 254)
+								nValue = 1;
+							if ((unsigned char)pAttack->Motion == 253)
+								nValue = 2;
+							if ((unsigned char)pAttack->Motion == 252)
+							{
+								auto vecPos = TMVector3((float)pAttack->PosX + 0.5f, 1.0f, (float)pAttack->PosY + 0.5f);
+								if (pAttacker)
+									vecPos = TMVector3(pAttacker->m_vecPosition.x, (float)(pAttacker->m_fScale * 5.5999999f) + pAttacker->m_fHeight, pAttacker->m_vecPosition.y);
+
+								auto pEffect = new TMEffectSpark(vecPos, pTargetHuman, TMVector3(0.0f, 0.0f, 0.0f),
+									0xFF5555FF, 0xFF222299, 1000, 1.0f, 5, 0.0f);
+
+								if (pEffect && m_pEffectContainer)
+									m_pEffectContainer->AddChild(pEffect);
+							}
+							else
+							{
+								auto pThunder = new TMSkillThunderBolt(TMVector3(pTargetHuman->m_vecPosition.x,
+									pTargetHuman->m_fHeight,
+									pTargetHuman->m_vecPosition.y), nValue);
+
+								if (pThunder && m_pEffectContainer)
+									m_pEffectContainer->AddChild(pThunder);
+							}
+						}
+					}
+					else
+					{						
+						pTargetHuman->m_stEffectEvent.sEffectIndex = pAttack->SkillIndex;
+						pTargetHuman->m_stEffectEvent.sEffectLevel = (unsigned char)pAttack->SkillParm;
+						pTargetHuman->m_stEffectEvent.pTarget = pTargetHuman;
+
+						if (pTargetHuman && pAttacker && pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh)
+						{
+							TMVector3 Len{ pTargetHuman->m_vecPosition.x - pAttacker->m_vecPosition.x, pTargetHuman->m_fHeight,
+								pTargetHuman->m_vecPosition.y - pAttacker->m_vecPosition.y };
+
+							pAttacker->m_stEffectEvent.vecTo = TMVector3((float)(Len.x / 2.0) + pAttacker->m_vecPosition.x,
+								pTargetHuman->m_fHeight,
+								(float)(Len.z / 2.0) + pAttacker->m_vecPosition.y);
+						}
+						else
+						{
+							pTargetHuman->m_stEffectEvent.vecTo = TMVector3(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight, pTargetHuman->m_vecPosition.y);
+						}
+
+						pTargetHuman->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
+					}
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 52) // Enfraquecer
+		{
+			if ((unsigned char)pAttack->Motion == 254)
+			{
+				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+				if (pTarget)
+				{
+					TMVector3 vecTarget{ pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y };
+
+					auto pSlowSlash = new TMSkillSlowSlash(vecPos, vecTarget, 2, pTarget);
+					if (pSlowSlash)
+						m_pEffectContainer->AddChild(pSlowSlash);
+
+					unsigned int dwServerTime = g_pTimerManager->GetServerTime();
+
+					auto pLevelUp = new TMEffectLevelUp(vecTarget, 2);
+					if (pLevelUp)
+						m_pEffectContainer->AddChild(pLevelUp);
+
+					if (pTarget->m_pEleStream2)
+						pTarget->m_pEleStream2->StartVisible(dwServerTime);
+
+					GetSoundAndPlay(156, 0, 0);
+				}
+			}
+			else
+			{
+				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+				TMVector3 vecTarget;
+				if (pTarget)
+					vecTarget = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
+				else
+				{
+					float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
+					vecTarget = TMVector3((float)pAttack->TargetX + 0.5f, fY, (float)pAttack->TargetY + 0.5f);
+				}
+				auto result = ((vecTarget - vecPos) / 7.0f);
+				vecTarget = vecPos + result;
+
+				auto pFreeze = new TMSkillFreezeBlade(vecTarget, 2, 0, 0);
+				if (pFreeze)
+					pFreeze->m_vecNextD = TMVector2(result.x, result.z);
+
+				if (m_pEffectContainer && pFreeze)
+					m_pEffectContainer->AddChild(pFreeze);
+			}
+		}
+		// Recuperar, Exterminar
+		else if (pAttack->SkillIndex == 30 || pAttack->SkillIndex == 23)
+		{
+			if (pAttacker)
+			{
+				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pAttacker->m_vecPosition.y };
+				int nType = 0;
+				if (pAttack->SkillIndex == 23)
+				{
+					nType = 2;
+
+					if (pTarget)
+						vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 0.5f, pTarget->m_vecPosition.y);
+					else
+						vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fHeight + 0.5f, (float)pAttack->TargetY + 0.5f);
+				}
+
+				auto pJudgement = new TMSkillJudgement(vecPos, nType, 0.1f);
+				if (pJudgement)
+					m_pEffectContainer->AddChild(pJudgement);
+			}
+		}
+		else if (pAttack->SkillIndex == 55) // Aura Bestial
+		{
+			TMVector3 vecPos;
+			if (pTarget)
+			{
+				vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 0.2f, pTarget->m_vecPosition.y);
+
+				auto pJudgement = new TMSkillJudgement(vecPos, 3, 0.1f);
+				if (pJudgement)
+					m_pEffectContainer->AddChild(pJudgement);
+			}
+			else
+			{
+				float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
+				vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fY + 0.2f, (float)pAttack->TargetY + 0.5f);
+			}
+
+			for (int i = 0; i < 13; i++)
+			{
+				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+					break;
+
+				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+					break;
+
+				auto pOwner = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+				if (pOwner)
+				{
+					auto pEffect = new TMEffectStart(TMVector3(pOwner->m_vecPosition.x, pOwner->m_fHeight + 0.5f, pOwner->m_vecPosition.y), 5, pOwner);
+
+					if (pEffect)
+					{
+						pEffect->m_dwLifeTime = 2000;
+						m_pEffectContainer->AddChild(pEffect);
+					}
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 76) // Imunidade
+		{
+			GetSoundAndPlay(34, 0, 0);
+		}
+		else if (pAttack->SkillIndex == 77) // Meditação
+		{
+			GetSoundAndPlay(36, 0, 0);
+		}
+		else if (pAttack->SkillIndex == 87) // Escudo Dourado
+		{
+			if (!g_bHideEffect)
+			{
+				for (int i = 0; i < 10; i++)
+				{
+					int nRand = rand() % 5;
+
+					auto pBill = new TMEffectBillBoard(
+						56,
+						150 * i + 1000,
+						((float)(i % 2) * 0.1f) + 0.2f,
+						((float)(i % 2) * 0.1f) + 0.2f,
+						((float)(i % 2) * 0.1f) + 0.2f,
+						0.0f,
+						1,
+						80);
+
+					if (pBill)
+					{
+						pBill->m_fParticleH = (float)((float)(i % 3) * 0.15f) + 1.1f;
+						pBill->m_fParticleV = -2.0f;
+						pBill->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+						pBill->m_nParticleType = 3;
+
+						pBill->m_vecStartPos = TMVector3((pAttacker->m_vecPosition.x + 0.5f) + ((float)(nRand - 3) * 0.1f),
+							((pAttacker->m_fHeight + 0.5f) + ((float)(nRand - 3) * 0.1f)) + 2.0f,
+							(pAttacker->m_vecPosition.y + 0.5f) + ((float)(nRand - 3) * 0.1f));
+
+						pBill->SetColor(0xFF4444FF);
+
+						m_pEffectContainer->AddChild(pBill);
+					}
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 86) // Explosão Etérea
+		{
+			if (pAttacker)
+			{
+				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pAttacker->m_vecPosition.y };
+				TMVector2 vecSum{};
+
+				int nCount = 0;
+				for (int i = 0; i < 13; i++)
+				{
+					if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+						break;
+
+					if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+						break;
+
+					auto pOwner = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+					if (pOwner)
+					{
+						TMVector3 vecDest{ pOwner->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pOwner->m_vecPosition.y };
+
+						vecSum.x += pOwner->m_vecPosition.x;
+						vecSum.y += pOwner->m_vecPosition.y;
+						++nCount;
+
+						auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
+
+						m_pEffectContainer->AddChild(pArrow);
+					}
+				}
+
+				TMVector2 vecDNormal{};
+				if (nCount <= 0)
+					vecDNormal = TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f);
+				else
+					vecDNormal = vecSum / static_cast<const float>(nCount);
+
+				float fAng = atan2f(vecDNormal.x - pAttacker->m_vecPosition.x, -vecDNormal.y + pAttacker->m_vecPosition.y);
+				fAng -= D3DXToRadian(90);
+
+				if (fAng < 0.0f)
+					fAng += D3DXToRadian(360);
+				if (fAng > D3DXToRadian(360))
+					fAng -= D3DXToRadian(360);
+
+				int nIndex = (int)((fAng * 12.0f) / D3DXToRadian(360));
+				int nMin = nIndex - 3;
+				int nMax = nIndex + 3;
+
+				if (nMin < 0 || nMax > 12)
+				{
+					int nLow = 0;
+					int nHigh = 0;
+
+					if (nMin >= 0)
+					{
+						nLow = nMin;
+						nHigh = nMax - 12;
+					}
+					else
+					{
+						nLow = nMin + 12;
+						nHigh = nMax;
+					}
+
+					for (int i = 0; i < nHigh; i++)
+					{
+						TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
+						TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
+
+						auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
+
+						m_pEffectContainer->AddChild(pArrow);
+					}
+					for (int i = nLow; i < 12; i++)
+					{
+						TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
+						TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
+
+						auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
+
+						m_pEffectContainer->AddChild(pArrow);
+					}
+				}
+				else
+				{
+					for (int i = nMin; i < nMax; i++)
+					{
+						TMVector2 vecCDest{ vecDNormal.x + m_vecKnifePos[i].x, vecDNormal.y + m_vecKnifePos[i].y };
+						TMVector3 vecDest{ vecCDest.x, pAttacker->m_fHeight + 0.5f, vecCDest.y };
+
+						auto pArrow = new TMArrow(vecPos, vecDest, 2, 152, 0, 0, 0);
+
+						m_pEffectContainer->AddChild(pArrow);
+					}
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 99) // Muro de Espinhos
+		{
+			if (pTarget)
+			{
+				bool bExpand = false;
+				if (pTarget->m_nClass == 4 || pTarget->m_nClass == 8)
+					bExpand = 1;
+
+				auto pEffectSkinMesh = new TMEffectSkinMesh(
+					pTarget->m_nSkinMeshType,
+					TMVector3(0.0f, 0.0f, 0.0f), 
+					TMVector3(0.0f, 0.0f, 0.0f), 
+					0,
+					nullptr);
+
+				if (pTarget && pTarget->m_cMount > 0 && pTarget->m_pMount)
+				{
+					pEffectSkinMesh->m_nSkinMeshType = pTarget->m_nMountSkinMeshType;
+					memcpy(&pEffectSkinMesh->m_stLookInfo, &pTarget->m_stMountLook, sizeof(pTarget->m_stMountLook));
+					pEffectSkinMesh->m_nSkinMeshType2 = pTarget->m_nSkinMeshType;
+					memcpy(&pEffectSkinMesh->m_stLookInfo2, &pTarget->m_stLookInfo, sizeof(pTarget->m_stLookInfo));
+				}
+				else
+				{
+					memcpy(&pEffectSkinMesh->m_stLookInfo, &pTarget->m_stLookInfo, sizeof(pTarget->m_stLookInfo));
+				}
+
+				pEffectSkinMesh->m_StartColor.r = 0.5f;
+				pEffectSkinMesh->m_StartColor.g = 0.5f;
+				pEffectSkinMesh->m_StartColor.b = 0.5f;
+				pEffectSkinMesh->InitObject(bExpand);
+				pEffectSkinMesh->m_nFade = 1;
+				pEffectSkinMesh->m_dwLifeTime = 3000;
+				pEffectSkinMesh->InitPosition(pTarget->m_vecPosition.x, pTarget->m_fHeight + 6.0f, pTarget->m_vecPosition.y);
+
+				if (pTarget->m_cMount > 0 && pTarget->m_pMount)
+				{
+					if (pEffectSkinMesh->m_pSkinMesh)
+						pEffectSkinMesh->m_pSkinMesh->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType].dwAniTable[0]);
+					if (pEffectSkinMesh->m_pSkinMesh2)
+						pEffectSkinMesh->m_pSkinMesh2->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType2].dwAniTable[24]);
+				}
+				else
+				{
+					pEffectSkinMesh->m_pSkinMesh->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType].dwAniTable[0]);
+				}
+
+				pEffectSkinMesh->m_fStartAngle = pTarget->m_fAngle;
+				pEffectSkinMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+				pEffectSkinMesh->m_nMotionType = 8;
+
+				m_pEffectContainer->AddChild(pEffectSkinMesh);
+			}
+
+			unsigned int dwColor = 0xAAAAAAAA;
+
+			for(int i = -1; i < 2; i++)
+			{
+				auto pEffectMesh = new TMEffectMesh(506, dwColor, 0.0f, 0);
+
+				pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+				pEffectMesh->m_cShine = 1;
+				pEffectMesh->m_dwCycleTime = 3000;
+				pEffectMesh->m_dwLifeTime = 3000;
+				pEffectMesh->m_fScaleH = 1.5f;
+				pEffectMesh->m_fScaleV = 3.0f;
+				pEffectMesh->m_vecPosition = TMVector3(((float)i * 0.2f) + pTarget->m_vecPosition.x, pTarget->m_fHeight - 0.5f, ((float)i * 0.2f) + pTarget->m_vecPosition.y);
+
+				m_pEffectContainer->AddChild(pEffectMesh);
+			}
+
+			auto pShade = new TMShade(4, 118, 1.0f);
+
+			pShade->m_dwLifeTime = 8000;
+			pShade->SetColor(dwColor);
+			pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+			pShade->SetPosition(TMVector2(pTarget->m_vecPosition.x, pTarget->m_vecPosition.y));
+			
+			m_pEffectContainer->AddChild(pShade);
+
+			GetSoundAndPlay(1, 0, 0);
+		}
+		else if (pAttack->SkillIndex == 100) // Ressureição
+		{
+			GetSoundAndPlay(156, 0, 0);
+		}
+		else if (pAttack->SkillIndex == 106 || pAttack->SkillIndex == 108)
+		{
+			int nSkill = 0;
+			if (pAttack->SkillIndex == 108)
+				nSkill = 1;
+
+			if (pTarget && pAttacker)
+				pAttacker->Fire(pTarget, nSkill);
+		}
+		else if (pAttack->SkillIndex == 107)
+		{
+			if (pTarget && pAttacker)
+			{
+				fHeight = ((float)(TMHuman::m_vecPickSize[pAttacker->m_nSkinMeshType].y	* pAttacker->m_fScale) * 0.69999999f) + pAttacker->m_fHeight;
+				if(pAttacker->m_nSkinMeshType == 8)
+					fHeight = (float)(1.0f * pAttacker->m_fScale) + fHeight;
+
+				TMVector3 vecPos{ pAttacker->m_vecPosition.x, fHeight, pAttacker->m_vecPosition.y };
+
+				auto pEffectSpark = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFFFFAA00, 0xFF554411, 1000, 1.0f, 5, 0.0f);
+
+				m_pEffectContainer->AddChild(pEffectSpark);
+			}
+		}
+		else if (pAttack->SkillIndex == 109)
+		{
+			if (pTarget && pAttacker)
+			{
+				fHeight = ((float)(TMHuman::m_vecPickSize[pAttacker->m_nSkinMeshType].y * pAttacker->m_fScale) * 0.69999999f) + pAttacker->m_fHeight;
+				if (pAttacker->m_nSkinMeshType == 42)
+					fHeight = (float)(1.0f * pAttacker->m_fScale) + fHeight;
+
+				TMVector3 vecPos{ pAttacker->m_vecPosition.x, fHeight, pAttacker->m_vecPosition.y };
+
+				auto pEffectSpark = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFF550000, 0xAA663311, 1000, 1.0f, 5, 0.0f);
+
+				m_pEffectContainer->AddChild(pEffectSpark);
+			}
+		}
+		else if (pAttack->SkillIndex == 110) // Skill Kefra
+		{
+			TMVector3 vecTarget{};
+			TMVector3 vecStart{};
+			bool bMyAttack = false;
+			for (int i = 0; i < 13; i++)
+			{
+				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+					break;
+
+				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+					break;
+
+				int rndx = rand() % 18;
+				int rndy = rand() % 18;
+
+				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+
+				if (pMultiTarget)
+				{
+					if (pMultiTarget == m_pMyHuman)
+						bMyAttack = true;
+
+					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+						pMultiTarget->m_fHeight - 5.0f,
+						pMultiTarget->m_vecPosition.y);
+
+					vecStart = vecTarget;
+					vecStart.y = 1.0f;
+
+					auto pMeteor = new TMSkillMeteorStorm(vecStart, vecTarget, 3, nullptr);
+					pMeteor->m_dwStartTime += rand() % 1000;
+					
+					m_pEffectContainer->AddChild(pMeteor);
+				}
+				else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
+				{
+					auto pMeteor = new TMSkillMeteorStorm(
+						TMVector3(((float)rndx + vecStart.x) - 9.0f, vecStart.y, ((float)rndy + vecStart.z) - 9.0f), 
+						TMVector3(((float)rndx + vecTarget.x) - 9.0f, vecTarget.y, ((float)rndy + vecTarget.z) - 9.0f), 
+						3, nullptr);
+
+					pMeteor->m_dwStartTime += rand() % 1000;
+
+					m_pEffectContainer->AddChild(pMeteor);
+				}
+			}
+
+			if (pAttacker->m_dwEarthQuakeTime + 1700 < g_pTimerManager->GetServerTime())
+			{
+				pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime() - 1000;
+
+				for (int i = -3; i < 3; i++)
+				{
+					for (int j = -3; i < 3; i++)
+					{
+						auto pBill = new TMEffectBillBoard(193, 4000, 2.0f, 2.0f, 2.0f, 0.001f, 1, 80);
+
+						pBill->m_bStickGround = i % 2;
+						pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x, pAttacker->m_fHeight, ((float)j * 2.0f) + pAttacker->m_vecPosition.y);
+						pBill->SetColor(0xFF777799);
+
+						m_pEffectContainer->AddChild(pBill);
+					}
+				}
+
+				auto pGround = m_pGround;
+				if (pGround)
+				{
+					pGround->m_dwEffStart = g_pTimerManager->GetServerTime();
+					pGround->m_vecEffset = pAttacker->m_vecPosition;
+				}
+			}
+
+			int nDistance = BASE_GetDistance((int)pAttacker->m_vecPosition.x, (int)pAttacker->m_vecPosition.y, 
+				(int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
+
+			unsigned int Now = g_pTimerManager->GetServerTime();
+
+			unsigned int dwKhepraDelay = 2000;
+			if (!bMyAttack)
+				dwKhepraDelay = 1000;
+			if (nDistance < 18)
+			{
+				if (dwKhepraDelay + m_pMyHuman->m_dwOldMovePacketTime < Now && !m_pMyHuman->m_cDie &&
+					m_pMyHuman->m_eMotion != ECHAR_MOTION::ECMOTION_DEAD && 
+					m_pMyHuman->m_eMotion != ECHAR_MOTION::ECMOTION_DIE)
+				{
+					int nRan = 4;
+					int nLength = 5;
+
+					if (!bMyAttack)
+					{
+						nRan = 8;
+						nLength = 9;
+					}
+
+					if (rand() % 10 < nRan)
+					{
+						m_pTargetHuman = nullptr;
+						if (!g_bRunning)
+							SetRunMode();
+
+						int x = (int)m_pMyHuman->m_vecPosition.x;
+						int y = (int)m_pMyHuman->m_vecPosition.y;
+
+						int nMoveX = 0;
+						int nMoveY = 0;
+						if (x <= 2362)
+							nMoveX = -nLength;
+						else if (x >= 2370)
+							nMoveX = nLength;
+						if (y <= 3927)
+							nMoveY = -nLength;
+						else if (y >= 3935)
+							nMoveY = nLength;
+
+						int targetx = (int)((float)nMoveX + m_pMyHuman->m_vecPosition.x);
+						int targety = (int)((float)nMoveY + m_pMyHuman->m_vecPosition.y);
+						if (targetx < 2341)
+							targetx = 2341;
+						else if (targetx > 2391)
+							targetx = 2391;
+						if (targety < 3907)
+							targetx = 3907;
+						else if (targety > 3952)
+							targety = 3952;
+
+						char Route[48]{};
+						BASE_GetRoute(x, y, &targetx, &targety, Route, 12, (char*)m_HeightMapData, 8);
+						if (!strlen(Route))
+							{ nReturnValue = 1; return true; }
+
+						MSG_Action Msg{};
+						Msg.Header.ID = m_pMyHuman->m_dwID;
+						Msg.Header.Type = MSG_Action_Opcode;
+						Msg.PosX = targetx;
+						Msg.PosY = targety;
+						Msg.Effect = 2;
+						Msg.TargetX = targetx;
+						Msg.TargetY = targety;
+
+						g_bLastStop = MSG_Action_Opcode;
+
+						m_stMoveStop.LastX = targetx;
+						m_stMoveStop.LastY = targety;
+						m_stMoveStop.NextX = targetx;
+						m_stMoveStop.NextY = targety;
+
+						SendOneMessage((char*)&Msg, sizeof(Msg));
+
+						m_pMyHuman->m_dwOldMovePacketTime = g_pTimerManager->GetServerTime();
+						m_pMyHuman->OnPacketEvent(MSG_Action_Opcode, (char*)&Msg);
+					}
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 111)
+		{
+			TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+
+			auto pShade = new TMShade(70, 118, 1.0f);
+
+			pShade->SetColor(0xAA660000);
+			pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+			pShade->SetPosition(TMVector2(pAttacker->m_vecPosition.x, pAttacker->m_vecPosition.y));
+			pShade->m_dwLifeTime = 3200;
+			m_pEffectContainer->AddChild(pShade);
+
+			TMVector3 vecTarget{};
+			TMVector3 vecTarget2{};
+			TMVector3 vecD{};
+			TMVector3 vecPos2{};
+			D3DXVECTOR3 vecDNormal{};
+
+			for (int i = 0; i < 13; i++)
+			{
+				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+					break;
+
+				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+					break;
+
+				int rndx = rand() % 18;
+				int rndy = rand() % 18;
+				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+				if (pMultiTarget)
+				{
+					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x, pMultiTarget->m_fHeight, pMultiTarget->m_vecPosition.y);
+					vecTarget2 = vecTarget;
+
+					auto pFreeze = new TMSkillFreezeBlade(vecTarget2, 8, 1, 0);
+					pFreeze->m_vecNextD = TMVector2(vecD.x, vecD.z);
+
+					m_pEffectContainer->AddChild(pFreeze);
+				}
+				else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
+				{
+					vecTarget2 = TMVector3(((float)rndx + vecTarget.x) - 9.0f, vecTarget.y, ((float)rndy + vecTarget.z) - 9.0f);
+					
+					auto pFreeze = new TMSkillFreezeBlade(vecTarget2, 8, 1, 0);
+					pFreeze->m_vecNextD = TMVector2(vecD.x, vecD.z);
+
+					m_pEffectContainer->AddChild(pFreeze);
+				}
+			}
+		}
+		else if (pAttacker->m_nClass == 56 && !pAttacker->m_stLookInfo.FaceMesh)
+		{
+			TMVector3 vecSpTarget = pAttacker->m_vecTempPos[2];
+			TMVector3 vecSpStart = pAttacker->m_vecTempPos[1];
+			TMVector3 vecStart{};
+			TMVector3 vecTarget{};
+			for (int i = 0; i < 13; i++)
+			{
+				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+					break;
+
+				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+					break;
+
+				int rndx = rand() % 18;
+				int rndy = rand() % 18;
+
+				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+				if (pMultiTarget)
+				{
+					TMVector3 vecStart = pAttacker->m_vecTempPos[i % 2 + 1];
+					TMVector3 vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+						pMultiTarget->m_fHeight + 1.0f,
+						pMultiTarget->m_vecPosition.y);
+
+					auto pEffectSpark = new TMEffectSpark(vecStart,
+						pMultiTarget,
+						TMVector3(0.0f, 0.0f, 0.0f),
+						0xFFFF0000,
+						0xFF222299,
+						1000,
+						1.0f,
+						5,
+						0.0);
+
+					pEffectSpark->m_fRange = 0.2f;
+					m_pEffectContainer->AddChild(pEffectSpark);
+				}
+				else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
+				{
+					vecStart = pAttacker->m_vecTempPos[i % 2 + 1];
+
+					auto pEffectSpark = new TMEffectSpark(vecStart,
+						nullptr,
+						TMVector3(((float)rndx + vecTarget.x) - 9.0f,
+							vecTarget.y,
+							(float)((float)rndy + vecTarget.z) - 9.0f),
+						0xFFFF0000,
+						0xFF222299,
+						1000,
+						1.0f,
+						5,
+						0.0);
+
+					pEffectSpark->m_fRange = 0.4f;
+					m_pEffectContainer->AddChild(pEffectSpark);
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 113)
+		{
+			pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
+			unsigned int dwColor = 0xFF33FF66;
+
+			TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+
+			auto pShade = new TMShade(70, 118, 1.0f);
+			pShade->SetColor(0xAA660000);
+			pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+			pShade->SetPosition(TMVector2(pAttacker->m_vecPosition.x, pAttacker->m_vecPosition.y));
+			pShade->m_dwLifeTime = 3200;
+			m_pEffectContainer->AddChild(pShade);
+
+			TMVector3 vecTarget{};
+			TMVector3 vecD{};
+			TMVector3 vecPos2{};
+			D3DXVECTOR3 vecDNormal{};
+
+			for (int i = 0; i < 13; i++)
+			{
+				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+				if (pMultiTarget)
+				{
+					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+						pMultiTarget->m_fHeight,
+						pMultiTarget->m_vecPosition.y);
+
+					auto pFreeze = new TMSkillFreezeBlade(vecTarget, 8, 1, 0);
+					m_pEffectContainer->AddChild(pFreeze);
+
+					auto pPoison = new TMSkillPoison(vecTarget, dwColor, 10, 1, 0);
+					m_pEffectContainer->AddChild(pPoison);
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 114)
+		{
+			TMVector3 vecTarget{};
+			TMVector3 vecStart{};
+
+			bool bMyAttack = false;
+			pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
+
+			for (int i = 0; i < 13; i++)
+			{
+				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+				if (pMultiTarget)
+				{
+					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+						pMultiTarget->m_fHeight - 5.0f,
+						pMultiTarget->m_vecPosition.y);
+					vecTarget = vecStart;
+					vecStart.y = 1.0f;
+
+					auto pJudgement = new TMSkillJudgement(vecStart, 2, 0.1f);
+
+					m_pEffectContainer->AddChild(pJudgement);
+
+					TMVector3 vec{};
+					for (int j = 0; j < 4; j++)
+					{
+						vec = TMVector3(((float)(2 * (j % 2)) + vecTarget.x) - 1.0f,
+							vecTarget.y,
+							((float)(2 * (j / 2)) + vecTarget.z) - 1.0f);
+
+						auto pFreeze = new TMSkillFreezeBlade(
+							vec, 1, 0, 0
+						);
+
+						m_pEffectContainer->AddChild(pFreeze);
+					}
+
+					TMVector3 vecDest{ pMultiTarget->m_vecPosition.x,
+							  pMultiTarget->m_fHeight + 0.5f,
+							  pMultiTarget->m_vecPosition.y };
+
+					vecStart = TMVector3(vecDest.x + 3.0f, vecDest.y + 5.0f, vecDest.z - 3.0f);
+
+					auto pArrow = new TMArrow(vecStart, vecDest, 0, 10001, 0, 0, 0);
+					pArrow->m_nColor = 0xFFFFFF00;
+
+					m_pEffectContainer->AddChild(pArrow);
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 115)
+		{
+			TMVector3 vecTarget{};
+			TMVector3 vecStart{};
+			if (pAttacker->m_nClass != 73)
+				pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
+
+			for (int i = 0; i < 13; i++)
+			{
+				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+				if (pMultiTarget)
+				{
+					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+						pMultiTarget->m_fHeight - 5.0f,
+						pMultiTarget->m_vecPosition.y);
+
+					vecStart = vecTarget;
+					vecStart.y = 10.0f;
+
+					auto pMeteor = new TMSkillMeteorStorm(vecStart,
+						vecTarget,
+						3,
+						nullptr);
+
+					m_pEffectContainer->AddChild(pMeteor);
+				}
+			}
+
+			int ran = rand() % 10;
+
+			if (ran >= 6)
+			{
+				if (pAttacker->m_dwEarthQuakeTime + 4000 < g_pTimerManager->GetServerTime())
+				{
+					pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime() - 2000;
+
+					for (int i = -3; i < 3; i++)
+					{
+						for (int j = -3; j < 3; j++)
+						{
+							auto pBill = new TMEffectBillBoard(193,
+								4000,
+								2.0f,
+								2.0f,
+								2.0f,
+								0.001f,
+								1,
+								80);
+
+							pBill->m_bStickGround = i % 2;
+							pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x,
+								pAttacker->m_fHeight,
+								(float)((float)j * 2.0f) + pAttacker->m_vecPosition.y);
+							pBill->SetColor(0xFF777799);
+
+							m_pEffectContainer->AddChild(pBill);
+						}
+					}
+
+					auto pGround = m_pGround;
+					if (pGround)
+					{
+						pGround->m_dwEffStart = g_pTimerManager->GetServerTime();
+						pGround->m_vecOffset = pAttacker->m_vecPosition;
+					}
+
+					auto pCamera = g_pObjectManager->GetCamera();
+					pCamera->EarthQuake(11);
+					
+					GetSoundAndPlay(160, 0, 0);
+				}
+			}
+		}
+		else if (pAttack->SkillIndex == 116)
+		{
+			TMVector3 vecTarget{};
+			TMVector3 vecStart{};
+			pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
+			
+			for (int i = 0; i < 13; i++)
+			{
+				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+				if (pMultiTarget)
+				{
+					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+						pMultiTarget->m_fHeight - 5.0f,
+						pMultiTarget->m_vecPosition.y);
+
+					vecStart = vecTarget;
+					vecStart.y = 10.0f;
+
+					auto pMeteor = new TMSkillMeteorStorm(vecStart, 
+						vecTarget,
+						3, 
+						0);
+
+					m_pEffectContainer->AddChild(pMeteor);
+				}
+			}
+
+			for (int i = -3; i < 3; i++)
+			{
+				for (int j = -3; j < 3; j++)
+				{
+					auto pBill = new TMEffectBillBoard(193,
+						4000,
+						2.0f,
+						2.0f,
+						2.0f,
+						0.001f,
+						1,
+						80);
+
+					pBill->m_bStickGround = i % 2;
+					pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x,
+						pAttacker->m_fHeight,
+						(float)((float)j * 2.0f) + pAttacker->m_vecPosition.y);
+					pBill->SetColor(0xFF777799);
+
+					m_pEffectContainer->AddChild(pBill);
+				}
+			}
+		}
+	}
+}
+else
+{
+	bool bFind = false;
+	for (int i = 0; i < 13; i++)
+	{
+		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+			break;
+
+		if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+			break;
+
+		if (pAttack->Dam[i].TargetID = m_pMyHuman->m_dwID)
+		{
+			bFind = true;
+			break;
+		}
+	}
+
+	if (bFind || pAttack->SkillIndex > 55 && pAttack->SkillIndex > 63)
+	{
+		TMVector2 vecAttackerPos{ (float)pAttack->PosX + 0.5f, (float)pAttack->PosY + 0.5f };
+
+		MSG_STANDARDPARM stParm{};
+		stParm.Header.ID = g_pObjectManager->m_dwCharID;
+		stParm.Header.Type = 0x369;
+		stParm.Parm = pAttack->AttackerID;
+		SendOneMessage((char*)&stParm, sizeof(stParm));
+	}
+}
+	return false;
 }
