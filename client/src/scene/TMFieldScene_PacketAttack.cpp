@@ -508,48 +508,7 @@ if (pAttacker)
 			TMVector3 vecTarget{};
 			TMVector3 vecStart{};
 			bool bMyAttack = false;
-			for (int i = 0; i < 13; i++)
-			{
-				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-					break;
-
-				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-					break;
-
-				int rndx = rand() % 18;
-				int rndy = rand() % 18;
-
-				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-
-				if (pMultiTarget)
-				{
-					if (pMultiTarget == m_pMyHuman)
-						bMyAttack = true;
-
-					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-						pMultiTarget->m_fHeight - 5.0f,
-						pMultiTarget->m_vecPosition.y);
-
-					vecStart = vecTarget;
-					vecStart.y = 1.0f;
-
-					auto pMeteor = new TMSkillMeteorStorm(vecStart, vecTarget, 3, nullptr);
-					pMeteor->m_dwStartTime += rand() % 1000;
-					
-					m_pEffectContainer->AddChild(pMeteor);
-				}
-				else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
-				{
-					auto pMeteor = new TMSkillMeteorStorm(
-						TMVector3(((float)rndx + vecStart.x) - 9.0f, vecStart.y, ((float)rndy + vecStart.z) - 9.0f), 
-						TMVector3(((float)rndx + vecTarget.x) - 9.0f, vecTarget.y, ((float)rndy + vecTarget.z) - 9.0f), 
-						3, nullptr);
-
-					pMeteor->m_dwStartTime += rand() % 1000;
-
-					m_pEffectContainer->AddChild(pMeteor);
-				}
-			}
+			PacketAttack_Skill110Meteors(pAttack, vecTarget, vecStart, bMyAttack);
 
 			if (pAttacker->m_dwEarthQuakeTime + 1700 < g_pTimerManager->GetServerTime())
 			{
@@ -1415,6 +1374,54 @@ void TMFieldScene::PacketAttack_Skill99TargetImage(TMHuman*& pTarget)
 		pEffectSkinMesh->m_nMotionType = 8;
 
 		m_pEffectContainer->AddChild(pEffectSkinMesh);
+	}
+}
+
+/// Skill 110: chuva de meteoros (`TMSkillMeteorStorm`) sobre cada alvo.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill110Meteors(MSG_Attack*& pAttack, TMVector3& vecTarget, TMVector3& vecStart, bool& bMyAttack)
+{
+	for (int i = 0; i < 13; i++)
+	{
+		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+			break;
+
+		if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+			break;
+
+		int rndx = rand() % 18;
+		int rndy = rand() % 18;
+
+		auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+
+		if (pMultiTarget)
+		{
+			if (pMultiTarget == m_pMyHuman)
+				bMyAttack = true;
+
+			vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+				pMultiTarget->m_fHeight - 5.0f,
+				pMultiTarget->m_vecPosition.y);
+
+			vecStart = vecTarget;
+			vecStart.y = 1.0f;
+
+			auto pMeteor = new TMSkillMeteorStorm(vecStart, vecTarget, 3, nullptr);
+			pMeteor->m_dwStartTime += rand() % 1000;
+			
+			m_pEffectContainer->AddChild(pMeteor);
+		}
+		else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
+		{
+			auto pMeteor = new TMSkillMeteorStorm(
+				TMVector3(((float)rndx + vecStart.x) - 9.0f, vecStart.y, ((float)rndy + vecStart.z) - 9.0f), 
+				TMVector3(((float)rndx + vecTarget.x) - 9.0f, vecTarget.y, ((float)rndy + vecTarget.z) - 9.0f), 
+				3, nullptr);
+
+			pMeteor->m_dwStartTime += rand() % 1000;
+
+			m_pEffectContainer->AddChild(pMeteor);
+		}
 	}
 }
 
