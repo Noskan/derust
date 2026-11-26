@@ -375,6 +375,7 @@ private:
 	void PacketAttack_SwingEffect(MSG_Attack*& pAttack, TMHuman*& pAttacker);
 	void PacketAttack_PrepareEffectEvent(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget);
 	void PacketAttack_Skill41Targets(MSG_Attack*& pAttack, TMHuman*& pAttacker);
+	void PacketAttack_Skill52Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget);
 	bool PacketAttack_ApplyTargets(MSG_Attack*& pAttack, TMHuman*& pAttacker, bool& bomb, TMVector2& vecAttackerPos, int& nClass, TMVector3& vecStart, TMVector3& vecTarget, unsigned int& dwDelay, int& nReturnValue);
 	/// @}
 

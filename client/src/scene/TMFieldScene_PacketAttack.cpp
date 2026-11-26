@@ -350,50 +350,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 52) // Enfraquecer
 		{
-			if ((unsigned char)pAttack->Motion == 254)
-			{
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-				if (pTarget)
-				{
-					TMVector3 vecTarget{ pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y };
-
-					auto pSlowSlash = new TMSkillSlowSlash(vecPos, vecTarget, 2, pTarget);
-					if (pSlowSlash)
-						m_pEffectContainer->AddChild(pSlowSlash);
-
-					unsigned int dwServerTime = g_pTimerManager->GetServerTime();
-
-					auto pLevelUp = new TMEffectLevelUp(vecTarget, 2);
-					if (pLevelUp)
-						m_pEffectContainer->AddChild(pLevelUp);
-
-					if (pTarget->m_pEleStream2)
-						pTarget->m_pEleStream2->StartVisible(dwServerTime);
-
-					GetSoundAndPlay(156, 0, 0);
-				}
-			}
-			else
-			{
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-				TMVector3 vecTarget;
-				if (pTarget)
-					vecTarget = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
-				else
-				{
-					float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
-					vecTarget = TMVector3((float)pAttack->TargetX + 0.5f, fY, (float)pAttack->TargetY + 0.5f);
-				}
-				auto result = ((vecTarget - vecPos) / 7.0f);
-				vecTarget = vecPos + result;
-
-				auto pFreeze = new TMSkillFreezeBlade(vecTarget, 2, 0, 0);
-				if (pFreeze)
-					pFreeze->m_vecNextD = TMVector2(result.x, result.z);
-
-				if (m_pEffectContainer && pFreeze)
-					m_pEffectContainer->AddChild(pFreeze);
-			}
+			PacketAttack_Skill52Effect(pAttack, pAttacker, pTarget);
 		}
 		// Recuperar, Exterminar
 		else if (pAttack->SkillIndex == 30 || pAttack->SkillIndex == 23)
@@ -1387,6 +1344,56 @@ void TMFieldScene::PacketAttack_Skill41Targets(MSG_Attack*& pAttack, TMHuman*& p
 				pTargetHuman->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
 			}
 		}
+	}
+}
+
+/// Skill 52 com `Motion` 254: efeitos no atacante e no alvo.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill52Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget)
+{
+	if ((unsigned char)pAttack->Motion == 254)
+	{
+		TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+		if (pTarget)
+		{
+			TMVector3 vecTarget{ pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y };
+
+			auto pSlowSlash = new TMSkillSlowSlash(vecPos, vecTarget, 2, pTarget);
+			if (pSlowSlash)
+				m_pEffectContainer->AddChild(pSlowSlash);
+
+			unsigned int dwServerTime = g_pTimerManager->GetServerTime();
+
+			auto pLevelUp = new TMEffectLevelUp(vecTarget, 2);
+			if (pLevelUp)
+				m_pEffectContainer->AddChild(pLevelUp);
+
+			if (pTarget->m_pEleStream2)
+				pTarget->m_pEleStream2->StartVisible(dwServerTime);
+
+			GetSoundAndPlay(156, 0, 0);
+		}
+	}
+	else
+	{
+		TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+		TMVector3 vecTarget;
+		if (pTarget)
+			vecTarget = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
+		else
+		{
+			float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
+			vecTarget = TMVector3((float)pAttack->TargetX + 0.5f, fY, (float)pAttack->TargetY + 0.5f);
+		}
+		auto result = ((vecTarget - vecPos) / 7.0f);
+		vecTarget = vecPos + result;
+
+		auto pFreeze = new TMSkillFreezeBlade(vecTarget, 2, 0, 0);
+		if (pFreeze)
+			pFreeze->m_vecNextD = TMVector2(result.x, result.z);
+
+		if (m_pEffectContainer && pFreeze)
+			m_pEffectContainer->AddChild(pFreeze);
 	}
 }
 
