@@ -944,39 +944,7 @@ if (dwServerTime > m_dwOldAttackTime + 1000 &&
 			{ nReturnValue = 1; return true; }
 		}
 	}
-	if ((int)stAttack.Dam[0].TargetID > 0 || cSkillIndex == 97 || cSkillIndex == 35 || cSkillIndex == 51)
-	{
-		for (int l = g_pSpell[(unsigned char)cSkillIndex].MaxTarget; l < 13; ++l)
-		{
-			stAttack.Dam[l].TargetID = 0;
-			stAttack.Dam[l].Damage = 0;
-		}
-
-		int nSize = sizeof(MSG_Attack);
-		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget == 1)
-		{
-			stAttack.Header.Type = MSG_Attack_One_Opcode;
-			nSize = sizeof(MSG_AttackOne);
-		}
-		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget == 2)
-		{
-			stAttack.Header.Type = MSG_Attack_Two_Opcode;
-			nSize = sizeof(MSG_AttackTwo);
-		}
-
-		MSG_Attack stAttackLocal{};
-		memcpy(&stAttackLocal, &stAttack, nSize);
-		stAttackLocal.Header.ID = m_dwID;
-		stAttackLocal.FlagLocal = 1;
-		if (nSpecForce)
-			stAttackLocal.DoubleCritical |= 8;
-
-		OnPacketEvent(stAttack.Header.Type, (char*)&stAttackLocal);
-		SendOneMessage((char*)&stAttack, nSize);
-		IncSkillSel();
-		m_dwOldAttackTime = dwServerTime;
-		m_dwSkillLastTime[(unsigned char)cSkillIndex] = dwServerTime;
-	}
+	SkillUse_SendAttack(dwServerTime, nSpecForce, cSkillIndex, stAttack);
 	if (cSkillIndex != 85)
 		{ nReturnValue = 1; return true; }			
 }
@@ -1558,6 +1526,45 @@ bool TMFieldScene::SkillUse_Skill98TargetCheck(D3DXVECTOR3& vec, int& nSpecForce
 			{ nReturnValue = 1; return true; }
 	}
 	return false;
+}
+
+/// Monta o pacote conforme `MaxTarget`, aplica localmente (`OnPacketEvent`) e envia.
+/// @note Extraído de `TMFieldScene::SkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+void TMFieldScene::SkillUse_SendAttack(unsigned int& dwServerTime, int& nSpecForce, char& cSkillIndex, MSG_Attack& stAttack)
+{
+	if ((int)stAttack.Dam[0].TargetID > 0 || cSkillIndex == 97 || cSkillIndex == 35 || cSkillIndex == 51)
+	{
+		for (int l = g_pSpell[(unsigned char)cSkillIndex].MaxTarget; l < 13; ++l)
+		{
+			stAttack.Dam[l].TargetID = 0;
+			stAttack.Dam[l].Damage = 0;
+		}
+
+		int nSize = sizeof(MSG_Attack);
+		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget == 1)
+		{
+			stAttack.Header.Type = MSG_Attack_One_Opcode;
+			nSize = sizeof(MSG_AttackOne);
+		}
+		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget == 2)
+		{
+			stAttack.Header.Type = MSG_Attack_Two_Opcode;
+			nSize = sizeof(MSG_AttackTwo);
+		}
+
+		MSG_Attack stAttackLocal{};
+		memcpy(&stAttackLocal, &stAttack, nSize);
+		stAttackLocal.Header.ID = m_dwID;
+		stAttackLocal.FlagLocal = 1;
+		if (nSpecForce)
+			stAttackLocal.DoubleCritical |= 8;
+
+		OnPacketEvent(stAttack.Header.Type, (char*)&stAttackLocal);
+		SendOneMessage((char*)&stAttack, nSize);
+		IncSkillSel();
+		m_dwOldAttackTime = dwServerTime;
+		m_dwSkillLastTime[(unsigned char)cSkillIndex] = dwServerTime;
+	}
 }
 
 /// Alvo fora de alcance: aproxima o personagem antes de usar a skill.
