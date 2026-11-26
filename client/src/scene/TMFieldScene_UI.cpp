@@ -189,30 +189,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == B_CCMODE_SYSTEM)
 		return OnControl_CCModeSystem(idwControlID, idwEvent);
 	if (idwControlID == B_CCMODE_DLG_MOUNT)
-	{
-		g_GameAuto_mountValue += 10;
-
-		if (g_GameAuto_mountValue > 90)
-			g_GameAuto_mountValue = 30;
-
-		char szText[128]{};
-
-		if (g_GameAuto_mountValue)
-			sprintf_s(szText, g_pMessageStringTable[478], g_GameAuto_mountValue);
-		else
-			sprintf_s(szText, g_pMessageStringTable[477]);
-
-		auto pChatItem = new SListBoxItem(szText, 0xFFFFAAAA, 0.0f, 0.0f, 300.0f, 16.0f, 0, 0x77777777u, 1u, 0);
-
-		if (pChatItem)
-			m_pChatList->AddItem(pChatItem);
-
-		sprintf_s(szText, "%d%%", g_GameAuto_mountValue);
-
-		m_pCCModeMountSte->SetText(szText, 0);
-
-		return 0;
-	}
+		return OnControl_CCModeMount(idwControlID, idwEvent);
 	if (idwControlID == B_CCMODE_DLG_HP)
 	{
 		g_GameAuto_hpValue += 10;
