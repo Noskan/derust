@@ -15,6 +15,8 @@
 *   along with this program.  If not, see [http://www.gnu.org/licenses/].
 *
 */
+#include <cstddef>
+
 #include "net/ProcessClientMessage.h"
 
 void Exec_MSG_MessageWhisper(int conn, char *pMsg)
@@ -24,7 +26,7 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 	int Clan = pMob[conn].MOB.Clan;
 
 	m->MobName[NAME_LENGTH - 1] = 0;
-	m->String[MESSAGEWHISPER_LENGTH - 1] = 0;
+	m->String[CHAT_LENGTH - 1] = 0;
 
 	if (pUser[conn].Mode != USER_PLAY)
 		return;
@@ -123,7 +125,7 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 			return;
 			
 		MSG_MagicTrumpet sm_mt;
-		memset(&sm_mt, 0, sizeof(MSG_STANDARDPARM));
+		memset(&sm_mt, 0, sizeof(MSG_MagicTrumpet));
 
 		sm_mt.Size = sizeof(MSG_MagicTrumpet);
 		sm_mt.ID = 0;
@@ -131,13 +133,16 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 
 		sprintf(temp, "[%s]> %s", pMob[conn].MOB.MobName, m->String);
 
-		strncpy(sm_mt.String, temp, 96);
-
-		sm_mt.String[94] = 1;
+		// Texto corrido a partir de MobName, até os 126 caracteres que o cliente mostra (ele zera
+		// String[110] e [111]). O byte String[94] = 1 do layout antigo saiu: este cliente não o lê,
+		// e num texto longo ele virava um caractere de controle no meio da frase.
+		char *text = reinterpret_cast<char*>(&sm_mt) + offsetof(MSG_MagicTrumpet, MobName);
+		strncpy(text, temp, NAME_LENGTH + 110);
+		text[NAME_LENGTH + 110] = 0;
 
 		DBServerSocket.SendOneMessage((char*)&sm_mt, sizeof(MSG_MagicTrumpet));
 
-		sprintf(temp, "chat_spk,%s %s", pMob[conn].MOB.MobName, sm_mt.String);
+		sprintf(temp, "chat_spk,%s %s", pMob[conn].MOB.MobName, text);
 		ChatLog(temp, pUser[conn].AccountName, pUser[conn].IP);
 		return;
 	}
@@ -1140,7 +1145,7 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 		{
 			strncpy(m->MobName, pMob[conn].MOB.MobName, NAME_LENGTH);
 
-			m->String[MESSAGE_LENGTH] = 3;
+			m->Color = 3; // guilda (no layout antigo, o byte String[96])
 
 			int guild = pMob[conn].MOB.Guild;
 
@@ -1362,7 +1367,7 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 		if (m->String[0] == '-' || m->String[0] == '=')
 			m->String[0] = ' ';
 
-		m->String[MESSAGE_LENGTH] = 0;
+		m->Color = 0; // sussurro direto (no layout antigo, o byte String[96])
 
 		memcpy(m->MobName, pMob[conn].MOB.MobName, NAME_LENGTH);
 		memcpy(pUser[target].LastChat, m->MobName, NAME_LENGTH);

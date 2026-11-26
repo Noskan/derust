@@ -100,4 +100,15 @@ W2_FIELD(MSG_CNFClientCharacterLogin, Weather, 1044, 2);
 W2_FIELD(MSG_CNFClientCharacterLogin, ShortSkill, 1046, 16);
 W2_FIELD(MSG_CNFClientCharacterLogin, Ext1, 1062, 288);
 W2_FIELD(MSG_CNFClientCharacterLogin, Ext2, 1350, 362);
+
+// Pacotes de jogo (docs/DIVERGENCIAS.md, "Pacotes com campos em outros offsets").
+static_assert(sizeof(MSG_MessageChat) == 140, "MSG_MessageChat deve ter 140 bytes (cliente).");
+W2_FIELD(MSG_MessageChat, String, 12, 128);
+static_assert(sizeof(MSG_MessageWhisper) == 160, "MSG_MessageWhisper deve ter 160 bytes (cliente).");
+W2_FIELD(MSG_MessageWhisper, MobName, 12, 16);
+W2_FIELD(MSG_MessageWhisper, String, 28, 128);
+W2_FIELD(MSG_MessageWhisper, Color, 156, 2);
+static_assert(sizeof(MSG_MagicTrumpet) == 160, "MSG_MagicTrumpet deve ter 160 bytes (MSG_MessageWhisper no cliente).");
+W2_FIELD(MSG_MagicTrumpet, MobName, 12, 16);
+W2_FIELD(MSG_MagicTrumpet, String, 28, 128);
 #endif

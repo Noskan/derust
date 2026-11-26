@@ -127,7 +127,7 @@
 
 #define		MAX_NOTIFY_LENGTH		96
 #define		MESSAGE_LENGTH			96 
-#define		MESSAGEWHISPER_LENGTH	100 
+#define		CHAT_LENGTH				128		// Texto de MSG_MessageChat/MSG_MessageWhisper no cliente
 
 #define		NAME_LENGTH				16
 
@@ -1422,10 +1422,15 @@ const short  _MSG_StillPlaying				= (29 | FLAG_GAME2CLIENT);
 const short  _MSG_SetClan					= (147 | FLAG_GAME2CLIENT);  // STANDARD PARM
 
 const short  _MSG_MagicTrumpet				= (29 | FLAG_DB2GAME | FLAG_GAME2DB | FLAG_GAME2CLIENT);
+/// @brief Trombeta (0xD1D). O cliente a lê como MSG_MessageWhisper, mas mostra um texto corrido a
+/// partir de MobName (TMScene_Packets.cpp, limitado em String[110]): o servidor grava o texto
+/// formatado a partir de MobName, atravessando String.
 struct		  MSG_MagicTrumpet
 {
 	_MSG;
-	char String[MESSAGE_LENGTH];
+	char MobName[NAME_LENGTH];
+	char String[CHAT_LENGTH];
+	unsigned short Color;
 };
 
 const short  _MSG_DBNotice					= (30 | FLAG_DB2GAME | FLAG_GAME2DB | FLAG_GAME2CLIENT);
@@ -1464,7 +1469,7 @@ const short  _MSG_MessageChat				= (51 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 struct		  MSG_MessageChat
 {
 	_MSG;
-	char String[MESSAGE_LENGTH];
+	char String[CHAT_LENGTH];
 };
 
 
@@ -1473,7 +1478,8 @@ struct		  MSG_MessageWhisper
 {
 	_MSG;
 	char MobName[NAME_LENGTH];
-	char String[MESSAGEWHISPER_LENGTH];
+	char String[CHAT_LENGTH];
+	unsigned short Color;	// Cor no cliente: 3 = guilda, 7 = cinza; o resto, a do texto
 };
 
 const short  _MSG_UpdateCarry				= (133 | FLAG_GAME2CLIENT);

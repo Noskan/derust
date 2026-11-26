@@ -21,8 +21,8 @@ void Exec_MSG_MessageChat(int conn, char *pMsg)
 {
 	MSG_MessageChat *m = (MSG_MessageChat*)pMsg;
 
-	m->String[MESSAGE_LENGTH - 1] = 0;
-	m->String[MESSAGE_LENGTH - 2] = 0;
+	m->String[CHAT_LENGTH - 1] = 0;
+	m->String[CHAT_LENGTH - 2] = 0;
 
 	m->ID = conn;
 
@@ -175,8 +175,8 @@ void Exec_MSG_MessageChat(int conn, char *pMsg)
 
 	}
 
-	m->String[MESSAGE_LENGTH - 1] = 0;
-	m->String[MESSAGE_LENGTH - 2] = 0;
+	m->String[CHAT_LENGTH - 1] = 0;
+	m->String[CHAT_LENGTH - 2] = 0;
 
 	if(pUser[conn].MuteChat == 1)
 	{
