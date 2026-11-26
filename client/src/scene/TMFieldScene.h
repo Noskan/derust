@@ -341,6 +341,7 @@ private:
 	int OnControl_AddScore2(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_AddScore3(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_AddScore4(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
+	int OnControl_ChatListOpen(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:

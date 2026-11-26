@@ -906,20 +906,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 475138)
 		return OnControl_PartyListClick(idwControlID, idwEvent, dwServerTime, cktrans);
 	if (idwControlID == 475139)
-	{
-		if (!m_pChatListPanel->IsVisible())
-		{
-			MSG_STANDARDPARM stParm{};
-			stParm.Header.Type = 0x37E;
-			stParm.Header.ID = m_pMyHuman->m_dwID;
-			stParm.Parm = 0;
-
-			SendOneMessage((char*)&stParm, sizeof(stParm));
-
-			m_pPartyPanel->SetVisible(0);
-		}
-		return 1;
-	}
+		return OnControl_ChatListOpen(idwControlID, idwEvent);
 	if (idwControlID == 617)
 	{
 		if (m_dwLastCheckTime + 2000 <= g_pApp->m_pTimerManager->GetServerTime())

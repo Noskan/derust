@@ -3029,3 +3029,21 @@ int TMFieldScene::OnControl_AddScore4(unsigned int idwControlID, unsigned int id
 	SendOneMessage((char*)&stApplyBonus, sizeof(stApplyBonus));
 	return 1;
 }
+
+/// Abre a lista de chat e pede o pacote 0x37E (controle 475139).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_ChatListOpen(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (!m_pChatListPanel->IsVisible())
+	{
+		MSG_STANDARDPARM stParm{};
+		stParm.Header.Type = 0x37E;
+		stParm.Header.ID = m_pMyHuman->m_dwID;
+		stParm.Parm = 0;
+
+		SendOneMessage((char*)&stParm, sizeof(stParm));
+
+		m_pPartyPanel->SetVisible(0);
+	}
+	return 1;
+}
