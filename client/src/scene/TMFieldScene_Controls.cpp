@@ -1660,3 +1660,37 @@ int TMFieldScene::OnControl_PlayerMenu643(unsigned int idwControlID, unsigned in
 	m_pMessagePanel->SetVisible(1, 1);
 	return 1;
 }
+
+/// Menu de contexto do jogador alvo, controle 912 (guilda).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_PlayerMenu912(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (!m_pPGTOver)
+		return 0;
+
+	if (!g_pCurrentScene)
+		return 0;
+	if (m_pPGTOver->m_usGuild)
+	{
+		m_pMessagePanel->SetMessage(g_pMessageStringTable[364], 2000);
+		m_pMessagePanel->SetVisible(1, 1);
+		return 0;
+	}
+
+	if (g_pObjectManager->m_stMobData.Coin >= 1000000)
+	{
+		MSG_STANDARDPARM2 stParm2{};
+		stParm2.Header.Type = MSG_InviteGuild_Opcode;
+		stParm2.Header.ID = m_pMyHuman->m_dwID;
+		stParm2.Parm1 = m_pPGTOver->m_dwID;
+		
+		SendOneMessage((char*)&stParm2, sizeof(stParm2));
+		m_pPGTPanel->SetVisible(0);
+		m_pPGTOver = 0;
+		return 0;
+	}
+
+	m_pMessagePanel->SetMessage(g_pMessageStringTable[155], 2000);
+	m_pMessagePanel->SetVisible(1, 1);
+	return 0;
+}

@@ -1358,36 +1358,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == 912)
-	{
-		if (!m_pPGTOver)
-			return 0;
-
-		if (!g_pCurrentScene)
-			return 0;
-		if (m_pPGTOver->m_usGuild)
-		{
-			m_pMessagePanel->SetMessage(g_pMessageStringTable[364], 2000);
-			m_pMessagePanel->SetVisible(1, 1);
-			return 0;
-		}
-
-		if (g_pObjectManager->m_stMobData.Coin >= 1000000)
-		{
-			MSG_STANDARDPARM2 stParm2{};
-			stParm2.Header.Type = MSG_InviteGuild_Opcode;
-			stParm2.Header.ID = m_pMyHuman->m_dwID;
-			stParm2.Parm1 = m_pPGTOver->m_dwID;
-			
-			SendOneMessage((char*)&stParm2, sizeof(stParm2));
-			m_pPGTPanel->SetVisible(0);
-			m_pPGTOver = 0;
-			return 0;
-		}
-
-		m_pMessagePanel->SetMessage(g_pMessageStringTable[155], 2000);
-		m_pMessagePanel->SetVisible(1, 1);
-		return 0;
-	}
+		return OnControl_PlayerMenu912(idwControlID, idwEvent);
 	if (idwControlID >= 913 && idwControlID <= 915)
 	{
 		if (!g_pCurrentScene)
