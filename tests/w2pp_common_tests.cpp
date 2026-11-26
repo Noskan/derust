@@ -168,14 +168,15 @@ void TestVisualCodes()
 	item.stEffect[0].cValue = 9;
 	CHECK(BASE_VisualAnctCode(&item) == 43);
 
+	// Refinação celestial: o código visual depende de (valor % 4): 0->0x30, 1->0x40, 2->0x10, 3->0x20.
 	item.stEffect[0].cValue = 230;
-	CHECK(BASE_VisualAnctCode(&item) == 0x30);
-	item.stEffect[0].cValue = 231;
-	CHECK(BASE_VisualAnctCode(&item) == 0x40);
-	item.stEffect[0].cValue = 232;
 	CHECK(BASE_VisualAnctCode(&item) == 0x10);
-	item.stEffect[0].cValue = 233;
+	item.stEffect[0].cValue = 231;
 	CHECK(BASE_VisualAnctCode(&item) == 0x20);
+	item.stEffect[0].cValue = 232;
+	CHECK(BASE_VisualAnctCode(&item) == 0x30);
+	item.stEffect[0].cValue = 233;
+	CHECK(BASE_VisualAnctCode(&item) == 0x40);
 
 	// Tintura retorna (cEffect - 3).
 	item = {};
