@@ -534,38 +534,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == P_CCMODE_DLG_PONT)
-	{
-		int posX = 0;
-		int posY = 0;
-
-		if (++m_AutoPostionUse >= 3)
-			m_AutoPostionUse = 0;
-
-		if (m_AutoPostionUse == 0)
-		{
-			m_pSetType->SetTextureSetIndex(463);
-			m_pSetType->m_pAltText->SetText(g_UIString[232], 0);
-		}
-		else if (m_AutoPostionUse == 1)
-		{
-			m_pSetType->SetTextureSetIndex(464);
-
-			posX = static_cast<int>(m_pMyHuman->m_vecPosition.x);
-			posY = static_cast<int>(m_pMyHuman->m_vecPosition.y);
-
-			m_pSetType->m_pAltText->SetText(g_UIString[233], 0);
-		}
-		else if (m_AutoPostionUse == 2)
-		{
-			m_pSetType->SetTextureSetIndex(465);
-			m_pSetType->m_pAltText->SetText((char*)"", 0);
-		}
-
-		m_AutoStartPointX = posX;
-		m_AutoStartPointY = posY;
-
-		return 0;
-	}
+		return OnControl_CCModeDialog(idwControlID, idwEvent);
 	if (idwControlID == TMB_MINIMAP)
 	{
 		SetVisibleMiniMap();

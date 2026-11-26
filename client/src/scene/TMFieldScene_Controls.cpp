@@ -1120,3 +1120,39 @@ int TMFieldScene::OnControl_ChatSelect(unsigned int idwControlID, unsigned int i
 
 	return 0;
 }
+
+/// Diálogo do modo CC (`P_CCMODE_DLG_PONT`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CCModeDialog(unsigned int idwControlID, unsigned int idwEvent)
+{
+	int posX = 0;
+	int posY = 0;
+
+	if (++m_AutoPostionUse >= 3)
+		m_AutoPostionUse = 0;
+
+	if (m_AutoPostionUse == 0)
+	{
+		m_pSetType->SetTextureSetIndex(463);
+		m_pSetType->m_pAltText->SetText(g_UIString[232], 0);
+	}
+	else if (m_AutoPostionUse == 1)
+	{
+		m_pSetType->SetTextureSetIndex(464);
+
+		posX = static_cast<int>(m_pMyHuman->m_vecPosition.x);
+		posY = static_cast<int>(m_pMyHuman->m_vecPosition.y);
+
+		m_pSetType->m_pAltText->SetText(g_UIString[233], 0);
+	}
+	else if (m_AutoPostionUse == 2)
+	{
+		m_pSetType->SetTextureSetIndex(465);
+		m_pSetType->m_pAltText->SetText((char*)"", 0);
+	}
+
+	m_AutoStartPointX = posX;
+	m_AutoStartPointY = posY;
+
+	return 0;
+}
