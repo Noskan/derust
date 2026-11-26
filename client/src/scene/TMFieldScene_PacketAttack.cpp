@@ -346,75 +346,7 @@ if (pAttacker)
 		// Nevoa Venenosa, Choque Divino, Ataque de Fogo, Toque Sagrado
 		else if (pAttack->SkillIndex == 41 || pAttack->SkillIndex == 29	|| pAttack->SkillIndex == 33 || pAttack->SkillIndex == 2)
 		{
-			for (int i = 0; i < 13; i++)
-			{
-				if ((unsigned char)pAttack->Motion == 254)
-				{
-					if (i >= 4)
-						break;
-				}
-				else if (g_pSpell[pAttack->SkillIndex].MaxTarget <= i)
-					break;
-
-				auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-				if (pTargetHuman && pTargetHuman != pAttacker)
-				{
-					if (pAttack->SkillIndex == 33)
-					{
-						if (!pAttack->FlagLocal || pAttack->FlagLocal == 1 && pAttacker && pAttacker == m_pMyHuman)
-						{
-							int nValue = 0;
-							if ((unsigned char)pAttack->Motion == 254)
-								nValue = 1;
-							if ((unsigned char)pAttack->Motion == 253)
-								nValue = 2;
-							if ((unsigned char)pAttack->Motion == 252)
-							{
-								auto vecPos = TMVector3((float)pAttack->PosX + 0.5f, 1.0f, (float)pAttack->PosY + 0.5f);
-								if (pAttacker)
-									vecPos = TMVector3(pAttacker->m_vecPosition.x, (float)(pAttacker->m_fScale * 5.5999999f) + pAttacker->m_fHeight, pAttacker->m_vecPosition.y);
-
-								auto pEffect = new TMEffectSpark(vecPos, pTargetHuman, TMVector3(0.0f, 0.0f, 0.0f),
-									0xFF5555FF, 0xFF222299, 1000, 1.0f, 5, 0.0f);
-
-								if (pEffect && m_pEffectContainer)
-									m_pEffectContainer->AddChild(pEffect);
-							}
-							else
-							{
-								auto pThunder = new TMSkillThunderBolt(TMVector3(pTargetHuman->m_vecPosition.x,
-									pTargetHuman->m_fHeight,
-									pTargetHuman->m_vecPosition.y), nValue);
-
-								if (pThunder && m_pEffectContainer)
-									m_pEffectContainer->AddChild(pThunder);
-							}
-						}
-					}
-					else
-					{						
-						pTargetHuman->m_stEffectEvent.sEffectIndex = pAttack->SkillIndex;
-						pTargetHuman->m_stEffectEvent.sEffectLevel = (unsigned char)pAttack->SkillParm;
-						pTargetHuman->m_stEffectEvent.pTarget = pTargetHuman;
-
-						if (pTargetHuman && pAttacker && pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh)
-						{
-							TMVector3 Len{ pTargetHuman->m_vecPosition.x - pAttacker->m_vecPosition.x, pTargetHuman->m_fHeight,
-								pTargetHuman->m_vecPosition.y - pAttacker->m_vecPosition.y };
-
-							pAttacker->m_stEffectEvent.vecTo = TMVector3((float)(Len.x / 2.0) + pAttacker->m_vecPosition.x,
-								pTargetHuman->m_fHeight,
-								(float)(Len.z / 2.0) + pAttacker->m_vecPosition.y);
-						}
-						else
-						{
-							pTargetHuman->m_stEffectEvent.vecTo = TMVector3(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight, pTargetHuman->m_vecPosition.y);
-						}
-
-						pTargetHuman->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
-					}
-				}
-			}
+			PacketAttack_Skill41Targets(pAttack, pAttacker);
 		}
 		else if (pAttack->SkillIndex == 52) // Enfraquecer
 		{
@@ -1379,6 +1311,81 @@ void TMFieldScene::PacketAttack_PrepareEffectEvent(MSG_Attack*& pAttack, TMHuman
 		else
 		{
 			pAttacker->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
+		}
+	}
+}
+
+/// Skills 41, 29, 33 e 2 (Névoa Venenosa, Choque Divino, Ataque de Fogo, Toque Sagrado): efeito em cada alvo de `pAttack->Dam`.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill41Targets(MSG_Attack*& pAttack, TMHuman*& pAttacker)
+{
+	for (int i = 0; i < 13; i++)
+	{
+		if ((unsigned char)pAttack->Motion == 254)
+		{
+			if (i >= 4)
+				break;
+		}
+		else if (g_pSpell[pAttack->SkillIndex].MaxTarget <= i)
+			break;
+
+		auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+		if (pTargetHuman && pTargetHuman != pAttacker)
+		{
+			if (pAttack->SkillIndex == 33)
+			{
+				if (!pAttack->FlagLocal || pAttack->FlagLocal == 1 && pAttacker && pAttacker == m_pMyHuman)
+				{
+					int nValue = 0;
+					if ((unsigned char)pAttack->Motion == 254)
+						nValue = 1;
+					if ((unsigned char)pAttack->Motion == 253)
+						nValue = 2;
+					if ((unsigned char)pAttack->Motion == 252)
+					{
+						auto vecPos = TMVector3((float)pAttack->PosX + 0.5f, 1.0f, (float)pAttack->PosY + 0.5f);
+						if (pAttacker)
+							vecPos = TMVector3(pAttacker->m_vecPosition.x, (float)(pAttacker->m_fScale * 5.5999999f) + pAttacker->m_fHeight, pAttacker->m_vecPosition.y);
+
+						auto pEffect = new TMEffectSpark(vecPos, pTargetHuman, TMVector3(0.0f, 0.0f, 0.0f),
+							0xFF5555FF, 0xFF222299, 1000, 1.0f, 5, 0.0f);
+
+						if (pEffect && m_pEffectContainer)
+							m_pEffectContainer->AddChild(pEffect);
+					}
+					else
+					{
+						auto pThunder = new TMSkillThunderBolt(TMVector3(pTargetHuman->m_vecPosition.x,
+							pTargetHuman->m_fHeight,
+							pTargetHuman->m_vecPosition.y), nValue);
+
+						if (pThunder && m_pEffectContainer)
+							m_pEffectContainer->AddChild(pThunder);
+					}
+				}
+			}
+			else
+			{						
+				pTargetHuman->m_stEffectEvent.sEffectIndex = pAttack->SkillIndex;
+				pTargetHuman->m_stEffectEvent.sEffectLevel = (unsigned char)pAttack->SkillParm;
+				pTargetHuman->m_stEffectEvent.pTarget = pTargetHuman;
+
+				if (pTargetHuman && pAttacker && pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh)
+				{
+					TMVector3 Len{ pTargetHuman->m_vecPosition.x - pAttacker->m_vecPosition.x, pTargetHuman->m_fHeight,
+						pTargetHuman->m_vecPosition.y - pAttacker->m_vecPosition.y };
+
+					pAttacker->m_stEffectEvent.vecTo = TMVector3((float)(Len.x / 2.0) + pAttacker->m_vecPosition.x,
+						pTargetHuman->m_fHeight,
+						(float)(Len.z / 2.0) + pAttacker->m_vecPosition.y);
+				}
+				else
+				{
+					pTargetHuman->m_stEffectEvent.vecTo = TMVector3(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight, pTargetHuman->m_vecPosition.y);
+				}
+
+				pTargetHuman->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
+			}
 		}
 	}
 }
