@@ -873,43 +873,7 @@ if (dwServerTime > m_dwOldAttackTime + 1000 &&
 				continue;
 			}
 
-			if (nDistance <= nGridDistance
-				&& nTX == x2
-				&& nTY == y2
-				&& pNode != m_pMyHuman
-				&& (!pNode->IsInTown() || !g_pSpell[(unsigned char)cSkillIndex].Aggressive))
-			{
-				if ((pNode->m_dwID <= 0 || pNode->m_dwID >= 1000 && !pNode->m_bParty && !pNode->m_cSummons) || 
-					(pNode->m_dwID > 0 && pNode->m_dwID < 1000 && (!g_pSpell[(unsigned char)cSkillIndex].Aggressive || pNode->IsInPKZone())))
-				{
-					if (g_pSpell[(unsigned char)cSkillIndex].Range == -1 && !nTargetIndex)
-					{
-						stAttack.Dam[0].TargetID = pNode->m_dwID;
-						stAttack.Dam[0].Damage = -2;
-						stAttack.Progress = TMFieldScene::m_usProgress;
-						nTargetIndex = 1;
-					}
-
-					stAttack.Dam[nTargetIndex].TargetID = pNode->m_dwID;
-					stAttack.Dam[nTargetIndex].Damage = -1;
-					if (pOver
-						&& pOver == pNode
-						&& nTargetIndex
-						&& (g_pSpell[(unsigned char)cSkillIndex].TargetType == 3
-							|| g_pSpell[(unsigned char)cSkillIndex].TargetType == 4
-							|| g_pSpell[(unsigned char)cSkillIndex].TargetType == 6))
-					{
-						unsigned int dwID = stAttack.Dam[0].TargetID;
-						int nDamage = stAttack.Dam[0].Damage;
-						stAttack.Dam[0].TargetID = stAttack.Dam[nTargetIndex].TargetID;
-						stAttack.Dam[0].Damage = stAttack.Dam[nTargetIndex].Damage;
-						stAttack.Dam[nTargetIndex].TargetID = dwID;
-						stAttack.Dam[nTargetIndex].Damage = nDamage;
-					}
-
-					++nTargetIndex;
-				}
-			}
+			SkillUse_AreaAddTarget(pOver, cSkillIndex, stAttack, nTargetIndex, pNode, x2, y2, nDistance, nTX, nTY, nGridDistance);
 
 			pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
 			if (g_pSpell[(unsigned char)cSkillIndex].TargetType == 3 && nTargetIndex > 7
@@ -1524,6 +1488,49 @@ bool TMFieldScene::SkillUse_AreaRangeCheck(D3DXVECTOR3& vec, unsigned int& dwSer
 		}
 	}
 	return false;
+}
+
+/// Personagem na grade de alcance da área: entra em `stAttack.Dam` se puder ser atingido.
+/// @note Extraído de `TMFieldScene::SkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+void TMFieldScene::SkillUse_AreaAddTarget(TMHuman*& pOver, char& cSkillIndex, MSG_Attack& stAttack, int& nTargetIndex, TMHuman*& pNode, int& x2, int& y2, int& nDistance, int& nTX, int& nTY, int& nGridDistance)
+{
+	if (nDistance <= nGridDistance
+		&& nTX == x2
+		&& nTY == y2
+		&& pNode != m_pMyHuman
+		&& (!pNode->IsInTown() || !g_pSpell[(unsigned char)cSkillIndex].Aggressive))
+	{
+		if ((pNode->m_dwID <= 0 || pNode->m_dwID >= 1000 && !pNode->m_bParty && !pNode->m_cSummons) || 
+			(pNode->m_dwID > 0 && pNode->m_dwID < 1000 && (!g_pSpell[(unsigned char)cSkillIndex].Aggressive || pNode->IsInPKZone())))
+		{
+			if (g_pSpell[(unsigned char)cSkillIndex].Range == -1 && !nTargetIndex)
+			{
+				stAttack.Dam[0].TargetID = pNode->m_dwID;
+				stAttack.Dam[0].Damage = -2;
+				stAttack.Progress = TMFieldScene::m_usProgress;
+				nTargetIndex = 1;
+			}
+
+			stAttack.Dam[nTargetIndex].TargetID = pNode->m_dwID;
+			stAttack.Dam[nTargetIndex].Damage = -1;
+			if (pOver
+				&& pOver == pNode
+				&& nTargetIndex
+				&& (g_pSpell[(unsigned char)cSkillIndex].TargetType == 3
+					|| g_pSpell[(unsigned char)cSkillIndex].TargetType == 4
+					|| g_pSpell[(unsigned char)cSkillIndex].TargetType == 6))
+			{
+				unsigned int dwID = stAttack.Dam[0].TargetID;
+				int nDamage = stAttack.Dam[0].Damage;
+				stAttack.Dam[0].TargetID = stAttack.Dam[nTargetIndex].TargetID;
+				stAttack.Dam[0].Damage = stAttack.Dam[nTargetIndex].Damage;
+				stAttack.Dam[nTargetIndex].TargetID = dwID;
+				stAttack.Dam[nTargetIndex].Damage = nDamage;
+			}
+
+			++nTargetIndex;
+		}
+	}
 }
 
 /// Alvo fora de alcance: aproxima o personagem antes de usar a skill.
