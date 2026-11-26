@@ -106,43 +106,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 1;
 	}
 	if (idwControlID >= TMB_HELLSTORE_SELECT_1 && idwControlID <= TMB_HELLSTORE_SELECT_4)
-	{
-		switch (idwControlID)
-		{
-		case TMB_HELLSTORE_SELECT_1:
-			if (m_pHellStoreDesc)
-				TMScene::LoadMsgText2(m_pHellStoreDesc, (char*)"UI\\hellStoredesc.txt", 21, 40);
-			break;
-		case TMB_HELLSTORE_SELECT_2:
-			if (m_pHellStoreDesc)
-				TMScene::LoadMsgText2(m_pHellStoreDesc, (char*)"UI\\hellStoredesc.txt", 41, 60);
-			break;
-		case TMB_HELLSTORE_SELECT_3:
-			if (m_pHellStoreDesc)
-				TMScene::LoadMsgText2(m_pHellStoreDesc, (char*)"UI\\hellStoredesc.txt", 61, 80);
-			break;
-		case TMB_HELLSTORE_SELECT_4:
-			if (m_pHellStoreDesc)
-				TMScene::LoadMsgText2(m_pHellStoreDesc, (char*)"UI\\hellStoredesc.txt", 81, 100);
-			break;
-		}
-
-		m_nHellStoreValue = idwControlID;
-		auto pHellgateStore = m_pHellgateStore;
-		SButton* pHellSelect = nullptr;
-		for (int i = 0; i < 4; ++i)
-		{
-			pHellSelect = (SButton*)m_pControlContainer->FindControl(i + TMB_HELLSTORE_SELECT_1);
-			if (pHellSelect)
-			{
-				if (i + 6193 == idwControlID)
-					pHellSelect->SetSelected(pHellgateStore->m_bVisible);
-				else
-					pHellSelect->SetSelected(0);
-			}
-		}
-		return 1;
-	}
+		return OnControl_HellStoreSelect(idwControlID, idwEvent);
 	if (idwControlID >= TMB_GAMBLE_LEFTX2 && idwControlID <= TMB_GAMBLE_RIGHT)
 	{
 		switch (idwControlID)

@@ -269,6 +269,11 @@ private:
 	
 	void InsertInChatList(SListBox* pChatList, STRUCT_MOB* pMobData, SEditableText* pEditChat, unsigned int dwColor, int colorId, unsigned int startId);
 
+	/// @name Handlers de OnControlEvent (TMFieldScene_Controls.cpp)
+	/// @{
+	int OnControl_HellStoreSelect(unsigned int idwControlID, unsigned int idwEvent);
+	/// @}
+
 public:
 	int m_bAirMove;
 	int m_nOldMountSkinMeshType;

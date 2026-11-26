@@ -123,6 +123,7 @@ set(TMPROJECT_SOURCES
   src/scene/TMFieldScene_PacketAttack.cpp
   src/scene/TMFieldScene_PacketItems.cpp
   src/scene/TMFieldScene_UI.cpp
+  src/scene/TMFieldScene_Controls.cpp
   src/scene/TMFieldScene_HUD.cpp
   src/scene/TMFieldScene_MsgBox.cpp
   src/scene/TMFieldScene_Panels.cpp
