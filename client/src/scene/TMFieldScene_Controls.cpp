@@ -2790,3 +2790,29 @@ int TMFieldScene::OnControl_PlayerMenu642(unsigned int idwControlID, unsigned in
 	m_pBtnPGTGIChief3->SetVisible(0);
 	return 0;
 }
+
+/// Menu de contexto do jogador alvo, controle 863 (submenu de guilda).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_PlayerMenu863(unsigned int idwControlID, unsigned int idwEvent)
+{
+	m_pBtnPGTGuildDrop->SetVisible(0);
+	m_pBtnPGTGuildWar->SetVisible(0);
+	m_pBtnPGTGuildAlly->SetVisible(0);
+	m_pBtnPGTGuildInvite->SetVisible(0);
+	if (!m_pMyHuman)
+		return 0;
+	if (!m_pPGTOver)
+		return 0;
+	if (!m_pPGTOver->m_usGuild)
+		m_pBtnPGTGICommon->SetVisible(0);
+
+	m_pBtnPGTGICommon->SetVisible(1);
+	if (m_pMyHuman->m_sGuildLevel == 9 && (m_pPGTOver->m_sGuildLevel < 3 || m_pPGTOver->m_sGuildLevel > 8) && 
+		m_pMyHuman->m_usGuild == m_pPGTOver->m_usGuild)
+	{
+		m_pBtnPGTGIChief1->SetVisible(1);
+		m_pBtnPGTGIChief2->SetVisible(1);
+		m_pBtnPGTGIChief3->SetVisible(1);
+	}
+	return 0;
+}

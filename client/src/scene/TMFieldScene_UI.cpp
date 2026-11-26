@@ -843,28 +843,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 642)
 		return OnControl_PlayerMenu642(idwControlID, idwEvent);
 	if (idwControlID == 863)
-	{
-		m_pBtnPGTGuildDrop->SetVisible(0);
-		m_pBtnPGTGuildWar->SetVisible(0);
-		m_pBtnPGTGuildAlly->SetVisible(0);
-		m_pBtnPGTGuildInvite->SetVisible(0);
-		if (!m_pMyHuman)
-			return 0;
-		if (!m_pPGTOver)
-			return 0;
-		if (!m_pPGTOver->m_usGuild)
-			m_pBtnPGTGICommon->SetVisible(0);
-
-		m_pBtnPGTGICommon->SetVisible(1);
-		if (m_pMyHuman->m_sGuildLevel == 9 && (m_pPGTOver->m_sGuildLevel < 3 || m_pPGTOver->m_sGuildLevel > 8) && 
-			m_pMyHuman->m_usGuild == m_pPGTOver->m_usGuild)
-		{
-			m_pBtnPGTGIChief1->SetVisible(1);
-			m_pBtnPGTGIChief2->SetVisible(1);
-			m_pBtnPGTGIChief3->SetVisible(1);
-		}
-		return 0;
-	}
+		return OnControl_PlayerMenu863(idwControlID, idwEvent);
 	if (idwControlID == 912)
 		return OnControl_PlayerMenu912(idwControlID, idwEvent);
 	if (idwControlID >= 913 && idwControlID <= 915)
