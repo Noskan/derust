@@ -213,32 +213,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID >= B_CHAT_SELECT_NOMAL && idwControlID <= B_CHAT_SELECT_SHOUT)
 		return OnControl_ChatSelect(idwControlID, idwEvent);
 	if (idwControlID == B_INV_PAGE1)
-	{
-		m_bJPNBag[0] = 1;
-		m_bJPNBag[3] = 0;
-		m_bJPNBag[2] = 0;
-		m_bJPNBag[1] = 0;
-		m_pGridInvList[0]->SetVisible(0);
-		m_pGridInvList[1]->SetVisible(0);
-		m_pGridInvList[2]->SetVisible(0);
-		m_pGridInvList[3]->SetVisible(0);
-		m_pGridInv = m_pGridInvList[0];
-		m_pGridInv->SetVisible(1);
-		m_pInvPageBtn1->SetTextureSetIndex(527);
-		m_pInvPageBtn2->SetTextureSetIndex(528);
-
-		if (g_pObjectManager->m_stMobData.Carry[60].sIndex == 3467)
-			m_pInvPageBtn3->SetTextureSetIndex(528);
-		else
-			m_pInvPageBtn3->SetTextureSetIndex(549);
-
-		if (g_pObjectManager->m_stMobData.Carry[61].sIndex == 3467)
-			m_pInvPageBtn4->SetTextureSetIndex(528);
-		else
-			m_pInvPageBtn4->SetTextureSetIndex(549);
-
-		return 0;
-	}
+		return OnControl_InvPage1(idwControlID, idwEvent);
 	if (idwControlID == B_INV_PAGE2)
 	{
 		m_bJPNBag[1] = 1;

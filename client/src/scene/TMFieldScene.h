@@ -309,6 +309,7 @@ private:
 	int OnControl_CCModeHP(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_CCModeMode(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_ChatListLight(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_InvPage1(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
