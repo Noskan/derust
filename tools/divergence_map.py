@@ -303,7 +303,14 @@ def packet_usage(side, opvalue, known):
     tok = SIDES[side]["opcode"]
 
     def value(t):
-        return int(t, 16) if t.lower().startswith("0x") else opvalue.get(t)
+        if t.lower().startswith("0x"):
+            return int(t, 16)
+        if t.isdigit():   # decimal (`Header.Type = 724;`): só valores de pacote, acima de 0xFF
+            return int(t) if int(t) > 0xFF else None
+        return opvalue.get(t)
+
+    # Nos envios também vale o decimal: o cliente monta vários pacotes com `Type = 652;`.
+    tok_send = tok + r"|[1-9][0-9]{2,4}"
 
     texts = {p: strip_comments(read(p)) for p in source_files(side)}
     # Definições de função por nome, para seguir `case X: Exec_X(conn, pMsg);` / `return OnPacketY(pStd);`.
@@ -323,7 +330,7 @@ def packet_usage(side, opvalue, known):
         def where(pos):
             return f"{rel}:{t.count(chr(10), 0, pos) + 1}"
 
-        for m in re.finditer(r"\b(\w+)\s*(?:\.|->)\s*(?:Header\s*\.\s*)?Type\s*=\s*(" + tok + r")\s*;", t):
+        for m in re.finditer(r"\b(\w+)\s*(?:\.|->)\s*(?:Header\s*\.\s*)?Type\s*=\s*(" + tok_send + r")\s*;", t):
             v = value(m.group(2))
             if v is None:
                 continue
@@ -334,7 +341,7 @@ def packet_usage(side, opvalue, known):
             if decls:
                 use[v]["send"][decls[-1].group(1)].add(where(m.start()))
         if side == "server":
-            for m in re.finditer(r"\b(SendClientSignal\w*)\s*\([^,()]+,[^,()]+,\s*(" + tok + r")\s*[,)]", t):
+            for m in re.finditer(r"\b(SendClientSignal\w*)\s*\([^,()]+,[^,()]+,\s*(" + tok_send + r")\s*[,)]", t):
                 st = SERVER_SIGNAL_HELPERS.get(m.group(1))
                 v = value(m.group(2))
                 if st and v is not None:
@@ -546,7 +553,7 @@ def write_report(out_path, L, rules, bodies, usage, only):
     w("  `tools/mingw_check.py`, que reproduzem o layout do MSVC Win32) e executados no wine. Nada é estimado")
     w("  a partir do texto.")
     w("- **Pacotes**: um opcode é casado pelo valor (`_MSG_X` no servidor; `MSG_X_Opcode` ou literal no")
-    w("  cliente). A struct enviada vem de `var.Type = OPCODE` (com a declaração de `var`) e dos helpers")
+    w("  cliente; num envio, também o decimal acima de 255). A struct enviada vem de `var.Type = OPCODE` (com a declaração de `var`) e dos helpers")
     w("  `SendClientSignal*` do TMSrv. A struct lida vem do primeiro cast dentro do `case OPCODE:` ou da")
     w("  função que ele chama, ou do cast depois de um `if (p->Type == OPCODE)`. É análise de texto: um pacote montado de outro jeito (por exemplo, `memcpy`")
     w("  num buffer cru) não aparece, e o primeiro cast pode não ser a struct inteira do pacote. Quando o")
