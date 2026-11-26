@@ -409,6 +409,8 @@ def boot(host, work, exe_dir, args):
 
 
 def main():
+    # O console do Windows (cp1252) estraga os acentos das mensagens.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
     ap.add_argument("exe_dir", help="diretório com DBSrv.exe e TMSrv.exe")
     ap.add_argument("--keep", help="diretório de trabalho a manter (padrão: temporário)")

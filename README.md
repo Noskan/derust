@@ -53,7 +53,7 @@ Testes (CTest no MSVC; no wine pelo `mingw_check`):
 - [`w2pp_common_tests`](tests/w2pp_common_tests.cpp): casos unitários e travas de ABI.
 - [`w2pp_characterization_tests`](tests/w2pp_characterization_tests.cpp): hashes de referência de ~40 funções `BASE_*` com dados sintéticos, sem arquivos do jogo. Os hashes foram gerados com o código da tag `pre-modularization` e conferem com o atual. Após uma mudança **intencional** de regra, regrave com `w2pp_characterization_tests --print`.
 - [`tmproject_characterization_tests`](tests/tmproject_characterization_tests.cpp): o mesmo para ~55 funções `BASE_*` do cliente (`client/src/common`). Regrave com `tmproject_characterization_tests --print`.
-- [`server_boot_smoke.py`](tools/server_boot_smoke.py): sobe o DBSrv e o TMSrv do build mingw no wine, com uma árvore de dados sintética (sem arquivos do jogo). Confere que o TMSrv conecta no DBSrv, que as portas 7514/8895/8281 aceitam conexão e que os dois seguem no ar sem MessageBox nem exceção. Cobre partida, carregamento e timers, não jogabilidade.
+- [`server_boot_smoke.py`](tools/server_boot_smoke.py): sobe o DBSrv e o TMSrv com uma árvore de dados sintética (sem arquivos do jogo): no CI, o build mingw no wine e os builds MSVC Debug/Release nativos no Windows. No Windows: `python tools/server_boot_smoke.py <dir com DBSrv.exe e TMSrv.exe>`. Confere que o TMSrv conecta no DBSrv, que as portas 7514/8895/8281 aceitam conexão e que os dois seguem no ar sem MessageBox nem exceção. Cobre partida, carregamento e timers, não jogabilidade.
 
 Bugs latentes do código legado encontrados por essas ferramentas, os mantidos por paridade e os já corrigidos (cada um com teste): [`docs/BUGS_LATENTES.md`](docs/BUGS_LATENTES.md).
 
