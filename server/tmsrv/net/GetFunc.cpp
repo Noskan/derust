@@ -1215,15 +1215,26 @@ void GetCreateItem(int idx, MSG_CreateItem *sm)
 	if(pItem[idx].ITEM.sIndex == 3145)
 	{
 		int zone = BASE_GetVillage(pItem[idx].PosX, pItem[idx].PosY);
-		sm->Item.sIndex = 3145 + g_pGuildZone[zone].Victory;
+
+		// Fora das cidades BASE_GetVillage devolve MAX_GUILDZONE; antes a tabela era lida com esse
+		// índice (além do fim). Fora de cidade o estandarte fica sem vitória e sem guilda dona.
+		int victory = 0;
+		int chargeGuild = 0;
+		if (zone >= 0 && zone < MAX_GUILDZONE)
+		{
+			victory = g_pGuildZone[zone].Victory;
+			chargeGuild = g_pGuildZone[zone].ChargeGuild;
+		}
+
+		sm->Item.sIndex = 3145 + victory;
 
 		sm->State = STATE_CLOSED;
 
 		sm->Item.stEffect[0].cEffect = 56;
 		sm->Item.stEffect[1].cEffect = 57;
 
-		sm->Item.stEffect[0].cValue = (g_pGuildZone[zone].ChargeGuild + (ServerIndex << 12)) >> 8;
-		sm->Item.stEffect[1].cValue = g_pGuildZone[zone].ChargeGuild;
+		sm->Item.stEffect[0].cValue = (chargeGuild + (ServerIndex << 12)) >> 8;
+		sm->Item.stEffect[1].cValue = chargeGuild;
 	}
 	
 	if (pItem[idx].ITEM.sIndex == 5700)

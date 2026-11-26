@@ -12,11 +12,10 @@ explícita, num commit próprio, com um teste que mostra o defeito. Os corrigido
 ## Funções `BASE_*` e avisos de limites
 
 As leituras fora dos limites das funções `BASE_*` encontradas pelos testes de caracterização
-foram corrigidas (ver o fim do arquivo). Ficam registrados:
+foram corrigidas (ver o fim do arquivo). Fica registrado:
 
 | Onde | O que acontece | Quando dispara |
 |---|---|---|
-| `server/tmsrv/net/GetFunc.cpp:1218` | Item 3145: `g_pGuildZone[BASE_GetVillage(...)].Victory` sem validar. Fora das cidades `BASE_GetVillage` devolve 5 e a leitura passa do fim da tabela; o valor entra no índice do item enviado ao cliente | Item 3145 no chão fora de uma cidade (depende do dado do jogo) |
 | `client/src/common/BaseWorld.cpp`, `BASE_IsInLowZone` | Fora do mapa chama `MessageBox`/`PostMessage` com `g_pApp->m_hWnd` e fecha o cliente. É tratamento de erro, não leitura fora dos limites | Coordenada fora de 0..4095 |
 
 Outros comportamentos do cliente que o teste fixa como estão (não leem fora dos limites):
@@ -63,6 +62,7 @@ O GCC (`-Warray-bounds`) aponta ainda, no cliente:
 | `client/src/common/BaseItem.cpp`, `BASE_CanTrade` | `pos = (unsigned char)MyTrade[i]` e `if (pos != -1)`: a comparação era sempre verdadeira, e uma entrada -1 (255) **gravava** em `Dest[255]`, fora do inventário de 64 itens. A função não tem chamadores no cliente | `if (pos < MAX_CARRY)`: -1 marca slot vazio |
 | `client/src/common/BaseWorld.cpp`, `BASE_GetAttr` | `g_pAttribute[nY / 4 % 1024][nX / 4 % 1024]`: com coordenada negativa o resto era negativo e lia antes do início da tabela | Coordenada negativa devolve 0, como `BASE_GetAttribute` fora do mapa |
 | `server/tmsrv/handlers/items/_MSG_Buy.cpp` | O GCC apontava `GuildTax`, `Price`, `Price2`, `CityTax`, `bPrice` e `Desconto` possivelmente não inicializados. Análise: (1) `GuildTax` no `goto LABEL_BUY1` é inalcançável, porque o único uso exige cidade e imposto válidos, exatamente a negação do `goto`; (2) na compra por doação, o `goto DonateBuy` pula as declarações e o `ItemLog` gravava `price:` com lixo da pilha (a mensagem de depuração com `FREEEXP == -2` também); (3) `g_pGuildZone[Village].CityTax` era lido antes de validar `Village`, além do fim da tabela fora das cidades, e o valor era descartado pelo `goto` | As seis variáveis são declaradas com 0 antes do `goto DonateBuy`, e `CityTax` só é lido com índice válido (0 fora das cidades, como em `SendShopList`). Preço, imposto e dinheiro do jogador não mudam em nenhum caminho; o log da compra por doação passa a gravar `price:0`. Os 6 avisos `-Wmaybe-uninitialized` saíram da linha de base |
+| `server/tmsrv/net/GetFunc.cpp`, `GetCreateItem` | Item 3145 (estandarte da cidade): `g_pGuildZone[zone].Victory` e `.ChargeGuild` lidos sem validar `zone`. Fora das cidades `BASE_GetVillage` devolve 5, a leitura passava do fim da tabela e o valor entrava no índice e nos efeitos do item enviado ao cliente. Só dispara se o dado do jogo puser o 3145 fora de uma cidade | Com zona válida, nada muda. Fora das cidades `Victory` e `ChargeGuild` valem 0: estandarte sem vitória e sem guilda dona |
 
 Essas correções só mudam o resultado para entradas fora do domínio do jogo: os hashes de
 caracterização (que só usam entradas válidas) não mudaram. `TestOutOfDomainInputs` em
