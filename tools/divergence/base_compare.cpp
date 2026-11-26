@@ -335,8 +335,6 @@ void CaseItemState()
 		STRUCT_ITEM c = it;
 		BASE_ClearItem(&c);
 		Emit("BASE_ClearItem", in, Hex(&c, sizeof(c)));
-		int guild = r.Range(-2, 12);
-		Emit("BASE_GetSubGuild", "item " + I(guild), I(BASE_GetSubGuild(guild)));
 	}
 }
 
@@ -349,14 +347,13 @@ void CaseEquipCargoTrade()
 		STRUCT_ITEM it = RandomItem(r);
 		STRUCT_SCORE score = RandomScore(r);
 		int pos = r.Range(0, 15);
-		int cls = r.Range(0, 3);
-		std::string in = ItemStr(it) + " pos " + I(pos) + " class " + I(cls) + " lvl " + I(score.Level);
-#if defined(DIV_CLIENT)
-		int eq = BASE_CanEquip(&it, &score, pos, cls, mob.Equip, cls, false);
-#else
-		STRUCT_MOBEXTRA extra{};
-		int eq = BASE_CanEquip(&it, &score, pos, cls, mob.Equip, &extra);
-#endif
+		// Rosto: dezena = classe, unidade 1..4 mortal, 6..9 evoluído; 22..25 e 32 são transformações.
+		static const int faces[] = { 1, 4, 6, 9, 11, 16, 21, 26, 31, 36, 22, 25, 32 };
+		int face = faces[r.Range(0, (int)(sizeof(faces) / sizeof(faces[0])) - 1)];
+		int orig = faces[r.Range(0, 9)];
+		bool soul = r.Range(0, 1) != 0;
+		std::string in = ItemStr(it) + " pos " + I(pos) + " face " + I(face) + "/" + I(orig) + " soul " + I(soul) + " lvl " + I(score.Level);
+		int eq = BASE_CanEquip(&it, &score, pos, face, mob.Equip, orig, soul);
 		Emit("BASE_CanEquip", in, I(eq));
 
 		STRUCT_ITEM cargo[MAX_CARGO]{};
@@ -375,7 +372,7 @@ void CaseEquipCargoTrade()
 #if defined(DIV_CLIENT)
 		int tr = BASE_CanTrade(dest, mob.Carry, (char*)myTrade, opponent);
 #else
-		int tr = BASE_CanTrade(dest, mob.Carry, myTrade, opponent, MAX_CARRY);
+		int tr = BASE_CanTrade(dest, mob.Carry, myTrade, opponent);
 #endif
 		Emit("BASE_CanTrade", "amostra " + I(n), I(tr) + " " + Hex(dest, sizeof(dest)));
 
@@ -397,12 +394,8 @@ void CaseCombat()
 		int sk = r.Range(0, 102), sm = r.Range(0, 100), sp = r.Range(0, 255);
 		Emit("BASE_GetManaSpent", "skill " + I(sk) + " savemana " + I(sm) + " special " + I(sp), I(BASE_GetManaSpent(sk, sm, sp)));
 		int skill = r.Range(0, 102), weather = r.Range(0, 3), wd = r.Range(0, 3000);
-		std::string sin = in + " skill " + I(skill) + " weather " + I(weather) + " weapon " + I(wd);
-#if defined(DIV_CLIENT)
-		int dmg = BASE_GetSkillDamage(skill, &mob, weather, wd, mob.Class);
-#else
-		int dmg = BASE_GetSkillDamage(skill, &mob, weather, wd);
-#endif
+		std::string sin = in + " skill " + I(skill) + " weather " + I(weather) + " weapon " + I(wd) + " face " + I(mob.Equip[0].sIndex);
+		int dmg = BASE_GetSkillDamage(skill, &mob, weather, wd, mob.Equip[0].sIndex);
 		Emit("BASE_GetSkillDamage", sin, I(dmg));
 		for (int t = 0; t < 128; ++t)
 		{
@@ -434,11 +427,7 @@ void CaseWorld()
 		int dist = r.Range(0, 23);
 		char route[24]{};
 		int rtx = tx, rty = ty;
-#if defined(DIV_CLIENT)
-		int rr = BASE_GetRoute(sx, sy, &rtx, &rty, route, dist, g_height.data(), 8);
-#else
-		int rr = BASE_GetRoute(sx, sy, &rtx, &rty, route, dist, g_height.data());
-#endif
+		int rr = BASE_GetRoute(sx, sy, &rtx, &rty, route, dist, g_height.data(), 8); // MH do servidor
 		Emit("BASE_GetRoute", I(sx) + "," + I(sy) + " -> " + I(tx) + "," + I(ty) + " dist " + I(dist),
 			I(rr) + " " + I(rtx) + "," + I(rty) + " " + Hex(route, sizeof(route)));
 	}

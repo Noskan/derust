@@ -554,7 +554,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 // endregion
 
 				else
-					dam = BASE_GetSkillDamage(skillnum, &pMob[conn].MOB, Weather, pMob[conn].WeaponDamage);
+					dam = BASE_GetSkillDamage(skillnum, &pMob[conn].MOB, Weather, pMob[conn].WeaponDamage, pMob[conn].MOB.Equip[0].sIndex);
 
 				int def = pMob[idx].MOB.CurrentScore.Ac;
 
@@ -591,7 +591,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 			//Tempestade de flechas
 			if (skillnum == 79)
 			{
-				dam = BASE_GetSkillDamage(skillnum, &pMob[conn].MOB, CurrentWeather, pMob[conn].WeaponDamage);
+				dam = BASE_GetSkillDamage(skillnum, &pMob[conn].MOB, CurrentWeather, pMob[conn].WeaponDamage, pMob[conn].MOB.Equip[0].sIndex);
 
 				int Ac = pMob[idx].MOB.CurrentScore.Ac;
 

@@ -353,7 +353,7 @@ uint64_t CaseCanEquipCarry()
 		STRUCT_MOBEXTRA e = RandomExtra(r);
 		STRUCT_ITEM it = RandomItem(r);
 		for (int pos = 0; pos < MAX_EQUIP; ++pos)
-			h.Int(BASE_CanEquip(&it, &m.CurrentScore, pos, m.Class, m.Equip, &e));
+			h.Int(BASE_CanEquip(&it, &m.CurrentScore, pos, m.Equip[0].sIndex, m.Equip, m.Equip[0].sIndex, (m.LearnedSkill & 0x40000000) != 0));
 		int err = 0;
 		h.Int(BASE_CanCarry(&it, m.Carry, r.Range(0, 8), r.Range(0, 8), &err));
 		h.Int(err);
@@ -430,7 +430,7 @@ uint64_t CaseCombatFormulas()
 	for (int i = 0; i < kSamples / 4; ++i)
 	{
 		STRUCT_MOB m = RandomMob(r);
-		h.Int(BASE_GetSkillDamage(r.Range(0, MAX_SKILLINDEX - 1), &m, r.Range(0, 3), r.Range(0, 3000)));
+		h.Int(BASE_GetSkillDamage(r.Range(0, MAX_SKILLINDEX - 1), &m, r.Range(0, 3), r.Range(0, 3000), m.Equip[0].sIndex));
 		unsigned short sp = (unsigned short)r.Range(0, 1023), cp = (unsigned short)r.Range(0, 1023);
 		unsigned char dc[4]{};
 		h.Int(BASE_GetDoubleCritical(&m, &sp, &cp, dc));
@@ -451,7 +451,7 @@ uint64_t CaseWorld()
 		h.Int(BASE_GetDistance(x, y, x + r.Range(-40, 40), y + r.Range(-40, 40)));
 	}
 	for (int i = 0; i < 70000; i += 7)
-		h.Int(BASE_GetSubGuild(i));
+		h.Int(BASE_GetSubGuildByMedal(i));
 	return h.h;
 }
 
@@ -518,12 +518,12 @@ const Expected kExpected[] = {
 	{ "ItemAbility", 0x2c15d8ada96d2d67ull },
 	{ "ItemSancAndAmount", 0x769fd67fddc0605aull },
 	{ "VisualCodes", 0x6fcaf7a9a9970a97ull },
-	{ "CanEquipCarry", 0x1c5586b9a0b19b5aull },
-	{ "MobScores", 0x52b55c6e404ac907ull },
-	{ "CurrentScore", 0x88765cc948380a47ull },
-	{ "CombatFormulas", 0xc7456554f8eaef60ull },
+	{ "CanEquipCarry", 0x960e157356ecf0bbull },
+	{ "MobScores", 0xcddc89609e2dbc6eull },
+	{ "CurrentScore", 0x2905368ce8c7e6fbull },
+	{ "CombatFormulas", 0x1c71a18045eab420ull },
 	{ "World", 0xa676176912029d1dull },
-	{ "Strings", 0x3965cf4e379fe8e6ull },
+	{ "Strings", 0x3beba7e089bbf0b7ull },
 };
 
 } // namespace

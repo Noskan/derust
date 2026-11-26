@@ -1329,7 +1329,7 @@ int UpdateItem(int Gate, int state, int *height)
 
 	pItem[Gate].Delay = 0;
 
-	if (GridCharge >= 6 || GridCharge < 0)
+	if (GridCharge >= MAX_GROUNDMASK || GridCharge < 0)
 	{
 		Log("err,updateItem maskidx illegal", "-system", 0);
 		return TRUE;
@@ -1350,9 +1350,10 @@ int UpdateItem(int Gate, int state, int *height)
 	int posX = pItem[Gate].PosX;
 	int posY = pItem[Gate].PosY;
 
-	for (int i = 0; i <= MAX_GROUNDMASK - 2; i++)
+	// 5x5 células da máscara, como antes (o laço usava MAX_GROUNDMASK - 2 com MAX_GROUNDMASK = 6).
+	for (int i = 0; i <= 4; i++)
 	{
-		for (int j = 0; j <= MAX_GROUNDMASK - 2; j++)
+		for (int j = 0; j <= 4; j++)
 		{
 			int val = g_pGroundMask[GridCharge][rotate][i][j];
 

@@ -81,7 +81,7 @@
 #define		MAX_AUTOTRADETITLE		24
 #define		MAX_SHOPLIST			27
 
-#define		MAX_GROUNDMASK			6
+#define		MAX_GROUNDMASK			10
 
 #define		ITEM_PLACE_EQUIP		0
 #define		ITEM_PLACE_CARRY		1
@@ -2399,16 +2399,17 @@ void BASE_GetFirstKey(char * source, char * dest);
 int  BASE_GetGuild(int x, int y);
 int  BASE_GetIndex(STRUCT_ITEM *item);
 int  BASE_GetGuild(STRUCT_ITEM *item);
-int  BASE_GetSubGuild(int item);
+int  BASE_GetSubGuildByMedal(int item);
 int  BASE_GetArena(int x, int y);
 int  BASE_GetVillage(int x, int y);
 void BASE_GetKorFirst(int temp, int *a);
 void BASE_ClearItem(STRUCT_ITEM *item);
-int  BASE_CanEquip(STRUCT_ITEM *item, STRUCT_SCORE *score, int Pos, int Class, STRUCT_ITEM *pBaseEquip, STRUCT_MOBEXTRA *extra);
+int  BASE_CanEquip(STRUCT_ITEM *item, STRUCT_SCORE *score, int Pos, int Class, STRUCT_ITEM *pBaseEquip, int OriginalFace, bool hasSoulLimitSkill);
 int  BASE_CanCarry(STRUCT_ITEM *item, STRUCT_ITEM *carry, int DestX, int DestY, int *error);
 int  BASE_CanCargo(STRUCT_ITEM *item, STRUCT_ITEM *cargo, int DestX, int DestY);
 void BASE_SortTradeItem(STRUCT_ITEM *Item, int Type);
-int  BASE_CanTrade(STRUCT_ITEM *Dest, STRUCT_ITEM *Carry, unsigned char *MyTrade, STRUCT_ITEM *OpponentTrade, int MaxCarry);
+int  BASE_CanTrade(STRUCT_ITEM *Dest, STRUCT_ITEM *Carry, unsigned char *MyTrade, STRUCT_ITEM *OpponentTrade);
+int  BASE_CanCarry(STRUCT_ITEM *Carry, int pos);
 void BASE_InitializeMessage(char *file);
 void BASE_InitializeMobname(char *file, int offset);
 void BASE_WriteMessageBin();
@@ -2425,7 +2426,7 @@ int  BASE_GetHitRate(STRUCT_SCORE *att, STRUCT_SCORE *def);
 int  BASE_GetDamageRate(STRUCT_SCORE* att, int skill);
 int  BASE_GetAccuracyRate(STRUCT_SCORE *att);
 int  BASE_GetDoubleCritical(STRUCT_MOB *mob, unsigned short *sProgress, unsigned short *cProgress, unsigned char *bDoubleCritical);
-int  BASE_GetRoute(int x, int y, int *targetx, int *targety, char *Route, int distance, char *pHeight);
+int  BASE_GetRoute(int x, int y, int *targetx, int *targety, char *Route, int distance, char *pHeight, int maxHeight);
 int  BASE_GetDistance(int x1, int y1, int x2, int y2);
 //void BASE_GetHitPosition		(int,int,int *,int *,char *)
 //void BASE_GetHitPosition2		(int,int,int *,int *,char *)
@@ -2439,7 +2440,7 @@ void BASE_InitializeGuildName();
 int  BASE_InitializeServerList();
 int  BASE_InitializeAttribute();
 int  BASE_GetHttpRequest(char *httpname, char *Request, int MaxBuffer);
-int  BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weapondamage);
+int  BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weapondamage, int OriginalFace);
 int  BASE_GetEnglish(char *name);
 int  BASE_GetWeekNumber();
 int  BASE_CheckPacket(struct MSG_STANDARD *m);

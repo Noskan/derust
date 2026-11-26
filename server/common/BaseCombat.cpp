@@ -437,15 +437,14 @@ int BASE_GetHpMp(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 /// Calcula velocidade de movimento efetiva limitada pelos caps do servidor.
 int BASE_GetSpeed(STRUCT_SCORE *score)
 {
-	int Run = score->AttackRun;
+	// Regra do cliente: velocidade de 1 a 7 (o servidor limitava em 6).
+	int Run = score->AttackRun & 0xF;
 
-	Run &= 15;
-
-	if(Run < 1)
+	if (Run < 1)
 		Run = 1;
 
-	if(Run > 6)
-		Run = 6;
+	if (Run > 7)
+		Run = 7;
 
 	return Run;
 }
@@ -521,110 +520,88 @@ int BASE_GetSkillDamage(int dam, int ac, int combat)
 /// Soma o valor de um efeito (EF_*) em todos os slots equipados do mob.
 int BASE_GetMobAbility(STRUCT_MOB *mob, unsigned char Type)
 {
+	// Regra do cliente (client/src/common/BaseCombat.cpp:288).
 	int value = 0;
-	int nUnique[MAX_EQUIP];
-
-	if(Type == EF_RANGE)
+	if (Type == EF_RANGE)
 	{
 		value = BASE_GetMaxAbility(mob, Type);
-
-		int cls = mob->Equip[0].sIndex / 10;
-
-		if(value < 2 && cls == 3)
+		if (value < 2 && mob->Class == 3)
 		{
-			if((mob->LearnedSkill & 0x100000) != 0)
-                value = 2;
+			if (mob->LearnedSkill & 0x80000)
+				value = 2;
 		}
 
 		return value;
 	}
 
-	for(int i = 0; i < MAX_EQUIP; i++)
+	int nUnique[MAX_EQUIP]{};
+	for (int i = 0; i < MAX_EQUIP; ++i)
 	{
-		nUnique[i] = 0;
-
-		int item = mob->Equip[i].sIndex;
-
-		if(item == 0 && i != 7)
+		// A reconstrução tinha `i == 7` aqui e `Type == 60 || i == 7` abaixo: a posição 7 era sempre
+		// pulada e o dano das duas mãos (ramo i == 7) nunca era somado.
+		if (!mob->Equip[i].sIndex && i != 7)
 			continue;
 
-		if(i >= 1 && i <= 5)
-			nUnique[i] = g_pItemList[item].nUnique;
+		if (i >= 1 && i <= 5)
+			nUnique[i] = g_pItemList[mob->Equip[i].sIndex].nUnique;
 
-		if(Type == EF_DAMAGE && i == 6)
-            continue;
+		if ((Type == EF_DAMAGE && i == 6) || (Type == EF_MAGIC && i == 7))
+			continue;
 
-		if(Type == EF_MAGIC && i == 7)
-            continue;
-
-		if(i == 7 && Type == EF_DAMAGE)
-		{
-			int ldam = BASE_GetItemAbility(&mob->Equip[6], Type) + BASE_GetItemAbility(&mob->Equip[6], EF_DAMAGE2);
-			int rdam = BASE_GetItemAbility(&mob->Equip[7], Type) + BASE_GetItemAbility(&mob->Equip[7], EF_DAMAGE2);
+		if (i == 7 && Type == EF_DAMAGE)
+		{			
+			int ldam = BASE_GetItemAbility(&mob->Equip[6], EF_DAMAGE2) + BASE_GetItemAbility(&mob->Equip[6], Type);
+			int rdam = BASE_GetItemAbility(&mob->Equip[7], EF_DAMAGE2) + BASE_GetItemAbility(&mob->Equip[7], Type);
 
 			int lidx = mob->Equip[6].sIndex;
 			int ridx = mob->Equip[7].sIndex;
 
 			int ltype = 0;
+			if (lidx > 0 && lidx < MAX_ITEMLIST)
+				ltype = g_pItemList[lidx].nUnique;
 
-			if(lidx > 0 && lidx < MAX_ITEMLIST)
-                ltype = g_pItemList[lidx].nUnique;
+			int rtype = 0;
+			if (ridx > 0 && ridx < MAX_ITEMLIST)
+				rtype = g_pItemList[ridx].nUnique;
 
-            int rtype = 0;
-
-            if(ridx > 0 && ridx < MAX_ITEMLIST)
-                rtype = g_pItemList[ridx].nUnique;
-
-			if(ltype != 0 && rtype != 0)
+			if (!ltype || !rtype)
+			{
+				if (ldam <= rdam)
+					value += rdam;
+				else
+					value += ldam;
+			}
+			else if (ltype == 47 && rtype == 45)
+			{
+				value += ldam;
+			}
+			else
 			{
 				int multi = 0;
-
-				if(ltype == rtype)
-                    multi = 50;
+				if (ltype == rtype)
+					multi = 50;
 				else
 					multi = 30;
-
-				//Pericia do caçador
-				if(mob->LearnedSkill & (1 << 10) && mob->Class == 3)
-					multi = 100;
-
-				//Mestre das Armas
-				if(mob->LearnedSkill & (1 << 9) && mob->Class == 0)
-					multi = 100;
-
-				if(ldam > rdam)
-                    value = ((value + ldam) + ((rdam * multi) / 100));
-                else
-                    value = ((value + rdam) + ((ldam * multi) / 100));
-
-				continue;
+				if (!mob->Class && mob->LearnedSkill & 0x200)
+					multi += 15;
+				if (mob->Class == 3 && mob->LearnedSkill & 0x400)
+					multi += 10;
+				if (ldam <= rdam)
+					value += multi * ldam / 100 + rdam;
+				else
+					value += multi * rdam / 100 + ldam;
 			}
-
-			if(ldam > rdam)
-                value += ldam;
-            else
-                value += rdam;
-
-			continue;
 		}
-
-		int tvalue = 0;
-
-		tvalue = BASE_GetItemAbility(&mob->Equip[i], Type);
-
-		if(Type == EF_ATTSPEED && tvalue == 1)
-            tvalue = 10;
-
-		value += tvalue;
+		else
+		{
+			value += BASE_GetItemAbility(&mob->Equip[i], Type);
+		}
 	}
 
-	 if(Type == EF_AC && nUnique[1] != 0)
-	 {
-        if(nUnique[1] == nUnique[2] && nUnique[2] == nUnique[3] && nUnique[3] == nUnique[4] && nUnique[4] == nUnique[5])
-            value = ((value * 105) / 100);
-	 }
+	if (value < 0)
+		value = 0;
 
-	 return value;
+	return value;
 }
 
 /// Retorna o maior valor de um efeito (EF_*) entre os equipamentos do mob.
@@ -1948,365 +1925,300 @@ int BASE_GetAccuracyRate(STRUCT_SCORE *att)
 /// Determina ocorrencia de ataque duplo e/ou critico e atualiza contadores de progresso.
 int BASE_GetDoubleCritical(STRUCT_MOB *mob, unsigned short *sProgress, unsigned short *cProgress, unsigned char *bDoubleCritical)
 {
+	// Regra do cliente. O servidor não reduzia cProgress a 0..1023 (o teste `& 0x3FF < 0` nunca era
+	// verdadeiro), e g_pHitRate[*cProgress] lia fora da tabela; o crítico usava rand().
 	*bDoubleCritical = 0;
 
-	if(cProgress == 0)
-		return FALSE;
+	if (!cProgress)
+		return 0;
 
-	if(*cProgress >= 1024)
-	{	
-		if((*cProgress & 0x3FF) < 0)
-			*cProgress = ((*cProgress & 0x3FF) - 1 | 0xFC00) + 1;		
-	}
+	if ((int)*cProgress >= 1024)
+		*cProgress %= 1024;
 
-	if(sProgress != 0 && *sProgress >= 1024)
+	if (sProgress && (int)*sProgress >= 1024)
+		*sProgress %= 1024;
+
+	int hitvalue[2] =
 	{
-		int val = *sProgress & 0x3FF;
+		100 * (((int)(unsigned char)mob->CurrentScore.AttackRun >> 4) - 5),
+		4 * (unsigned char)mob->Critical
+	};
 
-		if(val < 0)
-			val = ((val - 1) | 0xFC00) + 1;	
-
-		*sProgress = val;
-	}
-
-	int ret = 1;
-
-	int hitvalue[2];
-
-	hitvalue[0] = 100 * ((mob->CurrentScore.AttackRun >> 4) - 5);
-	hitvalue[1] = mob->Critical;
-
-	if((sProgress != NULL && cProgress != NULL) && *cProgress != *sProgress)
+	if (sProgress && cProgress && *cProgress != *sProgress)
 	{
-		*sProgress = *cProgress;
+		if (*sProgress > (int)*cProgress)
+			*cProgress = *sProgress;
 
-		int tProgress = *cProgress;
+		if (*sProgress < (int)*cProgress)
+		{
+			if (*sProgress + 5 < *cProgress)
+			{
+				*cProgress = *sProgress;
+				return 0;
+			}
 
-		if(tProgress < *sProgress)
-			tProgress += 256;
-
-		if(tProgress < *sProgress && tProgress < *sProgress + 5)
-			ret = 1;
+			*sProgress = *cProgress;
+		}
 	}
 
 	int value = g_pHitRate[*cProgress];
 
-	for(int i = 0; i < 2; i++)
+	for (int i = 0; i < 2; ++i)
 	{
 		int bit = 0;
 
-		if(i == 0)
-		{
-			if(value < hitvalue[0])
-				bit = 1;
-		}
+		if (!i && value < hitvalue[0])
+			bit = 1;
 
-		if(i == 1)
-		{
-			if (rand() % 255 < hitvalue[1])
-				bit = 1;
-		}
+		if (i == 1 && 1000 - value < hitvalue[1])
+			bit = 1;
 
 		*bDoubleCritical |= bit << i;
 	}
 
-	if(sProgress)
+	if (sProgress)
 		++*sProgress;
 
 	++*cProgress;
 
-	return ret;
+	return 1;
 }
 
 /// Calcula rota de deslocamento no grid de altura ate a coordenada alvo.
-int BASE_GetRoute(int x, int y, int *targetx, int *targety, char *Route, int distance, char *pHeight)
+int BASE_GetRoute(int x, int y, int *targetx, int *targety, char *Route, int distance, char *pHeight, int maxHeight)
 {
+	// Regra do cliente: passos de 1 casa ('1'..'9' como no teclado numérico) enquanto a altura vizinha
+	// difere menos de maxHeight (maxHeight no servidor) da atual. O cliente prioriza o sul e tem mais desvios
+	// diagonais que a versão antiga do servidor.
 	int lastx = x;
 	int lasty = y;
 	int tx = *targetx;
 	int ty = *targety;
-
 	memset(Route, 0, MAX_ROUTE);
 
-	for(int i = 0; i < distance && i < MAX_ROUTE-1; i++)
+	for (int i = 0; i < distance && i < MAX_ROUTE - 1; ++i)
 	{
-		if(x - g_HeightPosX < 1 || y - g_HeightPosY < 1 || x - g_HeightPosX > g_HeightWidth - 2 || y - g_HeightPosY > g_HeightHeight - 2)
+		if (x - g_HeightPosX < 1 || y - g_HeightPosY < 1 || x - g_HeightPosX > g_HeightWidth - 2 || y - g_HeightPosY > g_HeightHeight - 2)
 		{
 			Route[i] = 0;
-
 			break;
 		}
 
-		int cul = pHeight[(y - g_HeightPosY) * g_HeightWidth + x - g_HeightPosX];
-
-		if(cul > MH)
-			int kk = 0;
-
-		 int n  = pHeight[(y - g_HeightPosY - 1) * g_HeightWidth + x - g_HeightPosX    ];
-		 int ne = pHeight[(y - g_HeightPosY - 1) * g_HeightWidth + x - g_HeightPosX + 1];
-		 int e  = pHeight[(y - g_HeightPosY    ) * g_HeightWidth + x - g_HeightPosX + 1];
-		 int se = pHeight[(y - g_HeightPosY + 1) * g_HeightWidth + x - g_HeightPosX + 1];
-		 int s  = pHeight[(y - g_HeightPosY + 1) * g_HeightWidth + x - g_HeightPosX    ];
-		 int sw = pHeight[(y - g_HeightPosY + 1) * g_HeightWidth + x - g_HeightPosX - 1];
-		 int w  = pHeight[(y - g_HeightPosY    ) * g_HeightWidth + x - g_HeightPosX - 1];
-		 int nw = pHeight[(y - g_HeightPosY - 1) * g_HeightWidth + x - g_HeightPosX - 1];
-
-		 if(tx == x && ty == y) 
-		 {
-			 Route[i] = 0;
-			 break;
-		 }
-
-		 if(tx == x && ty < y && n < cul + MH && n > cul - MH) 
-		 {
-			 Route[i] = '2'; 
-			 y--;
-
-			 continue;
-		 }
-
-		 if(tx > x && ty < y && ne < cul + MH && ne > cul - MH) 
-		 {
-			 Route[i] = '3';
-
-			 x++;
-			 y--;
-
-			 continue;
-		 }
-
-		 if(tx > x && ty == y && e < cul + MH && e > cul - MH) 
-		 {
-			 Route[i] = '6';
-
-			 x++;
-
-			 continue;
-		 }
-
-		 if(tx > x && ty > y && se < cul + MH && se > cul - MH) 
-		 {
-			 Route[i] = '9';
-			 
-			 x++;
-			 y++;
-			 
-			 continue;
-		 }   
-
-		 if(tx == x && ty > y && s < cul + MH && s > cul - MH) 
-		 {
-			 Route[i] = '8';
-			 
-			 y++;
-			 
-			 continue;
-		 }
-
-		 if(tx < x && ty > y && sw < cul + MH && sw > cul - MH) 
-		 {
-			 Route[i] = '7';
-			 
-			 x--;
-			 y++;
-			 
-			 continue;
-		 }
-
-		 if(tx < x && ty == y && w < cul + MH && w > cul - MH) 
-		 {
-			 Route[i] = '4';
-			 
-			 x--;
-			 
-			 continue;
-		 }
-
-		 if(tx < x && ty < y && nw < cul + MH && nw > cul - MH) 
-		 {
-			 Route[i] = '1';
-			 
-			 x--;
-			 y--;
-			 
-			 continue;
-		 }
-
-		 if(tx > x && ty < y && e < cul + MH && e > cul - MH) 
-		 {
-			 Route[i] = '6';
-
-			 x++;
-			 
-			 continue;
-		 }
-
-		 if(tx > x && ty < y && n < cul + MH && n > cul - MH) 
-		 {
-			 Route[i] = '2';
-			 
-			 y--;
-			 
-			 continue;
-		 }
-
-		 if(tx > x && ty > y && e < cul + MH && e > cul - MH) 
-		 {
-			 Route[i] = '6';
-			 
-			 x++;
-			 
-			 continue;
-		 }         
-
-		 if(tx > x && ty > y && s < cul + MH && s > cul - MH) 
-		 {
-			 Route[i] = '8';
-
-			 y++;
-			 
-			 continue;
-		 }   
-
-		 if(tx < x && ty > y && w < cul + MH && w > cul - MH) 
-		 {
-			 Route[i] = '4';
-			 
-			 x--;
-			 
-			 continue;
-		 }
-
-		 if(tx < x && ty > y && s < cul + MH && s > cul - MH) 
-		 {
-			 Route[i] = '8';
-
-			 y++;
-
-			 continue;
-		 }
-
-		 if(tx < x && ty < y && w < cul + MH && w > cul - MH) 
-		 {
-			 Route[i] = '4';
-
-			 x--;
-
-			 continue;
-		 }
-
-		 if(tx < x && ty < y && n < cul + MH && n > cul - MH) 
-		 {
-			 Route[i] = '2';
-			 
-			 y--;
-			 
-			 continue;
-		 }
-
-		 if(tx == x + 1 || ty == y + 1 || tx == x - 1 || ty == y - 1) 
-		 {
-			 Route[i] = 0;
-
-			 break;
-		 }
-
-		 if(tx == x && ty > y && se < cul + MH && se > cul - MH) 
-		 {
-			 Route[i] = '9';
-			 
-			 x++;			 
-			 y++;
-			 
-			 continue;
-		 }         
-
-		 if(tx == x && ty > y && sw < cul + MH && sw > cul - MH) 
-		 {
-			 Route[i] = '7';
-			 
-			 x--;
-			 y++;
-			 
-			 continue;
-		 }
-
-		 if(tx == x && ty < y && ne < cul + MH && ne > cul - MH) 
-		 {
-			 Route[i] = '3';
-
-			 x++;
-			 y--;
-
-			 continue;
-		 }
-
-		 if(tx == x && ty < y && nw < cul + MH && nw > cul - MH) 
-		 {
-			 Route[i] = '1';
-			 
-			 x--;
-			 y--;
-			 
-			 continue;
-		 }
-
-		 if(tx < x && ty == y && sw < cul + MH && sw > cul - MH) 
-		 {
-			 Route[i] = '7';
-			 
-			 x--;
-			 y++;
-			 
-			 continue;
-		 }
-
-		 if(tx < x && ty == y && nw < cul + MH && nw > cul - MH) 
-		 {
-			 Route[i] = '1';
-			 
-			 x--;
-			 y--;
-			 
-			 continue;
-		 }
-
-		 if(tx > x && ty == y && se < cul + MH && se > cul - MH) 
-		 {
-			 Route[i] = '9';
-			 
-			 x++;
-			 y++;
-			 
-			 continue;
-		 }         
-
-		 if(tx > x && ty == y && ne < cul + MH && ne > cul - MH) 
-		 {
-			 Route[i] = '3';
-
-			 x++;
-			 y--;
-
-			 continue;
-		 }
-
-		 Route[i] = 0;
-		 break; 
+		int cul = pHeight[x + g_HeightWidth * (y - g_HeightPosY) - g_HeightPosX];
+		int n = pHeight[x + g_HeightWidth * (y - g_HeightPosY - 1) - g_HeightPosX];
+		int ne = pHeight[x + g_HeightWidth * (y - g_HeightPosY - 1) - g_HeightPosX + 1];
+		int e = pHeight[x + g_HeightWidth * (y - g_HeightPosY) - g_HeightPosX + 1];
+		int se = pHeight[x + g_HeightWidth * (y - g_HeightPosY + 1) - g_HeightPosX + 1];
+		int s = pHeight[x + g_HeightWidth * (y - g_HeightPosY + 1) - g_HeightPosX];
+		int sw = pHeight[x + g_HeightWidth * (y - g_HeightPosY + 1) - g_HeightPosX - 1];
+		int w = pHeight[x + g_HeightWidth * (y - g_HeightPosY) - g_HeightPosX - 1];
+		int nw = pHeight[x + g_HeightWidth * (y - g_HeightPosY - 1) - g_HeightPosX - 1];
+		if (tx == x && ty == y)
+		{
+			Route[i] = 0;
+			break;
+		}
+		if (tx == x && ty > y && s < maxHeight + cul && s > cul - maxHeight)
+		{
+			Route[i] = 56;
+			++y;
+		}
+		else if (tx == x && ty < y && n < maxHeight + cul && n > cul - maxHeight)
+		{
+			Route[i] = 50;
+			--y;
+		}
+		else if (tx > x
+			&& ty < y
+			&& ne < maxHeight + cul
+			&& ne > cul - maxHeight
+			&& (n < maxHeight + cul && n > cul - maxHeight || e < maxHeight + cul && e > cul - maxHeight))
+		{
+			Route[i] = 51;
+			++x;
+			--y;
+		}
+		else if (tx > x && ty == y && e < maxHeight + cul && e > cul - maxHeight)
+		{
+			Route[i] = 54;
+			++x;
+		}
+		else if (tx > x
+			&& ty > y
+			&& se < maxHeight + cul
+			&& se > cul - maxHeight
+			&& (s < maxHeight + cul && s > cul - maxHeight || e < maxHeight + cul && e > cul - maxHeight))
+		{
+			Route[i] = 57;
+			++x;
+			++y;
+		}
+		else if (tx < x
+			&& ty > y
+			&& sw < maxHeight + cul
+			&& sw > cul - maxHeight
+			&& (s < maxHeight + cul && s > cul - maxHeight || w < maxHeight + cul && w > cul - maxHeight))
+		{
+			Route[i] = 55;
+			--x;
+			++y;
+		}
+		else if (tx < x && ty == y && w < maxHeight + cul && w > cul - maxHeight)
+		{
+			Route[i] = 52;
+			--x;
+		}
+		else if (tx < x
+			&& ty < y
+			&& nw < maxHeight + cul
+			&& nw > cul - maxHeight
+			&& (n < maxHeight + cul && n > cul - maxHeight || w < maxHeight + cul && w > cul - maxHeight))
+		{
+			Route[i] = 49;
+			--x;
+			--y;
+		}
+		else if (tx > x && ty < y && e < maxHeight + cul && e > cul - maxHeight)
+		{
+			Route[i] = 54;
+			++x;
+		}
+		else if (tx > x && ty < y && n < maxHeight + cul && n > cul - maxHeight)
+		{
+			Route[i] = 50;
+			--y;
+		}
+		else if (tx > x && ty > y && e < maxHeight + cul && e > cul - maxHeight)
+		{
+			Route[i] = 54;
+			++x;
+		}
+		else if (tx > x && ty > y && s < maxHeight + cul && s > cul - maxHeight)
+		{
+			Route[i] = 56;
+			++y;
+		}
+		else if (tx < x && ty > y && w < maxHeight + cul && w > cul - maxHeight)
+		{
+			Route[i] = 52;
+			--x;
+		}
+		else if (tx < x && ty > y && s < maxHeight + cul && s > cul - maxHeight)
+		{
+			Route[i] = 56;
+			++y;
+		}
+		else if (tx < x && ty < y && w < maxHeight + cul && w > cul - maxHeight)
+		{
+			Route[i] = 52;
+			--x;
+		}
+		else if (tx < x && ty < y && n < maxHeight + cul && n > cul - maxHeight)
+		{
+			Route[i] = 50;
+			--y;
+		}
+		else
+		{
+			if (tx == x + 1 || ty == y + 1 || tx == x - 1 || ty == y - 1)
+			{
+				Route[i] = 0;
+				break;
+			}
+			if (tx == x
+				&& ty > y
+				&& se < maxHeight + cul
+				&& se > cul - maxHeight
+				&& (s < maxHeight + cul && s > cul - maxHeight || e < maxHeight + cul && e > cul - maxHeight))
+			{
+				Route[i] = 57;
+				++x;
+				++y;
+			}
+			else if (tx == x
+				&& ty > y
+				&& sw < maxHeight + cul
+				&& sw > cul - maxHeight
+				&& (s < maxHeight + cul && s > cul - maxHeight || w < maxHeight + cul && w > cul - maxHeight))
+			{
+				Route[i] = 55;
+				--x;
+				++y;
+			}
+			else if (tx == x
+				&& ty < y
+				&& ne < maxHeight + cul
+				&& ne > cul - maxHeight
+				&& (n < maxHeight + cul && n > cul - maxHeight || e < maxHeight + cul && e > cul - maxHeight))
+			{
+				Route[i] = 51;
+				++x;
+				--y;
+			}
+			else if (tx == x
+				&& ty < y
+				&& nw < maxHeight + cul
+				&& nw > cul - maxHeight
+				&& (n < maxHeight + cul && n > cul - maxHeight || w < maxHeight + cul && w > cul - maxHeight))
+			{
+				Route[i] = 49;
+				--x;
+				--y;
+			}
+			else if (tx < x
+				&& ty == y
+				&& sw < maxHeight + cul
+				&& sw > cul - maxHeight
+				&& (s < maxHeight + cul && s > cul - maxHeight || w < maxHeight + cul && w > cul - maxHeight))
+			{
+				Route[i] = 55;
+				--x;
+				++y;
+			}
+			else if (tx < x
+				&& ty == y
+				&& nw < maxHeight + cul
+				&& nw > cul - maxHeight
+				&& (n < maxHeight + cul && n > cul - maxHeight || w < maxHeight + cul && w > cul - maxHeight))
+			{
+				Route[i] = 49;
+				--x;
+				--y;
+			}
+			else if (tx > x
+				&& ty == y
+				&& se < maxHeight + cul
+				&& se > cul - maxHeight
+				&& (s < maxHeight + cul && s > cul - maxHeight || e < maxHeight + cul && e > cul - maxHeight))
+			{
+				Route[i] = 57;
+				++x;
+				++y;
+			}
+			else
+			{
+				if (tx <= x
+					|| ty != y
+					|| ne >= maxHeight + cul
+					|| ne <= cul - maxHeight
+					|| (n >= maxHeight + cul || n <= cul - maxHeight) && (e >= maxHeight + cul || e <= cul - maxHeight))
+				{
+					Route[i] = 0;
+					break;
+				}
+				Route[i] = 51;
+				++x;
+				--y;
+			}
+		}
 	}
 
-	if(lastx == x && lasty == y)
+	if (lastx == x && lasty == y)
 		return 0;
-
-	int kk = 0;
 
 	*targetx = x;
 	*targety = y;
-
-	if(lastx == x && lasty == y) 
-		return 0;
-
-	return 1;
+	return lastx != x || lasty != y;
 }
 
 /// Calcula distancia de tabuleiro (Chebyshev) entre duas posicoes no mapa.
@@ -2334,104 +2246,179 @@ int BASE_GetDistance(int x1, int y1, int x2, int y2)
 }
 
 /// Calcula dano de habilidade fisica/magica considerando atributos, arma e clima.
-int BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weapondamage)
+int BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weapondamage, int OriginalFace)
 {
+	// Regra do cliente. OriginalFace é o rosto original do personagem (MOB.Equip[0].sIndex); com o
+	// último dígito acima de 5 ele já evoluiu, e as fórmulas usam o nível inteiro.
 	int instanceindex = g_pSpell[skillnum].InstanceType;
-
-	int kind = skillnum % MAX_SKILL / 8 + 1;
 
 	int level = mob->CurrentScore.Level;
 
-	if(level < 0)
+	if (level < 0)
 		level = 0;
 
-	if(level >= MAX_LEVEL)
-		level = MAX_LEVEL;
+	if (level >= 400)
+		level = 400;
 
-	int special = mob->CurrentScore.Special[kind];
-
+	int special = mob->CurrentScore.Special[skillnum % 24 / 8 + 1];
 	int base = g_pSpell[skillnum].InstanceValue;
 	int affectbase = g_pSpell[skillnum].AffectValue;
-
+	int skillclass = skillnum / 8 % 3;
 	int dam = 0;
 
-	if(instanceindex == 0)
+	if (instanceindex == 0)
 	{
-		if(skillnum == 11)		
-			dam = special / 10 + affectbase;
-
-		else if(skillnum == 13)		
-			dam = 3 * special / 4 + affectbase;
-
-		else if(skillnum == 41)		
+		switch (skillnum)
+		{
+		case 11:
+			dam = affectbase + special / 10;
+			break;
+		case 13:
+			dam = affectbase + 3 * special;
+			break;
+		case 41:
 			dam = special / 25 + 2;
-
-		else if(skillnum == 43)		
-			dam = special / 3 + affectbase;
-
-		else if(skillnum == 44)		
-			dam = 2 * (3 * special / 20 + affectbase);
-
-		else if(skillnum == 45)
-			dam = special / 10 + affectbase;
+			break;
+		case 43:
+			dam = affectbase + special / 3 + 15;
+			break;
+		case 44:
+			dam = 5 * (special / 3 + 15);
+			break;
+		case 45:
+			dam = affectbase + special / 10;
+			break;
+		}
 	}
-
-	else if(instanceindex >= 1 && instanceindex <= 5)
+	else if (instanceindex >= 1 && instanceindex <= 5)
 	{
 		int skind = skillnum / 8;
-		
-		if(skillnum == 97)
-			dam = 15 * level + base;
-		
-		else if(mob->Class == 0 && skind == 1) // TK
-			dam =  3 * weapondamage + 3 * mob->CurrentScore.Str + level + special + base;
-		
-		else if(mob->Class == 0 && skind != 1) // TK
-			dam = special + base + weapondamage + level + mob->CurrentScore.Int / 4 + mob->CurrentScore.Int / 40;
-		
-		else if(mob->Class == 1)//Foema
-			dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level + base + 2 * special;
-		
-		else if(mob->Class == 2)//BeastMaster
-			dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level + base + 2 * special;
-		
-		else if(mob->Class == 3)//Huntress
-			dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;		
+		int trans = 0;
 
-		if(weather == 1)
+		if (OriginalFace % 10 > 5)
+			trans = 1;
+
+		if (trans == 0)
 		{
-			if(instanceindex == 2)
+			if (skillnum == 97)
+				dam = base + 15 * level;
+			else if (!mob->Class && skind == 1)
+				dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;
+			else if (!mob->Class && skind != 1)
+				dam = weapondamage + mob->CurrentScore.Int / 4 + level / 2 + special + base + mob->CurrentScore.Int / 40;
+			else
+			{
+				switch (mob->Class)
+				{
+				case 1:
+					dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level / 2 + special + base;
+					break;
+				case 2:
+					dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level / 2 + special + base;
+					break;
+				case 3:
+					if (skillnum == 79)
+						dam = mob->CurrentScore.Damage;
+					else
+						dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;
+					break;
+				}
+			}
+		}
+		else if (skillnum == 97)
+			dam = base + 15 * level;
+		else if (!mob->Class && skind == 1)
+			dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level + special + base;
+		else if (!mob->Class && skind != 1)
+			dam = weapondamage + mob->CurrentScore.Int / 4 + level + special + base + mob->CurrentScore.Int / 40;
+		else
+		{
+			switch (mob->Class)
+			{
+			case 1:
+				dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level + base + 2 * special;
+				break;
+			case 2:
+				dam = mob->CurrentScore.Int / 30 + mob->CurrentScore.Int / 3 + level + base + 2 * special;
+				break;
+			case 3:
+				if (skillnum == 79)
+					dam = mob->CurrentScore.Damage;
+				else
+					dam = 3 * weapondamage + 3 * mob->CurrentScore.Str + level / 2 + special + base;
+				break;
+			}
+		}
+
+		if (weather == 1)
+		{
+			if (instanceindex == 2)
 				dam = 90 * dam / 100;
-			
-			if(instanceindex == 5)
+
+			if (instanceindex == 5)
 				dam = 130 * dam / 100;
 		}
-		
-		else if(weather == 2 && instanceindex == 3)
+		else if (weather == 2 && instanceindex == 3)
 			dam = 120 * dam / 100;
 
+		if (skillnum != 97)
+		{
+			if (skillnum == 79)
+				return dam;
 
-		if ((mob->Class || skind != 1) && mob->Class != 3)
-        {
-			dam = (4 * mob->Magic + 100) * dam / 100;
-			dam = 5 * dam / 4;
-        }
-        else
-			dam = 5 * dam / 4;
+			if (!mob->Class && skind == 1 || mob->Class == 3)
+				dam = 5 * dam / 4;
+			else
+				dam = 5 * (dam * (4 * (unsigned char)mob->Magic + 100) / 100) / 4;
+		}
+
+		// Bônus da skill de classe aprendida (o 8º bit de cada bloco de skills).
+		if ((1 << (8 * skillclass + 7)) & mob->LearnedSkill)
+		{
+			switch (mob->Class)
+			{
+			case 0:
+				if (!skillclass)
+					dam = 115 * dam / 100;
+				else if (skillclass == 1)
+					dam = 120 * dam / 100;
+				else if (skillclass == 2)
+					dam = 115 * dam / 100;
+				break;
+			case 1:
+				if (!skillclass)
+					dam = 110 * dam / 100;
+				else if (skillclass == 1)
+					dam = 115 * dam / 100;
+				else if (skillclass == 2)
+					dam = 115 * dam / 100;
+				break;
+			case 2:
+				if (!skillclass)
+					dam = 110 * dam / 100;
+				break;
+			case 3:
+				if (!skillclass)
+					dam = 110 * dam / 100;
+				else if (skillclass == 1)
+					dam = 110 * dam / 100;
+				else if (skillclass == 2)
+					dam = 120 * dam / 100;
+				break;
+			}
+		}
 	}
+	else if (instanceindex == 6)
+	{
+		dam = base + 3 * special / 2;
 
-	else if(instanceindex == 6)
-		dam = 3 * special / 2 + base;
-	
-	else if(instanceindex == 11)
-		dam = base;
-	
+		if (skillnum == 29 && mob->LearnedSkill & 0x80)
+			dam = 120 * dam / 100;
+	}
+	else if (instanceindex == 11)
+		dam = g_pSpell[skillnum].InstanceValue;
 	else
-		dam = mob->Magic;
-
-
-	if(skillnum == 79)
-		dam = mob->CurrentScore.Damage;
+		dam = 2 * (unsigned char)mob->Magic;
 
 	return dam;
 }

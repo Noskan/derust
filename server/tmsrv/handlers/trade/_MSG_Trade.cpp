@@ -301,8 +301,8 @@ void Exec_MSG_Trade(int conn, char *pMsg)
 				STRUCT_ITEM mydest[MAX_CARRY];
 				STRUCT_ITEM oppdest[MAX_CARRY];
 
-				int mytrade = BASE_CanTrade(mydest, pMob[conn].MOB.Carry, (unsigned char*)&pUser[conn].Trade.InvenPos, pUser[OpponentID].Trade.Item, pMob[conn].MaxCarry);
-				int opptrade = BASE_CanTrade(oppdest, pMob[OpponentID].MOB.Carry, (unsigned char*)&pUser[OpponentID].Trade.InvenPos, pUser[conn].Trade.Item, pMob[OpponentID].MaxCarry);
+				int mytrade = BASE_CanTrade(mydest, pMob[conn].MOB.Carry, (unsigned char*)&pUser[conn].Trade.InvenPos, pUser[OpponentID].Trade.Item);
+				int opptrade = BASE_CanTrade(oppdest, pMob[OpponentID].MOB.Carry, (unsigned char*)&pUser[OpponentID].Trade.InvenPos, pUser[conn].Trade.Item);
 
 				if (mytrade == 0 && opptrade == 0)
 				{

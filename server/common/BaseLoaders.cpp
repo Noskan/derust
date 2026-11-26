@@ -862,6 +862,8 @@ void BASE_InitializeEffectName()
 
 void BASE_InitializeHitRate()
 {
+	// Regra do cliente: cada passada visita os índices de Jump em Jump (o servidor percorria todos com
+	// i++, e a tabela saía em outra ordem).
 	memset(g_pHitRate, 0, sizeof(g_pHitRate));
 
 	int Jump = 512;
@@ -870,40 +872,32 @@ void BASE_InitializeHitRate()
 
 	do
 	{
-		for(int i = 0; i < 1024; i++)
+		for (int i = 0; i < 1024; i += Jump)
 		{
-			if(g_pHitRate[i])
+			if (g_pHitRate[i])
 				continue;
 
-			if(Quad == 0)
+			if (Quad == 0)
 				g_pHitRate[i] = Start;
-			else if(Quad == 1)
+			else if (Quad == 1)
 				g_pHitRate[i] = 512 - Start;
-			else if(Quad == 2)
+			else if (Quad == 2)
 				g_pHitRate[i] = Start + 512;
 			else
 				g_pHitRate[i] = 1024 - Start;
 
-			if(g_pHitRate[i] > 999)
+			if (g_pHitRate[i] > 999)
 				g_pHitRate[i] = 999;
 
-			Quad++;
-
-			if(Quad >= 4)
+			if (++Quad >= 4)
 				Quad = 0;
 
-			if(Quad == 0)
-				Start++;
+			if (Quad == 0)
+				++Start;
 		}
 
 		Jump /= 2;
-
-		if(Jump)
-			continue;
-		else
-			break;
-
-	} while(1);
+	} while (Jump);
 
 	g_pHitRate[0] = 512;
 }

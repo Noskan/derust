@@ -69,10 +69,6 @@ SERVER_SIGNAL_HELPERS = {
 
 # Parâmetros que só um lado tem e o valor neutro usado em base_compare.cpp.
 RULE_NOTES = {
-    "BASE_CanEquip": "servidor recebe `STRUCT_MOBEXTRA*` (zerada); cliente recebe `OriginalFace` (= Class) e `hasSoulLimitSkill` (= false)",
-    "BASE_CanTrade": "servidor recebe `MaxCarry` (= MAX_CARRY)",
-    "BASE_GetRoute": "cliente recebe `MH` (= 8, o `#define MH` do servidor)",
-    "BASE_GetSkillDamage": "cliente recebe `OriginalFace` (= Class)",
     "BASE_GetMobAbility": "STRUCT_MOB preenchida campo a campo pelo nome",
     "BASE_GetMaxAbility": "STRUCT_MOB preenchida campo a campo pelo nome",
     "BASE_GetDoubleCritical": "STRUCT_MOB preenchida campo a campo pelo nome",

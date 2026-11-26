@@ -1112,44 +1112,47 @@ void BASE_ClearItem(STRUCT_ITEM *item)
 }
 
 /// Valida requisitos (nivel, atributos, classe, slot) para equipar um item.
-int BASE_CanEquip(STRUCT_ITEM *item, STRUCT_SCORE *score, int Pos, int Class, STRUCT_ITEM *pBaseEquip, STRUCT_MOBEXTRA *extra)
+int BASE_CanEquip(STRUCT_ITEM *item, STRUCT_SCORE *score, int Pos, int Class, STRUCT_ITEM *pBaseEquip, int OriginalFace, bool hasSoulLimitSkill)
 {
-	if(item->sIndex <= 0 || item->sIndex >= MAX_ITEMLIST)
+	// Regra do cliente. Class é o rosto atual (MOB.Equip[0].sIndex: dezena = classe, unidade acima
+	// de 5 = evoluído) e OriginalFace o rosto antes de uma transformação (22..25, 32);
+	// hasSoulLimitSkill é o bit 0x40000000 de LearnedSkill. Antes o servidor decidia pela ClassMaster.
+	int idx = item->sIndex;
+	if (idx <= 0 || idx >= MAX_ITEMLIST)
 		return FALSE;
 
-	int nUnique = g_pItemList[item->sIndex].nUnique;
-
-	if(Pos == 15)
+	int nUnique = g_pItemList[idx].nUnique;
+	if (Pos == 15)
 		return FALSE;
 
-	if(Pos != -1)
+	if (Pos != -1)
 	{
 		int tpos = BASE_GetItemAbility(item, EF_POS);
 		int pos = (tpos >> Pos) & 1;
 
-		if(pos == 0)
+		if (pos == 0)
 			return FALSE;
 
-		if(Pos == 6 || Pos == 7)
+		if (Pos == 6 || Pos == 7)
 		{
 			int OtherPos = (Pos == 6) ? 7 : 6;
 			int	OtherIdx = pBaseEquip[OtherPos].sIndex;
 
-			if(OtherIdx > 0 && OtherIdx < MAX_ITEMLIST)
+			if (OtherIdx > 0 && OtherIdx < MAX_ITEMLIST)
 			{
 				int nUnique2 = g_pItemList[OtherIdx].nUnique;
 				int otherpos = BASE_GetItemAbility(&pBaseEquip[OtherPos], EF_POS);
 
-				if(tpos == 64 || otherpos == 64)
+				if (tpos == 64 || otherpos == 64)
 				{
-					if(nUnique == 46)
+					if (nUnique == 46)
 					{
-						if(otherpos != 128)
+						if (otherpos != 128)
 							return FALSE;
 					}
-					else if(nUnique2 == 46)
+					else if (nUnique2 == 46)
 					{
-						if(tpos != 128)
+						if (tpos != 128)
 							return FALSE;
 					}
 					else
@@ -1159,75 +1162,98 @@ int BASE_CanEquip(STRUCT_ITEM *item, STRUCT_SCORE *score, int Pos, int Class, ST
 		}
 	}
 
-	int cls = BASE_GetItemAbility(item, EF_CLASS);
+	if (Class >= 22 && Class <= 25 || Class == 32)
+		Class = OriginalFace;
 
-	if (extra->ClassMaster != MORTAL)
-		Class = (extra->MortalFace/10);
+	int trans = Class % 10;
 
-	cls = (cls >> Class) & 1;
-
-	if (cls == 0 && extra->ClassMaster == MORTAL)
-		return FALSE;
-
-	if (cls == 0 && extra->ClassMaster != MORTAL && Pos != 6 && Pos != 7)
-		return FALSE;
-
-	if (BASE_GetItemAbility(item, EF_MOBTYPE) == ARCH && extra->ClassMaster == MORTAL)
-		return FALSE;
-
-	if (BASE_GetItemAbility(item, EF_MOBTYPE) == MORTAL && extra->ClassMaster != MORTAL)
-		return FALSE;
-
-	if (BASE_GetItemAbility(item, EF_MOBTYPE) == MORTAL && extra->ClassMaster != MORTAL)
-		return FALSE;
-
-	if (BASE_GetItemAbility(item, EF_MOBTYPE) == CELESTIAL && (extra->ClassMaster == MORTAL || extra->ClassMaster == ARCH))
-		return FALSE;
-
-	if(extra->ClassMaster != MORTAL && Pos == 1 && item->sIndex != 747 && (item->sIndex < 3500 || item->sIndex > 3507))
-		return FALSE;
-
-	int lvl = extra->ClassMaster == MORTAL ? BASE_GetItemAbility(item, EF_LEVEL) : 0;
-	int str = extra->ClassMaster == MORTAL ? BASE_GetItemAbility(item, EF_REQ_STR) : 0;
-	int spt = extra->ClassMaster == MORTAL ? BASE_GetItemAbility(item, EF_REQ_INT) : 0;
-	int agi = extra->ClassMaster == MORTAL ? BASE_GetItemAbility(item, EF_REQ_DEX) : 0; 
-	int con = extra->ClassMaster == MORTAL ? BASE_GetItemAbility(item, EF_REQ_CON) : 0;
-    int weapontype = BASE_GetItemAbility(item, EF_WTYPE);
-
-	weapontype %= 10;
-	int modweapon = weapontype;
-	int divweapon = weapontype / 10;
-
-	if(Pos == 7 && weapontype != 0)
+	if (Pos == 1 && trans > 5
+		&& item->sIndex != 747
+		&& item->sIndex != 3500
+		&& item->sIndex != 3507
+		&& item->sIndex != 3501
+		&& item->sIndex != 3502
+		&& item->sIndex != 3303
+		&& item->sIndex != 3507)
 	{
-		int rate = 100;
-
-		if(divweapon == 0 && modweapon > 1)
-			rate = 130;
-		else if(divweapon == 6 && modweapon > 1)
-			rate = 150;
-
-		lvl = lvl * rate / 100;
-		str = str * rate / 100;
-		spt = spt * rate / 100;
-		agi = agi * rate / 100;
-		con = con * rate / 100;
+		return FALSE;
 	}
 
-	if(lvl > score->Level)
+	int transitem = BASE_GetItemAbility(item, EF_TRANS);
+	switch (transitem)
+	{
+	case 1:
+		if (trans < 6)
+			return FALSE;
+		break;
+	case 2:
+		if (trans >= 6)
+			return FALSE;
+		break;
+	case 3:
+		if (trans < 6)
+			return FALSE;
+		if (!hasSoulLimitSkill)
+			return FALSE;
+		break;
+	}
+
+	if (!((BASE_GetItemAbility(item, EF_CLASS) >> Class / 10) & 1))
+	{
+		if (trans <= 5)
+			return FALSE;
+
+		int pos = BASE_GetItemAbility(item, EF_POS);
+		if (pos != 64 && pos != 128 && pos != 192)
+			return FALSE;
+	}
+	if (nUnique % 10 >= 9 && nUnique < 40 && trans < 6)
 		return FALSE;
 
-	if(str > score->Str)
-		return FALSE;
+	int lvl = BASE_GetItemAbility(item, EF_LEVEL);
+	int str = BASE_GetItemAbility(item, EF_REQ_STR);
+	int spt = BASE_GetItemAbility(item, EF_REQ_INT);
+	int agi = BASE_GetItemAbility(item, EF_REQ_DEX);
+	int con = BASE_GetItemAbility(item, EF_REQ_CON);
 
-	if(spt > score->Int)
-		return FALSE;
+	int wtype = BASE_GetItemAbility(item, EF_WTYPE);
 
-	if(agi > score->Dex)
-		return FALSE;
+	int weapontype = wtype % 10;
+	int modweapon = wtype % 10;
 
-	if(con > score->Con)
-		return FALSE;
+	int divweapon = wtype % 10 / 10;
+	if (Pos == 7 && weapontype)
+	{
+		int rate = 100;
+		if (divweapon || modweapon <= 1)
+		{
+			if (divweapon == 6 && modweapon > 1)
+				rate = 150;
+		}
+		else
+		{
+			rate = 130;
+		}
+		lvl = rate * lvl / 100;
+		str = rate * str / 100;
+		spt = rate * spt / 100;
+		agi = rate * agi / 100;
+		con = rate * con / 100;
+	}
+
+	if (trans < 5)
+	{
+		if (lvl > score->Level)
+			return FALSE;
+		if (str > score->Str)
+			return FALSE;
+		if (spt > score->Int)
+			return FALSE;
+		if (agi > score->Dex)
+			return FALSE;
+		if (con > score->Con)
+			return FALSE;
+	}
 
 	return TRUE;
 }
@@ -1315,56 +1341,51 @@ int BASE_CanCarry(STRUCT_ITEM *item, STRUCT_ITEM *carry, int DestX, int DestY, i
 /// Verifica se ha espaco livre na grade do bau/armazem (Cargo) para o item.
 int BASE_CanCargo(STRUCT_ITEM *item, STRUCT_ITEM *cargo, int DestX, int DestY)
 {
-	int grid = ItemGridIndex(item);
+	// Regra do cliente: a grade de cada item vem de BASE_GetItemAbility(EF_GRID).
+	int grid = BASE_GetItemAbility(item, EF_GRID);
 
-	char SourGrid[8];
+	char SourGrid[4][2]{};
+	char CargoGrid[CARGOGRIDY][CARGOGRIDX]{};
 
-	memcpy(SourGrid, g_pItemGrid[grid], sizeof(SourGrid));
+	memcpy((char*)SourGrid, (char*)g_pItemGrid[grid], 8u);
 
-	char CargoGrid[MAX_CARGO];
-
-	memset(CargoGrid, 0, MAX_CARGO-2);
-
-	for(int i = 0; i < MAX_CARGO; i++)
+	for (int i = 0; i < MAX_CARGO; ++i)
 	{
-		if(cargo[i].sIndex == 0)
+		if (!cargo[i].sIndex)
 			continue;
 
-		int grid = ItemGridIndex(&cargo[i]);
+		char TempGrid[4][2]{};
+		int cgrid = BASE_GetItemAbility(&cargo[i], EF_GRID);
 
-		char TempGrid[8];
+		if (cgrid < 0 || cgrid >= 8)
+			cgrid = 0;
 
-		memcpy(TempGrid, g_pItemGrid[grid], sizeof(TempGrid));
+		memcpy((char*)TempGrid, (char*)g_pItemGrid[cgrid], 8u);
 
-		int tx = i % 9;
-		int ty = i / 9;
+		int tx = i % CARGOGRIDX;
+		int ty = i / CARGOGRIDX;
 
-		for(int yy = 0; yy < 4; yy++)
+		for (int yy = 0; yy < 4; ++yy)
 		{
-			for(int xx = 0; xx < 2; xx++)
+			for (int xx = 0; xx < 2; ++xx)
 			{
-				if(TempGrid[(yy * 2) + xx] == 0)
-					continue;
-
-				if(yy + ty < 0 || xx + tx < 0 || yy + ty >= CARGOGRIDY || xx + tx >= CARGOGRIDX)
-					continue;
-
-				CargoGrid[(yy + ty) * CARGOGRIDX + xx + tx] = 1;
+				if (TempGrid[yy][xx] == 1 && ty + yy >= 0 && tx + xx >= 0 && ty + yy < CARGOGRIDY && tx + xx < CARGOGRIDX)
+					CargoGrid[ty + yy][tx + xx] = 1;
 			}
 		}
 	}
 
-	for(int yy = 0; yy < 4; yy++)
+	for (int j = 0; j < 4; ++j)
 	{
-		for(int xx = 0; xx < 2; xx++)
+		for (int k = 0; k < 2; ++k)
 		{
-			if(SourGrid[(yy * 2) + xx] == 0)
+			if (SourGrid[j][k] != 1)
 				continue;
 
-			if(yy + DestY < 0 || xx + DestX < 0 || yy + DestY >= CARGOGRIDY || xx + DestX >= CARGOGRIDX)
+			if (DestY + j < 0 || DestX + k < 0 || DestY + j >= CARGOGRIDY || DestX + k >= CARGOGRIDX)
 				return FALSE;
 
-			if(CargoGrid[(yy + DestY) * CARGOGRIDX + xx + DestX] == 1)
+			if (CargoGrid[DestY + j][DestX + k] == 1)
 				return FALSE;
 		}
 	}
@@ -1423,26 +1444,41 @@ void BASE_SortTradeItem(STRUCT_ITEM *Item, int Type)
 }
 
 /// Valida se a troca entre dois inventarios possui espaco suficiente para ambos.
-int BASE_CanTrade(STRUCT_ITEM *Dest, STRUCT_ITEM *Carry, unsigned char *MyTrade, STRUCT_ITEM *OpponentTrade, int MaxCarry)
+/// @brief Regra do cliente: a posição `pos` do inventário pode receber item? 0..29 sempre; 30..44 só
+/// com a bolsa (3467) em Carry[60]; 45..59 só com a bolsa em Carry[61].
+int BASE_CanCarry(STRUCT_ITEM *Carry, int pos)
 {
+	if (pos < 30)
+		return 1;
+
+	if (pos / 15 == 2 && Carry[60].sIndex != 3467)
+		return 0;
+
+	if (pos / 15 != 3 || Carry[61].sIndex == 3467)
+		return 1;
+
+	return 0;
+}
+
+int BASE_CanTrade(STRUCT_ITEM *Dest, STRUCT_ITEM *Carry, unsigned char *MyTrade, STRUCT_ITEM *OpponentTrade)
+{
+	// Regra do cliente: os itens recebidos vão para as posições livres que BASE_CanCarry libera (as
+	// 60 visíveis), em vez das MaxCarry primeiras.
 	STRUCT_ITEM OpponentTemp[MAX_TRADE];
 
 	memcpy(OpponentTemp, OpponentTrade, sizeof(OpponentTemp));
 
-	memcpy(Dest, Carry, sizeof(STRUCT_ITEM)*MAX_CARRY);
+	memcpy(Dest, Carry, sizeof(STRUCT_ITEM) * MAX_CARRY);
 
-	for (int i = 0; i < MAX_TRADE; i++)
+	for (int i = 0; i < MAX_TRADE; ++i)
 	{
-		int pos = MyTrade[i];
+		int pos = MyTrade[i]; // 255 (-1) marca posição vazia
 
-		if (pos == -1 || pos == 255)
-			continue;
-
-		if (pos >= 0 && pos < MAX_CARRY)
+		if (pos < MAX_CARRY)
 			BASE_ClearItem(&Dest[pos]);
 	}
 
-	BASE_SortTradeItem(OpponentTemp, 33);
+	BASE_SortTradeItem(OpponentTemp, EF_GRID);
 
 	for (int i = 0; i < MAX_TRADE; i++)
 	{
@@ -1451,21 +1487,16 @@ int BASE_CanTrade(STRUCT_ITEM *Dest, STRUCT_ITEM *Carry, unsigned char *MyTrade,
 
 		int j = 0;
 
-		for (j = 0; j < MaxCarry; j++)
+		for (j = 0; j < MAX_CARRY - 4; j++)
 		{
-			int x = j % 9;
-			int y = j / 9;
-			int error = -2;
-
-			if (Dest[j].sIndex != 0)
-				continue;
-
-			memcpy(&Dest[j], &OpponentTemp[i], sizeof(STRUCT_ITEM));
-
-			break;
+			if (!Dest[j].sIndex && BASE_CanCarry(Dest, j))
+			{
+				Dest[j] = OpponentTemp[i];
+				break;
+			}
 		}
 
-		if (j == MaxCarry)
+		if (j == MAX_CARRY - 4)
 			return FALSE;
 	}
 
@@ -1489,9 +1520,10 @@ int BASE_UpdateItem(int maskidx, int CurrentState, int NextState, int xx, int yy
 	if(delta == 0)
 		return FALSE;
 
-	for(int y = 0; y <= MAX_GROUNDMASK-1; y++)
+	// Cada máscara tem 6x6 células (antes o laço usava MAX_GROUNDMASK, que era 6).
+	for(int y = 0; y <= 5; y++)
 	{
-		for(int x = 0; x <= MAX_GROUNDMASK-1; x++)
+		for(int x = 0; x <= 5; x++)
 		{
 			int val = g_pGroundMask[maskidx][rotate][y][x];
 			int xp = xx + x - 2;
@@ -1525,28 +1557,25 @@ int BASE_UpdateItem(int maskidx, int CurrentState, int NextState, int xx, int yy
 /// Atualiza mascara de colisao no mapa de altura para objetos/portoes.
 int BASE_UpdateItem2(int maskidx, int CurrentState, int NextState, int xx, int yy, char *pHeight, int rotate, int height)
 {
-	int delta = 0;
+	// Regra do cliente (client/src/common/BaseWorld.cpp:735).
+	if (maskidx >= MAX_GROUNDMASK || maskidx < 0)
+		return 0;
 
-	if(maskidx >= MAX_GROUNDMASK || maskidx < 0)
-		return FALSE;
-
-	for(int y = 0; y <= MAX_GROUNDMASK-1; y++)
+	for (int y = 0; y <= 5; ++y)
 	{
-		for(int x = 0; x <= MAX_GROUNDMASK-1; x++)
+		for (int x = 0; x <= 5; ++x)
 		{
-			int val = g_pGroundMask[maskidx][rotate][y][x];
 			int xp = xx + x - 2;
 			int yp = yy + y - 2;
-
-			if((xp - g_HeightPosX < 1) || (yp - g_HeightPosY < 1) || ((xp - g_HeightPosX) > (g_HeightWidth - 2)) || ((yp - g_HeightPosY) > (g_HeightHeight - 2)))
+			if (xp - g_HeightPosX < 1 || yp - g_HeightPosY < 1 || xp - g_HeightPosX > g_HeightWidth - 2 || yp - g_HeightPosY > g_HeightHeight - 2)
 				break;
 
-			if(val != 0)
-				pHeight[(((yp - g_HeightPosY) * g_HeightWidth) + xp) - g_HeightPosX] = height;
+			if (g_pGroundMask[maskidx][rotate][y][x])
+				pHeight[xp + g_HeightWidth * (yp - g_HeightPosY) - g_HeightPosX] = height;
 		}
 	}
 
-	return TRUE;
+	return 1;
 }
 
 /// Codifica indice visual e refinacao de equipamento/montaria para envio aos clientes.

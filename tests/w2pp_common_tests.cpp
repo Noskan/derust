@@ -199,7 +199,7 @@ void TestCombatHelpers()
 	score.AttackRun = 3;
 	CHECK(BASE_GetSpeed(&score) == 3);
 	score.AttackRun = 15;
-	CHECK(BASE_GetSpeed(&score) == 6);
+	CHECK(BASE_GetSpeed(&score) == 7); // regra do cliente: até 7 (o servidor limitava em 6)
 	score.AttackRun = static_cast<unsigned char>(0xF4);
 	CHECK(BASE_GetSpeed(&score) == 4);
 
@@ -311,17 +311,22 @@ void TestStringAndChecksum()
 	CHECK(std::strcmp(text, "Armia Field 1") == 0);
 
 	char shortName[NAME_LENGTH] = "abc";
-	char reservedKing[NAME_LENGTH] = "king";
-	char reservedReino[NAME_LENGTH] = "Reino";
-	char reservedRelo[NAME_LENGTH] = "relo";
+	// Regra do cliente: não há nomes reservados (o servidor recusava nomes de comandos como "king").
+	char commandKing[NAME_LENGTH] = "king";
+	char commandReino[NAME_LENGTH] = "Reino";
+	char commandRelo[NAME_LENGTH] = "relo";
+	char brokenWide[NAME_LENGTH] = "abc\xb0"; // primeiro byte de um caractere de dois bytes, sem o segundo
+	char wide[NAME_LENGTH] = "abc\xb0\xa1";
 	char invalidChar[NAME_LENGTH] = "Hero!1";
 	char validHyphen[NAME_LENGTH] = "Guerreiro-1";
 	char validAlphaNum[NAME_LENGTH] = "Test1234";
 
 	CHECK(!BASE_CheckValidString(shortName));
-	CHECK(!BASE_CheckValidString(reservedKing));
-	CHECK(!BASE_CheckValidString(reservedReino));
-	CHECK(!BASE_CheckValidString(reservedRelo));
+	CHECK(BASE_CheckValidString(commandKing));
+	CHECK(BASE_CheckValidString(commandReino));
+	CHECK(BASE_CheckValidString(commandRelo));
+	CHECK(!BASE_CheckValidString(brokenWide));
+	CHECK(BASE_CheckValidString(wide));
 	CHECK(!BASE_CheckValidString(invalidChar));
 	CHECK(BASE_CheckValidString(validHyphen));
 	CHECK(BASE_CheckValidString(validAlphaNum));

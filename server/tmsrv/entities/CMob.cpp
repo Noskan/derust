@@ -896,7 +896,7 @@ void CMob::GetTargetPosDistance(int tz)
 
 	for (dis = distance; dis >= 0; dis--)
 	{
-		BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, dis, (char*)pHeightGrid);
+		BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, dis, (char*)pHeightGrid, MH);
 
 		if (pMobGrid[NextY][NextX] == 0)
 			break;
@@ -905,7 +905,7 @@ void CMob::GetTargetPosDistance(int tz)
 		{
 			GetEmptyMobGrid(0, &NextX, &NextY);
 
-			BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, dis, (char*)pHeightGrid);
+			BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, dis, (char*)pHeightGrid, MH);
 
 			if (pMobGrid[NextY][NextX] == 0)
 				break;
@@ -948,7 +948,7 @@ void CMob::GetRandomPos()
 
 	for (i = distance; i >= 0; i--)
 	{
-		BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+		BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid, MH);
 
 		if (pMobGrid[NextY][NextX] == 0)
 			break;
@@ -957,7 +957,7 @@ void CMob::GetRandomPos()
 		{
 			GetEmptyMobGrid(0, &NextX, &NextY);
 
-			BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+			BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid, MH);
 
 			if (pMobGrid[NextY][NextX] == 0)
 				break;
@@ -1009,7 +1009,7 @@ void CMob::GetTargetPos(int tz)
 
 	for (i = distance; i >= 0; i--)
 	{
-		BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+		BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid, MH);
 
 		if (pMobGrid[NextY][NextX] == 0)
 			break;
@@ -1018,7 +1018,7 @@ void CMob::GetTargetPos(int tz)
 		{
 			int t = GetEmptyMobGrid(0, &NextX, &NextY);
 
-			BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+			BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid, MH);
 
 			if (pMobGrid[NextY][NextX] == 0)
 				break;
@@ -1204,7 +1204,7 @@ void CMob::GetNextPos(int battle)
 
 	for (i = distance; i >= 0; i--)
 	{
-		BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+		BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid, MH);
 
 		if (pMobGrid[NextY][NextX] == 0)
 			break;
@@ -1213,7 +1213,7 @@ void CMob::GetNextPos(int battle)
 		{
 			GetEmptyMobGrid(0, &NextX, &NextY);
 
-			BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid);
+			BASE_GetRoute(LastX, LastY, &NextX, &NextY, Route, i, (char*)pHeightGrid, MH);
 
 			if (pMobGrid[NextY][NextX] == 0)
 				break;

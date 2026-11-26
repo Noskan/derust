@@ -259,7 +259,7 @@ void Exec_MSG_Action(int conn, char *pMsg)
 				if (pMobGrid[desty][destx] && pMobGrid[desty][destx] != conn)
 					continue;
 
-				BASE_GetRoute(m->PosX, m->PosY, &destx, &desty, m->Route, i, (char*)pHeightGrid);
+				BASE_GetRoute(m->PosX, m->PosY, &destx, &desty, m->Route, i, (char*)pHeightGrid, MH);
 			}
 
 			if (i == -1)

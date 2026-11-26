@@ -212,7 +212,7 @@ LABEL_BUY1:
 
 			if (itemIndex == 508)
 			{
-				int sub = BASE_GetSubGuild(pMob[conn].MOB.Equip[12].sIndex);
+				int sub = BASE_GetSubGuildByMedal(pMob[conn].MOB.Equip[12].sIndex);
 
 				ItemMob->stEffect[2].cEffect = 85;
 				ItemMob->stEffect[2].cValue = sub;
