@@ -323,79 +323,7 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 		if (!BASE_IsInLowZone((int)vec.x, (int)vec.y))
 			MobMove2(vec, dwServerTime);
 	}
-	if (!m_pMyHuman->m_cLastMoveStop)
-	{
-		if (m_pMyHuman->m_fMaxSpeed >= 5.0f)
-		{
-			if (m_pMyHuman->m_fProgressRate >= 0.8f || m_pMyHuman->m_fProgressRate == 0.0f)
-			{
-				if ((int)m_pMyHuman->m_vecPosition.x == m_vecMyNext.x && (int)m_pMyHuman->m_vecPosition.y == m_vecMyNext.y && 
-					(m_pMyHuman->m_LastSendTargetPos.x != m_vecMyNext.x || m_pMyHuman->m_LastSendTargetPos.y != m_vecMyNext.y) && 
-					dwServerTime - m_pMyHuman->m_dwOldMovePacketTime > 1000 && !m_pMyHuman->m_cDie)
-				{
-					m_pMyHuman->m_LastSendTargetPos = m_vecMyNext;
-
-					MSG_Action Msg{};
-					Msg.Header.ID = m_pMyHuman->m_dwID;
-					Msg.PosX = m_stMoveStop.NextX;
-					Msg.PosY = m_stMoveStop.NextY;
-					Msg.Effect = 0;
-					Msg.Header.Type = MSG_Action_Opcode;
-					Msg.Speed = g_nMyHumanSpeed;
-					Msg.TargetX = m_pMyHuman->m_LastSendTargetPos.x;
-					Msg.TargetY = m_pMyHuman->m_LastSendTargetPos.y;
-
-					for (int n = 0; n < 23; ++n)
-						Msg.Route[n] = 0;
-
-					g_bLastStop = Msg.Header.Type;
-					m_stMoveStop.LastX = Msg.PosX;
-					m_stMoveStop.LastY = Msg.PosY;
-					m_stMoveStop.NextX = Msg.TargetX;
-					m_stMoveStop.NextY = Msg.TargetY;
-					SendOneMessage((char*)&Msg, 52);
-					m_pMyHuman->m_dwOldMovePacketTime = g_pTimerManager->GetServerTime();
-				}
-				else if (m_vecMyNext.x != (int)m_pMyHuman->m_vecPosition.x || m_vecMyNext.y != (int)m_pMyHuman->m_vecPosition.y)
-				{
-					m_pMyHuman->GetRoute(m_vecMyNext, 0, m_pMyHuman->m_cLastMoveStop);
-				}
-			}
-		}
-		else if (m_pMyHuman->m_fProgressRate >= 0.90f || m_pMyHuman->m_fProgressRate == 0.0f)
-		{
-			int nPosX = (int)m_pMyHuman->m_vecPosition.x;
-			int nPosY = (int)m_pMyHuman->m_vecPosition.y;
-			if (nPosX == m_vecMyNext.x && nPosY == m_vecMyNext.y && (m_pMyHuman->m_LastSendTargetPos.x != m_vecMyNext.x	|| 
-				m_pMyHuman->m_LastSendTargetPos.y != m_vecMyNext.y) && dwServerTime - m_pMyHuman->m_dwOldMovePacketTime > 1000 && !m_pMyHuman->m_cDie)
-			{
-				m_pMyHuman->m_LastSendTargetPos = m_vecMyNext;
-
-				MSG_Action stAction{};
-				stAction.Header.ID = m_pMyHuman->m_dwID;
-				stAction.PosX = m_pMyHuman->m_LastSendTargetPos.x;
-				stAction.PosY = m_pMyHuman->m_LastSendTargetPos.y;
-				stAction.Effect = 0;
-				stAction.Header.Type = MSG_Action_Opcode;
-				stAction.Speed = g_nMyHumanSpeed;
-				stAction.TargetX = m_pMyHuman->m_LastSendTargetPos.x;
-				stAction.TargetY = m_pMyHuman->m_LastSendTargetPos.y;
-
-				for (int j = 0; j < 23; ++j)
-					stAction.Route[j] = 0;
-
-				g_bLastStop = stAction.Header.Type;
-				m_stMoveStop.LastX = stAction.PosX;
-				m_stMoveStop.LastY = stAction.PosY;
-				m_stMoveStop.NextX = stAction.TargetX;
-				m_stMoveStop.NextY = stAction.TargetY;
-				SendOneMessage((char*)&stAction, 52);
-				m_pMyHuman->m_dwOldMovePacketTime = g_pTimerManager->GetServerTime();
-			}
-			else if (m_vecMyNext.x != (int)m_pMyHuman->m_vecPosition.x || m_vecMyNext.y != (int)m_pMyHuman->m_vecPosition.y)
-				m_pMyHuman->GetRoute(m_vecMyNext, 0, m_pMyHuman->m_cLastMoveStop);
-		}
-	}
+	FrameMove_SendMoveStop(dwServerTime);
 	if (m_pTargetItem)
 		m_pMyHuman->MoveGet(m_pTargetItem);
 
@@ -1598,6 +1526,85 @@ for (int i = 0; i < 32; ++i)
 		if (m_pAffectL[i])
 			m_pAffectL[i]->SetVisible(0);
 		m_dwAffectBlinkTime[i] = 0;
+	}
+}
+}
+
+/// Envia a parada de movimento ao chegar em `m_vecMyNext` (enquanto `m_cLastMoveStop` não está marcado).
+/// @note Extraído de `TMFieldScene::FrameMove` (Fase 3); locais da função passadas por referência.
+void TMFieldScene::FrameMove_SendMoveStop(unsigned int& dwServerTime)
+{
+if (!m_pMyHuman->m_cLastMoveStop)
+{
+	if (m_pMyHuman->m_fMaxSpeed >= 5.0f)
+	{
+		if (m_pMyHuman->m_fProgressRate >= 0.8f || m_pMyHuman->m_fProgressRate == 0.0f)
+		{
+			if ((int)m_pMyHuman->m_vecPosition.x == m_vecMyNext.x && (int)m_pMyHuman->m_vecPosition.y == m_vecMyNext.y && 
+				(m_pMyHuman->m_LastSendTargetPos.x != m_vecMyNext.x || m_pMyHuman->m_LastSendTargetPos.y != m_vecMyNext.y) && 
+				dwServerTime - m_pMyHuman->m_dwOldMovePacketTime > 1000 && !m_pMyHuman->m_cDie)
+			{
+				m_pMyHuman->m_LastSendTargetPos = m_vecMyNext;
+
+				MSG_Action Msg{};
+				Msg.Header.ID = m_pMyHuman->m_dwID;
+				Msg.PosX = m_stMoveStop.NextX;
+				Msg.PosY = m_stMoveStop.NextY;
+				Msg.Effect = 0;
+				Msg.Header.Type = MSG_Action_Opcode;
+				Msg.Speed = g_nMyHumanSpeed;
+				Msg.TargetX = m_pMyHuman->m_LastSendTargetPos.x;
+				Msg.TargetY = m_pMyHuman->m_LastSendTargetPos.y;
+
+				for (int n = 0; n < 23; ++n)
+					Msg.Route[n] = 0;
+
+				g_bLastStop = Msg.Header.Type;
+				m_stMoveStop.LastX = Msg.PosX;
+				m_stMoveStop.LastY = Msg.PosY;
+				m_stMoveStop.NextX = Msg.TargetX;
+				m_stMoveStop.NextY = Msg.TargetY;
+				SendOneMessage((char*)&Msg, 52);
+				m_pMyHuman->m_dwOldMovePacketTime = g_pTimerManager->GetServerTime();
+			}
+			else if (m_vecMyNext.x != (int)m_pMyHuman->m_vecPosition.x || m_vecMyNext.y != (int)m_pMyHuman->m_vecPosition.y)
+			{
+				m_pMyHuman->GetRoute(m_vecMyNext, 0, m_pMyHuman->m_cLastMoveStop);
+			}
+		}
+	}
+	else if (m_pMyHuman->m_fProgressRate >= 0.90f || m_pMyHuman->m_fProgressRate == 0.0f)
+	{
+		int nPosX = (int)m_pMyHuman->m_vecPosition.x;
+		int nPosY = (int)m_pMyHuman->m_vecPosition.y;
+		if (nPosX == m_vecMyNext.x && nPosY == m_vecMyNext.y && (m_pMyHuman->m_LastSendTargetPos.x != m_vecMyNext.x	|| 
+			m_pMyHuman->m_LastSendTargetPos.y != m_vecMyNext.y) && dwServerTime - m_pMyHuman->m_dwOldMovePacketTime > 1000 && !m_pMyHuman->m_cDie)
+		{
+			m_pMyHuman->m_LastSendTargetPos = m_vecMyNext;
+
+			MSG_Action stAction{};
+			stAction.Header.ID = m_pMyHuman->m_dwID;
+			stAction.PosX = m_pMyHuman->m_LastSendTargetPos.x;
+			stAction.PosY = m_pMyHuman->m_LastSendTargetPos.y;
+			stAction.Effect = 0;
+			stAction.Header.Type = MSG_Action_Opcode;
+			stAction.Speed = g_nMyHumanSpeed;
+			stAction.TargetX = m_pMyHuman->m_LastSendTargetPos.x;
+			stAction.TargetY = m_pMyHuman->m_LastSendTargetPos.y;
+
+			for (int j = 0; j < 23; ++j)
+				stAction.Route[j] = 0;
+
+			g_bLastStop = stAction.Header.Type;
+			m_stMoveStop.LastX = stAction.PosX;
+			m_stMoveStop.LastY = stAction.PosY;
+			m_stMoveStop.NextX = stAction.TargetX;
+			m_stMoveStop.NextY = stAction.TargetY;
+			SendOneMessage((char*)&stAction, 52);
+			m_pMyHuman->m_dwOldMovePacketTime = g_pTimerManager->GetServerTime();
+		}
+		else if (m_vecMyNext.x != (int)m_pMyHuman->m_vecPosition.x || m_vecMyNext.y != (int)m_pMyHuman->m_vecPosition.y)
+			m_pMyHuman->GetRoute(m_vecMyNext, 0, m_pMyHuman->m_cLastMoveStop);
 	}
 }
 }

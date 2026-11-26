@@ -351,6 +351,7 @@ private:
 	void FrameMove_MiniMap();
 	void FrameMove_CastleWarState(unsigned int& dwServerTime, bool& bInTown);
 	void FrameMove_AffectTimers(unsigned int& dwServerTime);
+	void FrameMove_SendMoveStop(unsigned int& dwServerTime);
 	/// @}
 
 public:
