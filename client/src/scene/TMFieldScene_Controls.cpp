@@ -2500,3 +2500,18 @@ int TMFieldScene::OnControl_InvPage4(unsigned int idwControlID, unsigned int idw
 
 	return 0;
 }
+
+/// Página 1 do baú (`B_CARGO_PAGE1`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CargoPage1(unsigned int idwControlID, unsigned int idwEvent)
+{
+	m_pCargoGridList[0]->SetVisible(0);
+	m_pCargoGridList[1]->SetVisible(0);
+	m_pCargoGridList[2]->SetVisible(0);
+	m_pCargoGrid = m_pCargoGridList[0];
+	m_pCargoGrid->SetVisible(1);
+	m_pStorePageBtn1->SetTextureSetIndex(532);
+	m_pStorePageBtn2->SetTextureSetIndex(533);
+	m_pStorePageBtn3->SetTextureSetIndex(535);
+	return 0;
+}
