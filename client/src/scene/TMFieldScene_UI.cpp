@@ -1610,42 +1610,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 1;
 	}
 	if (idwControlID == 667)
-	{
-		int validItem = 1;
-		for (int i = 0; i < 10; ++i)
-		{
-			if (m_stAutoTrade.Item[i].sIndex > 0)
-				validItem = 0;
-		}
-		if (validItem == 1)
-		{
-			m_pMessagePanel->SetMessage(g_pMessageStringTable[145], 2000);
-			m_pMessagePanel->SetVisible(1, 1);
-			return 1;
-		}
-
-		auto pButtonRun = (SButton*)m_pControlContainer->FindControl(667u);
-		m_stAutoTrade.Header.Type = 919;
-		m_stAutoTrade.TargetID = m_pMyHuman->m_dwID;
-		SendOneMessage((char*)&m_stAutoTrade, sizeof(m_stAutoTrade));
-
-		auto pButtonCancel = (SButton*)m_pControlContainer->FindControl(668u);
-		if (pButtonRun)
-			pButtonRun->SetVisible(0);
-		if (pButtonCancel)
-			pButtonCancel->SetVisible(1);
-
-		auto pAutoTrade =  m_pAutoTrade;
-		if (pAutoTrade && pAutoTrade->IsVisible() == 1)
-		{
-			m_pCargoPanel->SetVisible(0);
-			m_pCargoPanel1->SetVisible(0);
-
-			pAutoTrade->SetRealPos((float)g_pDevice->m_dwScreenWidth - pAutoTrade->m_nWidth, 0.0f);
-		}
-
-		return 1;
-	}
+		return OnControl_AutoTrade667(idwControlID, idwEvent);
 
 	return 0;
 }

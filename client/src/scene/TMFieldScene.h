@@ -298,6 +298,7 @@ private:
 	int OnControl_AddSpecial3(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_AddSpecial4(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_PartyListClick(unsigned int idwControlID, unsigned int idwEvent, unsigned int dwServerTime, int cktrans);
+	int OnControl_AutoTrade667(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
