@@ -1,15 +1,11 @@
 # Avisos do i686-w64-mingw32-g++ 14 acompanhados por tools/mingw_check.py: <quantidade> <tipo> <arquivo>.
 # Regrave com: python3 tools/mingw_check.py --update-warning-baseline
 3 shadow client/src/audio/DirShow.cpp
-1 sizeof-pointer-memaccess client/src/common/BaseItem.cpp
 1 shadow client/src/common/BaseWorld.cpp
 1 shadow client/src/effects/TMEffectSpark.cpp
 1 shadow client/src/entities/TMButterFly.cpp
 2 shadow client/src/entities/TMHuman_Packets.cpp
 2 shadow client/src/entities/TMShade.cpp
-1 sizeof-pointer-memaccess client/src/gameplay/MrItemMix.cpp
-3 maybe-uninitialized client/src/render/CFrame.cpp
-2 delete-incomplete client/src/render/DXUtil.cpp
 1 array-bounds client/src/render/MeshManager.cpp
 1 shadow client/src/render/TMSkinMesh.cpp
 3 shadow client/src/scene/TMFieldScene.cpp
@@ -31,20 +27,14 @@
 1 shadow server/common/BaseCombat.cpp
 1 shadow server/common/BaseItem.cpp
 1 shadow server/common/BaseLoaders.cpp
-1 sizeof-pointer-memaccess server/common/Basedef.cpp
 12 shadow server/dbsrv/core/CReadFiles.cpp
 1 shadow server/dbsrv/core/Server.cpp
 2 shadow server/dbsrv/core/Server_Admin.cpp
 2 shadow server/dbsrv/core/Server_Config.cpp
 1 shadow server/dbsrv/persistence/CFileDB_AccountPackets.cpp
-1 maybe-uninitialized server/tmsrv/entities/CMob.cpp
 1 shadow server/tmsrv/entities/CUser.cpp
 4 shadow server/tmsrv/handlers/combat/_MSG_Attack.cpp
-2 maybe-uninitialized server/tmsrv/handlers/items/UseItem_Quests.cpp
-1 overflow server/tmsrv/net/GetFunc.cpp
 2 shadow server/tmsrv/net/GetFunc.cpp
 2 shadow server/tmsrv/systems/CCastleZakum.cpp
-2 overflow server/tmsrv/systems/ItemSpawnSystem.cpp
 1 shadow server/tmsrv/systems/MobKilled_Drops.cpp
-1 array-bounds server/tmsrv/systems/ScheduledEventSystem.cpp
 1 shadow server/tmsrv/systems/imple.cpp

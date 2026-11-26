@@ -22,15 +22,15 @@ Outros comportamentos do cliente que o teste fixa como estão (não leem fora do
 
 - **`BASE_CanCargo`**: `SourGrid` nunca é preenchida, então a função sempre devolve 1. A grade do baú é gravada com `CargoGrid[ty][9 * yy + tx + xx]`, deslocada em relação à linha.
 - **`BASE_CanTrade`**: `OpponentTrade` não é usado (copia de uma lista local vazia).
-- **`BASE_ClearItem`**: `memset(item, 0, sizeof(item))` zera só o tamanho do ponteiro (4 bytes em Win32). O item de 8 bytes fica com `stEffect[1]` e `stEffect[2]` intactos.
 - **`BASE_GetAttribute`**: a guarda confere `x <= 4096` duas vezes e nunca `y`. A máscara `& 1023` mantém o índice dentro da tabela.
 
-O GCC (`-Warray-bounds`) aponta ainda:
+O único `-Warray-bounds` que sobra é `client/src/render/MeshManager.cpp:329`, índice 7 (e 28)
+em `short [6][60][56]`. Ver abaixo. Os outros avisos acompanhados pelo `mingw_check` são todos
+`-Wshadow` (ocultação de nomes), que não indicam defeito por si.
 
-| Onde | Aviso |
-|---|---|
-| `client/src/render/MeshManager.cpp:329` | Índice 7 (e 28) em `short [6][60][56]`. Ver abaixo |
-| `server/tmsrv/systems/ScheduledEventSystem.cpp:668` | Índice 3 em `STRUCT_PISTA::<struct> [3]` |
+Encontrado ao corrigir `CMob::SetSegment` e mantido: a guarda `if (RouteType <= 0 && RouteType > 4)`
+nunca é verdadeira (deveria ser `||`), então o log "Wrong SetSegment" nunca sai. Trocar para `||`
+faria a rota 0, que é válida e tratada no laço, sair cedo; a intenção não é clara.
 
 ### `MeshManager::m_sAnimationArray` menor do que o uso (não corrigido)
 
@@ -56,21 +56,6 @@ mesmo desenho do `TMItem::Render` corrigido abaixo, onde a intenção (`dwColor[
 fica clara. Aqui não há leitura fora dos limites, e a cor exibida hoje é determinística; corrigir
 muda o visual no inventário, então fica como decisão separada.
 
-## Memória possivelmente não inicializada
-
-| Onde | O que acontece |
-|---|---|
-| `server/tmsrv/handlers/items/UseItem_Quests.cpp:514`, `server/tmsrv/entities/CMob.cpp:595`, `client/src/render/CFrame.cpp:311` | O GCC aponta `-Wmaybe-uninitialized` (`when.tm_min`/`tm_sec`, `iterator`, `vecOut3`) |
-
-## Outros avisos relevantes
-
-| Onde | Aviso |
-|---|---|
-| `server/common/Basedef.cpp:1355` | `strncpy(..., sizeof(origem))`: o tamanho é o da origem, não o do destino |
-| `client/src/common/BaseItem.cpp:571`, `client/src/gameplay/MrItemMix.cpp:193` | `memset`/`memcpy` com `sizeof` do próprio ponteiro |
-| `client/src/render/DXUtil.cpp:937`, `:965` | `delete` de `void*` (comportamento indefinido) |
-| `server/tmsrv/net/GetFunc.cpp:1213`, `server/tmsrv/systems/ItemSpawnSystem.cpp:1307`, `:1806` | `-204` atribuído a `unsigned char` (vira 52) |
-
 ## Corrigidos
 
 | Onde | Defeito | Correção |
@@ -87,6 +72,15 @@ muda o visual no inventário, então fica como decisão separada.
 | `client/src/entities/TMHuman.cpp`, `TMHuman::InitObject` | Classe 16 (dragão esmeralda): os olhos 8 e 9 eram criados em `m_pEyeFire[8]`/`[9]`, além do fim do vetor de 7, e caíam em `m_pEyeFire2[1]`/`[2]`, o membro seguinte (que `RenderEffect_EmeraldDragon` atualiza com `m_vecTempPos[i + 7]` e as rotinas de limpeza apagam) | Grava direto em `m_pEyeFire2[i - 7]`: mesma memória, sem comportamento indefinido. O comportamento não muda |
 | `client/src/entities/TMItem.cpp`, `TMItem::Render` | Malhas 737..739 no chão: `dwColor[nMeshIndex - 2980]` dava índice -2243..-2241 e lia antes do início de `dwColor[3]` (laranja, azul, verde) | `dwColor[nMeshIndex - 737]`, uma cor por malha. **Muda o visual**: antes a cor vinha de memória fora do vetor |
 | `client/src/scene/TMFieldScene_Controls.cpp`, sussurro longo | `&stMsgWhisper.MobName[maxLen + 15]` passava do fim de `MobName[16]` para chegar a `String` | `&stMsgWhisper.String[maxLen - 1]`: mesmo endereço (sem preenchimento entre os dois vetores de `char`). O comportamento não muda |
+| `server/tmsrv/systems/ScheduledEventSystem.cpp`, pista +3 | No bloco "grupo 2 ganhou", as runas iam para `Party[1]` e o prêmio 5134 para `Pista[3].Party[3].LeaderID`, além do fim de `Party[3]`: caía em `Pista[4].Party[0]`, o líder de outra pista (ou 0) | `Party[1]`, como nos outros cinco blocos. **Muda quem recebe o prêmio** |
+| `server/tmsrv/handlers/items/UseItem_Quests.cpp`, bilhete do pesadelo | O bilhete solo pula com `goto lbl_a_noparty` a leitura do relógio, e `NigthTime` era calculado com `tm_min`/`tm_sec` sem valor | O relógio é lido antes do `goto`. O solo continua sem a checagem de horário; o tempo restante passa a ser o real. **Muda o tempo do bilhete solo** |
+| `server/tmsrv/entities/CMob.cpp`, `SetSegment` | Rota 4 com `SegmentProgress == -1` saía sem valor de retorno e lia `SegmentListX[-1]`. O estado não acontece (direção 1 só nas rotas 2 e 3) | Retorno padrão 0 e progresso 0 nesse caminho. Caminhos alcançáveis iguais |
+| `server/common/Basedef.cpp`, `BASE_GetEnglish` | `strncpy(temp, name, sizeof(name))` para um `temp` nunca usado | Cópia removida. Sem mudança |
+| `server/tmsrv/net/GetFunc.cpp`, `server/tmsrv/systems/ItemSpawnSystem.cpp` (2×) | `Height = -204` num `unsigned char` (vira 52) | Conversão explícita `static_cast<unsigned char>(-204)`. Sem mudança |
+| `client/src/render/CFrame.cpp`, osso 20, quadro 7 | `m_vecTempPos[10]` recebia um `vecOut3` nunca calculado (lixo da pilha) | O ramo não grava mais `[10]`: a origem do ponto se perdeu na decompilação e os leitores de `[10]` são efeitos de traje humanos (ossos 0/1) |
+| `client/src/render/DXUtil.cpp`, `CArrayList` | `delete[]` de `void*` (alocado como `BYTE[]`) | `delete[] static_cast<BYTE*>(m_pData)`. Sem mudança |
+| `client/src/gameplay/MrItemMix.cpp` | A cópia do item exigido no painel de mistura usava `sizeof(pstItem)` (4 de 8 bytes) e perdia os efeitos 1 e 2 | `sizeof(*pstItem)`. **Muda o item exibido** (passa a mostrar todos os efeitos) |
+| `client/src/common/BaseItem.cpp`, `BASE_ClearItem` | `memset(item, 0, sizeof(item))` zerava 4 de 8 bytes | `sizeof(*item)`. O único chamador é `BASE_CanTrade`, sem chamadores; os hashes `ItemSancAndColor` e `EquipCarryTrade` da caracterização foram regravados |
 
 As correções das funções `BASE_*` só mudam o resultado para entradas fora do domínio do jogo
 (a única correção com efeito visível com dados válidos é a cor do `TMItem::Render`): os hashes de
