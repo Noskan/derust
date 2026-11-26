@@ -302,113 +302,7 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 		}
 	}
 
-	for (int i = 0; i < 32; ++i)
-	{
-		if ((unsigned char)m_pMyHuman->m_stAffect[i].Type > 0)
-		{
-			char szVal[128]{};
-			short sTime = 8 * m_pMyHuman->m_stAffect[i].Time - (dwServerTime - m_dwStartAffectTime[i]) / 1000;
-			if (sTime <= 0)
-			{
-				if (m_pAffectL[i])
-				{
-					if (!i)
-						m_pAffect[0]->SetTextColor(0xFF000000);
-
-					m_pAffect[i]->SetText((char*)"    0", 0);
-					m_pAffectL[i]->SetVisible(0);
-				}
-
-				continue;
-			}
-
-			if (m_pMyHuman->m_stAffect[i].Time >= 1000000)
-			{
-				int add = m_pMyHuman->m_stAffect[i].Time / 1000000;
-				int Year = m_pMyHuman->m_stAffect[i].Time % 1000000 / 10000;
-				int Day = m_pMyHuman->m_stAffect[i].Time % 10000;
-				int nYearDay = 365;
-				if (!(Year % 4))
-					nYearDay = 366;
-
-				int nDefaultDay = 0;
-				switch (add)
-				{
-				case 4:
-					nDefaultDay = 7;
-					break;
-				case 5:
-					nDefaultDay = 15;
-					break;
-				case 6:
-					nDefaultDay = 30;
-					break;
-				}
-				if (add)
-				{
-					int freeDay = nDefaultDay - nYearDay * (m_nYear - Year) - (m_nDays - Day);
-					sprintf(szVal, "%dD", freeDay);
-				}
-			}
-			else if (sTime > 86400)
-			{
-				int nDay = sTime / 86400;
-				sprintf(szVal, "%ddD", sTime / 86400);
-			}
-			else if (sTime > 3600)
-			{
-				int nHour = sTime / 3600;
-				sprintf(szVal, "%dH", sTime / 3600);
-			}
-			else if (sTime > 600)
-			{
-				int nMin = sTime / 60;
-				sprintf(szVal, "%dM", sTime / 60);
-			}
-			else
-			{
-				sprintf(szVal, "%5d", sTime);
-			}
-
-			if (m_pAffectL[i])
-			{
-				if (!i)
-				{
-					if (sTime < 7375)
-					{
-						for (int nJ = 0; nJ < 7; ++nJ)
-						{
-							if (sTime < g_sTimeTable[nJ])
-							{
-								m_pAffect[i]->SetTextColor(g_dwFoodColor[nJ]);
-								break;
-							}
-						}
-					}
-					else
-						m_pAffect[i]->SetTextColor(0xFFFFFFFF);
-				}
-				m_pAffect[i]->SetText(szVal, 0);
-			}
-
-			if (m_pAffectL[i])
-				m_pAffectL[i]->SetVisible(0);
-			if (m_pMiniPanel)
-			{
-				if ((unsigned char)m_pMyHuman->m_stAffect[i].Type < 50)
-					m_pAffectIcon[i]->m_GCPanel.nTextureIndex = g_AffectSkillType[(unsigned char)m_pMyHuman->m_stAffect[i].Type];
-				else
-					m_pAffectIcon[i]->m_GCPanel.nTextureIndex = 0;
-				m_pAffectIcon[i]->m_GCPanel.nLayer = 29;
-			}
-		}
-		else
-		{
-			if (m_pAffectL[i])
-				m_pAffectL[i]->SetVisible(0);
-			m_dwAffectBlinkTime[i] = 0;
-		}
-	}
+	FrameMove_AffectTimers(dwServerTime);
 	if (g_pObjectManager->m_stMobData.CurrentScore.Hp > 0 && m_bAutoRun && !g_pCursor->m_pAttachedItem)
 	{
 		TMVector2 vec = m_pMyHuman->m_vecPosition;
@@ -1591,6 +1485,119 @@ else
 			g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
 		}
 		DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+	}
+}
+}
+
+/// Atualiza o tempo restante dos 32 afetos do personagem na HUD (`m_pAffect`/`m_pAffectL`).
+/// @note Extraído de `TMFieldScene::FrameMove` (Fase 3); locais da função passadas por referência.
+void TMFieldScene::FrameMove_AffectTimers(unsigned int& dwServerTime)
+{
+for (int i = 0; i < 32; ++i)
+{
+	if ((unsigned char)m_pMyHuman->m_stAffect[i].Type > 0)
+	{
+		char szVal[128]{};
+		short sTime = 8 * m_pMyHuman->m_stAffect[i].Time - (dwServerTime - m_dwStartAffectTime[i]) / 1000;
+		if (sTime <= 0)
+		{
+			if (m_pAffectL[i])
+			{
+				if (!i)
+					m_pAffect[0]->SetTextColor(0xFF000000);
+
+				m_pAffect[i]->SetText((char*)"    0", 0);
+				m_pAffectL[i]->SetVisible(0);
+			}
+
+			continue;
+		}
+
+		if (m_pMyHuman->m_stAffect[i].Time >= 1000000)
+		{
+			int add = m_pMyHuman->m_stAffect[i].Time / 1000000;
+			int Year = m_pMyHuman->m_stAffect[i].Time % 1000000 / 10000;
+			int Day = m_pMyHuman->m_stAffect[i].Time % 10000;
+			int nYearDay = 365;
+			if (!(Year % 4))
+				nYearDay = 366;
+
+			int nDefaultDay = 0;
+			switch (add)
+			{
+			case 4:
+				nDefaultDay = 7;
+				break;
+			case 5:
+				nDefaultDay = 15;
+				break;
+			case 6:
+				nDefaultDay = 30;
+				break;
+			}
+			if (add)
+			{
+				int freeDay = nDefaultDay - nYearDay * (m_nYear - Year) - (m_nDays - Day);
+				sprintf(szVal, "%dD", freeDay);
+			}
+		}
+		else if (sTime > 86400)
+		{
+			int nDay = sTime / 86400;
+			sprintf(szVal, "%ddD", sTime / 86400);
+		}
+		else if (sTime > 3600)
+		{
+			int nHour = sTime / 3600;
+			sprintf(szVal, "%dH", sTime / 3600);
+		}
+		else if (sTime > 600)
+		{
+			int nMin = sTime / 60;
+			sprintf(szVal, "%dM", sTime / 60);
+		}
+		else
+		{
+			sprintf(szVal, "%5d", sTime);
+		}
+
+		if (m_pAffectL[i])
+		{
+			if (!i)
+			{
+				if (sTime < 7375)
+				{
+					for (int nJ = 0; nJ < 7; ++nJ)
+					{
+						if (sTime < g_sTimeTable[nJ])
+						{
+							m_pAffect[i]->SetTextColor(g_dwFoodColor[nJ]);
+							break;
+						}
+					}
+				}
+				else
+					m_pAffect[i]->SetTextColor(0xFFFFFFFF);
+			}
+			m_pAffect[i]->SetText(szVal, 0);
+		}
+
+		if (m_pAffectL[i])
+			m_pAffectL[i]->SetVisible(0);
+		if (m_pMiniPanel)
+		{
+			if ((unsigned char)m_pMyHuman->m_stAffect[i].Type < 50)
+				m_pAffectIcon[i]->m_GCPanel.nTextureIndex = g_AffectSkillType[(unsigned char)m_pMyHuman->m_stAffect[i].Type];
+			else
+				m_pAffectIcon[i]->m_GCPanel.nTextureIndex = 0;
+			m_pAffectIcon[i]->m_GCPanel.nLayer = 29;
+		}
+	}
+	else
+	{
+		if (m_pAffectL[i])
+			m_pAffectL[i]->SetVisible(0);
+		m_dwAffectBlinkTime[i] = 0;
 	}
 }
 }
