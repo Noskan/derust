@@ -1304,48 +1304,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 1;
 	}
 	if (idwControlID == 641)
-	{
-		auto pHuman = (TMHuman*)g_pObjectManager->GetHumanByID(m_dwOpID);
-		if (!pHuman)
-		{
-			m_pPGTOver = 0;
-			return 1;
-		}
-		else if (pHuman->m_bParty)
-		{
-			m_pPGTOver = 0;
-			return 1;
-		}
-		else if (m_pMyHuman->m_cDie == 1)
-		{
-			m_pPGTOver = 0;
-			return 1;
-		}
-
-		if (!m_pPartyList->m_pItemList[0] || static_cast<SListBoxPartyItem*>(m_pPartyList->m_pItemList[0])->m_nState != 1)
-		{
-			MSG_REQParty stReqParty{};
-			stReqParty.Header.Type = MSG_REQParty_Opcode;
-			stReqParty.Header.ID = m_pMyHuman->m_dwID;
-			stReqParty.Leader.Class = m_pMyHuman->m_nSkinMeshType - 1;
-			stReqParty.Leader.PartyIndex = 0;
-			stReqParty.Leader.Level = m_pMyHuman->m_stScore.Level;
-			stReqParty.Leader.Hp = m_pMyHuman->m_stScore.Hp;
-			stReqParty.Leader.MaxHp = m_pMyHuman->m_stScore.MaxHp;
-			stReqParty.Leader.ID = m_pMyHuman->m_dwID;
-			sprintf(stReqParty.Leader.Name, "%s", m_pMyHuman->m_szName);
-			stReqParty.TargetID = m_dwOpID;
-			SendOneMessage((char*)&stReqParty, sizeof(stReqParty));
-			m_dwOpID = 0;
-			m_pPGTPanel->SetVisible(0);
-			m_pPGTOver = 0;
-			return 0;
-		}
-
-		m_pMessagePanel->SetMessage(g_pMessageStringTable[156], 2000);
-		m_pPGTOver = 0;
-		return 1;
-	}
+		return OnControl_PlayerMenu641(idwControlID, idwEvent);
 	if (idwControlID == 643)
 	{
 		if (!m_pPGTOver	|| 

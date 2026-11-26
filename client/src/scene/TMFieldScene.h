@@ -288,6 +288,7 @@ private:
 	int OnControl_CCMove(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_QuestLog(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_AirMoveStart(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_PlayerMenu641(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
