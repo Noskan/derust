@@ -1757,8 +1757,8 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 		{
 			int code = mount - 3980;
 
-			if (Run < g_pMountTempBonus[code][4])
-				Run = g_pMountTempBonus[code][4];
+			if (Run < g_pMountBonus2[code][4])
+				Run = g_pMountBonus2[code][4];
 		}
 
 		else if(MOB.Equip[14].stEffect[0].sValue > 0 )

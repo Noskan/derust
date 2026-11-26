@@ -96,150 +96,156 @@ void BASE_GetItemCode(STRUCT_ITEM * item, char * str)
 }
 
 /// Consulta um atributo de item ignorando o multiplicador de refinacao (sanc).
-int BASE_GetItemAbilityNosanc(STRUCT_ITEM *item, unsigned char Type)
+int BASE_GetItemAbilityNosanc(STRUCT_ITEM *item, unsigned char type)
 {
+	// Regra do cliente (client/src/common/BaseItem.cpp:1125).
+	int itemId = item->sIndex;
 	int value = 0;
-	int idx = item->sIndex;
 
-	if(idx <= 0 || idx >= MAX_ITEMLIST)
+	if (itemId < 0 || itemId >= MAX_ITEMLIST)
 		return value;
 
-	int nUnique = g_pItemList[idx].nUnique;
-	int nPos = g_pItemList[idx].nPos;
+	int nUnique = g_pItemList[itemId].nUnique;
+	int nPos = g_pItemList[itemId].nPos;
 
-	if((Type == EF_DAMAGEADD || Type == EF_MAGICADD) && (nUnique < 41 || nUnique > 50))
-		return FALSE;
-	if(Type == EF_CRITICAL && (item->stEffect[1].cEffect == EF_CRITICAL2 || item->stEffect[2].cEffect == EF_CRITICAL2))
-		Type = EF_CRITICAL2;
-	
-	if(Type == EF_DAMAGE && nPos == 32 && (item->stEffect[1].cEffect == EF_DAMAGE2 || item->stEffect[2].cEffect == EF_DAMAGE2))
-		Type = EF_DAMAGE2;
-
-	if (Type == EF_MPADD && (item->stEffect[1].cEffect == EF_MPADD2 || item->stEffect[2].cEffect == EF_MPADD2))
-		Type = EF_MPADD2;
-	
-	if (Type == EF_HPADD && (item->stEffect[1].cEffect == EF_HPADD2 || item->stEffect[2].cEffect == EF_HPADD2))
-		Type = EF_HPADD2;
-	
-	if(Type == EF_LEVEL && idx >= 2330 && idx < 2360)
-		value = item->stEffect[1].cEffect - 1;
-
-	else if(Type == EF_LEVEL)
-		value += g_pItemList[idx].ReqLvl;
-
-	if(Type == EF_REQ_STR)
-		value += g_pItemList[idx].ReqStr;
-
-	if(Type == EF_REQ_INT)
-		value += g_pItemList[idx].ReqInt;
-
-	if(Type == EF_REQ_DEX)
-		value += g_pItemList[idx].ReqDex;
-
-	if(Type == EF_REQ_CON)
-		value += g_pItemList[idx].ReqCon;
-
-	if(Type == EF_POS)
-		value += g_pItemList[idx].nPos;
-
-	if(Type != EF_INCUBATE)
+	if (type == EF_DAMAGEADD || type == EF_MAGICADD)
 	{
-		for(int i = 0; i < MAX_STATICEFFECT; i++)
+		if (nUnique < 41 || nUnique > 50)
+			return value;
+	}
+
+	if (type == EF_CRITICAL)
+	{
+		if (item->stEffect[1].cEffect == EF_CRITICAL2 || item->stEffect[2].cEffect == EF_CRITICAL2)
+			type = EF_CRITICAL2;
+	}
+
+	if (type == EF_DAMAGE && nPos == 32)
+	{
+		if (item->stEffect[1].cEffect == EF_DAMAGE2 || item->stEffect[2].cEffect == EF_DAMAGE2)
+			type = EF_DAMAGE2;
+	}
+
+	if (type == EF_MPADD)
+	{
+		if (item->stEffect[1].cEffect == EF_MPADD2 || item->stEffect[2].cEffect == EF_MPADD2)
+			type = EF_MPADD2;
+	}
+
+	if (type == EF_HPADD)
+	{
+		if (item->stEffect[1].cEffect == EF_HPADD2 || item->stEffect[2].cEffect == EF_HPADD2)
+			type = EF_HPADD2;
+	}
+
+	if (type == EF_ACADD)
+	{
+		if (item->stEffect[1].cEffect == EF_ACADD2 || item->stEffect[2].cEffect == EF_ACADD2)
+			type = EF_ACADD2;
+	}
+
+	if (type == EF_LEVEL)
+		value += g_pItemList[itemId].ReqLvl;
+
+	if (type == EF_REQ_STR)
+		value += g_pItemList[itemId].ReqStr;
+
+	if (type == EF_REQ_INT)
+		value += g_pItemList[itemId].ReqInt;
+
+	if (type == EF_REQ_DEX)
+		value += g_pItemList[itemId].ReqDex;
+
+	if (type == EF_REQ_CON)
+		value += g_pItemList[itemId].ReqCon;
+
+	if (type == EF_POS)
+		value += g_pItemList[itemId].nPos;
+
+	if (type != EF_INCUBATE)
+	{
+		for (int i = 0; i < 12; i++)
 		{
-			if(g_pItemList[idx].stEffect[i].sEffect != Type)
-                continue;
+			if (g_pItemList[itemId].stEffect[i].sEffect != type)
+				continue;
 
-			int tvalue = g_pItemList[idx].stEffect[i].sValue;
+			if (g_pItemList[itemId].stEffect[i].sEffect == EF_HPADD || g_pItemList[itemId].stEffect[i].sEffect == EF_HPADD2)
+				continue;
 
-            if(Type == EF_ATTSPEED && tvalue == 1)
-                tvalue = 10;
+			int tvalue = g_pItemList[itemId].stEffect[i].sValue;
 
-            value += tvalue;
+			if (type == EF_ATTSPEED && tvalue == 1)
+				tvalue = 10;
+
+			value += tvalue;
 		}
 	}
-	
-	if(idx >= 2330 && idx < 2390)
+
+	if (itemId >= 2330 && itemId < 2390)
 	{
-		if(Type == EF_MOUNTHP)
+		if (type == EF_MOUNTHP)
 			return item->stEffect[0].sValue;
 
-		else if(Type == EF_MOUNTSANC)
+		else if (type == EF_MOUNTSANC)
 			return item->stEffect[1].cEffect;
 
-		else if(Type == EF_MOUNTLIFE)
+		else if (type == EF_MOUNTLIFE)
 			return item->stEffect[1].cValue;
 
-		else if(Type == EF_MOUNTFEED)
+		else if (type == EF_MOUNTFEED)
 			return item->stEffect[2].cEffect;
 
-		else if(Type == EF_MOUNTKILL)
+		else if (type == EF_MOUNTKILL)
 			return item->stEffect[2].cValue;
 
-		if(idx < 2362 || idx >= 2390 || item->stEffect[0].sValue <= 0)
+		if (itemId < 2362 || itemId >= 2390 || item->stEffect[0].sValue <= 0)
 			return value;
 
 		int lv = item->stEffect[1].cEffect;
 		int cd = item->sIndex - 2360;
 
-		if(Type == EF_DAMAGE)
-			return (lv + 20) * g_pMountBonus[cd][0] / 100; //Retorna o DN da montaria no level atual
+		if (type == EF_DAMAGE)
+			return g_pMountBonus[cd][0] * (lv + 20) / 100;
 
-		else if(Type == EF_MAGIC)
-			return (lv + 15) * g_pMountBonus[cd][1] / 100;
+		else if (type == EF_MAGIC)
+			return g_pMountBonus[cd][1] * (lv + 15) / 100;
 
-		else if(Type == EF_PARRY)
+		else if (type == EF_PARRY)
 			return g_pMountBonus[cd][2];
 
-		else if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
+		else if (type == EF_RESISTALL)
 			return g_pMountBonus[cd][3];
 		else
 			return value;
 	}
 
-	if(idx >= 3980 && idx <= 3994)
+	if (itemId >= 3980 && itemId <= 3994)
 	{
-		int cd = idx - 3980;
 
-		if (Type == EF_DAMAGE)
-			return g_pMountTempBonus[cd][0]; //Retorna o DN da montaria
+		if (type == EF_DAMAGE)
+			return g_pMountBonus2[itemId - 3980][0];
 
-		else if (Type == EF_MAGIC)
-			return g_pMountTempBonus[cd][1];
+		else if (type == EF_MAGIC)
+			return g_pMountBonus2[itemId - 3980][1];
 
-		else if (Type == EF_PARRY)
-			return g_pMountTempBonus[cd][2];
+		else if (type == EF_PARRY)
+			return g_pMountBonus2[itemId - 3980][2];
 
-		else if (Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-			return g_pMountTempBonus[cd][3];
+		else if (type == EF_RESISTALL)
+			return g_pMountBonus2[itemId - 3980][3];
 		else
 			return value;
 	}
 
-	for(int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
-		if(item->stEffect[i].cEffect != Type)
-            continue;
-
-		int tvalue = item->stEffect[i].cValue;
-
-		if(Type == EF_ATTSPEED && tvalue == 1)
-            tvalue = 10;
-
-		value += tvalue;
-	}
-
-	if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-	{
-		for(int i = 0; i < MAX_STATICEFFECT; i++)
+		if (item->stEffect[i].cEffect == type)
 		{
-			if(g_pItemList[idx].stEffect[i].sEffect == EF_RESISTALL)
-				value += g_pItemList[idx].stEffect[i].sValue;
-		}
+			int total = item->stEffect[i].cValue;
+			if (type == EF_ATTSPEED && total == 1)
+				total = 10;
 
-		for(int i = 0; i < 3; i++)
-		{
-			if(item->stEffect[i].cEffect == EF_RESISTALL)
-				value += item->stEffect[i].cValue;
+			value += total;
 		}
 	}
 
@@ -249,195 +255,224 @@ int BASE_GetItemAbilityNosanc(STRUCT_ITEM *item, unsigned char Type)
 /// Calcula o valor efetivo de um atributo de item (EF_*) aplicando bonus de refinacao.
 int BASE_GetItemAbility(STRUCT_ITEM *item, unsigned char Type)
 {
+	// Regra do cliente. Diferenças para a versão antiga do servidor: HPADD2/MPADD2, refinação +11..+16
+	// com a tabela de multiplicadores do cliente, regeneração multiplicada pela refinação, montarias
+	// temporárias até 3999, e EF_RESISTALL não somado em cada resistência.
 	int value = 0;
-
 	int idx = item->sIndex;
 
-	if(idx < 0 || idx >= MAX_ITEMLIST)
-		return value;
+	if (idx <= 0 || idx >= MAX_ITEMLIST)
+		return 0;
 
 	int nUnique = g_pItemList[idx].nUnique;
-	int nPos	= g_pItemList[idx].nPos;
+	int nPos = g_pItemList[idx].nPos;
 
-	if(Type == EF_DAMAGEADD || Type == EF_MAGICADD)
-	{
-		if(nUnique < 41 || nUnique > 50)
-			return value;
-	}
+	if ((Type == EF_DAMAGEADD || Type == EF_MAGICADD) && (nUnique < 41 || nUnique > 50))
+		return 0;
 
-	if(Type == EF_CRITICAL)
-	{
-		if(item->stEffect[1].cEffect == EF_CRITICAL2 || item->stEffect[2].cEffect == EF_CRITICAL2)
-			Type = EF_CRITICAL2;
-	}
+	if (Type == EF_CRITICAL && (item->stEffect[1].cEffect == EF_CRITICAL2 || item->stEffect[2].cEffect == EF_CRITICAL2))
+		Type = EF_CRITICAL2;
 
-	if(Type == EF_DAMAGE && nPos == 32)
-	{
-		 if(item->stEffect[1].cEffect == EF_DAMAGE2 || item->stEffect[2].cEffect == EF_DAMAGE2)
-            Type = EF_DAMAGE2;
-	}
+	if (Type == EF_DAMAGE && nPos == 32 && (item->stEffect[1].cEffect == EF_DAMAGE2 || item->stEffect[2].cEffect == EF_DAMAGE2))
+		Type = EF_DAMAGE2;
 
-	if(Type == EF_ACADD)
-	{
-        if(item->stEffect[1].cEffect == EF_ACADD2 || item->stEffect[2].cEffect == EF_ACADD2)
-            Type = EF_ACADD2;
-	}
+	if (Type == EF_MPADD && (item->stEffect[1].cEffect == EF_MPADD2 || item->stEffect[2].cEffect == EF_MPADD2))
+		Type = EF_MPADD2;
 
-	if(Type == EF_LEVEL && idx >= 2330 && idx < 2360)
-		value = (item->stEffect[1].cEffect - 1);
+	if (Type == EF_HPADD && (item->stEffect[1].cEffect == EF_HPADD2 || item->stEffect[2].cEffect == EF_HPADD2))
+		Type = EF_HPADD2;
 
-    else if(Type == EF_LEVEL)
-        value += g_pItemList[idx].ReqLvl;
+	if (Type == EF_ACADD && (item->stEffect[1].cEffect == EF_ACADD2 || item->stEffect[2].cEffect == EF_ACADD2))
+		Type = EF_ACADD2;
 
-	if(Type == EF_REQ_STR)
+	if (Type == EF_LEVEL)
+		value = g_pItemList[idx].ReqLvl;
+
+	if (Type == EF_REQ_STR)
 		value += g_pItemList[idx].ReqStr;
 
-    if(Type == EF_REQ_INT)
-        value += g_pItemList[idx].ReqInt;
+	if (Type == EF_REQ_INT)
+		value += g_pItemList[idx].ReqInt;
 
-    if(Type == EF_REQ_DEX)
-        value += g_pItemList[idx].ReqDex;
+	if (Type == EF_REQ_DEX)
+		value += g_pItemList[idx].ReqDex;
 
-    if(Type == EF_REQ_CON)
-        value += g_pItemList[idx].ReqCon;
+	if (Type == EF_REQ_CON)
+		value += g_pItemList[idx].ReqCon;
 
-	if(Type == EF_POS)
+	if (Type == EF_POS)
 		value += g_pItemList[idx].nPos;
 
-	if(Type != EF_INCUBATE)
+	if (Type != EF_INCUBATE)
 	{
-		for(int i = 0; i < MAX_STATICEFFECT; i++)
+		for (int i = 0; i < MAX_STATICEFFECT; ++i)
 		{
-			if(g_pItemList[idx].stEffect[i].sEffect != Type)
-                continue;
+			if (g_pItemList[idx].stEffect[i].sEffect == Type ||
+				g_pItemList[idx].stEffect[i].sEffect == EF_HPADD && Type == EF_HPADD2)
+			{
+				int tvalue = g_pItemList[idx].stEffect[i].sValue;
 
-			int tvalue = g_pItemList[idx].stEffect[i].sValue;
+				if (Type == EF_ATTSPEED && tvalue == 1)
+					tvalue = 10;
 
-            if(Type == EF_ATTSPEED && tvalue == 1)
-                tvalue = 10;
-
-            value += tvalue;
+				value += tvalue;
+			}
 		}
 	}
 
-	if(idx >= 2330 && idx < 2390)
+	if (item->sIndex >= 2330 && item->sIndex < 2390)
 	{
-		if(Type == EF_MOUNTHP)
+		switch (Type)
+		{
+		case EF_MOUNTHP:
 			return item->stEffect[0].sValue;
-
-		else if(Type == EF_MOUNTSANC)
-            return item->stEffect[1].cEffect;
-
-		else if(Type == EF_MOUNTLIFE)
+		case EF_MOUNTSANC:
+			return item->stEffect[1].cEffect;
+		case EF_MOUNTLIFE:
 			return item->stEffect[1].cValue;
+		case EF_MOUNTFEED:
+			return item->stEffect[2].cEffect;
+		case EF_MOUNTKILL:
+			return item->stEffect[2].cValue;
+		}
 
-        else if(Type == EF_MOUNTFEED)
-            return item->stEffect[2].cEffect;
-
-		else if(Type == EF_MOUNTKILL)
-            return item->stEffect[2].cValue;
-
-		if(idx < 2362 || idx >= 2390 || item->stEffect[0].sValue <= 0)
+		if (item->sIndex < 2362 || item->sIndex >= 2390 || item->stEffect[0].sValue <= 0)
 			return value;
 
 		int lv = item->stEffect[1].cEffect;
 		int cd = item->sIndex - 2360;
 
-		if(Type == EF_DAMAGE)
-			return (lv + 20) * g_pMountBonus[cd][0] / 100; //Retorna o DN da montaria no level atual
-
-		else if(Type == EF_MAGIC)
-			return (lv + 15) * g_pMountBonus[cd][1] / 100;
-
-		else if(Type == EF_PARRY)
-			return g_pMountBonus[cd][2];
-
-		else if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-				return g_pMountBonus[cd][3];
-		else
-			return value;
+		switch (Type)
+		{
+		case EF_DAMAGE:
+			value = g_pMountBonus[cd][0] * (lv + 20) / 100;
+			break;
+		case EF_MAGIC:
+			value = g_pMountBonus[cd][1] * (lv + 15) / 100;
+			break;
+		case EF_PARRY:
+			value = g_pMountBonus[cd][2];
+			break;
+		case EF_RESISTALL:
+			value = g_pMountBonus[cd][3];
+			break;
+		default:
+			break;
+		}
 	}
-
-	if (idx >= 3980 && idx <= 3994)
+	else if (item->sIndex >= 3980 && item->sIndex < 4000)
 	{
-		int cd = idx - 3980;
+		int cd = item->sIndex - 3980;
 
-		if (Type == EF_DAMAGE)
-			return g_pMountTempBonus[cd][0]; //Retorna o DN da montaria
-
-		else if (Type == EF_MAGIC)
-			return g_pMountTempBonus[cd][1];
-
-		else if (Type == EF_PARRY)
-			return g_pMountTempBonus[cd][2];
-
-		else if (Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-			return g_pMountTempBonus[cd][3];
-		else
-			return value;
+		switch (Type)
+		{
+		case EF_DAMAGE:
+			value = g_pMountBonus2[cd][0];
+			break;
+		case EF_MAGIC:
+			value = g_pMountBonus2[cd][1];
+			break;
+		case EF_PARRY:
+			value = g_pMountBonus2[cd][2];
+			break;
+		case EF_RESISTALL:
+			value = g_pMountBonus2[cd][3];
+			break;
+		default:
+			break;
+		}
 	}
-
-	for(int i = 0; i < 3; i++)
+	else
 	{
-		if(item->stEffect[i].cEffect != Type)
-            continue;
+		for (int j = 0; j < 3; ++j)
+		{
+			if (item->stEffect[j].cEffect == Type)
+			{
+				int tvalue = item->stEffect[j].cValue;
 
-		int tvalue = item->stEffect[i].cValue;
+				if (Type == EF_ATTSPEED && tvalue == 1)
+					tvalue = 10;
 
-		if(Type == EF_ATTSPEED && tvalue == 1)
-            tvalue = 10;
+				value += tvalue;
+			}
+		}
 
-		value += tvalue;
-	}
+		int sanc = BASE_GetItemSanc(item);
 
-	if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-    {
-        for(int i = 0; i < MAX_STATICEFFECT; i++)
-        {
-			if(g_pItemList[idx].stEffect[i].sEffect != EF_RESISTALL)
-                continue;
+		if (item->sIndex <= 40)
+			sanc = 0;
 
-            value += g_pItemList[idx].stEffect[i].sValue;
-        }
+		if (sanc >= 9 && nPos & 0xF00)
+			sanc++;
 
-        for(int i = 0; i < 3; i++)
-        {
-			if(item->stEffect[i].cEffect != EF_RESISTALL)
-                continue;
+		if (sanc
+			&& Type != EF_GRID
+			&& Type != EF_CLASS
+			&& Type != EF_POS
+			&& Type != EF_WTYPE
+			&& Type != EF_RANGE
+			&& Type != EF_LEVEL
+			&& Type != EF_REQ_STR
+			&& Type != EF_REQ_INT
+			&& Type != EF_REQ_DEX
+			&& Type != EF_REQ_CON
+			&& Type != EF_VOLATILE
+			&& Type != EF_INCUBATE
+			&& Type != EF_INCUDELAY
+			&& Type != EF_PREVBONUS
+			&& Type != EF_TRANS
+			&& Type != EF_REFLEVEL
+			&& Type != EF_GAMEROOM
+			&& Type != EF_REGENMP
+			&& Type != EF_REGENHP
+			&& Type != EF_FAME)
+		{
+			if (sanc > 10)
+			{
+				// +11..+16: multiplicador em centésimos.
+				int UpSanc = sanc - 10;
 
-			value += item->stEffect[i].cValue;
-        }
-    }
+				switch (UpSanc)
+				{
+				case 1:
+					UpSanc = 220;
+					break;
+				case 2:
+					UpSanc = 250;
+					break;
+				case 3:
+					UpSanc = 280;
+					break;
+				case 4:
+					UpSanc = 320;
+					break;
+				case 5:
+					UpSanc = 370;
+					break;
+				case 6:
+					UpSanc = 400;
+					break;
+				}
 
-	int sanc = BASE_GetItemSanc(item);
-	if(sanc >= 9 && (nPos & 0xF00) != 0)
-		sanc++;
+				value = UpSanc * 10 * value / 100 / 10;
+			}
+			else
+				value = value * (sanc + 10) / 10;
+		}
 
-	if (Type != EF_GRID && Type != EF_CLASS && Type != EF_POS && Type != EF_WTYPE && Type != EF_RANGE && Type != EF_LEVEL && Type != EF_REQ_STR && Type != EF_REQ_INT && Type != EF_REQ_DEX && Type != EF_REQ_CON && Type != EF_VOLATILE && Type != EF_INCUBATE && Type != EF_INCUDELAY && Type != EF_MOBTYPE && Type != EF_ITEMTYPE && Type != EF_ITEMLEVEL && Type != EF_NOTRADE && Type != EF_NOSANC && Type != EF_DONATE)
-	{
-		value *= sanc + 10;
-		value /= 10;
-	}
+		if (Type == EF_RUNSPEED)
+		{
+			if (value >= 3)
+				value = 2;
 
-	if(Type == EF_RUNSPEED)
-	{
-		if(value >= 3)
-			value = 2;
+			if (value > 0 && sanc >= 9)
+				value++;
+		}
 
-		if(value > 0 && sanc == 9)
-			value++;
-	}
-	/* 
-	if(Type == EF_HWORDGUILD || Type == EF_LWORDGUILD)
-	{
-		unsigned char v = value;
+		if (Type == EF_REGENMP || Type == EF_REGENHP)
+			value *= sanc;
 
-		value = v;
-	}
-	*/
-	if(Type == EF_GRID)
-	{
-		if(value < 0 || value > 7)
+		if (Type == EF_GRID && (value < 0 || value > 7))
 			value = 0;
 	}
 
@@ -447,98 +482,85 @@ int BASE_GetItemAbility(STRUCT_ITEM *item, unsigned char Type)
 /// Consulta um atributo estatico definido apenas na tabela base ItemList.
 int BASE_GetStaticItemAbility(STRUCT_ITEM *item, unsigned char Type)
 {
+	// Regra do cliente (client/src/common/BaseItem.cpp:343).
 	int value = 0;
 	int idx = item->sIndex;
 
-	if(idx <= 0 || idx >= MAX_ITEMLIST)
+	if (idx <= 0 || idx >= MAX_ITEMLIST)
 		return value;
+
+	if (idx >= 3200 && idx <= 3300)
+		return 0;
 
 	int nPos = g_pItemList[idx].nPos;
 
-	if(Type == EF_LEVEL && idx >= 2330 && idx < 2360)
-		value = item->stEffect[1].cEffect - 1;
-	else if(Type == EF_LEVEL)
+	if (Type == EF_LEVEL)
 		value += g_pItemList[idx].ReqLvl;
 
-	if(Type == EF_REQ_STR)
+	if (Type == EF_REQ_STR)
 		value += g_pItemList[idx].ReqStr;
 
-	if(Type == EF_REQ_INT)
+	if (Type == EF_REQ_INT)
 		value += g_pItemList[idx].ReqInt;
 
-	if(Type == EF_REQ_DEX)
+	if (Type == EF_REQ_DEX)
 		value += g_pItemList[idx].ReqDex;
 
-	if(Type == EF_REQ_CON)
+	if (Type == EF_REQ_CON)
 		value += g_pItemList[idx].ReqCon;
 
-	if(Type == EF_POS)
+	if (Type == EF_POS)
 		value += g_pItemList[idx].nPos;
 
-	if(Type != EF_INCUBATE)
+	if (Type != EF_INCUBATE)
 	{
-		for(int i = 0; i < MAX_STATICEFFECT; i++)
+		for (int i = 0; i < 12; i++)
 		{
-			if(g_pItemList[idx].stEffect[i].sEffect != Type)
-                continue;
+			if (g_pItemList[idx].stEffect[i].sEffect != Type)
+				continue;
 
 			int tvalue = g_pItemList[idx].stEffect[i].sValue;
 
-            if(Type == EF_ATTSPEED && tvalue == 1)
-                tvalue = 10;
+			if (Type == EF_ATTSPEED && tvalue == 1)
+				tvalue = 10;
 
-            value += tvalue;
+			value += tvalue;
 		}
 	}
 
-	if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
+	if (idx >= 2330 && idx < 2390)
 	{
-		for(int i = 0; i < MAX_STATICEFFECT; i++)
-		{
-			if(g_pItemList[idx].stEffect[i].sEffect == EF_RESISTALL)
-				value += g_pItemList[idx].stEffect[i].sValue;
-		}
-
-		for(int i = 0; i < 3; i++)
-		{
-			if(item->stEffect[i].cEffect == EF_RESISTALL)
-				value += item->stEffect[i].cValue;
-		}
-	}
-
-	if(idx >= 2330 && idx < 2390)
-	{
-		if(Type == EF_MOUNTHP)
+		if (Type == EF_MOUNTHP)
 			return item->stEffect[0].sValue;
 
-		else if(Type == EF_MOUNTSANC)
+		else if (Type == EF_MOUNTSANC)
 			return item->stEffect[1].cEffect;
 
-		else if(Type == EF_MOUNTLIFE)
+		else if (Type == EF_MOUNTLIFE)
 			return item->stEffect[1].cValue;
 
-		else if(Type == EF_MOUNTFEED)
+		else if (Type == EF_MOUNTFEED)
 			return item->stEffect[2].cEffect;
 
-		else if(Type == EF_MOUNTKILL)
+		else if (Type == EF_MOUNTKILL)
 			return item->stEffect[2].cValue;
 
-		if(idx < 2362 || idx >= 2390 || item->stEffect[0].sValue <= 0)
+		if (idx < 2362 || idx >= 2390 || item->stEffect[0].sValue <= 0)
 			return value;
 
 		int lv = item->stEffect[1].cEffect;
 		int cd = item->sIndex - 2360;
 
-		if(Type == EF_DAMAGE)
-			return (lv + 20) * g_pMountBonus[cd][0] / 100; //Retorna o DN da montaria no level atual
+		if (Type == EF_DAMAGE)
+			return g_pMountBonus[cd][0] * (lv + 20) / 100;
 
-		else if(Type == EF_MAGIC)
-			return (lv + 15) * g_pMountBonus[cd][1] / 100;
+		else if (Type == EF_MAGIC)
+			return g_pMountBonus[cd][1] * (lv + 15) / 100;
 
-		else if(Type == EF_PARRY)
+		else if (Type == EF_PARRY)
 			return g_pMountBonus[cd][2];
 
-		else if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
+		else if (Type == EF_RESISTALL)
 			return g_pMountBonus[cd][3];
 		else
 			return value;
@@ -546,50 +568,88 @@ int BASE_GetStaticItemAbility(STRUCT_ITEM *item, unsigned char Type)
 
 	if (idx >= 3980 && idx <= 3994)
 	{
-		int cd = idx - 3980;
 
 		if (Type == EF_DAMAGE)
-			return g_pMountTempBonus[cd][0]; //Retorna o DN da montaria
+			return g_pMountBonus2[idx - 3980][0];
 
 		else if (Type == EF_MAGIC)
-			return g_pMountTempBonus[cd][1];
+			return g_pMountBonus2[idx - 3980][1];
 
 		else if (Type == EF_PARRY)
-			return g_pMountTempBonus[cd][2];
+			return g_pMountBonus2[idx - 3980][2];
 
-		else if (Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-			return g_pMountTempBonus[cd][3];
+		else if (Type == EF_RESISTALL)
+			return g_pMountBonus2[idx - 3980][3];
 		else
 			return value;
 	}
 
 	int sanc = BASE_GetItemSanc(item);
 
-	if(sanc >= 9 && (nPos & 0xF00) != 0)
-		sanc ++;
+	if (sanc >= 9 && nPos & 0xF00)
+		sanc++;
 
-	if(Type != EF_GRID && Type != EF_CLASS && Type != EF_POS && Type != EF_WTYPE && Type != EF_RANGE && Type != EF_LEVEL && 
-		Type != EF_REQ_STR && Type != EF_REQ_INT && Type != EF_REQ_DEX && Type != EF_REQ_CON && Type != EF_INCUBATE && Type != EF_INCUDELAY)
+	if (sanc
+		&& Type != EF_GRID
+		&& Type != EF_CLASS
+		&& Type != EF_POS
+		&& Type != EF_WTYPE
+		&& Type != EF_RANGE
+		&& Type != EF_LEVEL
+		&& Type != EF_REQ_STR
+		&& Type != EF_REQ_INT
+		&& Type != EF_REQ_DEX
+		&& Type != EF_REQ_CON
+		&& Type != EF_VOLATILE
+		&& Type != EF_INCUBATE
+		&& Type != EF_INCUDELAY
+		&& Type != EF_PREVBONUS
+		&& Type != EF_REGENMP
+		&& Type != EF_REGENHP)
 	{
-		value *= sanc + 10;
-		value /= 10;
+		if (sanc > 10)
+		{
+			int UpSanc = sanc - 10;
+			switch (UpSanc)
+			{
+			case 1:
+				UpSanc = 220;
+				break;
+			case 2:
+				UpSanc = 250;
+				break;
+			case 3:
+				UpSanc = 280;
+				break;
+			case 4:
+				UpSanc = 320;
+				break;
+			case 5:
+				UpSanc = 370;
+				break;
+			case 6:
+				UpSanc = 400;
+				break;
+			}
+			value = UpSanc * 10 * value / 100 / 10;
+		}
+		else
+		{
+			value = value * (sanc + 10) / 10;
+		}
 	}
 
-	if(Type == EF_RUNSPEED)
+	if (Type == EF_RUNSPEED)
 	{
-		if(value >= 3)
+		if (value >= 3)
 			value = 2;
 
-		if(value > 0 && sanc == 9)
+		if (value > 0 && sanc >= 9)
 			value++;
 	}
 
-	if(Type == EF_HWORDGUILD || Type == EF_LWORDGUILD)
-	{
-		unsigned char v = value;
-
-		value = v;
-	}
+	if ((Type == EF_REGENMP || Type == EF_REGENHP) && sanc > 0)
+		value *= sanc;
 
 	return value;
 }
@@ -597,102 +657,120 @@ int BASE_GetStaticItemAbility(STRUCT_ITEM *item, unsigned char Type)
 /// Retorna o adicional extra de um atributo considerando a refinacao do item.
 int BASE_GetBonusItemAbility(STRUCT_ITEM *item, unsigned char Type)
 {
-	if(item->sIndex >= 2330 && item->sIndex < 2390)
-		return FALSE;
+	// Regra do cliente (client/src/common/BaseItem.cpp:1039).
+	if (item->sIndex <= 0 || item->sIndex >= MAX_ITEMLIST)
+		return 0;
+
+	if (item->sIndex >= 3200 && item->sIndex <= 3300)
+		return 0;
+
+	if (item->sIndex >= 2330 && item->sIndex < 2390)
+		return 0;
+
+	if (item->sIndex >= 3980 && item->sIndex < 4000)
+		return 0;
 
 	int value = 0;
 
-	int idx = item->sIndex;
+	int nPos = g_pItemList[item->sIndex].nPos;
 
-	if(idx <= 0 || idx >= MAX_ITEMLIST)
-		return value;
-
-	int nPos = g_pItemList[idx].nPos;
-
-	for(int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; ++i)
 	{
-		if(item->stEffect[i].cEffect != Type)
-			continue;
-
-		int tvalue = item->stEffect[i].cValue;
-
-		if(Type == EF_ATTSPEED && tvalue == 1)
-			tvalue = 10;
-
-		value += tvalue;
-	}
-
-	if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-	{
-		for(int i = 0; i < MAX_STATICEFFECT; i++)
+		if (item->stEffect[i].cEffect == Type)
 		{
-			if(g_pItemList[idx].stEffect[i].sEffect == EF_RESISTALL)
-				value += g_pItemList[idx].stEffect[i].sValue;
-		}
+			int tvalue = item->stEffect[i].cValue;
 
-		for(int i = 0; i < 3; i++)
-		{
-			if(item->stEffect[i].cEffect == EF_RESISTALL)
-				value += item->stEffect[i].cValue;
+			if (Type == EF_ATTSPEED && tvalue == 1)
+				tvalue = 10;
+
+			value += tvalue;
 		}
 	}
 
 	int sanc = BASE_GetItemSanc(item);
 
-	if(sanc >= 9 && (nPos & 0xF00) != 0)
-		sanc ++;
+	if (sanc >= 9 && nPos & 0xF00)
+		sanc++;
 
-	if(sanc == 0)
-		return value;
-
-	if(Type != EF_GRID && Type != EF_CLASS && Type != EF_POS && Type != EF_WTYPE && Type != EF_RANGE && Type != EF_LEVEL && Type != EF_REQ_STR && Type != EF_REQ_INT && Type != EF_REQ_DEX && Type != EF_REQ_CON && Type != EF_VOLATILE && Type != EF_INCUBATE && Type != EF_INCUDELAY)
+	if (sanc
+		&& Type != EF_GRID
+		&& Type != EF_CLASS
+		&& Type != EF_POS
+		&& Type != EF_WTYPE
+		&& Type != EF_RANGE
+		&& Type != EF_LEVEL
+		&& Type != EF_REQ_STR
+		&& Type != EF_REQ_INT
+		&& Type != EF_REQ_DEX
+		&& Type != EF_REQ_CON
+		&& Type != EF_VOLATILE
+		&& Type != EF_INCUBATE
+		&& Type != EF_INCUDELAY
+		&& Type != EF_PREVBONUS)
 	{
-		value *= sanc + 10;
-		value /= 10;
+		if (sanc > 10)
+		{
+			int UpSanc = sanc - 10;
+			switch (UpSanc)
+			{
+			case 1:
+				UpSanc = 220;
+				break;
+			case 2:
+				UpSanc = 250;
+				break;
+			case 3:
+				UpSanc = 280;
+				break;
+			case 4:
+				UpSanc = 320;
+				break;
+			case 5:
+				UpSanc = 370;
+				break;
+			case 6:
+				UpSanc = 400;
+				break;
+			}
+			value = UpSanc * 10 * value / 100 / 10;
+		}
+		else
+		{
+			value = value * (sanc + 10) / 10;
+		}
 	}
-
 	return value;
 }
 
 /// Retorna o adicional extra bruto de um atributo sem aplicar refinacao.
 int BASE_GetBonusItemAbilityNosanc(STRUCT_ITEM *item, unsigned char Type)
 {
-	if(item->sIndex >= 2330 && item->sIndex < 2390)
-		return FALSE;
+	// Regra do cliente (client/src/common/BaseItem.cpp:1007).
+	if (item->sIndex <= 0 || item->sIndex >= MAX_ITEMLIST)
+		return 0;
+
+	if (item->sIndex >= 3200 && item->sIndex <= 3300)
+		return 0;
+
+	if (item->sIndex >= 2330 && item->sIndex < 2390)
+		return 0;
+
+	if (item->sIndex >= 3980 && item->sIndex < 4000)
+		return 0;
 
 	int value = 0;
 
-	int idx = item->sIndex;
-
-	if(idx <= 0 || idx >= MAX_ITEMLIST)
-		return value;
-
-	for(int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; i++)
 	{
-		if(item->stEffect[i].cEffect != Type)
+		if (item->stEffect[i].cEffect != Type)
 			continue;
 
 		int tvalue = item->stEffect[i].cValue;
 
-		if(Type == EF_ATTSPEED && tvalue == 1)
+		if (Type == EF_ATTSPEED && tvalue == 1)
 			tvalue = 10;
 
 		value += tvalue;
-	}
-
-	if(Type == EF_RESIST1 || Type == EF_RESIST2 || Type == EF_RESIST3 || Type == EF_RESIST4)
-	{
-		for(int i = 0; i < MAX_STATICEFFECT; i++)
-		{
-			if(g_pItemList[idx].stEffect[i].sEffect == EF_RESISTALL)
-				value += g_pItemList[idx].stEffect[i].sValue;
-		}
-
-		for(int i = 0; i < 3; i++)
-		{
-			if(item->stEffect[i].cEffect == EF_RESISTALL)
-				value += item->stEffect[i].cValue;
-		}
 	}
 
 	return value;
@@ -701,50 +779,52 @@ int BASE_GetBonusItemAbilityNosanc(STRUCT_ITEM *item, unsigned char Type)
 /// Extrai o nivel de refinacao (+0..+15) de um item considerando codificacao de tintura.
 int BASE_GetItemSanc(STRUCT_ITEM *item)
 {
-	if(item->sIndex >= 2330 && item->sIndex < 2390)
-		return FALSE;
+	// Regra do cliente. +10..+16 voltam como 10..16 (REF_10..REF_15 e 16); antes +11..+15 voltavam
+	// 12/15/18/22/27, valores que o multiplicador de BASE_GetItemAbility usava direto.
+	if (item->sIndex >= 2330 && item->sIndex < 2390)
+		return 0;
 
-	unsigned char sanc = 0;
+	if (item->sIndex >= 3200 && item->sIndex < 3300)
+		return 0;
 
-	if (item->stEffect[0].cEffect >= 116 && item->stEffect[0].cEffect <= 125)
-		sanc = item->stEffect[0].cValue;
+	if (item->sIndex >= 3980 && item->sIndex < 4000)
+		return 0;
 
-	else if (item->stEffect[1].cEffect >= 116 && item->stEffect[1].cEffect <= 125)
-		sanc = item->stEffect[1].cValue;
-	
-	else if (item->stEffect[2].cEffect >= 116 && item->stEffect[2].cEffect <= 125)
-		sanc = item->stEffect[2].cValue;
+	int sanc = 0;
 
-	else if(item->stEffect[0].cEffect == EF_SANC || item->stEffect[1].cEffect == EF_SANC || item->stEffect[2].cEffect == EF_SANC)
+	if (item->stEffect[0].cEffect != EF_SANC && item->stEffect[1].cEffect != EF_SANC && item->stEffect[2].cEffect != EF_SANC)
 	{
-		if(item->stEffect[0].cEffect == EF_SANC)
+		// Sem EF_SANC, a refinação vem na tintura (115..126).
+		if (item->stEffect[0].cEffect >= 115 && item->stEffect[0].cEffect <= 126)
 			sanc = item->stEffect[0].cValue;
-		else if(item->stEffect[1].cEffect == EF_SANC)
+
+		else if (item->stEffect[1].cEffect >= 115 && item->stEffect[1].cEffect <= 126)
 			sanc = item->stEffect[1].cValue;
-		else
+
+		else if (item->stEffect[2].cEffect >= 115 && item->stEffect[2].cEffect <= 126)
 			sanc = item->stEffect[2].cValue;
 	}
+	else if (item->stEffect[0].cEffect == EF_SANC)
+		sanc = item->stEffect[0].cValue;
 
-	int isanc = sanc;
+	else if (item->stEffect[1].cEffect == EF_SANC)
+		sanc = item->stEffect[1].cValue;
 
-	if (isanc == 9)
-		isanc = 9;
-	else if (isanc >= 230 && isanc <= 233)
-		isanc = REF_10;
-	else if (isanc >= 234 && isanc <= 237)
-		isanc = REF_11;
-	else if (isanc >= 238 && isanc <= 241)
-		isanc = REF_12;
-	else if (isanc >= 242 && isanc <= 245)
-		isanc = REF_13;
-	else if (isanc >= 246 && isanc <= 249)
-		isanc = REF_14;
-	else if (isanc >= 250 && isanc <= 253)
-		isanc = REF_15;
 	else
-		isanc = isanc % 10;
+		sanc = item->stEffect[2].cValue;
 
-	return isanc;
+	if (item->sIndex != 786 && item->sIndex != 1936 && item->sIndex != 1937)
+	{
+		if (sanc < 230)
+			sanc %= 10;
+		else
+			sanc -= 220;
+
+		if (sanc >= 10 && sanc <= 35)
+			sanc = (sanc - 10) / 4 + 10;
+	}
+
+	return sanc;
 }
 
 /// Retorna o indice da gema/tintura associada a um item refinado.
@@ -783,29 +863,78 @@ int BASE_GetItemGem(STRUCT_ITEM *item)
 }
 
 /// Extrai o contador auxiliar de sucesso/bonus embutido em EF_SANC.
+/// @brief Efeito que carrega a refinação: EF_SANC ou uma tintura (115..125).
+bool BASE_HasSancAdd(unsigned char cEffect)
+{
+	return cEffect == EF_SANC || (cEffect >= 115 && cEffect < 126);
+}
+
+/// @brief Valor bruto do primeiro efeito que carrega a refinação (0 se nenhum).
+int BASE_GetSancEffValue(const STRUCT_ITEM &item)
+{
+	for (auto &effect : item.stEffect)
+	{
+		if (BASE_HasSancAdd(effect.cEffect))
+			return effect.cValue;
+	}
+
+	return 0;
+}
+
 int BASE_GetItemSancSuccess(STRUCT_ITEM *item)
 {
-	 if(item->sIndex >= 2330 && item->sIndex < 2390)
-		 return FALSE;
+	// Regra do cliente: dezenas do valor bruto (as tentativas acumuladas), até 210.
+	if (item->sIndex >= 2330 && item->sIndex < 2390)
+		return 0;
 
-	 unsigned char sanc = 0;
+	if (item->sIndex >= 3200 && item->sIndex < 3300)
+		return 0;
 
-	 if (item->stEffect[0].cEffect == EF_SANC || item->stEffect[1].cEffect == EF_SANC || item->stEffect[2].cEffect == EF_SANC || item->stEffect[0].cEffect >= 116 && item->stEffect[0].cEffect <= 125 || item->stEffect[1].cEffect >= 116 && item->stEffect[1].cEffect <= 125 || item->stEffect[2].cEffect >= 116 && item->stEffect[2].cEffect <= 125)
-	 {
-		 if (item->stEffect[0].cEffect == EF_SANC || item->stEffect[0].cEffect >= 116 && item->stEffect[0].cEffect <= 125)
-			 sanc = item->stEffect[0].cValue;
-		 
-		 else if (item->stEffect[1].cEffect == EF_SANC || item->stEffect[1].cEffect >= 116 && item->stEffect[1].cEffect <= 125)
-			 sanc = item->stEffect[1].cValue;
-		 
-		 else
-			 sanc = item->stEffect[2].cValue;		 
-	 }
+	if (item->sIndex >= 3980 && item->sIndex < 4000)
+		return 0;
 
-	 int isanc = sanc;
-	 isanc /= 10;
+	int sanc = BASE_GetSancEffValue(*item);
 
-	 return isanc;
+	if (sanc <= 210)
+		return sanc / 10;
+
+	return 0;
+}
+
+/// @brief Troca o valor de `effect` no item ou, se não houver, o grava no primeiro efeito livre.
+void BASE_ChangeOrAddEffectValue(STRUCT_ITEM *item, int effect, int value)
+{
+	for (auto &i : item->stEffect)
+	{
+		if (i.cEffect == effect)
+		{
+			i.cValue = static_cast<unsigned char>(value);
+			return;
+		}
+	}
+
+	for (auto &i : item->stEffect)
+	{
+		if (i.cEffect == 0)
+		{
+			i.cEffect = static_cast<unsigned char>(effect);
+			i.cValue = static_cast<unsigned char>(value);
+			return;
+		}
+	}
+}
+
+/// @brief Apaga todos os efeitos `effect` do item.
+void BASE_RemoveEffect(STRUCT_ITEM *item, int effect)
+{
+	for (auto &i : item->stEffect)
+	{
+		if (i.cEffect == effect)
+		{
+			i.cEffect = 0;
+			i.cValue = 0;
+		}
+	}
 }
 
 /// Calcula a chance de sucesso de refinacao com Poeira de Ori/Lac.
@@ -923,38 +1052,15 @@ int BASE_GetItemAmount(STRUCT_ITEM *item)
 /// Define a quantidade empilhada em EF_AMOUNT respeitando os limites do slot.
 void BASE_SetItemAmount(STRUCT_ITEM *item, int amount)
 {
-	if(item->stEffect[0].cEffect == EF_AMOUNT || item->stEffect[1].cEffect == EF_AMOUNT || item->stEffect[2].cEffect == EF_AMOUNT)
+	// Regra do cliente: poções e pedras que se empilham perdem o EF_UNIQUE; o EF_AMOUNT é trocado ou
+	// gravado no primeiro efeito livre.
+	if (item->sIndex == 419 || item->sIndex == 420 || item->sIndex == 412 || item->sIndex == 413 ||
+		item->sIndex >= 2390 && item->sIndex <= 2418)
 	{
-		if(item->stEffect[0].cEffect == EF_AMOUNT)
-			item->stEffect[0].cValue = amount;
-		
-		else if(item->stEffect[1].cEffect == EF_AMOUNT)
-			item->stEffect[1].cValue = amount;
-		
-		else
-			item->stEffect[2].cValue = amount;
+		BASE_RemoveEffect(item, EF_UNIQUE);
 	}
-	else if(item->stEffect[0].cEffect == 0 || item->stEffect[1].cEffect == 0 || item->stEffect[2].cEffect == 0)
-	{
-		
-		if(item->stEffect[0].cEffect == 0)
-		{
-			item->stEffect[0].cEffect = EF_AMOUNT;
-			item->stEffect[0].cValue = amount;
-		}
-		else if(item->stEffect[1].cEffect == 0 )
-		{
 
-			item->stEffect[1].cEffect = EF_AMOUNT;
-			item->stEffect[1].cValue = amount;
-
-		}
-		else
-		{
-			item->stEffect[2].cEffect = EF_AMOUNT;
-			item->stEffect[2].cValue = amount;	
-		}
-	}
+	BASE_ChangeOrAddEffectValue(item, EF_AMOUNT, amount);
 }
 
 /// Localiza o ponteiro para um STRUCT_ITEM em Equip, Carry ou Cargo.

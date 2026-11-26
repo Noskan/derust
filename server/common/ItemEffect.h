@@ -127,7 +127,9 @@
 #define EF_INCUDELAY             84  // Tempo restante de incubação
 #define EF_SUBGUILD				 85	// Subguilda (0 = guilda principal; 1..3 = subguildas)
 
+#define EF_PREVBONUS			 86  // Nome do cliente; o servidor não o usa
 #define EF_ITEMLEVEL			 87  // Grau/nível do item para regras de refinação e bloqueio
+#define EF_GAMEROOM				 88  // Nome do cliente; o servidor não o usa
 #define EF_DONATE				 91  // Marcador de item de doação / loja especial
 
 #define EF_GRADE0				 100 // Grau A
@@ -142,9 +144,10 @@
 #define EF_MIN					 108 // Minuto (validade/expiração)
 #define EF_YEAR					 109 // Ano (validade/expiração)
 #define EF_WMONTH				 110 // Mês (validade/expiração)
+#define EF_NOTRADE				 111 // Item inegociável / preso ao personagem (no cliente; antes 127)
 
 #define EF_MOBTYPE				 112 // Restrição de classe de evolução (Mortal/Arch/Celestial)
 #define EF_ITEMTYPE				 113 // Categoria auxiliar de tipo de item
 
+// Só do servidor. No cliente, 126 é EF_MAXCOL, o fim da faixa de tinturas que carregam a refinação.
 #define EF_NOSANC				 126 // Impede refinação do item
-#define EF_NOTRADE				 127 // Item inegociável / preso ao personagem

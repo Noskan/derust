@@ -515,12 +515,12 @@ struct Expected
 ///   (preparação para o layout do cliente). Gerados com o código de então, que conferia com os
 ///   valores da `pre-modularization` para as entradas antigas; só o teste mudou.
 const Expected kExpected[] = {
-	{ "ItemAbility", 0x4be087df618daaaaull },
-	{ "ItemSancAndAmount", 0xfcec5af4597c1fbeull },
+	{ "ItemAbility", 0x2c15d8ada96d2d67ull },
+	{ "ItemSancAndAmount", 0x769fd67fddc0605aull },
 	{ "VisualCodes", 0x6fcaf7a9a9970a97ull },
 	{ "CanEquipCarry", 0x1c5586b9a0b19b5aull },
-	{ "MobScores", 0x8ad5ddf56925da79ull },
-	{ "CurrentScore", 0x36ca43e8359dd755ull },
+	{ "MobScores", 0x52b55c6e404ac907ull },
+	{ "CurrentScore", 0x88765cc948380a47ull },
 	{ "CombatFormulas", 0xc7456554f8eaef60ull },
 	{ "World", 0xa676176912029d1dull },
 	{ "Strings", 0x3965cf4e379fe8e6ull },

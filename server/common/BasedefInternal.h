@@ -27,8 +27,15 @@ extern int CurrentClientGuild;
 extern int g_pSuccessRate[11];
 extern char g_pItemGrid[8][4][2];
 extern int g_pDistanceTable[7][7];
-extern int g_pMountBonus[30][5];
-extern int g_pMountTempBonus[20][5];
+// Nomes do cliente para códigos que o servidor já tem com outro nome, usados nas regras portadas do
+// cliente. Ficam fora de ItemEffect.h porque o TMSrv lê aquele arquivo em tempo de execução e recusa
+// dois nomes com o mesmo valor.
+#define EF_REFLEVEL				EF_ITEMLEVEL	// 87
+#define EF_TRANS				EF_MOBTYPE		// 112
+#define EF_FAME					EF_ITEMTYPE		// 113: fama no cliente
+
+extern int g_pMountBonus[30][6];
+extern int g_pMountBonus2[20][6];
 extern unsigned char g_pGuildSub[8];
 extern unsigned char g_pGuildIndex[36];
 extern unsigned char g_pGuildMark[132];

@@ -193,12 +193,13 @@
 
 #define		MSV_SNOOP	0x01
 
+// Refinação +10..+15 como BASE_GetItemSanc a devolve (contínua, como no cliente; +16 volta 16).
 #define		REF_10					10
-#define		REF_11					12
-#define		REF_12					15
-#define		REF_13					18
-#define		REF_14					22
-#define		REF_15					27
+#define		REF_11					11
+#define		REF_12					12
+#define		REF_13					13
+#define		REF_14					14
+#define		REF_15					15
 
 #define		MAX_HP					2000000000
 #define		MAX_MP					2000000000
@@ -2365,6 +2366,10 @@ int  BASE_GetBonusItemAbilityNosanc(STRUCT_ITEM *item, unsigned char Type);
 int  BASE_GetItemSanc(STRUCT_ITEM *item);
 int BASE_GetItemGem(STRUCT_ITEM *item);
 int  BASE_GetItemSancSuccess(STRUCT_ITEM *item);
+bool BASE_HasSancAdd(unsigned char cEffect);
+int  BASE_GetSancEffValue(const STRUCT_ITEM &item);
+void BASE_ChangeOrAddEffectValue(STRUCT_ITEM *item, int effect, int value);
+void BASE_RemoveEffect(STRUCT_ITEM *item, int effect);
 int  BASE_GetSuccessRate(STRUCT_ITEM *item, int OriLacto);
 int  BASE_GetGrowthRate(STRUCT_ITEM *item);
 int  BASE_SetItemSanc(STRUCT_ITEM *dest, int sanc, int success);
