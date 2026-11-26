@@ -180,78 +180,7 @@ int TMHuman::FrameMove(unsigned int dwServerTime)
         m_stPunchEvent.dwTime = 0;
     }
 
-    if (m_dwEarthQuakeTime && dwServerTime - m_dwEarthQuakeTime > 0x3E8)
-    {
-        m_dwEarthQuakeTime = 0;
-        if (m_nClass == 56)
-            g_pObjectManager->GetCamera()->EarthQuake(1);
-        else if (m_nClass == 32)
-        {
-            g_pObjectManager->GetCamera()->EarthQuake(1);
-
-            int nTexIndex = 0;
-            float fWaterHeight = 0.0f;
-            int nSoundIndex = 142;
-
-            TMVector2 vec((float)(cosf(m_fAngle - 3.1415927f) * 1.5f) + m_vecPosition.x,
-                m_vecPosition.y - (float)(sinf(m_fAngle - 3.1415927f) * 1.5f));
-
-            if (pScene->GroundIsInWater(vec, m_fHeight, &fWaterHeight) == 1)
-            {
-                nTexIndex = 151;
-                nSoundIndex = 10;
-            }
-
-            auto pSoundManager = g_pSoundManager;
-            if (pSoundManager)
-            {
-                auto pSoundData = pSoundManager->GetSoundData(nSoundIndex);
-                if (pSoundData && !pSoundData->IsSoundPlaying())
-                {
-                    pSoundData->Play();
-                }
-            }
-
-            if (nTexIndex == 0)
-            {
-                TMShade* pCrater = new TMShade(2, 117, 1.0f);
-
-                if (pCrater)
-                {
-                    pCrater->m_bFI = 0;
-                    pCrater->m_dwLifeTime = 5000;
-                    pCrater->SetColor(0xAAAAAAAA);
-                    pCrater->SetPosition(vec);
-
-                    g_pCurrentScene->m_pShadeContainer->AddChild(pCrater);
-                }
-            }
-
-            if (!g_pDevice->m_bSavage && !g_pDevice->m_bIntel)
-            {
-                for (int i = 0; i < 3; ++i)
-                {
-                    TMEffectBillBoard* pBillEffect = new TMEffectBillBoard(nTexIndex,
-                        2000,
-                        0.80000001f,
-                        0.80000001f,
-                        0.80000001f,
-                        0.001f,
-                        1,
-                        80);
-
-                    if (pBillEffect)
-                    {
-                        pBillEffect->m_bStickGround = 1;
-                        pBillEffect->m_vecPosition = TMVector3((float)((float)(i * (rand() % 3 - 1)) * 0.40000001f) + vec.x, m_fHeight,
-                            (float)((float)(i * (rand() % 3 - 1)) * 0.40000001f) + vec.y);
-                        g_pCurrentScene->m_pShadeContainer->AddChild(pBillEffect);
-                        m_dwLastDustTime = dwServerTime;
-                    }
-                }
-            }
-        }
-    }
+    FrameMove_EarthQuakeEnd(dwServerTime, pScene);
     if (m_nSkinMeshType == 20 && !m_stLookInfo.HelmMesh && !(dwServerTime % 5000 / 100))
     {
         int nSoundIndex = g_MobAniTable[m_nSkinMeshType].dwSoundTable[1];
@@ -1004,6 +933,84 @@ int TMHuman::FrameMove(unsigned int dwServerTime)
     }
 
     return 1;
+}
+
+/// Fim do tremor (`m_dwEarthQuakeTime` + 1 s): câmera e efeitos conforme a classe.
+/// @note Extraído de `TMHuman::FrameMove` (Fase 3); locais passadas por referência.
+void TMHuman::FrameMove_EarthQuakeEnd(unsigned int& dwServerTime, TMScene*& pScene)
+{
+    if (m_dwEarthQuakeTime && dwServerTime - m_dwEarthQuakeTime > 0x3E8)
+    {
+        m_dwEarthQuakeTime = 0;
+        if (m_nClass == 56)
+            g_pObjectManager->GetCamera()->EarthQuake(1);
+        else if (m_nClass == 32)
+        {
+            g_pObjectManager->GetCamera()->EarthQuake(1);
+
+            int nTexIndex = 0;
+            float fWaterHeight = 0.0f;
+            int nSoundIndex = 142;
+
+            TMVector2 vec((float)(cosf(m_fAngle - 3.1415927f) * 1.5f) + m_vecPosition.x,
+                m_vecPosition.y - (float)(sinf(m_fAngle - 3.1415927f) * 1.5f));
+
+            if (pScene->GroundIsInWater(vec, m_fHeight, &fWaterHeight) == 1)
+            {
+                nTexIndex = 151;
+                nSoundIndex = 10;
+            }
+
+            auto pSoundManager = g_pSoundManager;
+            if (pSoundManager)
+            {
+                auto pSoundData = pSoundManager->GetSoundData(nSoundIndex);
+                if (pSoundData && !pSoundData->IsSoundPlaying())
+                {
+                    pSoundData->Play();
+                }
+            }
+
+            if (nTexIndex == 0)
+            {
+                TMShade* pCrater = new TMShade(2, 117, 1.0f);
+
+                if (pCrater)
+                {
+                    pCrater->m_bFI = 0;
+                    pCrater->m_dwLifeTime = 5000;
+                    pCrater->SetColor(0xAAAAAAAA);
+                    pCrater->SetPosition(vec);
+
+                    g_pCurrentScene->m_pShadeContainer->AddChild(pCrater);
+                }
+            }
+
+            if (!g_pDevice->m_bSavage && !g_pDevice->m_bIntel)
+            {
+                for (int i = 0; i < 3; ++i)
+                {
+                    TMEffectBillBoard* pBillEffect = new TMEffectBillBoard(nTexIndex,
+                        2000,
+                        0.80000001f,
+                        0.80000001f,
+                        0.80000001f,
+                        0.001f,
+                        1,
+                        80);
+
+                    if (pBillEffect)
+                    {
+                        pBillEffect->m_bStickGround = 1;
+                        pBillEffect->m_vecPosition = TMVector3((float)((float)(i * (rand() % 3 - 1)) * 0.40000001f) + vec.x, m_fHeight,
+                            (float)((float)(i * (rand() % 3 - 1)) * 0.40000001f) + vec.y);
+                        g_pCurrentScene->m_pShadeContainer->AddChild(pBillEffect);
+                        m_dwLastDustTime = dwServerTime;
+                    }
+                }
+            }
+        }
+    }
 }
 
 void TMHuman::DelayDelete()

@@ -80,6 +80,7 @@ public:
     void InitObject_Shade();
     int Render() final;
     int FrameMove(unsigned int dwServerTime) final;
+    void FrameMove_EarthQuakeEnd(unsigned int& dwServerTime, TMScene*& pScene);
     void InitPosition(float fX, float fY, float fZ) final;
     void InitAngle(float fYaw, float fPitch, float fRoll) final;
     void SetAngle(float fYaw, float fPitch, float fRoll) final;
