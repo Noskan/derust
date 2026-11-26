@@ -6,12 +6,16 @@ O que faz:
      (ex.: <Windows.h> -> <windows.h>), já que o mingw no Linux é case-sensitive.
   2. Compila todas as TUs de server/common, server/dbsrv, server/tmsrv e client/src.
   3. Linka DBSrv e um executável por fonte em tests/ e executa os testes no wine (se disponível).
+  4. Compara os avisos do GCC de uma lista curada (WARN_TRACKED: sombreamento, não inicializada,
+     fora dos limites, memset/memcpy suspeitos, return ausente...) com a linha de base em
+     tools/mingw_warning_baseline.txt. A checagem falha se um arquivo ganhar avisos de algum tipo;
+     se perder, pede para atualizar a linha de base (--update-warning-baseline).
 
 As TUs que hoje só compilam no MSVC ficam em tools/mingw_known_failures.txt. A checagem
 falha se uma TU fora dessa lista não compilar e avisa quando uma TU da lista passar a
 compilar (para que seja removida da lista).
 
-Uso: python3 tools/mingw_check.py [--jobs N] [--no-wine] [--keep DIR]
+Uso: python3 tools/mingw_check.py [--jobs N] [--no-wine] [--keep DIR] [--update-warning-baseline]
 """
 
 import argparse
@@ -29,8 +33,28 @@ CXX = "i686-w64-mingw32-g++"
 AR = "i686-w64-mingw32-ar"
 KNOWN = ROOT / "tools" / "mingw_known_failures.txt"
 
+
+def gcc_major():
+    out = subprocess.run([CXX, "-dumpversion"], capture_output=True, text=True).stdout.strip()
+    m = re.match(r"\d+", out)
+    return m.group(0) if m else "unknown"
+
+
+# Um arquivo por versão principal do GCC: versões diferentes emitem conjuntos de avisos diferentes.
+WARN_BASELINE = ROOT / "tools" / f"mingw_warning_baseline-gcc{gcc_major() if shutil.which(CXX) else 'unknown'}.txt"
+
+# Avisos acompanhados (os demais ficam desligados). -O2 é necessário para os que dependem de
+# análise de fluxo (maybe-uninitialized, array-bounds, stringop-overflow).
+WARN_TRACKED = ["shadow", "uninitialized", "maybe-uninitialized", "array-bounds", "stringop-overflow",
+                "restrict", "sizeof-pointer-memaccess", "memset-elt-size", "memset-transposed-args",
+                "return-type", "delete-incomplete", "overflow"]
+WARN_FLAGS = ["-O2", "-Wno-all", "-Wno-extra", "-Wno-permissive", "-Wno-write-strings", "-Wno-narrowing",
+              "-Wno-conversion-null", "-Wno-int-to-pointer-cast", "-Wno-pointer-arith", "-Wno-multichar"]
+WARN_FLAGS += [f"-W{w}" for w in WARN_TRACKED]
+WARN_RX = re.compile(r"^(?P<path>[^:]+):(?P<line>\d+):(?P<col>\d+): warning: (?P<msg>.*) \[-W(?P<flag>[a-z0-9-]+)(?:=\d*)?\]$")
+
 COMMON_FLAGS = [
-    "-std=gnu++17", "-fpermissive", "-w", "-fms-extensions",
+    "-std=gnu++17", "-fpermissive", *WARN_FLAGS, "-fms-extensions",
     "-DWIN32", "-D_WINDOWS",
     # mingw-w64 mais antigos (ex.: Ubuntu 24.04) incluem <strsafe.h> a partir de <dshow.h>,
     # que redefine sprintf/strcpy/strcat como macros de deprecação.
@@ -93,10 +117,57 @@ def compile_tu(src, work, shim_dir):
     incs, extra, want_obj = MODULES[module_of(rel)]
     obj = work / "obj" / (rel.replace("/", "_") + ".o")
     cmd = [CXX, *COMMON_FLAGS, *extra, f"-I{shim_dir}"] + [f"-I{ROOT / i}" for i in incs]
-    cmd += ["-c", str(src), "-o", str(obj)] if want_obj else ["-fsyntax-only", str(src)]
+    # Todas as TUs geram objeto (necessário para os avisos de fluxo); só alguns módulos são linkados.
+    cmd += ["-c", str(src), "-o", str(obj)]
     r = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
     errs = [l for l in r.stderr.splitlines() if " error: " in l or "fatal error" in l]
-    return rel, r.returncode == 0, errs[:5], obj if want_obj else None
+    warns = set()
+    for l in r.stderr.splitlines():
+        m = WARN_RX.match(l)
+        if m and m.group("flag") in WARN_TRACKED:
+            path = Path(m.group("path")).resolve()
+            if ROOT in path.parents:
+                warns.add((path.relative_to(ROOT).as_posix(), int(m.group("line")), m.group("flag"), m.group("msg")))
+    return rel, r.returncode == 0, errs[:5], obj if want_obj else None, warns
+
+
+def check_warnings(warns, update):
+    """Compara contagens de avisos por (tipo, arquivo) com a linha de base. Retorna 1 se piorou."""
+    counts = {}
+    for path, _, flag, _ in warns:
+        counts[(flag, path)] = counts.get((flag, path), 0) + 1
+    lines = [f"# Avisos do {CXX} {gcc_major()} acompanhados por tools/mingw_check.py: <quantidade> <tipo> <arquivo>.",
+             "# Regrave com: python3 tools/mingw_check.py --update-warning-baseline"]
+    lines += [f"{n} {flag} {path}" for (flag, path), n in sorted(counts.items(), key=lambda kv: (kv[0][1], kv[0][0]))]
+    if update:
+        WARN_BASELINE.write_text("\n".join(lines) + "\n")
+        print(f"{WARN_BASELINE.name} regravada: {len(warns)} avisos em {len(counts)} pares (tipo, arquivo)")
+        return 0
+    if not WARN_BASELINE.exists():
+        print(f"::warning::sem {WARN_BASELINE.name}; avisos não verificados. Conteúdo para gravar:")
+        print("::group::" + WARN_BASELINE.name)
+        print("\n".join(lines))
+        print("::endgroup::")
+        return 0
+    base = {}
+    if WARN_BASELINE.exists():
+        for l in WARN_BASELINE.read_text().splitlines():
+            if l.strip() and not l.startswith("#"):
+                n, flag, path = l.split(" ", 2)
+                base[(flag, path)] = int(n)
+    status = 0
+    for key in sorted(set(counts) | set(base), key=lambda k: (k[1], k[0])):
+        flag, path = key
+        have, had = counts.get(key, 0), base.get(key, 0)
+        if have > had:
+            status = 1
+            print(f"::error file={path}::{have - had} aviso(s) novo(s) de -W{flag} (linha de base: {had}, agora: {have})")
+            for p, line, f, msg in sorted(w for w in warns if w[0] == path and w[2] == flag):
+                print(f"    {p}:{line}: {msg} [-W{f}]")
+        elif have < had:
+            print(f"::notice file={path}::-W{flag} caiu de {had} para {have}; atualize a linha de base (--update-warning-baseline)")
+    print(f"avisos acompanhados: {len(warns)} (linha de base: {sum(base.values())})")
+    return status
 
 
 def run(cmd, **kw):
@@ -110,6 +181,8 @@ def main():
     ap.add_argument("--jobs", type=int, default=os.cpu_count() or 2)
     ap.add_argument("--no-wine", action="store_true", help="nao executa os testes no wine")
     ap.add_argument("--keep", help="diretorio de trabalho a manter (padrao: temporario)")
+    ap.add_argument("--update-warning-baseline", action="store_true",
+                    help=f"regrava {WARN_BASELINE.name} com os avisos atuais")
     args = ap.parse_args()
     sys.stdout.reconfigure(line_buffering=True)
 
@@ -133,8 +206,10 @@ def main():
 
     results = {}
     with cf.ThreadPoolExecutor(args.jobs) as ex:
-        for rel, ok, errs, obj in ex.map(lambda s: compile_tu(s, work, shim_dir), sources):
+        all_warns = set()
+        for rel, ok, errs, obj, warns in ex.map(lambda s: compile_tu(s, work, shim_dir), sources):
             results[rel] = (ok, errs, obj)
+            all_warns |= warns
 
     new_fail = [r for r, (ok, _, _) in results.items() if not ok and r not in known]
     fixed = [r for r, (ok, _, _) in results.items() if ok and r in known]
@@ -152,6 +227,8 @@ def main():
         print(f"::warning file={r}::TU agora compila no mingw: remova de {KNOWN.name}")
     for r in stale:
         print(f"::warning::{r} esta em {KNOWN.name} mas nao existe mais")
+
+    status |= check_warnings(all_warns, args.update_warning_baseline)
 
     # Link: w2pp_common como biblioteca estatica (igual ao CMake), DBSrv e testes.
     objs = lambda mod: [str(o) for r, (ok, _, o) in sorted(results.items()) if ok and o and r.startswith(mod + "/")]
