@@ -382,6 +382,7 @@ private:
 	void PacketAttack_Skill110Meteors(MSG_Attack*& pAttack, TMVector3& vecTarget, TMVector3& vecStart, bool& bMyAttack);
 	void PacketAttack_Skill110Quake(TMHuman*& pAttacker);
 	bool PacketAttack_Skill110Knockback(bool& bMyAttack, int& nDistance, unsigned int& Now, unsigned int& dwKhepraDelay, int& nReturnValue);
+	void PacketAttack_Skill111FreezeBlades(MSG_Attack*& pAttack, TMVector3& vecTarget, TMVector3& vecTarget2, TMVector3& vecD);
 	bool PacketAttack_ApplyTargets(MSG_Attack*& pAttack, TMHuman*& pAttacker, bool& bomb, TMVector2& vecAttackerPos, int& nClass, TMVector3& vecStart, TMVector3& vecTarget, unsigned int& dwDelay, int& nReturnValue);
 	/// @}
 

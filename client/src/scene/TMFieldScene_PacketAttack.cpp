@@ -541,37 +541,7 @@ if (pAttacker)
 			TMVector3 vecPos2{};
 			D3DXVECTOR3 vecDNormal{};
 
-			for (int i = 0; i < 13; i++)
-			{
-				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-					break;
-
-				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-					break;
-
-				int rndx = rand() % 18;
-				int rndy = rand() % 18;
-				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-				if (pMultiTarget)
-				{
-					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x, pMultiTarget->m_fHeight, pMultiTarget->m_vecPosition.y);
-					vecTarget2 = vecTarget;
-
-					auto pFreeze = new TMSkillFreezeBlade(vecTarget2, 8, 1, 0);
-					pFreeze->m_vecNextD = TMVector2(vecD.x, vecD.z);
-
-					m_pEffectContainer->AddChild(pFreeze);
-				}
-				else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
-				{
-					vecTarget2 = TMVector3(((float)rndx + vecTarget.x) - 9.0f, vecTarget.y, ((float)rndy + vecTarget.z) - 9.0f);
-					
-					auto pFreeze = new TMSkillFreezeBlade(vecTarget2, 8, 1, 0);
-					pFreeze->m_vecNextD = TMVector2(vecD.x, vecD.z);
-
-					m_pEffectContainer->AddChild(pFreeze);
-				}
-			}
+			PacketAttack_Skill111FreezeBlades(pAttack, vecTarget, vecTarget2, vecD);
 		}
 		else if (pAttacker->m_nClass == 56 && !pAttacker->m_stLookInfo.FaceMesh)
 		{
@@ -1440,6 +1410,43 @@ bool TMFieldScene::PacketAttack_Skill110Knockback(bool& bMyAttack, int& nDistanc
 		}
 	}
 	return false;
+}
+
+/// Skill 111: lâminas de gelo (`TMSkillFreezeBlade`) em cada alvo.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill111FreezeBlades(MSG_Attack*& pAttack, TMVector3& vecTarget, TMVector3& vecTarget2, TMVector3& vecD)
+{
+	for (int i = 0; i < 13; i++)
+	{
+		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+			break;
+
+		if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+			break;
+
+		int rndx = rand() % 18;
+		int rndy = rand() % 18;
+		auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+		if (pMultiTarget)
+		{
+			vecTarget = TMVector3(pMultiTarget->m_vecPosition.x, pMultiTarget->m_fHeight, pMultiTarget->m_vecPosition.y);
+			vecTarget2 = vecTarget;
+
+			auto pFreeze = new TMSkillFreezeBlade(vecTarget2, 8, 1, 0);
+			pFreeze->m_vecNextD = TMVector2(vecD.x, vecD.z);
+
+			m_pEffectContainer->AddChild(pFreeze);
+		}
+		else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
+		{
+			vecTarget2 = TMVector3(((float)rndx + vecTarget.x) - 9.0f, vecTarget.y, ((float)rndy + vecTarget.z) - 9.0f);
+			
+			auto pFreeze = new TMSkillFreezeBlade(vecTarget2, 8, 1, 0);
+			pFreeze->m_vecNextD = TMVector2(vecD.x, vecD.z);
+
+			m_pEffectContainer->AddChild(pFreeze);
+		}
+	}
 }
 
 /// Aplica o ataque a cada alvo de `pAttack->Dam` quando a skill não é de área (`TargetType` != 3..6).
