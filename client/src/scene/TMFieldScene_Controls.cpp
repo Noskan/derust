@@ -2589,3 +2589,18 @@ int TMFieldScene::OnControl_SysQuit(unsigned int idwControlID, unsigned int idwE
 	g_pSocketManager->SendOneMessage((char*)&stParm, sizeof(stParm));
 	return 0;
 }
+
+/// Botão 1 da ajuda (`TMB_HELP_BUTTON1`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_HelpButton1(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pHelpInterface)
+		m_pHelpInterface->SetVisible(1);
+	if (m_pHelpList[1])
+		m_pHelpList[1]->SetVisible(0);
+	if (m_pHelpList[2])
+		m_pHelpList[2]->SetVisible(0);
+	if (m_pHelpList[3])
+		m_pHelpList[3]->SetVisible(0);
+	return 1;
+}
