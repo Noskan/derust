@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure CMake (Win32)
-        run: cmake --preset win32-msvc -DW2PP_BUILD_CLIENT_PATCH=ON
+        run: cmake -S . -B build/win32-msvc -A Win32 -DW2PP_BUILD_CLIENT_PATCH=ON
 
       - name: Build (${{ matrix.config }})
         run: cmake --build build/win32-msvc --config ${{ matrix.config }} --parallel
