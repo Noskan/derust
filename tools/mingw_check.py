@@ -5,7 +5,7 @@ O que faz:
   1. Gera shims de headers do sistema cujo nome difere só em maiúsculas/minúsculas
      (ex.: <Windows.h> -> <windows.h>), já que o mingw no Linux é case-sensitive.
   2. Compila todas as TUs de server/common, server/dbsrv, server/tmsrv e client/src.
-  3. Linka DBSrv e um executável por fonte em tests/ e executa os testes no wine (se disponível).
+  3. Linka DBSrv, TMSrv e um executável por fonte em tests/ e executa os testes no wine (se disponível).
   4. Compara os avisos do GCC de uma lista curada (WARN_TRACKED: sombreamento, não inicializada,
      fora dos limites, memset/memcpy suspeitos, return ausente...) com a linha de base em
      tools/mingw_warning_baseline.txt. A checagem falha se um arquivo ganhar avisos de algum tipo;
@@ -66,11 +66,11 @@ COMMON_FLAGS = [
     "-D__MINGW_USE_VC2005_COMPAT",
 ]
 
-# Módulo -> (diretórios de include, flags extras, compilar objeto?)
+# Módulo -> (diretórios de include, flags extras, objetos entram no link?)
 MODULES = {
     "server/common": (["server", "server/common"], [], True),
     "server/dbsrv": (["server", "server/common", "server/dbsrv"], [], True),
-    "server/tmsrv": (["server", "server/common", "server/tmsrv"], [], False),
+    "server/tmsrv": (["server", "server/common", "server/tmsrv"], [], True),
     "client/src": (["client/src"], ["-D_MBCS"], False),
     "tests": (["server", "server/common"], [], True),
 }
@@ -232,13 +232,16 @@ def main():
 
     # Link: w2pp_common como biblioteca estatica (igual ao CMake), DBSrv e testes.
     objs = lambda mod: [str(o) for r, (ok, _, o) in sorted(results.items()) if ok and o and r.startswith(mod + "/")]
-    if all(results[r][0] for r in results if r.startswith(("server/common/", "server/dbsrv/", "tests/"))):
+    if all(results[r][0] for r in results if r.startswith(("server/common/", "server/dbsrv/", "server/tmsrv/", "tests/"))):
         lib = work / "libw2pp_common.a"
         lib.unlink(missing_ok=True)
         run([AR, "rcs", lib, *objs("server/common")], check=True)
         libs = ["-lws2_32", "-lwinmm"]
         if run([CXX, "-static", "-mwindows", *objs("server/dbsrv"), lib, "-o", work / "DBSrv.exe", *libs]).returncode:
             print("::error::falha ao linkar DBSrv")
+            status = 1
+        if run([CXX, "-static", "-mwindows", *objs("server/tmsrv"), lib, "-o", work / "TMSrv.exe", *libs]).returncode:
+            print("::error::falha ao linkar TMSrv")
             status = 1
         # Um executável por fonte de teste (cada um tem seu main), como em tests/CMakeLists.txt.
         for obj in objs("tests"):
@@ -256,7 +259,7 @@ def main():
             elif not args.no_wine:
                 print("::warning::wine nao encontrado; testes nao executados")
     else:
-        print("::error::server/common, server/dbsrv ou tests com falha de compilacao; link ignorado")
+        print("::error::server/common, server/dbsrv, server/tmsrv ou tests com falha de compilacao; link ignorado")
         status = 1
 
     print("\nresultado:", "OK" if status == 0 else "FALHOU", f"(trabalho em {work})")

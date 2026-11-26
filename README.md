@@ -40,7 +40,7 @@ Para verificar localmente as fronteiras de `#include`:
 python3 tools/check_boundaries.py
 ```
 
-Checagem cruzada com mingw-w64 i686 no Linux. Ela compila todas as TUs (`-O2`, ponto flutuante SSE2 como o MSVC), linka o DBSrv, roda os testes de `tests/` no wine e compara os avisos do GCC acompanhados com a linha de base da versão do compilador (`tools/mingw_warning_baseline-gcc<N>.txt`). As TUs que ainda só compilam no MSVC ficam em [`tools/mingw_known_failures.txt`](tools/mingw_known_failures.txt).
+Checagem cruzada com mingw-w64 i686 no Linux. Ela compila todas as TUs (`-O2`, ponto flutuante SSE2 como o MSVC), linka o DBSrv e o TMSrv, roda os testes de `tests/` no wine e compara os avisos do GCC acompanhados com a linha de base da versão do compilador (`tools/mingw_warning_baseline-gcc<N>.txt`). As TUs que ainda só compilam no MSVC ficam em [`tools/mingw_known_failures.txt`](tools/mingw_known_failures.txt).
 
 ```bash
 sudo apt install g++-mingw-w64-i686 wine   # wine32 para executar os testes
