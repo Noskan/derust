@@ -872,17 +872,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 639 || idwControlID == 621 || idwControlID == 622 || idwControlID == 623)
 		return OnControl_PlayerMenu639(idwControlID, idwEvent);
 	if (idwControlID == 1617)
-	{
-		MSG_MessageWhisper stMsgWhisper{};
-		stMsgWhisper.Header.ID = g_pObjectManager->m_dwCharID;
-		stMsgWhisper.Header.Type = MSG_MessageWhisper_Opcode;
-
-		sprintf(stMsgWhisper.MobName, "_RPS_");
-		sprintf(stMsgWhisper.String, "rock");
-		SendOneMessage((char*)&stMsgWhisper, sizeof(stMsgWhisper));
-		m_pRPSGamePanel->SetVisible(0);
-		return 0;
-	}
+		return OnControl_RpsRock(idwControlID, idwEvent);
 	if (idwControlID == 1618)
 	{
 		MSG_MessageWhisper stMsgWhisper{};

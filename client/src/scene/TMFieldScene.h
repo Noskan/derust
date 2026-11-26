@@ -334,6 +334,7 @@ private:
 	int OnControl_PlayerMenu818(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_PlayerMenu862(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_PlayerMenu620(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_RpsRock(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
