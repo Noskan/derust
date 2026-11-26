@@ -272,6 +272,7 @@ private:
 	/// @name Handlers de OnControlEvent (TMFieldScene_Controls.cpp)
 	/// @{
 	int OnControl_HellStoreSelect(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_GambleArrows(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:

@@ -101,3 +101,48 @@ int TMFieldScene::OnControl_HellStoreSelect(unsigned int idwControlID, unsigned 
 	}
 	return 1;
 }
+
+/// Setas de aposta do Gamble (`TMB_GAMBLE_LEFTX2..TMB_GAMBLE_RIGHT`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_GambleArrows(unsigned int idwControlID, unsigned int idwEvent)
+{
+	switch (idwControlID)
+	{
+	case TMB_GAMBLE_LEFTX2:
+		m_nBet -= 10000;
+		if (m_nBet < 1000)
+			m_nBet = 1000;
+		break;
+	case TMB_GAMBLE_LEFT:
+		m_nBet -= 1000;
+		if (m_nBet < 1000)
+			m_nBet = 1000;
+		break;
+	case TMB_GAMBLE_RIGHTX2:
+		if (g_pObjectManager->m_stMobData.Coin - m_nBet < 10000)
+			return 1;
+		m_nBet += 10000;
+		if (m_nBet > 100000)
+			m_nBet = 100000;
+		break;
+	case TMB_GAMBLE_RIGHT:
+		if (g_pObjectManager->m_stMobData.Coin - m_nBet < 1000)
+			return 1;
+		m_nBet += 1000;
+		if (m_nBet > 100000)
+			m_nBet = 100000;
+		break;
+	}
+
+	auto pText = static_cast<SText*>(m_pControlContainer->FindControl(TMT_GAMBLE_BETCOUNT));
+	
+	char szText[128]{};
+	sprintf(szText, "%6d", m_nBet);
+	pText->SetText(szText, 0);
+
+	sprintf(szText, "%10d", g_pObjectManager->m_stMobData.Coin - m_nBet);
+
+	m_pMoney3->m_cComma = 1;
+	m_pMoney3->SetText(szText, 0);
+	return 1;
+}
