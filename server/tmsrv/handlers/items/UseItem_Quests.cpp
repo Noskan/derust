@@ -467,6 +467,13 @@ lbl_m_noparty:
 			return true;
 		}
 
+		// Lido antes do goto: o bilhete solo pula a checagem de horário abaixo, mas usa o relógio
+		// para calcular NigthTime (antes ficava sem valor nesse caminho).
+		struct tm when;
+		time_t now;
+		time(&now);
+		when = *localtime(&now);
+
 		int isParty = item->sIndex == 3326 ? 1 : 0;
 
 		if (isParty == 0)
@@ -478,11 +485,6 @@ lbl_m_noparty:
 
 			return true;
 		}
-
-		struct tm when;
-		time_t now;
-		time(&now);
-		when = *localtime(&now);
 
 		if (when.tm_min >= 0 && when.tm_min <= 9 || when.tm_min >= 14 && when.tm_min <= 29
 			|| when.tm_min >= 34 && when.tm_min <= 49 || when.tm_min >= 54 && when.tm_min <= 60)
