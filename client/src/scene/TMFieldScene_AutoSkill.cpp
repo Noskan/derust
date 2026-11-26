@@ -500,36 +500,8 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 			int x2 = (int)pNode->m_vecPosition.x;
 			int y2 = (int)pNode->m_vecPosition.y;
 
-			if (cSkillIndex == 0|| cSkillIndex == 16 || cSkillIndex == 7 || cSkillIndex == 17 || cSkillIndex == 23 || 
-				cSkillIndex == 35 || cSkillIndex == 39 || cSkillIndex == 51	|| cSkillIndex == 55)
-			{
-				if (!pOver)
-					{ nReturnValue = 0; return true; }
-
-				int nSX = (int)pOver->m_vecPosition.x;
-				int nSY = (int)pOver->m_vecPosition.y;
-				if (pOver->m_nClass == 56 && !pOver->m_stLookInfo.FaceMesh)
-				{
-					int nDTX = (int)m_pMyHuman->m_vecPosition.x;
-					int nDTY = (int)m_pMyHuman->m_vecPosition.y;
-					if (m_stMoveStop.NextX)
-					{
-						nDTX = m_stMoveStop.NextX;
-						nDTY = m_stMoveStop.NextY;
-					}
-					int nDistanceFromMe = BASE_GetDistance(
-						nDTX,
-						nDTY,
-						(int)pOver->m_vecPosition.x,
-						(int)pOver->m_vecPosition.y)
-						- 12;
-					if (nDistanceFromMe < 1)
-					{
-						nSX = (int)pOver->m_vecPosition.x;
-						nSY = (int)pOver->m_vecPosition.y;
-					}
-				}
-			}
+			if (AutoSkillUse_AreaCenterOnTarget(pOver, cSkillIndex, nSX, nSY, nReturnValue))
+				return true;
 
 			if (cSkillIndex == 79 && pNode != pOver)
 			{
@@ -1052,6 +1024,44 @@ void TMFieldScene::AutoSkillUse_CollectSelfAreaTargets(char& cSkillIndex, MSG_At
 		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget <= nTargetIndex || nTargetIndex >= 13)
 			break;
 	}
+}
+
+/// Skills de área centradas no alvo (0, 16, 7, 17, 23, 35, 39, 51, 55): o centro da área é a posição de `pOver`.
+/// @note Extraído de `TMFieldScene::AutoSkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::AutoSkillUse_AreaCenterOnTarget(TMHuman*& pOver, char& cSkillIndex, int& nSX, int& nSY, int& nReturnValue)
+{
+	if (cSkillIndex == 0|| cSkillIndex == 16 || cSkillIndex == 7 || cSkillIndex == 17 || cSkillIndex == 23 || 
+		cSkillIndex == 35 || cSkillIndex == 39 || cSkillIndex == 51	|| cSkillIndex == 55)
+	{
+		if (!pOver)
+			{ nReturnValue = 0; return true; }
+
+		int nSX = (int)pOver->m_vecPosition.x;
+		int nSY = (int)pOver->m_vecPosition.y;
+		if (pOver->m_nClass == 56 && !pOver->m_stLookInfo.FaceMesh)
+		{
+			int nDTX = (int)m_pMyHuman->m_vecPosition.x;
+			int nDTY = (int)m_pMyHuman->m_vecPosition.y;
+			if (m_stMoveStop.NextX)
+			{
+				nDTX = m_stMoveStop.NextX;
+				nDTY = m_stMoveStop.NextY;
+			}
+			int nDistanceFromMe = BASE_GetDistance(
+				nDTX,
+				nDTY,
+				(int)pOver->m_vecPosition.x,
+				(int)pOver->m_vecPosition.y)
+				- 12;
+			if (nDistanceFromMe < 1)
+			{
+				nSX = (int)pOver->m_vecPosition.x;
+				nSY = (int)pOver->m_vecPosition.y;
+			}
+		}
+	}
+	return false;
 }
 
 /// Validações de PK/guerra de guilda antes da skill automática em jogador.
