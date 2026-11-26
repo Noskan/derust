@@ -876,17 +876,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 1618)
 		return OnControl_RpsPaper(idwControlID, idwEvent);
 	if (idwControlID == 1619)
-	{
-		MSG_MessageWhisper stMsgWhisper{};
-		stMsgWhisper.Header.ID = g_pObjectManager->m_dwCharID;
-		stMsgWhisper.Header.Type = MSG_MessageWhisper_Opcode;
-
-		sprintf(stMsgWhisper.MobName, "_RPS_");
-		sprintf(stMsgWhisper.String, "scissor");
-		SendOneMessage((char*)&stMsgWhisper, sizeof(stMsgWhisper));
-		m_pRPSGamePanel->SetVisible(0);
-		return 0;
-	}
+		return OnControl_RpsScissors(idwControlID, idwEvent);
 	if (idwControlID == 4617)
 	{
 		if (!idwEvent)
