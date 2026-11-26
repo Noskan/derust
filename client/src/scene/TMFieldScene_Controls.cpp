@@ -2760,3 +2760,33 @@ int TMFieldScene::OnControl_ServerListSelect(unsigned int idwControlID, unsigned
 	}
 	return 1;
 }
+
+/// Menu de contexto do jogador alvo, controle 642 (esconde os botões do menu).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_PlayerMenu642(unsigned int idwControlID, unsigned int idwEvent)
+{
+	m_pBtnPGTGuild->SetVisible(0);
+	m_pBtnPGTParty->SetVisible(0);
+	m_pBtnPGTTrade->SetVisible(0);
+	m_pBtnPGTChallenge->SetVisible(0);
+	m_pBtnPGT1_V_1->SetVisible(0);
+	m_pBtnPGT5_V_5->SetVisible(0);
+	m_pBtnPGT10_V_10->SetVisible(0);
+	m_pBtnPGTAll_V_All->SetVisible(0);
+	m_pBtnPGTGuildDrop->SetVisible(1);
+	m_pBtnPGTGuildWar->SetVisible(1);
+	m_pBtnPGTGuildWar->SetVisible(0);
+	m_pBtnPGTGuildAlly->SetVisible(1);
+
+	if (m_pMyHuman && (m_pMyHuman->m_sGuildLevel >= 3 && m_pMyHuman->m_sGuildLevel <= 8 || m_pMyHuman->m_sGuildLevel == 9) && 
+		(!m_pPGTOver->m_usGuild	|| m_pPGTOver->m_usGuild == m_pMyHuman->m_usGuild && (!m_pPGTOver->m_sGuildLevel || m_pPGTOver->m_sGuildLevel == 1)) && 
+		m_pPGTOver->m_sGuildLevel != 9)
+	{
+		m_pBtnPGTGuildInvite->SetVisible(1);
+	}
+	m_pBtnPGTGICommon->SetVisible(0);
+	m_pBtnPGTGIChief1->SetVisible(0);
+	m_pBtnPGTGIChief2->SetVisible(0);
+	m_pBtnPGTGIChief3->SetVisible(0);
+	return 0;
+}

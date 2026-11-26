@@ -841,32 +841,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 643)
 		return OnControl_PlayerMenu643(idwControlID, idwEvent);
 	if (idwControlID == 642)
-	{
-		m_pBtnPGTGuild->SetVisible(0);
-		m_pBtnPGTParty->SetVisible(0);
-		m_pBtnPGTTrade->SetVisible(0);
-		m_pBtnPGTChallenge->SetVisible(0);
-		m_pBtnPGT1_V_1->SetVisible(0);
-		m_pBtnPGT5_V_5->SetVisible(0);
-		m_pBtnPGT10_V_10->SetVisible(0);
-		m_pBtnPGTAll_V_All->SetVisible(0);
-		m_pBtnPGTGuildDrop->SetVisible(1);
-		m_pBtnPGTGuildWar->SetVisible(1);
-		m_pBtnPGTGuildWar->SetVisible(0);
-		m_pBtnPGTGuildAlly->SetVisible(1);
-
-		if (m_pMyHuman && (m_pMyHuman->m_sGuildLevel >= 3 && m_pMyHuman->m_sGuildLevel <= 8 || m_pMyHuman->m_sGuildLevel == 9) && 
-			(!m_pPGTOver->m_usGuild	|| m_pPGTOver->m_usGuild == m_pMyHuman->m_usGuild && (!m_pPGTOver->m_sGuildLevel || m_pPGTOver->m_sGuildLevel == 1)) && 
-			m_pPGTOver->m_sGuildLevel != 9)
-		{
-			m_pBtnPGTGuildInvite->SetVisible(1);
-		}
-		m_pBtnPGTGICommon->SetVisible(0);
-		m_pBtnPGTGIChief1->SetVisible(0);
-		m_pBtnPGTGIChief2->SetVisible(0);
-		m_pBtnPGTGIChief3->SetVisible(0);
-		return 0;
-	}
+		return OnControl_PlayerMenu642(idwControlID, idwEvent);
 	if (idwControlID == 863)
 	{
 		m_pBtnPGTGuildDrop->SetVisible(0);
