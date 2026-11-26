@@ -1353,3 +1353,52 @@ int TMFieldScene::OnControl_QuestMemo(unsigned int idwControlID, unsigned int id
 	}	
 	return 1;
 }
+
+/// Comando de ataque do modo CC (`B_CCATTACK`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CCAttack(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (++g_GameAuto >= 4)
+		g_GameAuto = 0;
+	if (m_pMyHuman)
+		m_pMyHuman->_dwAttackDelay = 0;
+	if (g_GameAuto)
+	{
+		m_pSGameAutoBtn->SetVisible(1);
+		m_pSetType->SetVisible(1);
+	}
+	else
+	{
+		m_pSGameAutoBtn->SetVisible(0);
+		m_pSetType->SetVisible(0);
+	}
+
+	switch (g_GameAuto)
+	{
+	case 0:
+		m_pMGameAutoBtn->SetTextureSetIndex(458);
+		m_pMGameAutoBtn->m_pAltText->SetText(
+			g_UIString[229],
+			0);
+		break;
+	case 1:
+		m_pMGameAutoBtn->SetTextureSetIndex(455);
+		m_pMGameAutoBtn->m_pAltText->SetText(
+			g_UIString[226],
+			0);
+		break;
+	case 2:
+		m_pMGameAutoBtn->SetTextureSetIndex(456);
+		m_pMGameAutoBtn->m_pAltText->SetText(
+			g_UIString[227],
+			0);
+		break;
+	case 3:
+		m_pMGameAutoBtn->SetTextureSetIndex(459);
+		m_pMGameAutoBtn->m_pAltText->SetText(
+			g_UIString[230],
+			0);
+		break;
+	}
+	return 1;
+}

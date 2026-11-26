@@ -284,6 +284,7 @@ private:
 	int OnControl_QuestButton3(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_QuestButton4(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_QuestMemo(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
+	int OnControl_CCAttack(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
