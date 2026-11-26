@@ -1565,230 +1565,8 @@ if (g_pSpell[pAttack->SkillIndex].TargetType != 3 && g_pSpell[pAttack->SkillInde
 					else
 						bInScreen = BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nTX, &nTY);
 
-					if (bInScreen)
-					{
-						if (!pTargetHuman || !pAttacker)
-							{ nReturnValue = 1; return true; }
-
-						for (int bViewHalf = 0; bViewHalf < (pAttack->DoubleCritical & 1) + 1; bViewHalf++)
-						{
-							int nFlank = 0;
-							if (pAttack->DoubleCritical & 4)
-								nFlank = pAttack->Dam[1].Damage;
-
-							int nValue = (pAttack->Dam[i].Damage - nFlank) / ((pAttack->DoubleCritical & 1) + 1);
-							if (nValue > 1000000)
-								nValue = 0;
-
-							if (nValue > 0)
-							{
-								char szStr[128]{};
-								if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
-									((int)pTargetHuman->m_vecPosition.x >> 7 != 18 || (int)pTargetHuman->m_vecPosition.y >> 7 != 30) && 
-									(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
-									&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
-								{
-									sprintf(szStr, "?");
-								}
-								else if (!(pAttack->DoubleCritical & 4) || bViewHalf)
-								{
-									sprintf(szStr, "%d", nValue);
-								}
-								else if (pAttack->Dam[1].Damage > 0)
-								{
-									sprintf(szStr, "%d + %d", nValue, nFlank);
-								}
-
-								bool bDrawFront = false;
-								if (g_bHideEffect)
-								{
-									if (pAttacker == m_pMyHuman)
-										bDrawFront = true;
-									if (pTargetHuman == m_pMyHuman)
-										bDrawFront = true;
-								}
-								else
-								{
-									bDrawFront = true;
-								}
-
-								if (pAttack->TargetX == 1129 && pAttack->TargetY == 1707 || 
-									pAttack->TargetX == 1116 && pAttack->TargetY == 1707 ||
-									pAttack->TargetX == 1094 && pAttack->TargetY == 1690)
-								{
-									bDrawFront = false;
-								}
-
-								if (bDrawFront)
-								{
-									TMFont3* pFont = nullptr;
-									unsigned int dwColor = 0xFFFFFFFF;
-									float fSize = 1.0f;
-									if (i > 0 && pAttack->Dam[i].TargetID == pAttack->Dam[i - 1].TargetID)
-									{
-										m_pMyHuman->m_bCritical = 0;
-										if (!(pAttack->DoubleCritical & 2))
-										{
-											if (pTargetHuman == m_pMyHuman)
-											{
-												if (bInScreen)
-												{
-													pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
-														(int)(RenderDevice::m_fHeightRatio * 80.0f) + 
-														(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) - 
-															((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)), 
-														dwColor,
-														fSize, 
-														dwDelay,
-														1,
-														1200,
-														bViewHalf, 
-														4);
-												}
-											}
-											else if (bInScreen)
-											{
-												pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
-													(int)(RenderDevice::m_fHeightRatio * 80.0f) +
-													(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) -
-														((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-													dwColor,
-													fSize,
-													dwDelay,
-													1,
-													1200,
-													bViewHalf,
-													3);
-											}
-										}
-										else
-										{
-											m_pMyHuman->m_bCritical = 1;
-											if (bInScreen)
-											{
-												pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
-													(int)(RenderDevice::m_fHeightRatio * 80.0f) +
-													(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
-														((float)(40 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-													dwColor,
-													fSize,
-													dwDelay,
-													9,
-													300 * (pAttack->DoubleCritical & 2) + 1200,
-													bViewHalf,
-													5);
-											}
-										}
-									}
-									else
-									{
-										m_pMyHuman->m_bCritical = 0;
-										if (pAttack->DoubleCritical & 2)
-										{
-											m_pMyHuman->m_bCritical = 1;
-											if (bInScreen)
-											{
-												pFont = new TMFont3(szStr, nTX,
-													(int)(RenderDevice::m_fHeightRatio * 80.0f) +
-													(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) -
-														((float)(40 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-													dwColor,
-													fSize,
-													dwDelay,
-													9,
-													550 * (pAttack->DoubleCritical & 2) + 1000 * bViewHalf + 1000,
-													bViewHalf,
-													5);
-											}
-										}
-										else if (pTargetHuman == m_pMyHuman)
-										{
-											if (bInScreen)
-											{
-												pFont = new TMFont3(szStr, nTX,
-													(int)(RenderDevice::m_fHeightRatio * 40.0f) +
-													(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
-														((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-													dwColor,
-													fSize,
-													dwDelay,
-													1,
-													1000 * bViewHalf + 1000,
-													bViewHalf,
-													4);
-											}
-										}
-										else if (bInScreen)
-										{
-											pFont = new TMFont3(szStr, nTX,
-												(int)(RenderDevice::m_fHeightRatio * 40.0f) +
-												(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
-													((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
-												dwColor,
-												fSize,
-												dwDelay,
-												1,
-												1000 * bViewHalf + 1000,
-												bViewHalf,
-												3);
-										}
-									}
-
-									if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pAttacker != m_pMyHuman)
-									{
-										if (pFont)
-										{
-											pFont->m_fScale = 0.5f;
-											if (pFont->m_nType == 5)
-												pFont->m_nType = 6;
-										}
-									}
-
-									m_pExtraContainer->AddChild(pFont);
-								}
-
-								if (pTargetHuman == m_pMyHuman && pAttacker)
-									sprintf(m_szLastAttackerName, "%s", pAttacker->m_szName);
-
-								if (pTargetHuman->m_cCriticalArmor == 1)
-								{
-									auto pEffectMesh = new TMEffectMesh(2838, 0xFF999999, pTargetHuman->m_fAngle, 4);
-
-									pEffectMesh->m_nTextureIndex = 413;
-									pEffectMesh->m_dwLifeTime = 500;
-									pEffectMesh->m_dwCycleTime = 500;
-																			
-									if (pTargetHuman->m_cMount == 1)
-									{
-										pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecSkinPos.x,
-											(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
-												* pTargetHuman->m_fScale)
-												/ 2.0f)
-												+ pTargetHuman->m_vecSkinPos.y)
-											- 0.30000001f,
-											pTargetHuman->m_vecSkinPos.z);
-									}
-									else
-									{
-										pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecPosition.x,
-											(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
-												* pTargetHuman->m_fScale)
-												/ 2.0f)
-												+ pTargetHuman->m_fHeight)
-											+ 0.30000001f,
-											pTargetHuman->m_vecPosition.y);
-									}
-
-									pEffectMesh->m_fScaleH = 2.5f;
-									pEffectMesh->m_fScaleV = 2.5f;
-									pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-									pEffectMesh->m_cShine = 0;
-
-									m_pEffectContainer->AddChild(pEffectMesh);
-								}
-							}
-						}
-					}
+					if (PacketAttack_ShowDamage(pAttack, pAttacker, dwDelay, i, pTargetHuman, bInScreen, nTX, nTY, nReturnValue))
+						return true;
 				}
 
 				if (pTargetHuman->m_stScore.Hp < 0 && !pAttack->FlagLocal)
@@ -2478,4 +2256,236 @@ void TMFieldScene::PacketAttack_ApplyDamageHp(MSG_Attack*& pAttack, int& i, TMHu
 			memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
 		}
 	}
+}
+
+/// Dano em alvo único visível na tela: números de dano, crítico, flanco e efeitos de acerto.
+/// @note Extraído de `TMFieldScene::PacketAttack_ApplyTargets` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::PacketAttack_ShowDamage(MSG_Attack*& pAttack, TMHuman*& pAttacker, unsigned int& dwDelay, int& i, TMHuman*& pTargetHuman, int& bInScreen, int& nTX, int& nTY, int& nReturnValue)
+{
+	if (bInScreen)
+	{
+		if (!pTargetHuman || !pAttacker)
+			{ nReturnValue = 1; return true; }
+
+		for (int bViewHalf = 0; bViewHalf < (pAttack->DoubleCritical & 1) + 1; bViewHalf++)
+		{
+			int nFlank = 0;
+			if (pAttack->DoubleCritical & 4)
+				nFlank = pAttack->Dam[1].Damage;
+
+			int nValue = (pAttack->Dam[i].Damage - nFlank) / ((pAttack->DoubleCritical & 1) + 1);
+			if (nValue > 1000000)
+				nValue = 0;
+
+			if (nValue > 0)
+			{
+				char szStr[128]{};
+				if (((int)pTargetHuman->m_vecPosition.x >> 7 > 16 && (int)pTargetHuman->m_vecPosition.x >> 7 < 20 && (int)pTargetHuman->m_vecPosition.y >> 7 > 29) &&
+					((int)pTargetHuman->m_vecPosition.x >> 7 != 18 || (int)pTargetHuman->m_vecPosition.y >> 7 != 30) && 
+					(pAttack->AttackerID != m_pMyHuman->m_dwID || pTargetHuman->m_dwID < 1000)
+					&& (pTargetHuman->m_dwID != m_pMyHuman->m_dwID || (int)pAttack->AttackerID < 1000))
+				{
+					sprintf(szStr, "?");
+				}
+				else if (!(pAttack->DoubleCritical & 4) || bViewHalf)
+				{
+					sprintf(szStr, "%d", nValue);
+				}
+				else if (pAttack->Dam[1].Damage > 0)
+				{
+					sprintf(szStr, "%d + %d", nValue, nFlank);
+				}
+
+				bool bDrawFront = false;
+				if (g_bHideEffect)
+				{
+					if (pAttacker == m_pMyHuman)
+						bDrawFront = true;
+					if (pTargetHuman == m_pMyHuman)
+						bDrawFront = true;
+				}
+				else
+				{
+					bDrawFront = true;
+				}
+
+				if (pAttack->TargetX == 1129 && pAttack->TargetY == 1707 || 
+					pAttack->TargetX == 1116 && pAttack->TargetY == 1707 ||
+					pAttack->TargetX == 1094 && pAttack->TargetY == 1690)
+				{
+					bDrawFront = false;
+				}
+
+				if (bDrawFront)
+				{
+					TMFont3* pFont = nullptr;
+					unsigned int dwColor = 0xFFFFFFFF;
+					float fSize = 1.0f;
+					if (i > 0 && pAttack->Dam[i].TargetID == pAttack->Dam[i - 1].TargetID)
+					{
+						m_pMyHuman->m_bCritical = 0;
+						if (!(pAttack->DoubleCritical & 2))
+						{
+							if (pTargetHuman == m_pMyHuman)
+							{
+								if (bInScreen)
+								{
+									pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
+										(int)(RenderDevice::m_fHeightRatio * 80.0f) + 
+										(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) - 
+											((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)), 
+										dwColor,
+										fSize, 
+										dwDelay,
+										1,
+										1200,
+										bViewHalf, 
+										4);
+								}
+							}
+							else if (bInScreen)
+							{
+								pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
+									(int)(RenderDevice::m_fHeightRatio * 80.0f) +
+									(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) -
+										((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+									dwColor,
+									fSize,
+									dwDelay,
+									1,
+									1200,
+									bViewHalf,
+									3);
+							}
+						}
+						else
+						{
+							m_pMyHuman->m_bCritical = 1;
+							if (bInScreen)
+							{
+								pFont = new TMFont3(szStr, nTX + 20 - 10 * bViewHalf,
+									(int)(RenderDevice::m_fHeightRatio * 80.0f) +
+									(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
+										((float)(40 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+									dwColor,
+									fSize,
+									dwDelay,
+									9,
+									300 * (pAttack->DoubleCritical & 2) + 1200,
+									bViewHalf,
+									5);
+							}
+						}
+					}
+					else
+					{
+						m_pMyHuman->m_bCritical = 0;
+						if (pAttack->DoubleCritical & 2)
+						{
+							m_pMyHuman->m_bCritical = 1;
+							if (bInScreen)
+							{
+								pFont = new TMFont3(szStr, nTX,
+									(int)(RenderDevice::m_fHeightRatio * 80.0f) +
+									(int)(((float)nTY - (float)(20.0f * RenderDevice::m_fHeightRatio)) -
+										((float)(40 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+									dwColor,
+									fSize,
+									dwDelay,
+									9,
+									550 * (pAttack->DoubleCritical & 2) + 1000 * bViewHalf + 1000,
+									bViewHalf,
+									5);
+							}
+						}
+						else if (pTargetHuman == m_pMyHuman)
+						{
+							if (bInScreen)
+							{
+								pFont = new TMFont3(szStr, nTX,
+									(int)(RenderDevice::m_fHeightRatio * 40.0f) +
+									(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
+										((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+									dwColor,
+									fSize,
+									dwDelay,
+									1,
+									1000 * bViewHalf + 1000,
+									bViewHalf,
+									4);
+							}
+						}
+						else if (bInScreen)
+						{
+							pFont = new TMFont3(szStr, nTX,
+								(int)(RenderDevice::m_fHeightRatio * 40.0f) +
+								(int)(((float)nTY - (float)(10.0f * RenderDevice::m_fHeightRatio)) -
+									((float)(20 * bViewHalf) * RenderDevice::m_fHeightRatio)),
+								dwColor,
+								fSize,
+								dwDelay,
+								1,
+								1000 * bViewHalf + 1000,
+								bViewHalf,
+								3);
+						}
+					}
+
+					if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pAttacker != m_pMyHuman)
+					{
+						if (pFont)
+						{
+							pFont->m_fScale = 0.5f;
+							if (pFont->m_nType == 5)
+								pFont->m_nType = 6;
+						}
+					}
+
+					m_pExtraContainer->AddChild(pFont);
+				}
+
+				if (pTargetHuman == m_pMyHuman && pAttacker)
+					sprintf(m_szLastAttackerName, "%s", pAttacker->m_szName);
+
+				if (pTargetHuman->m_cCriticalArmor == 1)
+				{
+					auto pEffectMesh = new TMEffectMesh(2838, 0xFF999999, pTargetHuman->m_fAngle, 4);
+
+					pEffectMesh->m_nTextureIndex = 413;
+					pEffectMesh->m_dwLifeTime = 500;
+					pEffectMesh->m_dwCycleTime = 500;
+															
+					if (pTargetHuman->m_cMount == 1)
+					{
+						pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecSkinPos.x,
+							(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
+								* pTargetHuman->m_fScale)
+								/ 2.0f)
+								+ pTargetHuman->m_vecSkinPos.y)
+							- 0.30000001f,
+							pTargetHuman->m_vecSkinPos.z);
+					}
+					else
+					{
+						pEffectMesh->m_vecPosition = TMVector3(pTargetHuman->m_vecPosition.x,
+							(((TMHuman::m_vecPickSize[pTargetHuman->m_nSkinMeshType].y
+								* pTargetHuman->m_fScale)
+								/ 2.0f)
+								+ pTargetHuman->m_fHeight)
+							+ 0.30000001f,
+							pTargetHuman->m_vecPosition.y);
+					}
+
+					pEffectMesh->m_fScaleH = 2.5f;
+					pEffectMesh->m_fScaleV = 2.5f;
+					pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+					pEffectMesh->m_cShine = 0;
+
+					m_pEffectContainer->AddChild(pEffectMesh);
+				}
+			}
+		}
+	}
+	return false;
 }
