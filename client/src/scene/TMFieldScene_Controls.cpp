@@ -1268,3 +1268,39 @@ int TMFieldScene::OnControl_QuestButton3(unsigned int idwControlID, unsigned int
 	m_pQuestMemo->SetVisible(0);
 	return 1;
 }
+
+/// Botão 4 do painel de quest (`B_QUEST_BUTTON4`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_QuestButton4(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pQuestList[0])
+	{
+		m_pQuestList[0]->SetVisible(0);
+		m_pQuestList[0]->m_bSelectEnable = 0;
+	}
+	if (m_pQuestContentList[0])
+		m_pQuestContentList[0]->SetVisible(0);
+	if (m_pQuestList[1])
+	{
+		m_pQuestList[1]->SetVisible(0);
+		m_pQuestList[1]->m_bSelectEnable = 0;
+	}
+	if (m_pQuestContentList[1])
+		m_pQuestContentList[1]->SetVisible(0);
+	if (m_pQuestList[2])
+	{
+		m_pQuestList[2]->SetVisible(0);
+		m_pQuestList[2]->m_bSelectEnable = 0;
+	}
+	if (m_pQuestContentList[2])
+		m_pQuestContentList[2]->SetVisible(0);
+	if (m_pQuestList[3])
+	{
+		m_pQuestList[3]->SetVisible(1);
+		m_pQuestList[3]->m_bSelectEnable = 1;
+	}
+	if (m_pQuestContentList[3])
+		m_pQuestContentList[3]->SetVisible(1);
+	m_pQuestMemo->SetVisible(0);
+	return 1;
+}

@@ -282,6 +282,7 @@ private:
 	int OnControl_QuestButton1(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_QuestButton2(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_QuestButton3(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_QuestButton4(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
