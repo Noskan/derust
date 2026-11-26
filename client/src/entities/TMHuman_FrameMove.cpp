@@ -235,39 +235,7 @@ int TMHuman::FrameMove(unsigned int dwServerTime)
         fElapsedAngleToTime = 1.0f;
 
     float fDAngle = 0.0f;
-    if (!m_bForcedRotation)
-    {
-        fDAngle = m_fWantAngle - m_fMoveToAngle;
-    }
-    else
-    {
-        m_fWantAngle = m_fCurrAng;
-        m_fCurrAng = m_fCurrAng + 0.15000001f;
-        if (m_fCurrAng > 360.0f)
-            m_fCurrAng = 0.0f;
-
-        fDAngle = m_fWantAngle - m_fMoveToAngle;
-        if (m_dwForcedRotCurTime >= m_dwForcedRotMaxTime)
-        {
-            m_bForcedRotation = 0;
-            m_fCurrAng = 0.0f;
-            m_cMotionLoopCnt = 0;
-            SetAnimation(ECHAR_MOTION::ECMOTION_STAND01, 0);
-        }
-        else
-        {
-            m_dwForcedRotCurTime = g_pTimerManager->GetServerTime();
-
-            if (!m_cMotionLoopCnt && m_dwForcedRotMaxTime - m_dwForcedRotCurTime < 6000
-              || m_cMotionLoopCnt == 1 && m_dwForcedRotMaxTime - m_dwForcedRotCurTime < 4000
-              || m_cMotionLoopCnt == 2 && m_dwForcedRotMaxTime - m_dwForcedRotCurTime < 2000)
-            {
-                ++m_cMotionLoopCnt;
-                SetAnimation(m_eMotion, 10);
-            }
-            m_fWantAngle = m_fCurrAng;
-        }
-    }    
+    FrameMove_TurnAngle(fDAngle);
 
     if (fabsf(m_fAngle - m_fWantAngle) > 0.017453292f)
     {
@@ -1011,6 +979,45 @@ void TMHuman::FrameMove_EarthQuakeEnd(unsigned int& dwServerTime, TMScene*& pSce
             }
         }
     }
+}
+
+/// Giro do personagem: diferença até o ângulo desejado, ou rotação forçada contínua.
+/// @note Extraído de `TMHuman::FrameMove` (Fase 3); locais passadas por referência.
+void TMHuman::FrameMove_TurnAngle(float& fDAngle)
+{
+    if (!m_bForcedRotation)
+    {
+        fDAngle = m_fWantAngle - m_fMoveToAngle;
+    }
+    else
+    {
+        m_fWantAngle = m_fCurrAng;
+        m_fCurrAng = m_fCurrAng + 0.15000001f;
+        if (m_fCurrAng > 360.0f)
+            m_fCurrAng = 0.0f;
+
+        fDAngle = m_fWantAngle - m_fMoveToAngle;
+        if (m_dwForcedRotCurTime >= m_dwForcedRotMaxTime)
+        {
+            m_bForcedRotation = 0;
+            m_fCurrAng = 0.0f;
+            m_cMotionLoopCnt = 0;
+            SetAnimation(ECHAR_MOTION::ECMOTION_STAND01, 0);
+        }
+        else
+        {
+            m_dwForcedRotCurTime = g_pTimerManager->GetServerTime();
+
+            if (!m_cMotionLoopCnt && m_dwForcedRotMaxTime - m_dwForcedRotCurTime < 6000
+              || m_cMotionLoopCnt == 1 && m_dwForcedRotMaxTime - m_dwForcedRotCurTime < 4000
+              || m_cMotionLoopCnt == 2 && m_dwForcedRotMaxTime - m_dwForcedRotCurTime < 2000)
+            {
+                ++m_cMotionLoopCnt;
+                SetAnimation(m_eMotion, 10);
+            }
+            m_fWantAngle = m_fCurrAng;
+        }
+    }    
 }
 
 void TMHuman::DelayDelete()

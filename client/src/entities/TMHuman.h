@@ -81,6 +81,7 @@ public:
     int Render() final;
     int FrameMove(unsigned int dwServerTime) final;
     void FrameMove_EarthQuakeEnd(unsigned int& dwServerTime, TMScene*& pScene);
+    void FrameMove_TurnAngle(float& fDAngle);
     void InitPosition(float fX, float fY, float fZ) final;
     void InitAngle(float fYaw, float fPitch, float fRoll) final;
     void SetAngle(float fYaw, float fPitch, float fRoll) final;
