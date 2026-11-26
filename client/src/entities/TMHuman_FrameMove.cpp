@@ -343,52 +343,7 @@ int TMHuman::FrameMove(unsigned int dwServerTime)
 
     FrameMove_Dust(dwServerTime, pScene, nWalkSndIndex);
     FrameMove_Footsteps(dwServerTime, nWalkSndIndex);
-    if (m_nSkinMeshType == 20 && (m_stLookInfo.HelmMesh == 2 || m_stLookInfo.HelmMesh == 4 && m_stLookInfo.HelmSkin == 1))
-    {
-        unsigned int dwTime = 1000;
-        int nParts = 2;
-        unsigned int dwColor = 0xFFFF0000;
-
-        if (m_stLookInfo.HelmMesh == 2 && m_fScale < 0.60000002f)
-        {
-            dwTime = 1200;
-            nParts = 6;
-        }
-        else if (m_stLookInfo.HelmMesh == 4)
-        {
-            nParts = 4;
-            dwColor = 0x0FFFF9900;
-            if (m_fScale < 0.60000002f)
-            {
-                dwTime = 800;
-                nParts = 6;
-            }
-        }
-        if (dwServerTime - m_dwLastDFire > dwTime)
-        {
-            for (int m = 1; m < 10 - nParts; ++m)
-            {
-                TMEffectBillBoard* pFire = new TMEffectBillBoard(44,
-                    2000,
-                    m_fScale * 4.0f,
-                    m_fScale * 4.0f,
-                    m_fScale * 4.0f,
-                    0.00050000002f,
-                    1,
-                    80);
-
-                if (pFire)
-                {
-                    pFire->SetColor(dwColor);
-                    pFire->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                    pFire->m_nFade = 1;
-                    pFire->m_vecPosition = m_vecTempPos[m];
-                    g_pCurrentScene->m_pEffectContainer->AddChild(pFire);
-                }
-            }
-            m_dwLastDFire = dwServerTime;
-        }
-    }
+    FrameMove_SkinMesh20Effect(dwServerTime);
     if (m_pSkinMesh)
     {
         if (!m_bVisible && m_bDoubleAttack == 1)
@@ -1050,6 +1005,58 @@ void TMHuman::FrameMove_Footsteps(unsigned int& dwServerTime, int& nWalkSndIndex
                     m_dwFootMastTime = dwServerTime;
                 }
             }
+        }
+    }
+}
+
+/// Tipo de malha 20 com certos elmos: efeito colorido periódico.
+/// @note Extraído de `TMHuman::FrameMove` (Fase 3); locais passadas por referência.
+void TMHuman::FrameMove_SkinMesh20Effect(unsigned int& dwServerTime)
+{
+    if (m_nSkinMeshType == 20 && (m_stLookInfo.HelmMesh == 2 || m_stLookInfo.HelmMesh == 4 && m_stLookInfo.HelmSkin == 1))
+    {
+        unsigned int dwTime = 1000;
+        int nParts = 2;
+        unsigned int dwColor = 0xFFFF0000;
+
+        if (m_stLookInfo.HelmMesh == 2 && m_fScale < 0.60000002f)
+        {
+            dwTime = 1200;
+            nParts = 6;
+        }
+        else if (m_stLookInfo.HelmMesh == 4)
+        {
+            nParts = 4;
+            dwColor = 0x0FFFF9900;
+            if (m_fScale < 0.60000002f)
+            {
+                dwTime = 800;
+                nParts = 6;
+            }
+        }
+        if (dwServerTime - m_dwLastDFire > dwTime)
+        {
+            for (int m = 1; m < 10 - nParts; ++m)
+            {
+                TMEffectBillBoard* pFire = new TMEffectBillBoard(44,
+                    2000,
+                    m_fScale * 4.0f,
+                    m_fScale * 4.0f,
+                    m_fScale * 4.0f,
+                    0.00050000002f,
+                    1,
+                    80);
+
+                if (pFire)
+                {
+                    pFire->SetColor(dwColor);
+                    pFire->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                    pFire->m_nFade = 1;
+                    pFire->m_vecPosition = m_vecTempPos[m];
+                    g_pCurrentScene->m_pEffectContainer->AddChild(pFire);
+                }
+            }
+            m_dwLastDFire = dwServerTime;
         }
     }
 }
