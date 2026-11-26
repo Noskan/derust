@@ -394,6 +394,7 @@ private:
 	void PacketAttack_AreaShowHealText(MSG_Attack*& pAttack, TMHuman*& pAttacker, unsigned int& dwDelay, int& i, TMHuman*& pTargetHuman, int& nStartX, int& nStartY);
 	void PacketAttack_AreaApplyHealHp(MSG_Attack*& pAttack, int& i, TMHuman*& pTargetHuman, int& nDamageRate);
 	bool PacketAttack_AreaShowDamage(MSG_Attack*& pAttack, TMHuman*& pAttacker, unsigned int& dwDelay, int& i, TMHuman*& pTargetHuman, int& bInScreen, int& nTX, int& nTY, int& nReturnValue);
+	bool PacketAttack_AreaSkillEffects(MSG_Attack*& pAttack, TMHuman*& pAttacker, bool& bomb, TMVector3& vecStart, TMVector3& vecTarget, int& nReturnValue);
 	/// @}
 
 	/// @name Etapas com retorno antecipado extraídas de OnControlEvent (Fase 3)
