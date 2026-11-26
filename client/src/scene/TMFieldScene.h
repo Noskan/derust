@@ -295,6 +295,7 @@ private:
 	int OnControl_PlayerMenu639(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_AddSpecial1(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_AddSpecial2(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
+	int OnControl_AddSpecial3(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	/// @}
 
 public:
