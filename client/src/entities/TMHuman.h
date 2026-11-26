@@ -64,6 +64,7 @@ public:
     ~TMHuman();
 
     int InitObject() final;
+    void InitObject_CostumeLook(int& nCos);
     int Render() final;
     int FrameMove(unsigned int dwServerTime) final;
     void InitPosition(float fX, float fY, float fZ) final;

@@ -438,86 +438,7 @@ int TMHuman::InitObject()
     }
 
     int nCos = 0;
-    if (m_sCostume >= 4150 && m_sCostume < 4200 || m_sCostume >= 6301 && m_sCostume <= 6400 && m_nClass != 29)
-    {
-        m_stLookInfo.CoatMesh = g_pItemList[m_sCostume].nIndexMesh;
-        m_stLookInfo.PantsMesh = m_stLookInfo.CoatMesh;
-        m_stLookInfo.GlovesMesh = m_stLookInfo.PantsMesh;
-        m_stLookInfo.BootsMesh = m_stLookInfo.GlovesMesh;
-        m_stLookInfo.CoatSkin = g_pItemList[m_sCostume].nIndexTexture;
-        m_stLookInfo.PantsSkin = m_stLookInfo.CoatSkin;
-        m_stLookInfo.GlovesSkin = m_stLookInfo.PantsSkin;
-        m_stLookInfo.BootsSkin = m_stLookInfo.GlovesSkin;
-        nCos = SetHumanCostume();
-    }
-    else if ((m_sHelmIndex == 3503 || m_sHelmIndex == 3504 || m_sHelmIndex == 3505 || m_sHelmIndex == 3506) && !nCos)
-    {
-        nCos = 100;
-        m_stLookInfo.HelmMesh = 0;
-        m_stLookInfo.HelmSkin = 0;
-        m_stLookInfo.CoatSkin = 0;
-        m_stLookInfo.PantsSkin = 0;
-        m_stLookInfo.GlovesSkin = 0;
-        m_stLookInfo.BootsSkin = 0;
-        if (m_sHeadIndex == 6 || m_sHeadIndex == 7 || m_sHeadIndex == 8 || m_sHeadIndex == 9)
-        {
-            m_stLookInfo.CoatMesh = 95;
-            m_stLookInfo.PantsMesh = 95;
-            m_stLookInfo.GlovesMesh = 95;
-            m_stLookInfo.BootsMesh = 95;
-        }
-        if (m_sHeadIndex == 16 || m_sHeadIndex == 17 || m_sHeadIndex == 18 || m_sHeadIndex == 19)
-        {
-            m_stLookInfo.CoatMesh = 97;
-            m_stLookInfo.PantsMesh = 97;
-            m_stLookInfo.GlovesMesh = 97;
-            m_stLookInfo.BootsMesh = 97;
-        }
-        if (m_sHeadIndex == 26 || m_sHeadIndex == 27 || m_sHeadIndex == 28 || m_sHeadIndex == 29)
-        {
-            m_stLookInfo.CoatMesh = 76;
-            m_stLookInfo.PantsMesh = 76;
-            m_stLookInfo.GlovesMesh = 76;
-            m_stLookInfo.BootsMesh = 76;
-        }
-        if (m_sHeadIndex == 36 || m_sHeadIndex == 37 || m_sHeadIndex == 38 || m_sHeadIndex == 39)
-        {
-            m_stLookInfo.CoatMesh = 78;
-            m_stLookInfo.PantsMesh = 78;
-            m_stLookInfo.GlovesMesh = 78;
-            m_stLookInfo.BootsMesh = 78;
-        }
-        if (m_sHeadIndex == 22 || m_sHeadIndex == 23 || m_sHeadIndex == 24 || m_sHeadIndex == 25 || m_nClass == 63)
-        {
-            m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
-            m_stLookInfo.CoatMesh = m_stLookInfo.HelmMesh;
-            m_stLookInfo.PantsMesh = m_stLookInfo.CoatMesh;
-            m_stLookInfo.GlovesMesh = m_stLookInfo.PantsMesh;
-            m_stLookInfo.BootsMesh = m_stLookInfo.GlovesMesh;
-            m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
-            m_stLookInfo.CoatSkin = m_stLookInfo.HelmSkin;
-            m_stLookInfo.PantsSkin = m_stLookInfo.CoatSkin;
-            m_stLookInfo.GlovesSkin = m_stLookInfo.PantsSkin;
-            m_stLookInfo.BootsSkin = m_stLookInfo.GlovesSkin;
-            m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
-            m_stSancInfo.Sanc2 = m_stSancInfo.Sanc1;
-            m_stSancInfo.Sanc3 = m_stSancInfo.Sanc2;
-            m_stSancInfo.Sanc4 = m_stSancInfo.Sanc3;
-            m_stSancInfo.Sanc5 = m_stSancInfo.Sanc4;
-            m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
-            m_stSancInfo.Legend2 = m_stSancInfo.Legend1;
-            m_stSancInfo.Legend3 = m_stSancInfo.Legend2;
-            m_stSancInfo.Legend4 = m_stSancInfo.Legend3;
-            m_stSancInfo.Legend5 = m_stSancInfo.Legend4;
-            m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
-            m_stColorInfo.Sanc2 = m_stColorInfo.Sanc1;
-            m_stColorInfo.Sanc3 = m_stColorInfo.Sanc2;
-            m_stColorInfo.Sanc4 = m_stColorInfo.Sanc3;
-            m_stColorInfo.Sanc5 = m_stColorInfo.Sanc4;
-        }
-        else
-            memset(&m_stSancInfo, 0, sizeof(m_stSancInfo));
-    }
+    InitObject_CostumeLook(nCos);
 
     SAFE_DELETE(m_pSkinMesh);
 
@@ -1435,6 +1356,92 @@ int TMHuman::InitObject()
         g_pCurrentScene->m_pEffectContainer->AddChild(m_pEleStream2);
 
     return 1;
+}
+
+/// Traje (`m_sCostume` 4150..4199 e 6301..6400): todas as partes usam a malha e a textura do traje.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_CostumeLook(int& nCos)
+{
+    if (m_sCostume >= 4150 && m_sCostume < 4200 || m_sCostume >= 6301 && m_sCostume <= 6400 && m_nClass != 29)
+    {
+        m_stLookInfo.CoatMesh = g_pItemList[m_sCostume].nIndexMesh;
+        m_stLookInfo.PantsMesh = m_stLookInfo.CoatMesh;
+        m_stLookInfo.GlovesMesh = m_stLookInfo.PantsMesh;
+        m_stLookInfo.BootsMesh = m_stLookInfo.GlovesMesh;
+        m_stLookInfo.CoatSkin = g_pItemList[m_sCostume].nIndexTexture;
+        m_stLookInfo.PantsSkin = m_stLookInfo.CoatSkin;
+        m_stLookInfo.GlovesSkin = m_stLookInfo.PantsSkin;
+        m_stLookInfo.BootsSkin = m_stLookInfo.GlovesSkin;
+        nCos = SetHumanCostume();
+    }
+    else if ((m_sHelmIndex == 3503 || m_sHelmIndex == 3504 || m_sHelmIndex == 3505 || m_sHelmIndex == 3506) && !nCos)
+    {
+        nCos = 100;
+        m_stLookInfo.HelmMesh = 0;
+        m_stLookInfo.HelmSkin = 0;
+        m_stLookInfo.CoatSkin = 0;
+        m_stLookInfo.PantsSkin = 0;
+        m_stLookInfo.GlovesSkin = 0;
+        m_stLookInfo.BootsSkin = 0;
+        if (m_sHeadIndex == 6 || m_sHeadIndex == 7 || m_sHeadIndex == 8 || m_sHeadIndex == 9)
+        {
+            m_stLookInfo.CoatMesh = 95;
+            m_stLookInfo.PantsMesh = 95;
+            m_stLookInfo.GlovesMesh = 95;
+            m_stLookInfo.BootsMesh = 95;
+        }
+        if (m_sHeadIndex == 16 || m_sHeadIndex == 17 || m_sHeadIndex == 18 || m_sHeadIndex == 19)
+        {
+            m_stLookInfo.CoatMesh = 97;
+            m_stLookInfo.PantsMesh = 97;
+            m_stLookInfo.GlovesMesh = 97;
+            m_stLookInfo.BootsMesh = 97;
+        }
+        if (m_sHeadIndex == 26 || m_sHeadIndex == 27 || m_sHeadIndex == 28 || m_sHeadIndex == 29)
+        {
+            m_stLookInfo.CoatMesh = 76;
+            m_stLookInfo.PantsMesh = 76;
+            m_stLookInfo.GlovesMesh = 76;
+            m_stLookInfo.BootsMesh = 76;
+        }
+        if (m_sHeadIndex == 36 || m_sHeadIndex == 37 || m_sHeadIndex == 38 || m_sHeadIndex == 39)
+        {
+            m_stLookInfo.CoatMesh = 78;
+            m_stLookInfo.PantsMesh = 78;
+            m_stLookInfo.GlovesMesh = 78;
+            m_stLookInfo.BootsMesh = 78;
+        }
+        if (m_sHeadIndex == 22 || m_sHeadIndex == 23 || m_sHeadIndex == 24 || m_sHeadIndex == 25 || m_nClass == 63)
+        {
+            m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
+            m_stLookInfo.CoatMesh = m_stLookInfo.HelmMesh;
+            m_stLookInfo.PantsMesh = m_stLookInfo.CoatMesh;
+            m_stLookInfo.GlovesMesh = m_stLookInfo.PantsMesh;
+            m_stLookInfo.BootsMesh = m_stLookInfo.GlovesMesh;
+            m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
+            m_stLookInfo.CoatSkin = m_stLookInfo.HelmSkin;
+            m_stLookInfo.PantsSkin = m_stLookInfo.CoatSkin;
+            m_stLookInfo.GlovesSkin = m_stLookInfo.PantsSkin;
+            m_stLookInfo.BootsSkin = m_stLookInfo.GlovesSkin;
+            m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
+            m_stSancInfo.Sanc2 = m_stSancInfo.Sanc1;
+            m_stSancInfo.Sanc3 = m_stSancInfo.Sanc2;
+            m_stSancInfo.Sanc4 = m_stSancInfo.Sanc3;
+            m_stSancInfo.Sanc5 = m_stSancInfo.Sanc4;
+            m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
+            m_stSancInfo.Legend2 = m_stSancInfo.Legend1;
+            m_stSancInfo.Legend3 = m_stSancInfo.Legend2;
+            m_stSancInfo.Legend4 = m_stSancInfo.Legend3;
+            m_stSancInfo.Legend5 = m_stSancInfo.Legend4;
+            m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
+            m_stColorInfo.Sanc2 = m_stColorInfo.Sanc1;
+            m_stColorInfo.Sanc3 = m_stColorInfo.Sanc2;
+            m_stColorInfo.Sanc4 = m_stColorInfo.Sanc3;
+            m_stColorInfo.Sanc5 = m_stColorInfo.Sanc4;
+        }
+        else
+            memset(&m_stSancInfo, 0, sizeof(m_stSancInfo));
+    }
 }
 
 void TMHuman::InitPosition(float fX, float fY, float fZ)
