@@ -206,50 +206,10 @@ int TMFieldScene::AutoSkillUse(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwS
 		return 0;
 	}
 
-	if (!TMFieldScene::m_bPK)
 	{
-		if (pOver->m_usGuild)
-		{
-			if (g_pObjectManager->m_usWarGuild != pOver->m_usGuild && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
-			{
-				if (pOver->m_dwID > 0 && pOver->m_dwID < 1000 && pOver->IsInPKZone() == 1)
-				{
-					if (!g_bCastleWar)
-						return 0;
-					if (m_pMyHuman->m_cMantua > 0 && m_pMyHuman->m_cMantua == pOver->m_cMantua)
-						return 0;
-				}
-			}
-		}
-		if (pOver->m_cSummons == 1)
-		{
-			if (g_pObjectManager->m_usWarGuild != pOver->m_usGuild && pOver->m_usGuild)
-			{
-				if (!g_bCastleWar)
-					return 0;
-				if (m_pMyHuman->m_cMantua > 0
-					&& m_pMyHuman->m_cMantua == pOver->m_cMantua
-					&& !pOver->IsInCastleZone())
-				{
-					return 0;
-				}
-			}
-			if (!pOver->m_usGuild)
-			{
-				if (!g_bCastleWar)
-					return 0;
-				if (m_pMyHuman->m_cMantua > 0 && m_pMyHuman->m_cMantua == pOver->m_cMantua)
-					return 0;
-			}
-		}
-		if (g_bCastleWar > 0 && m_pMyHuman->m_cMantua == 3)
-		{
-			if ((pOver->m_dwID > 0 && pOver->m_dwID < 1000 || pOver->m_cMantua > 0 && pOver->m_cMantua != 4)
-				&& g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
-			{
-				return 0;
-			}
-		}
+		int nReturnValue = 0;
+		if (AutoSkillUse_PKCheck(pOver, cSkillIndex, nReturnValue))
+			return nReturnValue;
 	}
 
 	if (!g_pSpell[(unsigned char)cSkillIndex].Aggressive)
@@ -1083,6 +1043,59 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 	}
 	if (cSkillIndex != 85)
 		{ nReturnValue = 0; return true; }
+}
+	return false;
+}
+
+/// Validações de PK/guerra de guilda antes da skill automática em jogador.
+/// @note Extraído de `TMFieldScene::AutoSkillUse` (Fase 3); locais da função passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::AutoSkillUse_PKCheck(TMHuman*& pOver, char& cSkillIndex, int& nReturnValue)
+{
+if (!TMFieldScene::m_bPK)
+{
+	if (pOver->m_usGuild)
+	{
+		if (g_pObjectManager->m_usWarGuild != pOver->m_usGuild && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
+		{
+			if (pOver->m_dwID > 0 && pOver->m_dwID < 1000 && pOver->IsInPKZone() == 1)
+			{
+				if (!g_bCastleWar)
+					{ nReturnValue = 0; return true; }
+				if (m_pMyHuman->m_cMantua > 0 && m_pMyHuman->m_cMantua == pOver->m_cMantua)
+					{ nReturnValue = 0; return true; }
+			}
+		}
+	}
+	if (pOver->m_cSummons == 1)
+	{
+		if (g_pObjectManager->m_usWarGuild != pOver->m_usGuild && pOver->m_usGuild)
+		{
+			if (!g_bCastleWar)
+				{ nReturnValue = 0; return true; }
+			if (m_pMyHuman->m_cMantua > 0
+				&& m_pMyHuman->m_cMantua == pOver->m_cMantua
+				&& !pOver->IsInCastleZone())
+			{
+				{ nReturnValue = 0; return true; }
+			}
+		}
+		if (!pOver->m_usGuild)
+		{
+			if (!g_bCastleWar)
+				{ nReturnValue = 0; return true; }
+			if (m_pMyHuman->m_cMantua > 0 && m_pMyHuman->m_cMantua == pOver->m_cMantua)
+				{ nReturnValue = 0; return true; }
+		}
+	}
+	if (g_bCastleWar > 0 && m_pMyHuman->m_cMantua == 3)
+	{
+		if ((pOver->m_dwID > 0 && pOver->m_dwID < 1000 || pOver->m_cMantua > 0 && pOver->m_cMantua != 4)
+			&& g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
+		{
+			{ nReturnValue = 0; return true; }
+		}
+	}
 }
 	return false;
 }

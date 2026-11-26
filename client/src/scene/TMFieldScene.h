@@ -354,6 +354,7 @@ private:
 	/// @name Etapas com retorno antecipado extraídas de AutoSkillUse (Fase 3)
 	/// @{
 	bool AutoSkillUse_CastSelfOrArea(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& TarType, int& nReturnValue);
+	bool AutoSkillUse_PKCheck(TMHuman*& pOver, char& cSkillIndex, int& nReturnValue);
 	/// @}
 
 	/// @name Etapas com retorno antecipado extraídas de SkillUse (Fase 3)
