@@ -11,6 +11,16 @@ on:
   workflow_dispatch:
 
 jobs:
+  check-boundaries:
+    name: Module Boundary Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check module include boundaries
+        run: python3 tools/check_boundaries.py
+
   build-windows:
     name: MSVC Win32 (${{ matrix.config }})
     runs-on: windows-latest

@@ -39,6 +39,7 @@ set(TMPROJECT_SOURCES
   src/audio/dsutil.cpp
   src/audio/TMVideoWnd.cpp
   src/common/Basedef.cpp
+  src/common/ProtocolLayoutCheck.cpp
   src/core/EventTranslator.cpp
   src/core/NewApp.cpp
   src/core/TMGlobal.cpp
