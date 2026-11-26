@@ -187,27 +187,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == B_CCMODE_SYSTEM)
-	{
-		if (m_pccmode->IsVisible())
-		{
-			m_pccmode->SetVisible(0);
-		}
-		else
-		{
-			m_pccmode->SetVisible(1);
-
-			char szText[128]{};
-
-			sprintf_s(szText, g_pMessageStringTable[476], g_GameAuto_hpValue, g_GameAuto_mountValue);
-
-			auto pChatItem = new SListBoxItem(szText, 0xFFFFAAAA, 0.0f, 0.0f, 300.0f, 16.0f, 0, 0x77777777u, 1u, 0);
-
-			if (pChatItem)
-				m_pChatList->AddItem(pChatItem);
-		}
-
-		return 0;
-	}
+		return OnControl_CCModeSystem(idwControlID, idwEvent);
 	if (idwControlID == B_CCMODE_DLG_MOUNT)
 	{
 		g_GameAuto_mountValue += 10;

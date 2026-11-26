@@ -2239,3 +2239,28 @@ int TMFieldScene::OnControl_CharPanel(unsigned int idwControlID, unsigned int id
 
 	return 1;
 }
+
+/// Sistema do modo CC (`B_CCMODE_SYSTEM`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CCModeSystem(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pccmode->IsVisible())
+	{
+		m_pccmode->SetVisible(0);
+	}
+	else
+	{
+		m_pccmode->SetVisible(1);
+
+		char szText[128]{};
+
+		sprintf_s(szText, g_pMessageStringTable[476], g_GameAuto_hpValue, g_GameAuto_mountValue);
+
+		auto pChatItem = new SListBoxItem(szText, 0xFFFFAAAA, 0.0f, 0.0f, 300.0f, 16.0f, 0, 0x77777777u, 1u, 0);
+
+		if (pChatItem)
+			m_pChatList->AddItem(pChatItem);
+	}
+
+	return 0;
+}
