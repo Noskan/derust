@@ -2319,3 +2319,33 @@ int TMFieldScene::OnControl_CCModeHP(unsigned int idwControlID, unsigned int idw
 	m_pCCModeHpSte->SetText(szText, 0);
 	return 0;
 }
+
+/// Diálogo do modo CC: modo (`B_CCMODE_DLG_MODE`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CCModeMode(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (++g_GameAuto > 3)
+		g_GameAuto = 0;
+
+	switch (g_GameAuto)
+	{
+	case 0:
+		m_pMGameAutoBtn->SetTextureSetIndex(458);
+		m_pMGameAutoBtn->m_pAltText->SetText(g_UIString[229], 0);
+		break;
+	case 1:
+		m_pMGameAutoBtn->SetTextureSetIndex(455);
+		m_pMGameAutoBtn->m_pAltText->SetText(g_UIString[226], 0);
+		break;
+	case 2:
+		m_pMGameAutoBtn->SetTextureSetIndex(456);
+		m_pMGameAutoBtn->m_pAltText->SetText(g_UIString[227], 0);
+		break;
+	case 3:
+		m_pMGameAutoBtn->SetTextureSetIndex(459);
+		m_pMGameAutoBtn->m_pAltText->SetText(g_UIString[230], 0);
+		break;
+	}
+
+	return 0;
+}

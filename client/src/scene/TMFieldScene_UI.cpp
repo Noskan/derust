@@ -193,32 +193,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == B_CCMODE_DLG_HP)
 		return OnControl_CCModeHP(idwControlID, idwEvent);
 	if (idwControlID == B_CCMODE_DLG_MODE)
-	{
-		if (++g_GameAuto > 3)
-			g_GameAuto = 0;
-
-		switch (g_GameAuto)
-		{
-		case 0:
-			m_pMGameAutoBtn->SetTextureSetIndex(458);
-			m_pMGameAutoBtn->m_pAltText->SetText(g_UIString[229], 0);
-			break;
-		case 1:
-			m_pMGameAutoBtn->SetTextureSetIndex(455);
-			m_pMGameAutoBtn->m_pAltText->SetText(g_UIString[226], 0);
-			break;
-		case 2:
-			m_pMGameAutoBtn->SetTextureSetIndex(456);
-			m_pMGameAutoBtn->m_pAltText->SetText(g_UIString[227], 0);
-			break;
-		case 3:
-			m_pMGameAutoBtn->SetTextureSetIndex(459);
-			m_pMGameAutoBtn->m_pAltText->SetText(g_UIString[230], 0);
-			break;
-		}
-
-		return 0;
-	}
+		return OnControl_CCModeMode(idwControlID, idwEvent);
 	if (idwControlID == B_CHATLIST_SIZEUP)
 	{
 		OnKeyPlus(43, 0);
