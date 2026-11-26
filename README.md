@@ -40,12 +40,19 @@ Para verificar localmente as fronteiras de `#include`:
 python3 tools/check_boundaries.py
 ```
 
-Checagem cruzada com mingw-w64 i686 no Linux (compila todas as TUs, linka o DBSrv e roda `w2pp_common_tests` no wine; as TUs que ainda só compilam no MSVC ficam em [`tools/mingw_known_failures.txt`](tools/mingw_known_failures.txt)):
+Checagem cruzada com mingw-w64 i686 no Linux. Ela compila todas as TUs (`-O2`, ponto flutuante SSE2 como o MSVC), linka o DBSrv, roda os testes de `tests/` no wine e compara os avisos do GCC acompanhados com a linha de base da versão do compilador (`tools/mingw_warning_baseline-gcc<N>.txt`). As TUs que ainda só compilam no MSVC ficam em [`tools/mingw_known_failures.txt`](tools/mingw_known_failures.txt).
 
 ```bash
 sudo apt install g++-mingw-w64-i686 wine   # wine32 para executar os testes
 python3 tools/mingw_check.py
+python3 tools/mingw_check.py --update-warning-baseline   # após remover ou justificar avisos
 ```
+
+Testes (CTest no MSVC; no wine pelo `mingw_check`):
+- [`w2pp_common_tests`](tests/w2pp_common_tests.cpp): casos unitários e travas de ABI.
+- [`w2pp_characterization_tests`](tests/w2pp_characterization_tests.cpp): hashes de referência de ~40 funções `BASE_*` com dados sintéticos, sem arquivos do jogo. Os hashes foram gerados com o código da tag `pre-modularization` e conferem com o atual. Após uma mudança **intencional** de regra, regrave com `w2pp_characterization_tests --print`.
+
+Bugs latentes do código legado encontrados por essas ferramentas, mantidos por paridade: [`docs/BUGS_LATENTES.md`](docs/BUGS_LATENTES.md).
 
 ## Status da Modularização
 
@@ -54,7 +61,7 @@ python3 tools/mingw_check.py
 - **Fase 2 — Onda 2 (concluída)**: Fatiamento de `_MSG_UseItem.cpp` (5 sub-handlers), `_MSG_Quest.cpp` (3 sub-handlers), `MobKilled.cpp` (Exp/Drops/PvP), `CFileDB.cpp` (pacotes de conta e mundo), `SGrid.cpp` (4 TUs) e `TMGround.cpp` (3 TUs), além da suíte CTest [`w2pp_common_tests`](tests/w2pp_common_tests.cpp) integrada ao CI.
 - **Fase 2 — Onda 3 (concluída)**: Fatiamento de `dbsrv/core/Server.cpp` (Admin/Config/Logs), `ProcessSecMinTimer.cpp` (`ScheduledEventSystem` e `MobAISystem` em `tmsrv/systems/`), `RenderDevice.cpp` (Shaders/Rect/Geom), `client/src/common/Basedef.cpp` (`BaseItem`/`BaseCombat`/`BaseWorld`), `SControl.cpp` (Text/Buttons/List) e `TMScene.cpp` (Resources/Packets/Ground).
 - **Fase 2 — Onda 4 (concluída)**: Segunda passada isolando funções gigantes em TUs próprias: `tmsrv/core/Server.cpp` (Window/Config/Logs), `server/common/BaseLoaders.cpp`, `TMFieldScene_*` (Panels/HUD/MsgBox/PacketAttack/PacketItems/Init/FrameMove/AutoSkill/Items) e `TMHuman_*` (FrameMove/Render).
-- **Fase 3 (em andamento)**: Job de CI `mingw-check` (cross-compile mingw + testes no wine) e remoção das construções exclusivas do MSVC concluídos; decomposição das funções gigantes: 71 handlers de `OnControlEvent` em `TMFieldScene_Controls.cpp`, etapas nomeadas em `FrameMove`, `SkillUse`, `AutoSkillUse` e `OnPacketAttack` (inclusive blocos com retorno antecipado, via `bool Etapa(..., int& nReturnValue)`). Ver [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+- **Fase 3 (em andamento)**: Job de CI `mingw-check` (cross-compile mingw + testes no wine) e remoção das construções exclusivas do MSVC concluídos; decomposição das funções gigantes: 71 handlers de `OnControlEvent` em `TMFieldScene_Controls.cpp`, etapas nomeadas em `FrameMove`, `SkillUse`, `AutoSkillUse` e `OnPacketAttack` (inclusive blocos com retorno antecipado, via `bool Etapa(..., int& nReturnValue)`). Verificação sem rodar o jogo: testes de caracterização de `BASE_*` conferidos contra a `pre-modularization`, checagem de avisos do GCC com linha de base e tag `pre-phase3-decomposition` para `git bisect`. Ver [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Histórico e Licença
 

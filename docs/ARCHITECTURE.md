@@ -216,7 +216,13 @@ Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que p
    - o ponto de chamada vira `{ int nReturnValue = 0; if (Nome(...)) return nReturnValue; }`.
 
    Ficam de fora blocos com `goto`, lambda (cujo `return` não é da função) ou pré-processador. A verificação desfaz a reescrita e reinsere o corpo (texto idêntico), e cruza os parâmetros com todas as declarações de nível 1 anteriores ao bloco. Com isso, `OnPacketAttack`, `SkillUse` e `AutoSkillUse` passam a ler como uma sequência de etapas nomeadas.
-6. **Próximo passo**: as etapas grandes (`PacketAttack_Attacker`, `PacketAttack_ApplyTargets`, `SkillUse_CastSelfOrArea`, `AutoSkillUse_CastSelfOrArea`) continuam longas por dentro. Elas podem ser decompostas com as mesmas três técnicas, descendo um nível (o corpo de `if (pAttacker) { ... }`). Também falta `TMHuman::InitObject`/`FrameMove`.
+6. **Verificação sem rodar o jogo (branch `refactor/phase3-verification`)**. Como o repositório não tem os arquivos do jogo, a rede de segurança ganhou três peças:
+   - **Tag `pre-phase3-decomposition`** (`df54ba9`), o último commit antes da decomposição. Como cada extração está num commit próprio que compila, um `git bisect` entre essa tag e a `main` acha o commit responsável quando o teste no jogo for possível.
+   - **`w2pp_characterization_tests`**: ~40 funções `BASE_*` (habilidades de item, sanc, códigos visuais, `CanEquip`/`CanCarry`/`CanCargo`, pontuações, `GetCurrentScore`, fórmulas de combate, mapa, strings) recebem milhares de entradas de um LCG próprio. As tabelas `g_pItemList`/`g_pSpell` são preenchidas com dados sintéticos. O hash das saídas foi gerado compilando o mesmo teste contra `server/Code/Basedef.cpp` da tag `pre-modularization` e confere com o código atual no mingw (x87 e SSE2, `-O0` a `-O2`) e no MSVC Debug/Release.
+   - **Avisos do GCC com linha de base**: `-Wshadow`, `-W(maybe-)uninitialized`, `-Warray-bounds`, `-Wstringop-overflow`, `-Wsizeof-pointer-memaccess` etc., contados por arquivo. Um aviso novo reprova o job. O conjunto de `-Wshadow` nos arquivos da Fase 3 é idêntico ao da tag `pre-phase3-decomposition`, ou seja, as extrações não introduziram ocultação de nomes.
+
+   Os comportamentos suspeitos encontrados (leituras fora dos limites, grade do baú conferindo a célula errada, `memset` curto) estão em [`BUGS_LATENTES.md`](BUGS_LATENTES.md). Foram mantidos por paridade.
+7. **Próximo passo**: as etapas grandes (`PacketAttack_Attacker`, `PacketAttack_ApplyTargets`, `SkillUse_CastSelfOrArea`, `AutoSkillUse_CastSelfOrArea`) e `TMHuman::InitObject`/`FrameMove` podem ser decompostas com as mesmas técnicas. Ampliar a caracterização para o cliente e linkar o TMSrv no mingw (base para um teste de fumaça no wine) aumentaria a cobertura antes disso.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.
