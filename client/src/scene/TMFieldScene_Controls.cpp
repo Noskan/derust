@@ -1071,3 +1071,52 @@ int TMFieldScene::OnControl_InputOk(unsigned int idwControlID, unsigned int idwE
 
 	return 1;
 }
+
+/// Seleção do canal de chat (`B_CHAT_SELECT_NOMAL..B_CHAT_SELECT_SHOUT`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_ChatSelect(unsigned int idwControlID, unsigned int idwEvent)
+{
+	auto pBtn = static_cast<SButton*>(m_pControlContainer->FindControl(idwControlID));
+
+	switch (idwControlID)
+	{
+	case B_CHAT_SELECT_NOMAL:
+		strcpy(m_cChatType, "");
+		break;
+	case B_CHAT_SELECT_WHISPER:
+		sprintf(m_cChatType, "/%s ", m_cWhisperName);
+		break;
+	case B_CHAT_SELECT_PARTY:
+		strcpy(m_cChatType, "=");
+		break;
+	case B_CHAT_SELECT_GUILD:
+		strcpy(m_cChatType, "-");
+		break;
+	case B_CHAT_SELECT_GUILD2:
+		strcpy(m_cChatType, "--");
+		break;
+	case B_CHAT_SELECT_CITY:
+		strcpy(m_cChatType, "@@");
+		break;
+	case B_CHAT_SELECT_KINGDOM:
+		strcpy(m_cChatType, "@");
+		break;
+	case B_CHAT_SELECT_SHOUT:
+		char src[128]{};
+		sprintf(src, "/%s ", g_pMessageStringTable[389]);
+		strcpy(m_cChatType, src);
+		break;
+	}
+
+	strcpy(m_cChatSelect, pBtn->m_GCPanel.strString);
+
+	auto pChatSelectBtn = static_cast<SButton*>(m_pControlContainer->FindControl(B_CHAT_SELECT));
+
+	pChatSelectBtn->SetText(pBtn->m_GCPanel.strString);
+
+	m_pChatListPanel->SetVisible(0);
+
+	m_pEditChat->SetText(m_cChatType);
+
+	return 0;
+}

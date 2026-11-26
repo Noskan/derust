@@ -388,51 +388,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID >= B_CHAT_SELECT_NOMAL && idwControlID <= B_CHAT_SELECT_SHOUT)
-	{
-		auto pBtn = static_cast<SButton*>(m_pControlContainer->FindControl(idwControlID));
-
-		switch (idwControlID)
-		{
-		case B_CHAT_SELECT_NOMAL:
-			strcpy(m_cChatType, "");
-			break;
-		case B_CHAT_SELECT_WHISPER:
-			sprintf(m_cChatType, "/%s ", m_cWhisperName);
-			break;
-		case B_CHAT_SELECT_PARTY:
-			strcpy(m_cChatType, "=");
-			break;
-		case B_CHAT_SELECT_GUILD:
-			strcpy(m_cChatType, "-");
-			break;
-		case B_CHAT_SELECT_GUILD2:
-			strcpy(m_cChatType, "--");
-			break;
-		case B_CHAT_SELECT_CITY:
-			strcpy(m_cChatType, "@@");
-			break;
-		case B_CHAT_SELECT_KINGDOM:
-			strcpy(m_cChatType, "@");
-			break;
-		case B_CHAT_SELECT_SHOUT:
-			char src[128]{};
-			sprintf(src, "/%s ", g_pMessageStringTable[389]);
-			strcpy(m_cChatType, src);
-			break;
-		}
-
-		strcpy(m_cChatSelect, pBtn->m_GCPanel.strString);
-
-		auto pChatSelectBtn = static_cast<SButton*>(m_pControlContainer->FindControl(B_CHAT_SELECT));
-
-		pChatSelectBtn->SetText(pBtn->m_GCPanel.strString);
-
-		m_pChatListPanel->SetVisible(0);
-
-		m_pEditChat->SetText(m_cChatType);
-
-		return 0;
-	}
+		return OnControl_ChatSelect(idwControlID, idwEvent);
 	if (idwControlID == B_INV_PAGE1)
 	{
 		m_bJPNBag[0] = 1;
