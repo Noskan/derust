@@ -549,58 +549,7 @@ if (pAttacker)
 			TMVector3 vecSpStart = pAttacker->m_vecTempPos[1];
 			TMVector3 vecStart{};
 			TMVector3 vecTarget{};
-			for (int i = 0; i < 13; i++)
-			{
-				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-					break;
-
-				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-					break;
-
-				int rndx = rand() % 18;
-				int rndy = rand() % 18;
-
-				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-				if (pMultiTarget)
-				{
-					TMVector3 vecStart = pAttacker->m_vecTempPos[i % 2 + 1];
-					TMVector3 vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-						pMultiTarget->m_fHeight + 1.0f,
-						pMultiTarget->m_vecPosition.y);
-
-					auto pEffectSpark = new TMEffectSpark(vecStart,
-						pMultiTarget,
-						TMVector3(0.0f, 0.0f, 0.0f),
-						0xFFFF0000,
-						0xFF222299,
-						1000,
-						1.0f,
-						5,
-						0.0);
-
-					pEffectSpark->m_fRange = 0.2f;
-					m_pEffectContainer->AddChild(pEffectSpark);
-				}
-				else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
-				{
-					vecStart = pAttacker->m_vecTempPos[i % 2 + 1];
-
-					auto pEffectSpark = new TMEffectSpark(vecStart,
-						nullptr,
-						TMVector3(((float)rndx + vecTarget.x) - 9.0f,
-							vecTarget.y,
-							(float)((float)rndy + vecTarget.z) - 9.0f),
-						0xFFFF0000,
-						0xFF222299,
-						1000,
-						1.0f,
-						5,
-						0.0);
-
-					pEffectSpark->m_fRange = 0.4f;
-					m_pEffectContainer->AddChild(pEffectSpark);
-				}
-			}
+			PacketAttack_Class56Sparks(pAttack, pAttacker, vecStart, vecTarget);
 		}
 		else if (pAttack->SkillIndex == 113)
 		{
@@ -1445,6 +1394,64 @@ void TMFieldScene::PacketAttack_Skill111FreezeBlades(MSG_Attack*& pAttack, TMVec
 			pFreeze->m_vecNextD = TMVector2(vecD.x, vecD.z);
 
 			m_pEffectContainer->AddChild(pFreeze);
+		}
+	}
+}
+
+/// Atacante da classe 56 sem `FaceMesh`: centelhas (`TMEffectSpark`) em cada alvo.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Class56Sparks(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMVector3& vecStart, TMVector3& vecTarget)
+{
+	for (int i = 0; i < 13; i++)
+	{
+		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+			break;
+
+		if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+			break;
+
+		int rndx = rand() % 18;
+		int rndy = rand() % 18;
+
+		auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+		if (pMultiTarget)
+		{
+			TMVector3 vecStart = pAttacker->m_vecTempPos[i % 2 + 1];
+			TMVector3 vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+				pMultiTarget->m_fHeight + 1.0f,
+				pMultiTarget->m_vecPosition.y);
+
+			auto pEffectSpark = new TMEffectSpark(vecStart,
+				pMultiTarget,
+				TMVector3(0.0f, 0.0f, 0.0f),
+				0xFFFF0000,
+				0xFF222299,
+				1000,
+				1.0f,
+				5,
+				0.0);
+
+			pEffectSpark->m_fRange = 0.2f;
+			m_pEffectContainer->AddChild(pEffectSpark);
+		}
+		else if (vecTarget.x != 0.0f && vecTarget.y != 0.0f && vecTarget.z != 0.0f)
+		{
+			vecStart = pAttacker->m_vecTempPos[i % 2 + 1];
+
+			auto pEffectSpark = new TMEffectSpark(vecStart,
+				nullptr,
+				TMVector3(((float)rndx + vecTarget.x) - 9.0f,
+					vecTarget.y,
+					(float)((float)rndy + vecTarget.z) - 9.0f),
+				0xFFFF0000,
+				0xFF222299,
+				1000,
+				1.0f,
+				5,
+				0.0);
+
+			pEffectSpark->m_fRange = 0.4f;
+			m_pEffectContainer->AddChild(pEffectSpark);
 		}
 	}
 }
