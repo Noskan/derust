@@ -172,61 +172,7 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 
 	auto pCPanel = m_pCPanel;
 
-	if (pCPanel && pCPanel->IsVisible() == 1)
-	{
-		int btPressType = 0;
-		auto pOpSTRButton = (SButton*)m_pControlContainer->FindControl(65716);
-		auto pOpINTButton = (SButton*)m_pControlContainer->FindControl(65719);
-		auto pOpDEXButton = (SButton*)m_pControlContainer->FindControl(65722);
-		auto pOpCONButton = (SButton*)m_pControlContainer->FindControl(65725);
-		if (pOpSTRButton->IsOver() == 1)
-			btPressType = 65716;
-		if (pOpINTButton->IsOver() == 1)
-			btPressType = 65719;
-		if (pOpDEXButton->IsOver() == 1)
-			btPressType = 65722;
-		if (pOpCONButton->IsOver() == 1)
-			btPressType = 65725;
-
-		auto pOpSP1Button = (SButton*)m_pControlContainer->FindControl(65754);
-		auto pOpSP2Button = (SButton*)m_pControlContainer->FindControl(65757);
-		auto pOpSP3Button = (SButton*)m_pControlContainer->FindControl(65760);
-		auto pOpSP4Button = (SButton*)m_pControlContainer->FindControl(65763);
-		if (pOpSP1Button->IsOver() == 1)
-			btPressType = 65754;
-		if (pOpSP2Button->IsOver() == 1)
-			btPressType = 65757;
-		if (pOpSP3Button->IsOver() == 1)
-			btPressType = 65760;
-		if (pOpSP4Button->IsOver() == 1)
-			btPressType = 65763;
-
-		if (!btPressType || !g_pEventTranslator->button[0])
-		{
-			m_bClbutton = 0;
-			m_dwLastClbuttonTime = 0;
-		}
-		else if (m_bClbutton)
-		{
-			if (m_dwLastClbuttonTime + 100 < dwServerTime)
-			{
-				OnControlEvent(btPressType, 0);
-				m_dwLastClbuttonTime = dwServerTime;
-			}
-		}
-		else if (m_dwLastClbuttonTime)
-		{
-			if (m_dwLastClbuttonTime + 1500 < dwServerTime)
-			{
-				m_dwLastClbuttonTime = dwServerTime;
-				m_bClbutton = 1;
-			}
-		}
-		else
-		{
-			m_dwLastClbuttonTime = dwServerTime;
-		}
-	}
+	FrameMove_CPanel(dwServerTime, pCPanel);
 
 	if (dwServerTime - TMHouse::m_dwVisibleWaterFall > 1000)
 	{
@@ -1572,6 +1518,67 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 	}
 
 	return 1;
+}
+
+/// Atualiza o painel `m_pCPanel` quando visível.
+/// @note Extraído de `TMFieldScene::FrameMove` (Fase 3); locais da função passadas por referência.
+void TMFieldScene::FrameMove_CPanel(unsigned int& dwServerTime, SPanel*& pCPanel)
+{
+if (pCPanel && pCPanel->IsVisible() == 1)
+{
+	int btPressType = 0;
+	auto pOpSTRButton = (SButton*)m_pControlContainer->FindControl(65716);
+	auto pOpINTButton = (SButton*)m_pControlContainer->FindControl(65719);
+	auto pOpDEXButton = (SButton*)m_pControlContainer->FindControl(65722);
+	auto pOpCONButton = (SButton*)m_pControlContainer->FindControl(65725);
+	if (pOpSTRButton->IsOver() == 1)
+		btPressType = 65716;
+	if (pOpINTButton->IsOver() == 1)
+		btPressType = 65719;
+	if (pOpDEXButton->IsOver() == 1)
+		btPressType = 65722;
+	if (pOpCONButton->IsOver() == 1)
+		btPressType = 65725;
+
+	auto pOpSP1Button = (SButton*)m_pControlContainer->FindControl(65754);
+	auto pOpSP2Button = (SButton*)m_pControlContainer->FindControl(65757);
+	auto pOpSP3Button = (SButton*)m_pControlContainer->FindControl(65760);
+	auto pOpSP4Button = (SButton*)m_pControlContainer->FindControl(65763);
+	if (pOpSP1Button->IsOver() == 1)
+		btPressType = 65754;
+	if (pOpSP2Button->IsOver() == 1)
+		btPressType = 65757;
+	if (pOpSP3Button->IsOver() == 1)
+		btPressType = 65760;
+	if (pOpSP4Button->IsOver() == 1)
+		btPressType = 65763;
+
+	if (!btPressType || !g_pEventTranslator->button[0])
+	{
+		m_bClbutton = 0;
+		m_dwLastClbuttonTime = 0;
+	}
+	else if (m_bClbutton)
+	{
+		if (m_dwLastClbuttonTime + 100 < dwServerTime)
+		{
+			OnControlEvent(btPressType, 0);
+			m_dwLastClbuttonTime = dwServerTime;
+		}
+	}
+	else if (m_dwLastClbuttonTime)
+	{
+		if (m_dwLastClbuttonTime + 1500 < dwServerTime)
+		{
+			m_dwLastClbuttonTime = dwServerTime;
+			m_bClbutton = 1;
+		}
+	}
+	else
+	{
+		m_dwLastClbuttonTime = dwServerTime;
+	}
+}
 }
 
 void TMFieldScene::PGTVisible(unsigned int dwServerTime)
