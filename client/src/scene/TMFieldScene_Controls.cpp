@@ -2604,3 +2604,18 @@ int TMFieldScene::OnControl_HelpButton1(unsigned int idwControlID, unsigned int 
 		m_pHelpList[3]->SetVisible(0);
 	return 1;
 }
+
+/// Botão 2 da ajuda (`TMB_HELP_BUTTON2`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_HelpButton2(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pHelpInterface)
+		m_pHelpInterface->SetVisible(0);
+	if (m_pHelpList[1])
+		m_pHelpList[1]->SetVisible(1);
+	if (m_pHelpList[2])
+		m_pHelpList[2]->SetVisible(0);
+	if (m_pHelpList[3])
+		m_pHelpList[3]->SetVisible(0);
+	return 1;
+}
