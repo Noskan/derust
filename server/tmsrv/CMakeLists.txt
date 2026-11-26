@@ -66,6 +66,12 @@ set(TMSRV_SOURCES
   handlers/items/_MSG_SplitItem.cpp
   handlers/items/_MSG_UpdateItem.cpp
   handlers/items/_MSG_UseItem.cpp
+  handlers/items/UseItemInternal.h
+  handlers/items/UseItem_Extractions.cpp
+  handlers/items/UseItem_Mithril.cpp
+  handlers/items/UseItem_Quests.cpp
+  handlers/items/UseItem_Refine.cpp
+  handlers/items/UseItem_Scrolls.cpp
   handlers/items/_MSG_Withdraw.cpp
   handlers/social/_MSG_AcceptParty.cpp
   handlers/social/_MSG_Challange.cpp
