@@ -8,6 +8,13 @@ class TextureManager;
 class MeshManager;
 class GeomControl;
 
+/// Dispositivo de renderização do cliente (Direct3D 9): estados, matrizes, shaders e primitivas 2D/UI.
+///
+/// Implementação dividida (Fase 2, Onda 3):
+/// - `RenderDevice.cpp`: ciclo de vida, display/gamma, estados de render e matrizes de câmera/UI.
+/// - `RenderDevice_Shaders.cpp`: `InitVertexShader`, `InitPixelShader`, `SetRenderStateBlock`.
+/// - `RenderDevice_Rect.cpp`: família `RenderRect*` (retângulos, progresso, dano, rotação).
+/// - `RenderDevice_Geom.cpp`: `RenderGeomRectImage`, `RenderGeomControl`, `RenderGeomControlBG`.
 class RenderDevice : public D3DDevice
 {
 public:

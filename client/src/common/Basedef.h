@@ -1,3 +1,12 @@
+/// @file Basedef.h
+/// @brief Constantes, estruturas e regras de jogo compartilhadas do cliente.
+///
+/// Implementação dividida (Fase 2, Onda 3):
+/// - `Basedef.cpp`: globais, carga de tabelas/binários (itens, skills, mensagens, servidores) e strings.
+/// - `BaseItem.cpp`: refinação, habilidades/cores de itens, equipar/trocar/guardar e efeitos.
+/// - `BaseCombat.cpp`: skills, mana, dano de skill, atributos de mob e velocidade.
+/// - `BaseWorld.cpp`: atributos de mapa, rota, distância, posição de acerto e projeção 3D→2D.
+
 #pragma once
 
 constexpr int MAX_CARGO = 128;

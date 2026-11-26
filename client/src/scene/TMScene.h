@@ -47,6 +47,13 @@ class TMItem;
 class SMessagePanel;
 class SMessageBox;
 
+/// Cena base do cliente (login, seleção, campo...): UI, eventos de entrada, pacotes e terreno.
+///
+/// Implementação dividida (Fase 2, Onda 3):
+/// - `TMScene.cpp`: ciclo de vida, eventos de entrada, `FrameMove`, warp e câmera.
+/// - `TMScene_Resources.cpp`: `ReadRCBin` (layout de UI) e `LoadMsgText*`/`LoadMsgLevel`.
+/// - `TMScene_Packets.cpp`: `OnPacketEvent` (pacotes comuns a todas as cenas).
+/// - `TMScene_Ground.cpp`: `GroundNewAttach` e consultas `Ground*` de terreno/água.
 class TMScene : public TreeNode
 {
 public:

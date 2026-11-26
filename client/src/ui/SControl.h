@@ -29,6 +29,12 @@ enum class CONTROL_TYPE : int
 };
 
 class IEventListener;
+/// Controle base da UI do cliente. As classes derivadas deste header estão implementadas em
+/// (Fase 2, Onda 3):
+/// - `SControl.cpp`: `SControl`, `SPanel`, `S3DObj`, `SCursor` e utilitários de lista de render.
+/// - `SControl_Text.cpp`: `SText`, `SEditableText`.
+/// - `SControl_Buttons.cpp`: `SButton`, `SButtonBox`, `SCheckBox`, `SProgressBar`, `SScrollBar`.
+/// - `SControl_List.cpp`: `SListBox*`, `SMessageBox`, `SMessagePanel`, `SReelPanel`.
 class SControl : public TreeNode
 {
 public:

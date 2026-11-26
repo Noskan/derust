@@ -39,6 +39,9 @@ set(TMPROJECT_SOURCES
   src/audio/dsutil.cpp
   src/audio/TMVideoWnd.cpp
   src/common/Basedef.cpp
+  src/common/BaseCombat.cpp
+  src/common/BaseItem.cpp
+  src/common/BaseWorld.cpp
   src/common/ProtocolLayoutCheck.cpp
   src/core/EventTranslator.cpp
   src/core/NewApp.cpp
@@ -95,6 +98,9 @@ set(TMPROJECT_SOURCES
   src/render/JBlur.cpp
   src/render/MeshManager.cpp
   src/render/RenderDevice.cpp
+  src/render/RenderDevice_Geom.cpp
+  src/render/RenderDevice_Rect.cpp
+  src/render/RenderDevice_Shaders.cpp
   src/render/TMCamera.cpp
   src/render/TMFont2.cpp
   src/render/TMFont3.cpp
@@ -112,6 +118,9 @@ set(TMPROJECT_SOURCES
   src/scene/TMObject.cpp
   src/scene/TMObjectContainer.cpp
   src/scene/TMScene.cpp
+  src/scene/TMScene_Ground.cpp
+  src/scene/TMScene_Packets.cpp
+  src/scene/TMScene_Resources.cpp
   src/scene/TMSelectCharScene.cpp
   src/scene/TMSelectServerScene.cpp
   src/scene/TreeNode.cpp
@@ -140,6 +149,9 @@ set(TMPROJECT_SOURCES
   src/skills/TMSkillThunderBolt.cpp
   src/skills/TMSkillTownPortal.cpp
   src/ui/SControl.cpp
+  src/ui/SControl_Buttons.cpp
+  src/ui/SControl_List.cpp
+  src/ui/SControl_Text.cpp
   src/ui/SControlContainer.cpp
   src/ui/SGrid.cpp
   src/ui/SGrid_Input.cpp
