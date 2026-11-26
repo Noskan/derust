@@ -224,7 +224,16 @@ Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que p
    - **`tmproject_characterization_tests`** (branch `refactor/phase3-client-characterization`): o mesmo método para ~55 funções `BASE_*` do cliente (habilidades e cores de item, `CanEquip`/`CanEquip_RecvRes`, inventário, baú e troca, fórmulas de combate, rota e posição de acerto no mapa de alturas, atributos do mapa, strings e lista de palavrões). Compila só `client/src/common/Base*.cpp` com as globais de `TMGlobal.cpp`/`TMLog.cpp`, sem o restante do cliente. Os hashes foram gerados contra `client/Projects/TMProject/Basedef.cpp` da tag `pre-modularization` (antes da divisão em quatro arquivos) e conferem com o código atual, com `-O0`/x87 e `-O2`/SSE2.
 
    Os comportamentos suspeitos encontrados (leituras fora dos limites, grade do baú conferindo a célula errada) estão em [`BUGS_LATENTES.md`](BUGS_LATENTES.md). Foram mantidos por paridade e depois corrigidos, cada um com teste: a grade do baú do servidor na branch `fix/cargo-carry-grid-stride`, e as leituras fora dos limites que só disparam com dado inválido na branch `fix/latent-out-of-bounds`, sem mudar nenhum hash de caracterização.
-7. **Próximo passo**: as etapas grandes (`PacketAttack_Attacker`, `PacketAttack_ApplyTargets`, `SkillUse_CastSelfOrArea`, `AutoSkillUse_CastSelfOrArea`) e `TMHuman::InitObject`/`FrameMove` podem ser decompostas com as mesmas técnicas. Ampliar a caracterização para o cliente e linkar o TMSrv no mingw (base para um teste de fumaça no wine) aumentaria a cobertura antes disso.
+7. **Teste de partida dos servidores (branch `test/server-boot-smoke`)**: [`tools/server_boot_smoke.py`](../tools/server_boot_smoke.py), passo próprio no job `mingw-check`. Monta uma árvore mínima gerada pelo script:
+   - `serverlist.txt` com os IPs do host;
+   - `itemlist.csv` com três itens;
+   - listas vazias e mapas zerados;
+   - os nomes de `BaseSummon` tirados do próprio `CNPCGene.cpp`;
+   - o `server/common/ItemEffect.h` do repositório;
+   - o `gameconfig.txt` padrão que o TMSrv grava ([`tests/data/server_boot/`](../tests/data/server_boot/)).
+
+   Sobe o DBSrv e o TMSrv num prefixo do wine e num Xvfb próprios. Falha em qualquer MessageBox (capturada pelo canal `relay`), exceção não tratada (o wine abre o depurador e o processo fica pendurado, então "vivo" não basta), porta que não abre, queda da conexão TMSrv–DBSrv ou falta de `sys,start server` no log. Na primeira execução, achou um crash do DBSrv no accept da porta admin (ver [`BUGS_LATENTES.md`](BUGS_LATENTES.md)).
+8. **Próximo passo**: as etapas grandes (`PacketAttack_Attacker`, `PacketAttack_ApplyTargets`, `SkillUse_CastSelfOrArea`, `AutoSkillUse_CastSelfOrArea`) e `TMHuman::InitObject`/`FrameMove` podem ser decompostas com as mesmas técnicas. Ampliar a caracterização para o cliente e linkar o TMSrv no mingw (base para um teste de fumaça no wine) aumentaria a cobertura antes disso.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.
