@@ -155,52 +155,10 @@ int TMFieldScene::SkillUse(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwServe
 		}
 	}
 
-	if (g_bCastleWar)
 	{
-		if (!TMFieldScene::m_bPK && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
-		{
-			if (pOver)
-			{
-				if (pOver->m_cMantua == m_pMyHuman->m_cMantua)
-				{
-					if ((pOver->m_dwID > 0 && pOver->m_dwID < 1000) && pOver->IsInPKZone() == 1)
-						return TMFieldScene::GetItemFromGround(dwServerTime);
-				}
-			}
-		}
-		if (!TMFieldScene::m_bPK
-			&& g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1
-			&& pOver
-			&& pOver->m_cSummons == 1
-			&& g_pObjectManager->m_usWarGuild != pOver->m_usGuild
-			&& pOver->m_usGuild
-			&& !pOver->IsInCastleZone())
-		{
-			return GetItemFromGround(dwServerTime);
-		}
-	}
-	else
-	{
-		if (!TMFieldScene::m_bPK && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1 && m_pMyHuman->m_cMantua > 0)
-		{
-			if (pOver)
-			{
-				if (!pOver->m_cMantua)
-				{
-					if ((pOver->m_dwID > 0 && pOver->m_dwID < 1000) && pOver->IsInPKZone() == 1)
-						return GetItemFromGround(dwServerTime);
-				}
-			}
-		}
-		if (!TMFieldScene::m_bPK
-			&& g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1
-			&& pOver
-			&& pOver->m_cSummons == 1
-			&& g_pObjectManager->m_usWarGuild != pOver->m_usGuild
-			&& pOver->m_usGuild)
-		{
-			return TMFieldScene::GetItemFromGround(dwServerTime);
-		}
+		int nReturnValue = 0;
+		if (SkillUse_CastleWarCheck(dwServerTime, pOver, cSkillIndex, nReturnValue))
+			return nReturnValue;
 	}
 
 	int Delay = g_pSpell[(unsigned char)cSkillIndex].Delay;
@@ -1542,6 +1500,61 @@ int TMFieldScene::SkillUse(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwServe
 	m_pMyHuman->m_pMoveSkillTargetHuman = 0;
 
 	return 1;
+}
+
+/// Durante a guerra de castelo, bloqueia skill agressiva em aliado da mesma capa (pega item do chão).
+/// @note Extraído de `TMFieldScene::SkillUse` (Fase 3); locais da função passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::SkillUse_CastleWarCheck(unsigned int& dwServerTime, TMHuman*& pOver, char& cSkillIndex, int& nReturnValue)
+{
+if (g_bCastleWar)
+{
+	if (!TMFieldScene::m_bPK && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
+	{
+		if (pOver)
+		{
+			if (pOver->m_cMantua == m_pMyHuman->m_cMantua)
+			{
+				if ((pOver->m_dwID > 0 && pOver->m_dwID < 1000) && pOver->IsInPKZone() == 1)
+					{ nReturnValue = TMFieldScene::GetItemFromGround(dwServerTime); return true; }
+			}
+		}
+	}
+	if (!TMFieldScene::m_bPK
+		&& g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1
+		&& pOver
+		&& pOver->m_cSummons == 1
+		&& g_pObjectManager->m_usWarGuild != pOver->m_usGuild
+		&& pOver->m_usGuild
+		&& !pOver->IsInCastleZone())
+	{
+		{ nReturnValue = GetItemFromGround(dwServerTime); return true; }
+	}
+}
+else
+{
+	if (!TMFieldScene::m_bPK && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1 && m_pMyHuman->m_cMantua > 0)
+	{
+		if (pOver)
+		{
+			if (!pOver->m_cMantua)
+			{
+				if ((pOver->m_dwID > 0 && pOver->m_dwID < 1000) && pOver->IsInPKZone() == 1)
+					{ nReturnValue = GetItemFromGround(dwServerTime); return true; }
+			}
+		}
+	}
+	if (!TMFieldScene::m_bPK
+		&& g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1
+		&& pOver
+		&& pOver->m_cSummons == 1
+		&& g_pObjectManager->m_usWarGuild != pOver->m_usGuild
+		&& pOver->m_usGuild)
+	{
+		{ nReturnValue = TMFieldScene::GetItemFromGround(dwServerTime); return true; }
+	}
+}
+	return false;
 }
 
 /// Monta e envia o ataque em área das skills 12, 16 e 28 (alvos ao redor de `nDX`/`nDY`).

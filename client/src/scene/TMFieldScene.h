@@ -351,6 +351,11 @@ private:
 	void SendAreaAttack(TMHuman*& pTarget, TMHuman*& pOver, char& cSkillIndex, int& nDX, int& nDY, MSG_Attack& stAttack, int& nTargetIndex);
 	/// @}
 
+	/// @name Etapas com retorno antecipado extraídas de SkillUse (Fase 3)
+	/// @{
+	bool SkillUse_CastleWarCheck(unsigned int& dwServerTime, TMHuman*& pOver, char& cSkillIndex, int& nReturnValue);
+	/// @}
+
 	/// @name Etapas com retorno antecipado extraídas de FrameMove (Fase 3)
 	/// @{
 	bool FrameMove_PositionTriggers(int& nReturnValue);
