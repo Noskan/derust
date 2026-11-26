@@ -1734,3 +1734,39 @@ int TMFieldScene::OnControl_PlayerMenu913(unsigned int idwControlID, unsigned in
 	m_pPGTPanel->SetVisible(0);
 	return 0;
 }
+
+/// Menu de contexto do jogador alvo, controles 639/621/622/623 (pacote 0x39F).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_PlayerMenu639(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pPGTOver)
+	{
+		MSG_STANDARDPARM2 stParm2{};
+		stParm2.Header.Type = 0x39F;
+		stParm2.Header.ID = m_pMyHuman->m_dwID;;
+		stParm2.Parm1 = m_pPGTOver->m_dwID;
+
+		switch (idwControlID)
+		{
+		case 0x27Fu:
+			stParm2.Parm2 = 0;
+			break;
+		case 0x26Du:
+			stParm2.Parm2 = 1;
+			break;
+		case 0x26Eu:
+			stParm2.Parm2 = 2;
+			break;
+		case 0x26Fu:
+			stParm2.Parm2 = 3;
+			break;
+		}
+
+		SendOneMessage((char*)&stParm2, sizeof(stParm2));
+
+		m_pPGTOver = 0;
+		if (m_pPGTPanel)
+			m_pPGTPanel->SetVisible(0);
+	}
+	return 0;
+}

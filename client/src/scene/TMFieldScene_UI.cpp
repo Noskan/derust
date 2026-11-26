@@ -1454,38 +1454,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == 639 || idwControlID == 621 || idwControlID == 622 || idwControlID == 623)
-	{
-		if (m_pPGTOver)
-		{
-			MSG_STANDARDPARM2 stParm2{};
-			stParm2.Header.Type = 0x39F;
-			stParm2.Header.ID = m_pMyHuman->m_dwID;;
-			stParm2.Parm1 = m_pPGTOver->m_dwID;
-
-			switch (idwControlID)
-			{
-			case 0x27Fu:
-				stParm2.Parm2 = 0;
-				break;
-			case 0x26Du:
-				stParm2.Parm2 = 1;
-				break;
-			case 0x26Eu:
-				stParm2.Parm2 = 2;
-				break;
-			case 0x26Fu:
-				stParm2.Parm2 = 3;
-				break;
-			}
-
-			SendOneMessage((char*)&stParm2, sizeof(stParm2));
-
-			m_pPGTOver = 0;
-			if (m_pPGTPanel)
-				m_pPGTPanel->SetVisible(0);
-		}
-		return 0;
-	}
+		return OnControl_PlayerMenu639(idwControlID, idwEvent);
 	if (idwControlID == 1617)
 	{
 		MSG_MessageWhisper stMsgWhisper{};
