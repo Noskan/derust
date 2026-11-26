@@ -219,7 +219,7 @@ void ProcessDBMessage(char *Msg)
 
 								 m->ID = ESCENE_FIELD + 1;
 
-								 pUser[conn].cSock.SendOneMessage((char*)&m, sizeof(MSG_ReqTransper));
+								 pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_ReqTransper));
 
 								 pUser[conn].Mode = USER_SELCHAR;
 
