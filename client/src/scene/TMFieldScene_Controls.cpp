@@ -2741,3 +2741,22 @@ int TMFieldScene::OnControl_ChatGeneralToggle(unsigned int idwControlID, unsigne
 
 	return 0;
 }
+
+/// Seleção de servidor na lista para troca de canal (controle 12289).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_ServerListSelect(unsigned int idwControlID, unsigned int idwEvent, unsigned int dwServerTime)
+{
+	SListBoxServerItem* pItem = (SListBoxServerItem*)m_pServerList->GetItem(idwEvent);
+	if (pItem->m_nCurrent < 500)
+	{
+		m_nServerMove = idwEvent + 1;
+		m_dwLastTeleport = dwServerTime;
+		m_cLastTeleport = 1;
+	}
+	else
+	{
+		m_pMessagePanel->SetMessage(g_pMessageStringTable[25], 4000);
+		m_pMessagePanel->SetVisible(1, 1);
+	}
+	return 1;
+}

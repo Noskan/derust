@@ -799,21 +799,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 1;
 	}
 	if (idwControlID == 12289)
-	{
-		SListBoxServerItem* pItem = (SListBoxServerItem*)m_pServerList->GetItem(idwEvent);
-		if (pItem->m_nCurrent < 500)
-		{
-			m_nServerMove = idwEvent + 1;
-			m_dwLastTeleport = dwServerTime;
-			m_cLastTeleport = 1;
-		}
-		else
-		{
-			m_pMessagePanel->SetMessage(g_pMessageStringTable[25], 4000);
-			m_pMessagePanel->SetVisible(1, 1);
-		}
-		return 1;
-	}
+		return OnControl_ServerListSelect(idwControlID, idwEvent, dwServerTime);
 	if (idwControlID == 12545)
 	{
 		if (m_bAirmove_ShowUI == 1)
