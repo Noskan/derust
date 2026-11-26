@@ -6,6 +6,7 @@ O que faz:
      (ex.: <Windows.h> -> <windows.h>), já que o mingw no Linux é case-sensitive.
   2. Compila todas as TUs de server/common, server/dbsrv, server/tmsrv e client/src.
   3. Linka DBSrv, TMSrv e um executável por fonte em tests/ (os do cliente com client/src/common) e executa os testes no wine (se disponível).
+     Linka também o LoginClient.exe (tools/login_client), que o tools/server_boot_smoke.py usa.
   4. Compara os avisos do GCC de uma lista curada (WARN_TRACKED: sombreamento, não inicializada,
      fora dos limites, memset/memcpy suspeitos, return ausente...) com a linha de base em
      tools/mingw_warning_baseline.txt. A checagem falha se um arquivo ganhar avisos de algum tipo;
@@ -74,12 +75,16 @@ MODULES = {
     "client/src": (["client/src"], ["-D_MBCS"], False),
     "tests/tmproject_characterization_tests.cpp": (["client/src"], ["-D_MBCS"], True),
     "tests": (["server", "server/common"], [], True),
+    "tools/login_client": (["client/src"], ["-D_MBCS"], True),
 }
 
 # Testes do cliente: linkados com estes fontes do cliente (como em tests/CMakeLists.txt), não com w2pp_common.
 CLIENT_TEST_SOURCES = [f"client/src/common/{n}.cpp" for n in ("Basedef", "BaseItem", "BaseCombat", "BaseWorld")] + \
     ["client/src/core/TMGlobal.cpp", "client/src/core/TMLog.cpp"]
 CLIENT_TESTS = {"tmproject_characterization_tests"}
+# Cliente sintético do login: linkado como LoginClient.exe ao lado de DBSrv/TMSrv, mas não executado
+# aqui (precisa dos servidores no ar; quem o roda é tools/server_boot_smoke.py).
+LOGIN_CLIENT_SOURCES = CLIENT_TEST_SOURCES + ["client/src/net/CPSock.cpp"]
 
 SYS_INCLUDE = re.compile(rb'^[ \t]*#[ \t]*include[ \t]*<([^>]+)>', re.M)
 
@@ -134,7 +139,7 @@ def compile_tu(src, work, shim_dir):
             path = Path(m.group("path")).resolve()
             if ROOT in path.parents:
                 warns.add((path.relative_to(ROOT).as_posix(), int(m.group("line")), m.group("flag"), m.group("msg")))
-    return rel, r.returncode == 0, errs[:5], obj if want_obj or rel in CLIENT_TEST_SOURCES else None, warns
+    return rel, r.returncode == 0, errs[:5], obj if want_obj or rel in LOGIN_CLIENT_SOURCES else None, warns
 
 
 def check_warnings(warns, update):
@@ -238,8 +243,8 @@ def main():
 
     # Link: w2pp_common como biblioteca estatica (igual ao CMake), DBSrv e testes.
     objs = lambda mod: [str(o) for r, (ok, _, o) in sorted(results.items()) if ok and o and r.startswith(mod + "/")]
-    linked = ("server/common/", "server/dbsrv/", "server/tmsrv/", "tests/")
-    if all(results[r][0] for r in results if r.startswith(linked) or r in CLIENT_TEST_SOURCES):
+    linked = ("server/common/", "server/dbsrv/", "server/tmsrv/", "tests/", "tools/login_client/")
+    if all(results[r][0] for r in results if r.startswith(linked) or r in LOGIN_CLIENT_SOURCES):
         lib = work / "libw2pp_common.a"
         lib.unlink(missing_ok=True)
         run([AR, "rcs", lib, *objs("server/common")], check=True)
@@ -249,6 +254,11 @@ def main():
             status = 1
         if run([CXX, "-static", "-mwindows", *objs("server/tmsrv"), lib, "-o", work / "TMSrv.exe", *libs]).returncode:
             print("::error::falha ao linkar TMSrv")
+            status = 1
+        login = objs("tools/login_client") + [str(results[r][2]) for r in LOGIN_CLIENT_SOURCES]
+        if run([CXX, "-static", *login, "-o", work / "LoginClient.exe",
+                "-lws2_32", "-lwininet", "-ld3dx9", "-liphlpapi"]).returncode:
+            print("::error::falha ao linkar LoginClient")
             status = 1
         # Um executável por fonte de teste (cada um tem seu main), como em tests/CMakeLists.txt.
         for obj in objs("tests"):
@@ -271,7 +281,7 @@ def main():
             elif not args.no_wine:
                 print("::warning::wine nao encontrado; testes nao executados")
     else:
-        print("::error::server/common, server/dbsrv, server/tmsrv, tests ou fontes dos testes do cliente com falha de compilacao; link ignorado")
+        print("::error::server/common, server/dbsrv, server/tmsrv, tests, tools/login_client ou fontes dos testes do cliente com falha de compilacao; link ignorado")
         status = 1
 
     print("\nresultado:", "OK" if status == 0 else "FALHOU", f"(trabalho em {work})")

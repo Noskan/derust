@@ -68,10 +68,11 @@ jobs:
           WINEPREFIX: ${{ runner.temp }}/wineprefix
         run: python3 tools/mingw_check.py --jobs 4 --keep "$RUNNER_TEMP/mingw"
 
-      # Sobe DBSrv e TMSrv com dados sintéticos (prefixo do wine e Xvfb próprios).
-      - name: Boot DBSrv + TMSrv under wine (synthetic data)
+      # Sobe DBSrv e TMSrv com dados sintéticos (prefixo do wine e Xvfb próprios) e faz o login
+      # de ponta a ponta com o LoginClient (fontes do cliente).
+      - name: Boot DBSrv + TMSrv and log in under wine (synthetic data)
         timeout-minutes: 10
-        run: python3 tools/server_boot_smoke.py "$RUNNER_TEMP/mingw" --keep "$RUNNER_TEMP/server_boot"
+        run: python3 tools/server_boot_smoke.py "$RUNNER_TEMP/mingw" --keep "$RUNNER_TEMP/server_boot" --require-login
 
       - name: Upload server boot logs on failure
         if: failure()
@@ -101,7 +102,7 @@ jobs:
       - name: Build targets (${{ matrix.config }})
         shell: pwsh
         run: |
-          $targets = @("w2pp_common", "DBSrv", "TMSrv", "ClientPatch_v7662", "TMProject", "w2pp_common_tests", "w2pp_characterization_tests", "tmproject_characterization_tests")
+          $targets = @("w2pp_common", "DBSrv", "TMSrv", "ClientPatch_v7662", "TMProject", "w2pp_common_tests", "w2pp_characterization_tests", "tmproject_characterization_tests", "LoginClient")
           $failed = @()
           foreach ($t in $targets) {
             Write-Host "=== Building $t (${{ matrix.config }}) ==="
@@ -136,9 +137,9 @@ jobs:
           Get-ChildItem dist/${{ matrix.config }}
 
       # Mesmo teste de partida do job mingw, agora com os binários MSVC, nativos.
-      - name: Boot DBSrv + TMSrv (${{ matrix.config }}, synthetic data)
+      - name: Boot DBSrv + TMSrv and log in (${{ matrix.config }}, synthetic data)
         timeout-minutes: 10
-        run: python tools/server_boot_smoke.py dist/${{ matrix.config }} --keep "${{ runner.temp }}/server_boot"
+        run: python tools/server_boot_smoke.py dist/${{ matrix.config }} --keep "${{ runner.temp }}/server_boot" --require-login
 
       - name: Upload server boot logs on failure
         if: failure()

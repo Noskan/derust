@@ -45,4 +45,30 @@ if(DERUST_BUILD_CLIENT)
   )
   target_link_libraries(tmproject_characterization_tests PRIVATE tm_directx wininet)
   add_test(NAME tmproject_characterization_tests COMMAND tmproject_characterization_tests)
+
+  # Cliente sintético do login (tools/login_client), com o CPSock e as estruturas do cliente. Não
+  # é um teste do CTest: precisa do DBSrv e do TMSrv no ar, e quem o roda é
+  # tools/server_boot_smoke.py.
+  add_executable(LoginClient
+    ${CMAKE_SOURCE_DIR}/tools/login_client/LoginClient.cpp
+    ${_tm_src}/net/CPSock.cpp
+    ${_tm_src}/common/Basedef.cpp
+    ${_tm_src}/common/BaseItem.cpp
+    ${_tm_src}/common/BaseCombat.cpp
+    ${_tm_src}/common/BaseWorld.cpp
+    ${_tm_src}/core/TMGlobal.cpp
+    ${_tm_src}/core/TMLog.cpp
+  )
+  set_target_properties(LoginClient PROPERTIES
+    VS_USER_PROPS "${CMAKE_BINARY_DIR}/client/tm_directx.props"
+  )
+  target_include_directories(LoginClient PRIVATE ${_tm_src})
+  target_compile_features(LoginClient PRIVATE cxx_std_17)
+  target_compile_definitions(LoginClient PRIVATE
+    WIN32 _WINDOWS _MBCS _CRT_SECURE_NO_WARNINGS _WINSOCK_DEPRECATED_NO_WARNINGS
+  )
+  target_compile_options(LoginClient PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/W3 /permissive->
+  )
+  target_link_libraries(LoginClient PRIVATE tm_directx wininet ws2_32 iphlpapi)
 endif()

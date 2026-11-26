@@ -7,8 +7,8 @@ servidor teria de mudar para falar com este cliente, ou uma decisão a tomar.
 
 ## Resumo
 
-- **Pacotes**, casados pelo valor do opcode e pela struct que cada lado envia ou lê (uma "direção" é um opcode num sentido): **6 direções em que quem lê espera mais bytes do que o outro lado envia** e **26 em que os campos lidos não estão nos offsets enviados**. Outras 16 batem em offsets mas trocam nomes de campos, e 61 batem por inteiro. Em 39, o cliente envia ou espera um pacote que o servidor não lê ou não envia; em 47, é o servidor que envia ou lê algo que o cliente não usa (fora 53 do tráfego com o DBSrv).
-- **Structs de jogo e de arquivo** de mesmo nome: 13, das quais 11 diferem. `STRUCT_MOB` tem 816 bytes no servidor e 1024 no cliente, e vai dentro dos pacotes de login.
+- **Pacotes**, casados pelo valor do opcode e pela struct que cada lado envia ou lê (uma "direção" é um opcode num sentido): **6 direções em que quem lê espera mais bytes do que o outro lado envia** e **24 em que os campos lidos não estão nos offsets enviados**. Outras 16 batem em offsets mas trocam nomes de campos, e 63 batem por inteiro. Em 39, o cliente envia ou espera um pacote que o servidor não lê ou não envia; em 47, é o servidor que envia ou lê algo que o cliente não usa (fora 53 do tráfego com o DBSrv).
+- **Structs de jogo e de arquivo** de mesmo nome: 13, das quais 11 diferem. `STRUCT_MOB` tem 1024 bytes no servidor e 1024 no cliente, e vai dentro dos pacotes de login.
 - **Regras `BASE_*`** comparadas com as mesmas entradas: 30. **22 divergem** em ao menos uma entrada; 8 concordam em todas.
 - **Só de um lado**: 49 funções `BASE_*` só no servidor e 29 só no cliente.
 
@@ -56,11 +56,9 @@ da struct de quem lê.
 
 | Opcode | Direção | Envia | Lê | Onde | Campos |
 |---|---|---|---|---|---|
-| `0x114` | servidor → cliente | `MSG_CNFClientCharacterLogin` (1832) | `MSG_CNFCharacterLogin` (1712) | `server/tmsrv/net/ProcessDBMessage.cpp:787`<br>`client/src/scene/TMFieldScene_Packets.cpp:99` | `MSG_CNFCharacterLogin`: `MOB`, `Ext1`, `Ext2` |
+| `0x114` | servidor → cliente | `MSG_CNFClientCharacterLogin` (1712) | `MSG_CNFCharacterLogin` (1712) | `server/tmsrv/net/ProcessDBMessage.cpp:788`<br>`client/src/scene/TMFieldScene_Packets.cpp:99` | `MSG_CNFCharacterLogin`: `Ext1`, `Ext2` |
 | `0x16F` | servidor → cliente | `MSG_DecayItem` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/handlers/items/_MSG_GetItem.cpp:114`<br>`client/src/scene/TMFieldScene_Packets.cpp:117` | `MSG_STANDARDPARM`: `Parm` |
 | `0x18A` | servidor → cliente | `MSG_SetHpDam` (20) | `MSG_SetHpDam` (20) | `server/tmsrv/systems/AffectSystem.cpp:1096`<br>`client/src/entities/TMHuman_Packets.cpp:119` | `MSG_SetHpDam`: `Dam` |
-| `0x20D` | cliente → servidor | `MSG_AccountLogin` (120) | `MSG_AccountLogin` (116) | `client/src/scene/TMFieldScene_Packets.cpp:1238`<br>`server/tmsrv/net/ProcessClientMessage.cpp:68` | `MSG_AccountLogin`: `AccountPassword`, `AccountName`, `Zero`, `ClientVersion`, `AdapterName` |
-| `0x211` | cliente → servidor | `MSG_DeleteCharacter` (48) | `MSG_DeleteCharacter` (44) | `client/src/scene/TMSelectCharScene.cpp:716`<br>`server/tmsrv/net/ProcessClientMessage.cpp:80` | `MSG_DeleteCharacter`: `Password` |
 | `0x26E` | servidor → cliente | `MSG_CreateItem` (32) | `MSG_CreateItem` (32) | `server/tmsrv/core/ProcessSecMinTimer.cpp:821`<br>`client/src/scene/TMFieldScene_Packets.cpp:109` | `MSG_CreateItem`: `Owner` |
 | `0x27B` | cliente → servidor | `MSG_REQShopList` (16) | `MSG_REQShopList` (16) | `client/src/scene/TMFieldScene_Input.cpp:2231`<br>`server/tmsrv/net/ProcessClientMessage.cpp:136` | `MSG_REQShopList`: `Unk` |
 | `0x333` | cliente → servidor | `MSG_MessageChat` (140) | `MSG_MessageChat` (108) | `client/src/scene/TMFieldScene_Controls.cpp:2557`<br>`server/tmsrv/net/ProcessClientMessage.cpp:92` | `MSG_MessageChat`: `String` |
@@ -80,8 +78,8 @@ da struct de quem lê.
 | `0x37F` | servidor → cliente | `MSG_SendReqParty` (48) | `MSG_REQParty` (44) | `server/tmsrv/net/SendFunc.cpp:1453`<br>`client/src/scene/TMFieldScene_Packets.cpp:129` | `MSG_REQParty`: `Leader` |
 | `0x39D` | cliente → servidor | `MSG_Attack` (168), `MSG_AttackOne` (72) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1893`<br>`server/tmsrv/net/ProcessClientMessage.cpp:193` | `MSG_Attack`: `Unk_2`, `Rsv`, `ReqMp` |
 | `0x39E` | cliente → servidor | `MSG_Attack` (168) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1985`<br>`server/tmsrv/net/ProcessClientMessage.cpp:194` | `MSG_Attack`: `Unk_2`, `Rsv`, `ReqMp` |
-| `0xFDE` | servidor → cliente | `MSG_AccountSecure` (32), `MSG_STANDARD` (12) | `MSG_CHARPASSWORD` (32) | `server/tmsrv/net/ProcessClientMessage.cpp:88 (eco)`<br>`client/src/scene/TMSelectCharScene.cpp:1370` | `MSG_CHARPASSWORD`: `ItemPassWord`, `State` |
-| `0xFDE` | cliente → servidor | `MSG_CHARPASSWORD` (32) | `MSG_AccountSecure` (32), `MSG_STANDARD` (12) | `client/src/scene/TMSelectCharScene.cpp:415`<br>`server/tmsrv/net/ProcessClientMessage.cpp:88` | `MSG_AccountSecure`: `NumericToken`, `Unknown`, `ChangeNumeric` |
+| `0xFDE` | servidor → cliente | `MSG_AccountSecure` (32), `MSG_STANDARD` (12) | `MSG_CHARPASSWORD` (32) | `server/tmsrv/net/ProcessClientMessage.cpp:88 (eco)`<br>`client/src/scene/TMSelectCharScene.cpp:1370` | `MSG_CHARPASSWORD`: `ItemPassWord` |
+| `0xFDE` | cliente → servidor | `MSG_CHARPASSWORD` (32) | `MSG_AccountSecure` (32), `MSG_STANDARD` (12) | `client/src/scene/TMSelectCharScene.cpp:415`<br>`server/tmsrv/net/ProcessClientMessage.cpp:88` | `MSG_AccountSecure`: `NumericToken`, `Unknown`, `Pad` |
 
 <details><summary>Pacotes com os mesmos offsets e campos renomeados</summary>
 
@@ -93,7 +91,7 @@ Mesma struct dos dois lados e mesmos offsets, mas com campos de outro nome. Em g
 | `0x110` | servidor → cliente | `MSG_CNFNewCharacter` (856) | `MSG_CNFNewCharacter` (856) | `server/tmsrv/net/ProcessDBMessage.cpp:583`<br>`client/src/scene/TMSelectCharScene.cpp:1400` | `sel` → `SelChar` |
 | `0x112` | servidor → cliente | `MSG_CNFDeleteCharacter` (856) | `MSG_CNFDeleteCharacter` (856) | `server/tmsrv/net/ProcessDBMessage.cpp:599`<br>`client/src/scene/TMSelectCharScene.cpp:1416` | `sel` → `SelChar` |
 | `0x182` | servidor → cliente | `MSG_SendItem` (24) | `MSG_SendItem` (24) | `server/tmsrv/net/SendFunc.cpp:1069`<br>`client/src/entities/TMHuman_Packets.cpp:104` | `invType` → `DestType`; `Slot` → `DestPos`; `item` → `Item` |
-| `0x213` | cliente → servidor | `MSG_CharacterLogin` (36) | `MSG_CharacterLogin` (20) | `client/src/scene/TMSelectCharScene.cpp:511`<br>`server/tmsrv/net/ProcessClientMessage.cpp:72` | `SecretCode` só no cliente (20+16) |
+| `0x20D` | cliente → servidor | `MSG_AccountLogin` (120) | `MSG_AccountLogin` (120) | `client/src/scene/TMFieldScene_Packets.cpp:1238`<br>`server/tmsrv/net/ProcessClientMessage.cpp:68` | `AccountPassword` → `AccountPass`; `Zero` → `TID`; `ClientVersion` → `Version`; `DBNeedSave` → `Force`; `AdapterName` → `Mac` |
 | `0x337` | servidor → cliente | `MSG_UpdateEtc` (48) | `MSG_UpdateEtc` (48) | `server/tmsrv/net/SendFunc.cpp:1210`<br>`client/src/entities/TMHuman_Packets.cpp:134` | `Hold` → `FakeExp`; `Learn` → `LearnedSkill`; `Magic` só no servidor (38+2) |
 | `0x338` | servidor → cliente | `MSG_CNFMobKill` (32) | `MSG_CNFMobKill` (32) | `server/tmsrv/systems/MobKilled.cpp:157`<br>`client/src/scene/TMFieldScene_Packets.cpp:126` | `Hold` → `FakeExp` |
 | `0x367` | servidor → cliente | `MSG_Attack` (168) | `MSG_Attack` (168) | `server/tmsrv/net/GetFunc.cpp:1584`<br>`client/src/scene/TMFieldScene_Packets.cpp:191` | `Unk_1` → `FakeExp`; `CurrentHp` só no servidor (16+4); `Unk_2` só no servidor (20+4); `unk0` só no servidor (32+2); `SkillParm` 47+1 → 49+1; `FlagLocal` 49+1 → 47+1; `Rsv` 50+2 → 32+2; `ReqMp` 58+2 → 16+4 |
@@ -178,6 +176,8 @@ Quem lê cabe no que foi enviado e todos os campos que ele lê estão nos mesmos
 | `0x193` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/handlers/world/Quest_Kingdom.cpp:567`<br>`client/src/entities/TMHuman_Packets.cpp:155` |
 | `0x196` | servidor → cliente | `MSG_STANDARD` (12) | `MSG_STANDARD` (12) | `server/tmsrv/handlers/items/_MSG_Buy.cpp:62`<br>`client/src/scene/TMFieldScene_Packets.cpp:189` |
 | `0x20F` | cliente → servidor | `MSG_NewCharacter` (36) | `MSG_CreateCharacter` (36) | `client/src/scene/TMSelectCharScene.cpp:576`<br>`server/tmsrv/net/ProcessClientMessage.cpp:84` |
+| `0x211` | cliente → servidor | `MSG_DeleteCharacter` (48) | `MSG_DeleteCharacter` (48) | `client/src/scene/TMSelectCharScene.cpp:716`<br>`server/tmsrv/net/ProcessClientMessage.cpp:80` |
+| `0x213` | cliente → servidor | `MSG_CharacterLogin` (36) | `MSG_CharacterLogin` (36) | `client/src/scene/TMSelectCharScene.cpp:511`<br>`server/tmsrv/net/ProcessClientMessage.cpp:72` |
 | `0x215` | cliente → servidor | `MSG_STANDARD` (12) | `MSG_STANDARD` (12) | `client/src/scene/TMFieldScene_FrameMove.cpp:1725`<br>`server/tmsrv/net/ProcessClientMessage.cpp:76` |
 | `0x270` | cliente → servidor | `MSG_GetItem` (28) | `MSG_GetItem` (28) | `client/src/entities/TMHuman_Combat.cpp:498`<br>`server/tmsrv/net/ProcessClientMessage.cpp:202` |
 | `0x272` | cliente → servidor | `MSG_DropItem` (32) | `MSG_DropItem` (32) | `client/src/scene/TMFieldScene_Items.cpp:77`<br>`server/tmsrv/net/ProcessClientMessage.cpp:198` |
@@ -239,14 +239,14 @@ arquivos que as gravam (contas, `.bin`). `A → B` é um campo que mudou de nome
 
 | Struct | Servidor | Cliente | Diferenças |
 |---|---|---|---|
-| `STRUCT_ACCOUNTFILE` | 7800 | 8000 | `Info` só no servidor (0+216); `Char` 216+3264 → 216+4096; `Cargo` 3480+1024 → 4312+1024; `Coin` 4504+4 → 5336+4; `ShortSkill` 4508+64 → 5340+64; `affect` só no servidor (4572+1024); `mobExtra` só no servidor (5600+2144); `Donate` só no servidor (7744+4); `TempKey` só no servidor (7748+52); `Account` só no cliente (0+212); `Ext1` só no cliente (5404+1152); `Ext2` só no cliente (6560+1440) |
+| `STRUCT_ACCOUNTFILE` | 8640 | 8000 | `Info` só no servidor (0+220); `Char` 224+4096 → 216+4096; `Cargo` 4320+1024 → 4312+1024; `Coin` 5344+4 → 5336+4; `ShortSkill` 5348+64 → 5340+64; `affect` só no servidor (5412+1024); `mobExtra` só no servidor (6440+2144); `Donate` só no servidor (8584+4); `TempKey` só no servidor (8588+52); `Account` só no cliente (0+212); `Ext1` só no cliente (5404+1152); `Ext2` só no cliente (6560+1440) |
 | `STRUCT_AFFECT` | 8 | 8 | `Value` 1+1 → 2+2; `Level` 2+2 → 1+1 |
 | `STRUCT_BEASTBONUS` | 68 | 68 | `Unk` → `Int_Damage`; `Unk2` → `Spe_Damage`; `Unk3` → `Int_Ac`; `Unk4` → `Spe_Ac`; `Unk5` → `Int_Hp`; `Unk6` → `Spe_Hp`; `Unk7` → `Int_Run`; `Unk8` → `Spe_Run`; `Unk9` → `Int_Attack`; `Unk10` → `Spe_Attack`; `Unk11` → `Int_Critical`; `Unk12` → `Spe_Critical`; `Unk13` → `Int_Resist`; `Unk14` → `Spe_Regist`; `Unk15` → `Int_Delay`; `Unk16` → `Spe_Delay`; `Unk17` → `SancLevel` |
 | `STRUCT_DAM` | 8 | 8 | `TargetID` 0+4 → 0+2 |
 | `STRUCT_GUILDZONE` | 84 | 84 | `GuildSpawnX` → `GuildStartX`; `GuildSpawnY` → `GuildStartY`; `CitySpawnX` só no servidor (16+4); `CitySpawnY` só no servidor (20+4); `CityLimitX1` → `vx1`; `CityLimitY1` → `vy1`; `CityLimitX2` → `vx2`; `CityLimitY2` → `vy2`; `WarAreaX1` → `ax1`; `WarAreaY1` → `ay1`; `WarAreaX2` → `ax2`; `WarAreaY2` → `ay2`; `ChargeWarSpawnX` → `hx`; `ChargeWarSpawnY` → `hy`; `ChallangeWarSpawnX` → `gx`; `ChallangeWarSpawnY` → `gy`; `CityTax` → `Tax`; `Clan` → `ChargeClan`; `Victory` → `ChargeCount`; `Start` só no cliente (16+8) |
 | `STRUCT_INITITEM` | 8 | 8 | `ItemIndex` → `sIndex` |
 | `STRUCT_ITEMLIST` | 140 | 140 | `IndexMesh` → `nIndexMesh`; `IndexTexture` → `nIndexTexture`; `IndexVisualEffect` → `nIndexVisualEffect`; `ReqLvl` → `nReqLvl`; `ReqStr` → `nReqStr`; `ReqInt` → `nReqInt`; `ReqDex` → `nReqDex`; `ReqCon` → `nReqCon`; `Price` → `nPrice`; `Extra` → `nExtra`; `Grade` → `nGrade` |
-| `STRUCT_MOB` | 816 | 1024 | `Rsv` 22+2 → 21+1; `Quest` 24+1 → 22+2; `Coin` 28+4 → 24+4; `SPX` → `HomeTownX`; `SPY` → `HomeTownY`; `LearnedSkill` 780+4 → 780+8; `Magic` 784+4 → 801+1; `SkillBar` → `ShortSkill`; `RegenHP` 802+2 → 802+1; `RegenMP` 804+2 → 803+1; `Resist` 806+4 → 804+4; `dummy` só no cliente (808+212); `CurrentKill` só no cliente (1020+2); `TotalKill` só no cliente (1022+2) |
+| `STRUCT_MOB` | 1024 | 1024 | `SPX` → `HomeTownX`; `SPY` → `HomeTownY`; `LearnedSkill` 780+4 → 780+8; `SecLearnedSkill` só no servidor (784+4); `SkillBar` → `ShortSkill`; `Reserved` → `dummy` |
 | `STRUCT_SCORE` | 48 | 48 | `Level` 0+4 → 0+2; `Merchant` → `Reserved`; `Direction` só no servidor (14+1); `ChaosRate` só no servidor (15+1) |
 | `STRUCT_SELCHAR` | 840 | 840 | `SPX` → `HomeTownX`; `SPY` → `HomeTownY`; `Name` → `MobName` |
 | `STRUCT_SPELL` | 84 | 96 | `Act` → `Act1`; `InstanceAttribute` 56+4 → 64+4; `TickAttribute` 60+4 → 68+4; `Aggressive` 64+4 → 72+4; `MaxTarget` 68+4 → 76+4; `bParty` 72+4 → 80+4; `AffectResist` 76+4 → 84+4; `Passive` 80+4 → 88+4; `Act2` só no cliente (56+8); `ForceDamage` só no cliente (92+4) |
