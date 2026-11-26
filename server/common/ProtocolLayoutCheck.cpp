@@ -9,7 +9,7 @@ static_assert(sizeof(STRUCT_SCORE) == 48, "STRUCT_SCORE deve ter 48 bytes em Win
 static_assert(sizeof(STRUCT_MOB) == 1024, "STRUCT_MOB deve ter 1024 bytes em Win32 (layout do cliente).");
 static_assert(sizeof(STRUCT_MOBEXTRA) == 536, "STRUCT_MOBEXTRA deve ter 536 bytes em Win32 (time_t de 64 bits).");
 static_assert(sizeof(STRUCT_RANKING) == 52, "STRUCT_RANKING deve ter 52 bytes em Win32.");
-static_assert(sizeof(STRUCT_ACCOUNTFILE) == 8632, "STRUCT_ACCOUNTFILE deve ter 8632 bytes em Win32.");
+static_assert(sizeof(STRUCT_ACCOUNTFILE) == 8640, "STRUCT_ACCOUNTFILE deve ter 8640 bytes em Win32.");
 
 // Layout do cliente (client/src/common/Basedef.h), a versão alvo do protocolo: offset e tamanho
 // de cada campo que vai no fio. Os nomes do servidor ficaram; entre parênteses, o nome no cliente
@@ -49,6 +49,45 @@ W2_FIELD(STRUCT_MOB, Resist, 804, 4);
 W2_FIELD(STRUCT_MOB, Reserved, 808, 212);         // (dummy)
 W2_FIELD(STRUCT_MOB, CurrentKill, 1020, 2);
 W2_FIELD(STRUCT_MOB, TotalKill, 1022, 2);
+
+// Pacotes do login, na ordem do fluxo: conta, senha numérica, criação/exclusão e entrada.
+static_assert(sizeof(MSG_AccountLogin) == 120, "MSG_AccountLogin deve ter 120 bytes (cliente).");
+W2_FIELD(MSG_AccountLogin, AccountPassword, 12, 16);         // (AccountPass)
+W2_FIELD(MSG_AccountLogin, AccountName, 28, 16);
+W2_FIELD(MSG_AccountLogin, Zero, 44, 52);                    // (TID)
+W2_FIELD(MSG_AccountLogin, ClientVersion, 96, 4);            // (Version)
+W2_FIELD(MSG_AccountLogin, DBNeedSave, 100, 4);              // (Force)
+W2_FIELD(MSG_AccountLogin, AdapterName, 104, 16);            // (Mac)
+
+static_assert(sizeof(STRUCT_SELCHAR) == 840, "STRUCT_SELCHAR deve ter 840 bytes (cliente).");
+static_assert(sizeof(MSG_DBCNFAccountLogin) == 1928, "MSG_DBCNFAccountLogin deve ter 1928 bytes (cliente).");
+W2_FIELD(MSG_DBCNFAccountLogin, HashKeyTable, 12, 16);       // (SecretCode)
+W2_FIELD(MSG_DBCNFAccountLogin, sel, 32, 840);               // (SelChar)
+W2_FIELD(MSG_DBCNFAccountLogin, Cargo, 872, 1024);
+W2_FIELD(MSG_DBCNFAccountLogin, Coin, 1896, 4);
+W2_FIELD(MSG_DBCNFAccountLogin, AccountName, 1900, 16);
+
+static_assert(sizeof(MSG_AccountSecure) == 32, "MSG_AccountSecure deve ter 32 bytes (MSG_CHARPASSWORD).");
+W2_FIELD(MSG_AccountSecure, NumericToken, 12, 6);            // (ItemPassWord, até 6 dígitos)
+W2_FIELD(MSG_AccountSecure, ChangeNumeric, 28, 1);           // (State)
+
+static_assert(sizeof(MSG_CreateCharacter) == 36, "MSG_CreateCharacter deve ter 36 bytes (MSG_NewCharacter).");
+W2_FIELD(MSG_CreateCharacter, Slot, 12, 4);
+W2_FIELD(MSG_CreateCharacter, MobName, 16, 16);
+W2_FIELD(MSG_CreateCharacter, MobClass, 32, 4);
+static_assert(sizeof(MSG_CNFNewCharacter) == 856, "MSG_CNFNewCharacter deve ter 856 bytes (cliente).");
+W2_FIELD(MSG_CNFNewCharacter, sel, 16, 840);                 // (SelChar)
+
+static_assert(sizeof(MSG_DeleteCharacter) == 48, "MSG_DeleteCharacter deve ter 48 bytes (cliente).");
+W2_FIELD(MSG_DeleteCharacter, Slot, 12, 4);
+W2_FIELD(MSG_DeleteCharacter, MobName, 16, 16);
+W2_FIELD(MSG_DeleteCharacter, Password, 32, 16);
+static_assert(sizeof(MSG_CNFDeleteCharacter) == 856, "MSG_CNFDeleteCharacter deve ter 856 bytes (cliente).");
+
+static_assert(sizeof(MSG_CharacterLogin) == 36, "MSG_CharacterLogin deve ter 36 bytes (cliente).");
+W2_FIELD(MSG_CharacterLogin, Slot, 12, 4);
+W2_FIELD(MSG_CharacterLogin, Force, 16, 4);
+W2_FIELD(MSG_CharacterLogin, SecretCode, 20, 16);
 
 // _MSG_CNFCharacterLogin (MSG_CNFCharacterLogin no cliente).
 static_assert(sizeof(MSG_CNFClientCharacterLogin) == 1712, "MSG_CNFClientCharacterLogin deve ter 1712 bytes (cliente).");

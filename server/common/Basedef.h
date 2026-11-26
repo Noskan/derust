@@ -39,7 +39,7 @@
 #define IDC_SHUTDOWNNP 9050
 
 
-#define		APP_VERSION				6975
+#define		APP_VERSION				1758	  // Versão do cliente alvo (TMProject, MSG_AccountLogin::Version)
 
 #define		GAME_PORT				8281	  // Game server listening port, client connects to it
 #define		DB_PORT					7514      // DB server listening port, Game server connects to it
@@ -63,7 +63,7 @@
 #pragma region Account related defines
 
 #define		ACCOUNTNAME_LENGTH		16		// Max length of the account login
-#define		ACCOUNTPASS_LENGTH		12      // Max length of the account password
+#define		ACCOUNTPASS_LENGTH		16      // Max length of the account password (16 no cliente: MSG_AccountLogin::AccountPass)
 #define		REALNAME_LENGTH			24      // Max length of the name of the account owner
 #define		EMAIL_LENGTH			48      // Max length of the email address of the account owner
 #define		ADDRESS_LENGTH			78      // Max length of the real address of the account owner
@@ -852,16 +852,16 @@ struct STRUCT_RANKING
 
 #pragma region File Structures
 
-/// @brief Registro completo de conta serializado em arquivo pelo DBSrv (8632 bytes em Win32).
+/// @brief Registro completo de conta serializado em arquivo pelo DBSrv (8640 bytes em Win32).
 struct STRUCT_ACCOUNTFILE
 {
-	STRUCT_ACCOUNTINFO Info; // 0 - 216
+	STRUCT_ACCOUNTINFO Info; // 0 - 220 (+4 de alinhamento)
 
-	STRUCT_MOB	Char[MOB_PER_ACCOUNT]; // 216 - 4312
-	STRUCT_ITEM Cargo[MAX_CARGO]; // 4312 - 5336
-	int			Coin; // 5336 - 5340
+	STRUCT_MOB	Char[MOB_PER_ACCOUNT]; // 224 - 4320
+	STRUCT_ITEM Cargo[MAX_CARGO]; // 4320 - 5344
+	int			Coin; // 5344 - 5348
 
-	unsigned char ShortSkill[MOB_PER_ACCOUNT][16]; // 5340 - 5404
+	unsigned char ShortSkill[MOB_PER_ACCOUNT][16]; // 5348 - 5412
 
 	STRUCT_AFFECT affect[MOB_PER_ACCOUNT][MAX_AFFECT];
 	STRUCT_MOBEXTRA mobExtra[MOB_PER_ACCOUNT];
@@ -1274,7 +1274,8 @@ struct		  MSG_AccountSecure
 
 	char NumericToken[6];
 	char Unknown[10];
-	int ChangeNumeric;
+	unsigned char ChangeNumeric;	// 1 byte no cliente (MSG_CHARPASSWORD::State); o resto é preenchimento
+	char Pad[3];
 };
 
 const short  _MSG_CreateCharacter			= (15 | FLAG_CLIENT2GAME);
@@ -1295,7 +1296,7 @@ struct		  MSG_DeleteCharacter
 	int Slot;
 
 	char MobName[NAME_LENGTH];
-	char Password[12];
+	char Password[ACCOUNTPASS_LENGTH];
 };
 
 const short _MSG_War						= (14 | FLAG_CLIENT2GAME | FLAG_DB2GAME | FLAG_GAME2DB);
@@ -1360,6 +1361,7 @@ struct		  MSG_CharacterLogin
 
 	int Slot;
 	int Force;
+	char SecretCode[16];	// Enviado pelo cliente; o servidor não o confere
 };
 
 const short  _MSG_CNFCharacterLogin			= (20 | FLAG_GAME2CLIENT);

@@ -51,7 +51,7 @@ void TestProtocolSizes()
 	CHECK(sizeof(STRUCT_MOB) == 1024);
 	CHECK(sizeof(STRUCT_MOBEXTRA) == 536);
 	CHECK(sizeof(STRUCT_RANKING) == 52);
-	CHECK(sizeof(STRUCT_ACCOUNTFILE) == 8632);
+	CHECK(sizeof(STRUCT_ACCOUNTFILE) == 8640);
 }
 
 /// @brief Testa leitura e gravação de refinação (EF_SANC, +10..+15, tinturas 116..125 e montarias).
