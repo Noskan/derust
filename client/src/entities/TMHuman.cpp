@@ -609,33 +609,7 @@ int TMHuman::InitObject()
     InitObject_Class16EyeFire();
     InitObject_Class39EyeFire();
     InitObject_Class38EyeFire();
-    if (m_nClass == 33 && m_stLookInfo.FaceMesh == 1 && RenderDevice::m_bDungeon == 2 && !m_pEyeFire[0])
-    {
-        unsigned int dwColor = 0xFF005588;
-
-        for (int i = 0; i < 7; ++i)
-        {
-            m_pEyeFire[i] = new TMEffectBillBoard(
-                101,
-                0,
-                2.0f * m_fScale,
-                3.0f * m_fScale,
-                2.0f * m_fScale,
-                0.0f,
-                8,
-                80);
-
-            if (m_pEyeFire[i])
-            {
-                m_pEyeFire[i]->SetColor(0xFFFF5500);
-                m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                m_pEyeFire[i]->m_nFade = 2;
-                m_pEyeFire[i]->m_vecPosition = m_vecTempPos[i];
-                m_pEyeFire[i]->m_bFrameMove = 0;
-                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
-            }
-        }
-    }
+    InitObject_Class33EyeFire();
 
     if (m_pShade)
     {
@@ -1514,6 +1488,39 @@ void TMHuman::InitObject_Class38EyeFire()
                 m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
                 m_pEyeFire[i]->m_nFade = 2;
                 m_pEyeFire[i]->m_vecPosition = m_vecTempPos[nPosIndex[i]];
+                m_pEyeFire[i]->m_bFrameMove = 0;
+                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
+            }
+        }
+    }
+}
+
+/// Classe 33 com rosto 1 em dungeon 2: sete pontos de fogo azulados.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_Class33EyeFire()
+{
+    if (m_nClass == 33 && m_stLookInfo.FaceMesh == 1 && RenderDevice::m_bDungeon == 2 && !m_pEyeFire[0])
+    {
+        unsigned int dwColor = 0xFF005588;
+
+        for (int i = 0; i < 7; ++i)
+        {
+            m_pEyeFire[i] = new TMEffectBillBoard(
+                101,
+                0,
+                2.0f * m_fScale,
+                3.0f * m_fScale,
+                2.0f * m_fScale,
+                0.0f,
+                8,
+                80);
+
+            if (m_pEyeFire[i])
+            {
+                m_pEyeFire[i]->SetColor(0xFFFF5500);
+                m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                m_pEyeFire[i]->m_nFade = 2;
+                m_pEyeFire[i]->m_vecPosition = m_vecTempPos[i];
                 m_pEyeFire[i]->m_bFrameMove = 0;
                 g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
             }
