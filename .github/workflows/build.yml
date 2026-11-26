@@ -30,24 +30,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # O espelho do Ubuntu às vezes entrega os ~290 MB de pacotes (mingw + wine32 i386) a ~1 MB/s,
+      # o que já levou o passo a mais de 10 min. Os .deb ficam em cache: só a primeira execução
+      # (ou uma mudança na lista de pacotes) baixa do espelho.
+      - name: Cache apt packages (mingw-w64, wine32)
+        uses: actions/cache@v4
+        with:
+          path: ~/apt-archives
+          key: apt-mingw-wine32-${{ runner.os }}-ubuntu24.04-v1
+
       - name: Install mingw-w64 and wine32
-        # Já travou mais de uma vez no apt (espelho lento): cada tentativa tem limite de 5 min
-        # e o passo inteiro de 15 min, para falhar ou repetir em vez de esperar o timeout do job.
-        timeout-minutes: 15
+        timeout-minutes: 25
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo dpkg --add-architecture i386
-          apt_opts="-q -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Dpkg::Use-Pty=0"
+          mkdir -p ~/apt-archives/partial
+          apt_opts="-q -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Dpkg::Use-Pty=0 -o Dir::Cache::Archives=$HOME/apt-archives"
           for attempt in 1 2 3; do
             echo "tentativa $attempt"
-            if sudo -E timeout 300 apt-get $apt_opts update &&
-               sudo -E timeout 300 apt-get $apt_opts install -y --no-install-recommends g++-mingw-w64-i686 wine wine32:i386; then
+            if sudo -E timeout 600 apt-get $apt_opts update &&
+               sudo -E timeout 600 apt-get $apt_opts install -y --no-install-recommends g++-mingw-w64-i686 wine wine32:i386; then
               break
             fi
             [ "$attempt" = 3 ] && exit 1
             sleep 10
           done
+          sudo chown -R "$(id -u):$(id -g)" ~/apt-archives
+          du -sh ~/apt-archives
           i686-w64-mingw32-g++ --version | head -n1
           wine --version
 
