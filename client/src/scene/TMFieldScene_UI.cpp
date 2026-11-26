@@ -1078,40 +1078,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == B_QUESTLOG)
-	{
-		int nIsVisible = m_pQuestPanel->IsVisible();
-		m_pQuestPanel->SetVisible(nIsVisible == 0);
-		m_pQuestBtn->SetSelected(nIsVisible == 0);
-
-		if (!nIsVisible)
-		{
-			TMScene::LoadMsgText3(
-				m_pQuestList[0],
-				(char*)"UI\\QuestSubjects.txt",
-				pMobData->CurrentScore.Level + 1,
-				pMobData->Equip[0].sIndex % 10);
-			TMScene::LoadMsgText3(
-				m_pQuestList[1],
-				(char*)"UI\\QuestSubjects2.txt",
-				pMobData->CurrentScore.Level + 1,
-				pMobData->Equip[0].sIndex % 10);
-			TMScene::LoadMsgText3(
-				m_pQuestList[2],
-				(char*)"UI\\QuestSubjects3.txt",
-				pMobData->CurrentScore.Level + 1,
-				pMobData->Equip[0].sIndex % 10);
-			TMScene::LoadMsgText3(
-				m_pQuestList[3],
-				(char*)"UI\\QuestSubjects4.txt",
-				pMobData->CurrentScore.Level + 1,
-				pMobData->Equip[0].sIndex % 10);
-		}
-
-		// Open the mortal quests list as default
-		OnControlEvent(B_QUEST_BUTTON, 0);
-		GetSoundAndPlay(51, 0, 0);
-		return 0;
-	}
+		return OnControl_QuestLog(idwControlID, idwEvent, pMobData);
 	if (idwControlID == 1054260)
 	{
 		TMScene::LoadMsgText2(

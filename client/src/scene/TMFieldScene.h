@@ -286,6 +286,7 @@ private:
 	int OnControl_QuestMemo(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_CCAttack(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_CCMove(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_QuestLog(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	/// @}
 
 public:

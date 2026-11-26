@@ -1436,3 +1436,41 @@ int TMFieldScene::OnControl_CCMove(unsigned int idwControlID, unsigned int idwEv
 	m_AutoStartPointY = startY;
 	return 1;
 }
+
+/// Abertura do log de quests (`B_QUESTLOG`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_QuestLog(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData)
+{
+	int nIsVisible = m_pQuestPanel->IsVisible();
+	m_pQuestPanel->SetVisible(nIsVisible == 0);
+	m_pQuestBtn->SetSelected(nIsVisible == 0);
+
+	if (!nIsVisible)
+	{
+		TMScene::LoadMsgText3(
+			m_pQuestList[0],
+			(char*)"UI\\QuestSubjects.txt",
+			pMobData->CurrentScore.Level + 1,
+			pMobData->Equip[0].sIndex % 10);
+		TMScene::LoadMsgText3(
+			m_pQuestList[1],
+			(char*)"UI\\QuestSubjects2.txt",
+			pMobData->CurrentScore.Level + 1,
+			pMobData->Equip[0].sIndex % 10);
+		TMScene::LoadMsgText3(
+			m_pQuestList[2],
+			(char*)"UI\\QuestSubjects3.txt",
+			pMobData->CurrentScore.Level + 1,
+			pMobData->Equip[0].sIndex % 10);
+		TMScene::LoadMsgText3(
+			m_pQuestList[3],
+			(char*)"UI\\QuestSubjects4.txt",
+			pMobData->CurrentScore.Level + 1,
+			pMobData->Equip[0].sIndex % 10);
+	}
+
+	// Open the mortal quests list as default
+	OnControlEvent(B_QUEST_BUTTON, 0);
+	GetSoundAndPlay(51, 0, 0);
+	return 0;
+}
