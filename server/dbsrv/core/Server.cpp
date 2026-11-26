@@ -627,7 +627,9 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			 int User = -1;
 			 int i = 0;
 
-			 for(i = 0; i <= MAX_ADMIN; i++)
+			 // Era i <= MAX_ADMIN: lia pAdmin[MAX_ADMIN], além do fim. Com -O2 o GCC usa esse
+			 // comportamento indefinido para tirar o limite do laço, que varria a memória até cair.
+			 for(i = 0; i < MAX_ADMIN; i++)
 			 {   
 				 if(pAdmin[i].IP == TempUser.IP) 
 				 {
