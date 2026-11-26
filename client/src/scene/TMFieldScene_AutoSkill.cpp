@@ -472,78 +472,7 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 		int nMY = (int)m_pMyHuman->m_vecPosition.y;
 		int nMobCount = 0;
 
-		while (pNode && nMobCount <= 1000)
-		{
-			++nMobCount;
-
-			if (pNode == m_pMyHuman)
-			{
-				pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
-				continue;
-			}
-
-			int nDX = (int)pNode->m_vecPosition.x;
-			int nDY = (int)pNode->m_vecPosition.y;
-			int x1 = (int)m_pMyHuman->m_vecPosition.x;
-			int y1 = (int)m_pMyHuman->m_vecPosition.y;
-			if (m_stMoveStop.NextX)
-			{
-				x1 = m_stMoveStop.NextX;
-				y1 = m_stMoveStop.NextY;
-			}
-
-			int nDistanceFromMe = BASE_GetDistance(x1, y1, nDX, nDY);
-			if (pNode->m_nClass == 56 && !pNode->m_stLookInfo.FaceMesh)
-			{
-				nDistanceFromMe -= 12;
-				if (nDistanceFromMe < 0)
-					nDistanceFromMe = 0;
-			}
-
-			if (nDistanceFromMe <= nMastery + 3)
-			{
-				float fNodeAngle = atan2f(pNode->m_vecPosition.x - m_pMyHuman->m_vecPosition.x,
-					pNode->m_vecPosition.y - m_pMyHuman->m_vecPosition.y);
-			
-				if (fabsf(fNodeAngle - fMyAngle) >= 0.78539819f)
-				{
-					int nDTX = nDX;
-					int nDTY = nDY;
-					BASE_GetHitPosition(x1, y1, &nDTX, &nDTY, (char*)m_HeightMapData, 8);
-					if (pNode->m_nClass == 56 && !pNode->m_stLookInfo.FaceMesh)
-					{
-						nDTX = nDX;
-						nDTY = nDY;
-					}
-
-					if (nDTX != nDX || nDTY != nDY)
-					{
-						pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
-						continue;
-					}
-					if (pNode->m_cDie == 1)
-					{
-						pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
-						continue;
-					}
-
-					if (!TMFieldScene::m_bPK && pNode->m_dwID > 0 && pNode->m_dwID < 1000)
-					{
-						pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
-						continue;
-					}
-
-					stAttack.Dam[nTargetIndex].TargetID = pNode->m_dwID;
-					stAttack.Dam[nTargetIndex++].Damage = -1;
-					stAttack.TargetX = nDX;
-					stAttack.TargetY = nDY;
-				}
-			}
-
-			pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
-			if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget <= nTargetIndex || nTargetIndex >= 13)
-				break;
-		}
+		AutoSkillUse_CollectSelfAreaTargets(cSkillIndex, stAttack, nTargetIndex, pNode, fMyAngle, nMastery, nMobCount);
 	}
 	else if (g_pSpell[(unsigned char)cSkillIndex].TargetType == 3 || g_pSpell[(unsigned char)cSkillIndex].TargetType == 4 || g_pSpell[(unsigned char)cSkillIndex].TargetType == 6)
 	{
@@ -1045,6 +974,84 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 		{ nReturnValue = 0; return true; }
 }
 	return false;
+}
+
+/// `TargetType` 5: percorre os personagens próximos e preenche `stAttack.Dam` com os alvos dentro do alcance.
+/// @note Extraído de `TMFieldScene::AutoSkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+void TMFieldScene::AutoSkillUse_CollectSelfAreaTargets(char& cSkillIndex, MSG_Attack& stAttack, int& nTargetIndex, TMHuman*& pNode, float& fMyAngle, int& nMastery, int& nMobCount)
+{
+	while (pNode && nMobCount <= 1000)
+	{
+		++nMobCount;
+
+		if (pNode == m_pMyHuman)
+		{
+			pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
+			continue;
+		}
+
+		int nDX = (int)pNode->m_vecPosition.x;
+		int nDY = (int)pNode->m_vecPosition.y;
+		int x1 = (int)m_pMyHuman->m_vecPosition.x;
+		int y1 = (int)m_pMyHuman->m_vecPosition.y;
+		if (m_stMoveStop.NextX)
+		{
+			x1 = m_stMoveStop.NextX;
+			y1 = m_stMoveStop.NextY;
+		}
+
+		int nDistanceFromMe = BASE_GetDistance(x1, y1, nDX, nDY);
+		if (pNode->m_nClass == 56 && !pNode->m_stLookInfo.FaceMesh)
+		{
+			nDistanceFromMe -= 12;
+			if (nDistanceFromMe < 0)
+				nDistanceFromMe = 0;
+		}
+
+		if (nDistanceFromMe <= nMastery + 3)
+		{
+			float fNodeAngle = atan2f(pNode->m_vecPosition.x - m_pMyHuman->m_vecPosition.x,
+				pNode->m_vecPosition.y - m_pMyHuman->m_vecPosition.y);
+		
+			if (fabsf(fNodeAngle - fMyAngle) >= 0.78539819f)
+			{
+				int nDTX = nDX;
+				int nDTY = nDY;
+				BASE_GetHitPosition(x1, y1, &nDTX, &nDTY, (char*)m_HeightMapData, 8);
+				if (pNode->m_nClass == 56 && !pNode->m_stLookInfo.FaceMesh)
+				{
+					nDTX = nDX;
+					nDTY = nDY;
+				}
+
+				if (nDTX != nDX || nDTY != nDY)
+				{
+					pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
+					continue;
+				}
+				if (pNode->m_cDie == 1)
+				{
+					pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
+					continue;
+				}
+
+				if (!TMFieldScene::m_bPK && pNode->m_dwID > 0 && pNode->m_dwID < 1000)
+				{
+					pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
+					continue;
+				}
+
+				stAttack.Dam[nTargetIndex].TargetID = pNode->m_dwID;
+				stAttack.Dam[nTargetIndex++].Damage = -1;
+				stAttack.TargetX = nDX;
+				stAttack.TargetY = nDY;
+			}
+		}
+
+		pNode = static_cast<TMHuman*>(pNode->m_pNextLink);
+		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget <= nTargetIndex || nTargetIndex >= 13)
+			break;
+	}
 }
 
 /// Validações de PK/guerra de guilda antes da skill automática em jogador.
