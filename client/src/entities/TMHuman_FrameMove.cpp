@@ -346,256 +346,7 @@ int TMHuman::FrameMove(unsigned int dwServerTime)
     FrameMove_SkinMesh20Effect(dwServerTime);
     if (m_pSkinMesh)
     {
-        if (!m_bVisible && m_bDoubleAttack == 1)
-        {
-            unsigned int dwFPS = m_pSkinMesh->m_dwFPS;
-            int nSkinMeshType = m_nSkinMeshType;
-            int nAniIndex = m_pSkinMesh->m_nAniIndex;
-            unsigned int dwMod = MeshManager::m_BoneAnimationList[nSkinMeshType].numAniCut[nAniIndex];
-
-            if (dwServerTime > m_dwStartAnimationTime + 4 * dwMod * dwFPS)
-            {
-                if (m_nLoop == 0)
-                {
-                    if (m_eMotion != ECHAR_MOTION::ECMOTION_DIE && m_bDoubleAttack == 1)
-                        m_bDoubleAttack = 0;
-                }
-                else if (m_nLoop == 1)
-                {
-                    if ((int)m_eMotion < 4 || (int)m_eMotion > 9)
-                        m_bDoubleAttack = 0;
-                    else if (!g_pEventTranslator->button[0] && dwServerTime > m_dwStartAnimationTime + 4 * dwMod * m_pSkinMesh->m_dwFPS)
-                    {
-                        SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
-                        m_bDoubleAttack = 0;
-                    }
-                }
-            }
-        }
-        else if (m_bVisible == 1)
-        {
-            SetColorMaterial();
-            unsigned int dwFPS = m_pSkinMesh->m_dwFPS;
-            int nSkinMeshType = m_nSkinMeshType;
-            int nAniIndex = m_pSkinMesh->m_nAniIndex;
-
-            if (m_cMount)
-            {
-                if (m_pMount)
-                {
-                    m_pMount->FrameMove(dwServerTime);
-                    if (m_eMotion == ECHAR_MOTION::ECMOTION_DIE)
-                    {
-                        nSkinMeshType = m_nMountSkinMeshType;
-                        dwFPS = m_pMount->m_dwFPS;
-                        nAniIndex = m_pMount->m_nAniIndex;
-                    }
-                }
-            }
-
-            m_pSkinMesh->FrameMove(dwServerTime);
-            if (m_cMantua > 0 && m_pMantua)
-                m_pMantua->FrameMove(dwServerTime);
-
-            unsigned int dwMod = MeshManager::m_BoneAnimationList[nSkinMeshType].numAniCut[nAniIndex];
-            if (dwMod > 2)
-                dwMod -= 2;
-
-            if ((m_dwID > 0 && m_dwID < 1000) && m_bDoubleAttack == 1 && m_eMotion == ECHAR_MOTION::ECMOTION_RUN)
-                m_bDoubleAttack = 0;
-
-            if (dwServerTime > m_dwStartAnimationTime + 4 * dwMod * dwFPS)
-            {
-                if (m_nLoop == 0)
-                {
-                    if (m_eMotion == ECHAR_MOTION::ECMOTION_DIE)
-                    {
-                        SetAnimation(ECHAR_MOTION::ECMOTION_DEAD, 1);
-                        if (m_nClass == 64 && m_sHeadIndex == 397)
-                        {
-                            m_cHide = 1;
-                            TMEffectParticle* pParticle = new TMEffectParticle(TMVector3(m_vecPosition.x, m_fHeight, m_vecPosition.y),
-                                0,
-                                8,
-                                10.0f,
-                                0xFFFF3333,
-                                1,
-                                56,
-                                1.0f,
-                                1,
-                                TMVector3(0.0f, 0.0f, 0.0f), 1000);
-
-                            if (pParticle)
-                                g_pCurrentScene->m_pEffectContainer->AddChild(pParticle);
-                        }
-                        if (g_pCurrentScene->m_pMyHuman == this)
-                        {
-                            TMFieldScene* pFScene = (TMFieldScene*)g_pCurrentScene;
-                            if (!IsInTown())
-                            {
-                                pFScene->m_pMessageBox->SetMessage(g_pMessageStringTable[27], 11u, 0);
-                                pFScene->m_pMessageBox->SetVisible(1);
-                            }
-                        }
-                        else
-                        {
-                            if (m_dwID >= 0 && m_dwID < 1000)
-                            {
-                                if (!m_dwDeadTime)
-                                    m_dwDeadTime = dwServerTime;
-                                if (!m_cClone)
-                                    m_nWillDie = 1;
-                            }
-                        }
-                        m_bDoubleAttack = 0;
-                    }
-                    else if (m_eMotion == ECHAR_MOTION::ECMOTION_SEAT)
-                        SetAnimation(ECHAR_MOTION::ECMOTION_SEATING, 1);
-                    else if (m_eMotion == ECHAR_MOTION::ECMOTION_PUNISH)
-                        SetAnimation(ECHAR_MOTION::ECMOTION_PUNISHING, 1);
-                    else if (m_bDoubleAttack == 1)
-                    {
-                        if (m_nClass == 33 && m_eMotion == ECHAR_MOTION::ECMOTION_ATTACK01)
-                        {
-                            m_pSkinMesh->m_nAniIndex = 0;
-                            SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK01, 0);
-                        }
-                        else if (m_eMotion == ECHAR_MOTION::ECMOTION_ATTACK01)
-                        {
-                            m_pSkinMesh->m_nAniIndex = 0;
-                            SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK02, 0);
-                        }
-                        else if (m_eMotion == ECHAR_MOTION::ECMOTION_ATTACK02)
-                        {
-                            m_pSkinMesh->m_nAniIndex = 0;
-                            SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK03, 0);
-                        }
-                        else if (m_eMotion == ECHAR_MOTION::ECMOTION_ATTACK03)
-                        {
-                            m_pSkinMesh->m_nAniIndex = 0;
-                            SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK01, 0);
-                        }
-                        m_bDoubleAttack = 0;
-                    }
-                    else if (m_bSkill != 1 || m_nMotionIndex < 0 || m_nMotionIndex >= 3 || m_eMotionBuffer[m_nMotionIndex + 1] == ECHAR_MOTION::ECMOTION_NONE)
-                    {
-                        if (m_eMotion == ECHAR_MOTION::ECMOTION_HOLYTOUCH || m_eMotion == ECHAR_MOTION::ECMOTION_RELAX)
-                        {
-                            float fEffectLen = 1.0f;
-                            if (m_cMount == 1)
-                                fEffectLen = 1.5f;
-
-                            if (m_bSwordShadow[0] == 1 && m_pSkinMesh->m_pSwingEffect[0])
-                            {
-                                if (m_nWeaponTypeL == 41 && m_pSkinMesh->m_pSwingEffect[1])
-                                    m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
-                                else
-                                    m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[0] * fEffectLen;
-
-                                m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwServerTime;
-                            }
-                            if (m_bSwordShadow[1] == 1 && m_pSkinMesh->m_pSwingEffect[1])
-                            {
-                                m_pSkinMesh->m_pSwingEffect[1]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
-                                m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwServerTime;
-                            }
-                        }
-                        m_cPunish = 0;
-                        m_bSkill = 0;
-                        m_nMotionIndex = -1;
-                        for (int n = 0; n < 4; ++n)
-                            m_eMotionBuffer[n] = ECHAR_MOTION::ECMOTION_NONE;
-
-                        if (m_pSkinMesh->m_pSwingEffect[0])
-                            m_pSkinMesh->m_pSwingEffect[0]->m_cFireEffect = 0;
-                        if (m_pSkinMesh->m_pSwingEffect[1])
-                            m_pSkinMesh->m_pSwingEffect[1]->m_cFireEffect = 0;
-                        if (m_pSkinMesh->m_pSwingEffect[0])
-                            m_pSkinMesh->m_pSwingEffect[0]->m_cGoldPiece = 0;
-                        if (m_pSkinMesh->m_pSwingEffect[1])
-                            m_pSkinMesh->m_pSwingEffect[1]->m_cGoldPiece = 0;
-
-                        SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
-                        m_bDoubleAttack = 0;
-                    }
-                    else
-                    {
-                        SetAnimation(m_eMotionBuffer[++m_nMotionIndex], 0);
-                    }
-                }
-                else if (m_nLoop == 1)
-                {
-                    if ((int)m_eMotion >= 4 && (int)m_eMotion <= 6)
-                    {
-                        float fEffectLen = 1.0f;
-                        if (m_cMount == 1)
-                            fEffectLen = 1.5;
-
-                        if (m_bSwordShadow[0] == 1 && m_pSkinMesh->m_pSwingEffect[0])
-                        {
-                            if (m_nWeaponTypeL == 41 && m_pSkinMesh->m_pSwingEffect[1])
-                                m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
-                            else
-                                m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[0] * fEffectLen;
-                            m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwServerTime;
-                        }
-                        if (m_bSwordShadow[1] == 1 && m_pSkinMesh->m_pSwingEffect[1])
-                        {
-                            m_pSkinMesh->m_pSwingEffect[1]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
-                            m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwServerTime;
-                        }
-                        if (!g_pEventTranslator->button[0] && dwServerTime > m_dwStartAnimationTime + 4 * dwMod * m_pSkinMesh->m_dwFPS)
-                        {
-                            SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
-                            m_bDoubleAttack = 0;
-                        }
-                    }
-                    else if ((int)m_eMotion >= 7 && (int)m_eMotion <= 9)
-                    {
-                        float fEffectLen = 1.0f;
-                        if (m_cMount == 1)
-                            fEffectLen = 1.5f;
-                        if (m_bSwordShadow[0] == 1)
-                        {
-                            if (m_pSkinMesh->m_pSwingEffect[0])
-                            {
-                                if (m_nWeaponTypeL == 41 && m_pSkinMesh->m_pSwingEffect[1])
-                                    m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
-                                else
-                                    m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[0] * fEffectLen;
-                            }
-                            if (m_pSkinMesh->m_pSwingEffect[0])
-                                m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwServerTime;
-                        }
-                        if (m_bSwordShadow[1] == 1)
-                        {
-                            if (m_pSkinMesh->m_pSwingEffect[1])
-                                m_pSkinMesh->m_pSwingEffect[1]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
-                            if (m_pSkinMesh->m_pSwingEffect[1])
-                                m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwServerTime;
-                        }
-                        if (!g_pEventTranslator->button[1] && dwServerTime > m_dwStartAnimationTime + 4 * dwMod * m_pSkinMesh->m_dwFPS)
-                        {
-                            SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
-                            m_bDoubleAttack = 0;
-                        }
-                    }
-                    else
-                    {
-                        m_bDoubleAttack = 0;
-                    }
-                }
-            }
-            AnimationFrame(nWalkSndIndex);
-
-            if (m_pShade)
-            {
-                if (m_cMount && m_pMount)
-                    m_pShade->SetPosition(TMVector2(m_pMount->m_vPosition.x, m_pMount->m_vPosition.z));
-                else if(m_pSkinMesh)
-                    m_pShade->SetPosition(TMVector2(m_pSkinMesh->m_vPosition.x, m_pSkinMesh->m_vPosition.z));
-            }
-        }
+        FrameMove_HiddenDoubleAttack(dwServerTime, nWalkSndIndex);
     }
 
     return 1;
@@ -1057,6 +808,262 @@ void TMHuman::FrameMove_SkinMesh20Effect(unsigned int& dwServerTime)
                 }
             }
             m_dwLastDFire = dwServerTime;
+        }
+    }
+}
+
+/// Personagem invisível com ataque duplo: controla o fim da animação e o ataque seguinte.
+/// @note Extraído de `TMHuman::FrameMove` (Fase 3); locais passadas por referência.
+void TMHuman::FrameMove_HiddenDoubleAttack(unsigned int& dwServerTime, int& nWalkSndIndex)
+{
+    if (!m_bVisible && m_bDoubleAttack == 1)
+    {
+        unsigned int dwFPS = m_pSkinMesh->m_dwFPS;
+        int nSkinMeshType = m_nSkinMeshType;
+        int nAniIndex = m_pSkinMesh->m_nAniIndex;
+        unsigned int dwMod = MeshManager::m_BoneAnimationList[nSkinMeshType].numAniCut[nAniIndex];
+
+        if (dwServerTime > m_dwStartAnimationTime + 4 * dwMod * dwFPS)
+        {
+            if (m_nLoop == 0)
+            {
+                if (m_eMotion != ECHAR_MOTION::ECMOTION_DIE && m_bDoubleAttack == 1)
+                    m_bDoubleAttack = 0;
+            }
+            else if (m_nLoop == 1)
+            {
+                if ((int)m_eMotion < 4 || (int)m_eMotion > 9)
+                    m_bDoubleAttack = 0;
+                else if (!g_pEventTranslator->button[0] && dwServerTime > m_dwStartAnimationTime + 4 * dwMod * m_pSkinMesh->m_dwFPS)
+                {
+                    SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
+                    m_bDoubleAttack = 0;
+                }
+            }
+        }
+    }
+    else if (m_bVisible == 1)
+    {
+        SetColorMaterial();
+        unsigned int dwFPS = m_pSkinMesh->m_dwFPS;
+        int nSkinMeshType = m_nSkinMeshType;
+        int nAniIndex = m_pSkinMesh->m_nAniIndex;
+
+        if (m_cMount)
+        {
+            if (m_pMount)
+            {
+                m_pMount->FrameMove(dwServerTime);
+                if (m_eMotion == ECHAR_MOTION::ECMOTION_DIE)
+                {
+                    nSkinMeshType = m_nMountSkinMeshType;
+                    dwFPS = m_pMount->m_dwFPS;
+                    nAniIndex = m_pMount->m_nAniIndex;
+                }
+            }
+        }
+
+        m_pSkinMesh->FrameMove(dwServerTime);
+        if (m_cMantua > 0 && m_pMantua)
+            m_pMantua->FrameMove(dwServerTime);
+
+        unsigned int dwMod = MeshManager::m_BoneAnimationList[nSkinMeshType].numAniCut[nAniIndex];
+        if (dwMod > 2)
+            dwMod -= 2;
+
+        if ((m_dwID > 0 && m_dwID < 1000) && m_bDoubleAttack == 1 && m_eMotion == ECHAR_MOTION::ECMOTION_RUN)
+            m_bDoubleAttack = 0;
+
+        if (dwServerTime > m_dwStartAnimationTime + 4 * dwMod * dwFPS)
+        {
+            if (m_nLoop == 0)
+            {
+                if (m_eMotion == ECHAR_MOTION::ECMOTION_DIE)
+                {
+                    SetAnimation(ECHAR_MOTION::ECMOTION_DEAD, 1);
+                    if (m_nClass == 64 && m_sHeadIndex == 397)
+                    {
+                        m_cHide = 1;
+                        TMEffectParticle* pParticle = new TMEffectParticle(TMVector3(m_vecPosition.x, m_fHeight, m_vecPosition.y),
+                            0,
+                            8,
+                            10.0f,
+                            0xFFFF3333,
+                            1,
+                            56,
+                            1.0f,
+                            1,
+                            TMVector3(0.0f, 0.0f, 0.0f), 1000);
+
+                        if (pParticle)
+                            g_pCurrentScene->m_pEffectContainer->AddChild(pParticle);
+                    }
+                    if (g_pCurrentScene->m_pMyHuman == this)
+                    {
+                        TMFieldScene* pFScene = (TMFieldScene*)g_pCurrentScene;
+                        if (!IsInTown())
+                        {
+                            pFScene->m_pMessageBox->SetMessage(g_pMessageStringTable[27], 11u, 0);
+                            pFScene->m_pMessageBox->SetVisible(1);
+                        }
+                    }
+                    else
+                    {
+                        if (m_dwID >= 0 && m_dwID < 1000)
+                        {
+                            if (!m_dwDeadTime)
+                                m_dwDeadTime = dwServerTime;
+                            if (!m_cClone)
+                                m_nWillDie = 1;
+                        }
+                    }
+                    m_bDoubleAttack = 0;
+                }
+                else if (m_eMotion == ECHAR_MOTION::ECMOTION_SEAT)
+                    SetAnimation(ECHAR_MOTION::ECMOTION_SEATING, 1);
+                else if (m_eMotion == ECHAR_MOTION::ECMOTION_PUNISH)
+                    SetAnimation(ECHAR_MOTION::ECMOTION_PUNISHING, 1);
+                else if (m_bDoubleAttack == 1)
+                {
+                    if (m_nClass == 33 && m_eMotion == ECHAR_MOTION::ECMOTION_ATTACK01)
+                    {
+                        m_pSkinMesh->m_nAniIndex = 0;
+                        SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK01, 0);
+                    }
+                    else if (m_eMotion == ECHAR_MOTION::ECMOTION_ATTACK01)
+                    {
+                        m_pSkinMesh->m_nAniIndex = 0;
+                        SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK02, 0);
+                    }
+                    else if (m_eMotion == ECHAR_MOTION::ECMOTION_ATTACK02)
+                    {
+                        m_pSkinMesh->m_nAniIndex = 0;
+                        SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK03, 0);
+                    }
+                    else if (m_eMotion == ECHAR_MOTION::ECMOTION_ATTACK03)
+                    {
+                        m_pSkinMesh->m_nAniIndex = 0;
+                        SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK01, 0);
+                    }
+                    m_bDoubleAttack = 0;
+                }
+                else if (m_bSkill != 1 || m_nMotionIndex < 0 || m_nMotionIndex >= 3 || m_eMotionBuffer[m_nMotionIndex + 1] == ECHAR_MOTION::ECMOTION_NONE)
+                {
+                    if (m_eMotion == ECHAR_MOTION::ECMOTION_HOLYTOUCH || m_eMotion == ECHAR_MOTION::ECMOTION_RELAX)
+                    {
+                        float fEffectLen = 1.0f;
+                        if (m_cMount == 1)
+                            fEffectLen = 1.5f;
+
+                        if (m_bSwordShadow[0] == 1 && m_pSkinMesh->m_pSwingEffect[0])
+                        {
+                            if (m_nWeaponTypeL == 41 && m_pSkinMesh->m_pSwingEffect[1])
+                                m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
+                            else
+                                m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[0] * fEffectLen;
+
+                            m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwServerTime;
+                        }
+                        if (m_bSwordShadow[1] == 1 && m_pSkinMesh->m_pSwingEffect[1])
+                        {
+                            m_pSkinMesh->m_pSwingEffect[1]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
+                            m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwServerTime;
+                        }
+                    }
+                    m_cPunish = 0;
+                    m_bSkill = 0;
+                    m_nMotionIndex = -1;
+                    for (int n = 0; n < 4; ++n)
+                        m_eMotionBuffer[n] = ECHAR_MOTION::ECMOTION_NONE;
+
+                    if (m_pSkinMesh->m_pSwingEffect[0])
+                        m_pSkinMesh->m_pSwingEffect[0]->m_cFireEffect = 0;
+                    if (m_pSkinMesh->m_pSwingEffect[1])
+                        m_pSkinMesh->m_pSwingEffect[1]->m_cFireEffect = 0;
+                    if (m_pSkinMesh->m_pSwingEffect[0])
+                        m_pSkinMesh->m_pSwingEffect[0]->m_cGoldPiece = 0;
+                    if (m_pSkinMesh->m_pSwingEffect[1])
+                        m_pSkinMesh->m_pSwingEffect[1]->m_cGoldPiece = 0;
+
+                    SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
+                    m_bDoubleAttack = 0;
+                }
+                else
+                {
+                    SetAnimation(m_eMotionBuffer[++m_nMotionIndex], 0);
+                }
+            }
+            else if (m_nLoop == 1)
+            {
+                if ((int)m_eMotion >= 4 && (int)m_eMotion <= 6)
+                {
+                    float fEffectLen = 1.0f;
+                    if (m_cMount == 1)
+                        fEffectLen = 1.5;
+
+                    if (m_bSwordShadow[0] == 1 && m_pSkinMesh->m_pSwingEffect[0])
+                    {
+                        if (m_nWeaponTypeL == 41 && m_pSkinMesh->m_pSwingEffect[1])
+                            m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
+                        else
+                            m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[0] * fEffectLen;
+                        m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwServerTime;
+                    }
+                    if (m_bSwordShadow[1] == 1 && m_pSkinMesh->m_pSwingEffect[1])
+                    {
+                        m_pSkinMesh->m_pSwingEffect[1]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
+                        m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwServerTime;
+                    }
+                    if (!g_pEventTranslator->button[0] && dwServerTime > m_dwStartAnimationTime + 4 * dwMod * m_pSkinMesh->m_dwFPS)
+                    {
+                        SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
+                        m_bDoubleAttack = 0;
+                    }
+                }
+                else if ((int)m_eMotion >= 7 && (int)m_eMotion <= 9)
+                {
+                    float fEffectLen = 1.0f;
+                    if (m_cMount == 1)
+                        fEffectLen = 1.5f;
+                    if (m_bSwordShadow[0] == 1)
+                    {
+                        if (m_pSkinMesh->m_pSwingEffect[0])
+                        {
+                            if (m_nWeaponTypeL == 41 && m_pSkinMesh->m_pSwingEffect[1])
+                                m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
+                            else
+                                m_pSkinMesh->m_pSwingEffect[0]->m_fEffectLength = m_fSowrdLength[0] * fEffectLen;
+                        }
+                        if (m_pSkinMesh->m_pSwingEffect[0])
+                            m_pSkinMesh->m_pSwingEffect[0]->m_dwStartTime = dwServerTime;
+                    }
+                    if (m_bSwordShadow[1] == 1)
+                    {
+                        if (m_pSkinMesh->m_pSwingEffect[1])
+                            m_pSkinMesh->m_pSwingEffect[1]->m_fEffectLength = m_fSowrdLength[1] * fEffectLen;
+                        if (m_pSkinMesh->m_pSwingEffect[1])
+                            m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwServerTime;
+                    }
+                    if (!g_pEventTranslator->button[1] && dwServerTime > m_dwStartAnimationTime + 4 * dwMod * m_pSkinMesh->m_dwFPS)
+                    {
+                        SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
+                        m_bDoubleAttack = 0;
+                    }
+                }
+                else
+                {
+                    m_bDoubleAttack = 0;
+                }
+            }
+        }
+        AnimationFrame(nWalkSndIndex);
+
+        if (m_pShade)
+        {
+            if (m_cMount && m_pMount)
+                m_pShade->SetPosition(TMVector2(m_pMount->m_vPosition.x, m_pMount->m_vPosition.z));
+            else if(m_pSkinMesh)
+                m_pShade->SetPosition(TMVector2(m_pSkinMesh->m_vPosition.x, m_pSkinMesh->m_vPosition.z));
         }
     }
 }
