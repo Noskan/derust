@@ -351,185 +351,10 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 			m_pMiniBtn->m_bSelected = m_pMiniPanel->m_bVisible;
 		return 0;
 	}
-	if (idwControlID == B_SYS_SERVER)
 	{
-		if (!m_pServerPanel)
-		{
-			m_dwLastSelServer = g_pTimerManager->GetServerTime();
-			MSG_STANDARDPARM stParm{};
-			stParm.Header.ID = m_pMyHuman->m_dwID;
-			stParm.Header.Type = MSG_SysQuit_Opcode;
-			g_pSocketManager->SendOneMessage((char*)&stParm, sizeof(stParm));
-			return 1;
-		}
-
-		m_pSystemPanel->SetVisible(0);
-
-		m_pMessagePanel->SetMessage(g_pMessageStringTable[23], 0);
-		m_pMessagePanel->SetVisible(1, 0);
-
-		auto serverGroup = 0; // v445
-		for (int nn = 0; nn < MAX_SERVERNUMBER; ++nn)
-		{
-			if (!g_pServerList[nn][0][0])
-			{
-				serverGroup = nn - 1;
-				break;
-			}
-		}
-
-		int nDay[10] = { 0 }; // v678;
-
-		_SYSTEMTIME time{};
-		GetLocalTime(&time);
-		int wDay = time.wDay % 10;
-		if (!wDay)
-			wDay = 10;
-
-		for (int i = 0; i < MAX_SERVERGROUP; ++i)
-		{
-			for (int k = 1; k < MAX_SERVERNUMBER; ++k)
-				if (g_pServerList[i][k][0] != 0)
-					++nDay[i];
-
-			if (nDay[i])
-				nDay[i] = !(time.wDay % nDay[i]) ? nDay[i] : time.wDay % nDay[i];
-		}
-
-		auto currentServerGroupIndex = g_pObjectManager->m_nServerGroupIndex; // v438
-
-		char szUserCount[1024] = { 0 };
-		int nUserCount[MAX_SERVERNUMBER] = { 0 };
-		int nUserCount2[MAX_SERVERNUMBER] = { 0 };
-		if (currentServerGroupIndex == serverGroup)
-		{
-			for (int i = serverGroup; i < MAX_SERVERGROUP; ++i)
-				g_pServerList[i][0][0] = 0;
-
-			for (int i = 0; i < serverGroup; ++i)
-			{
-				memset(nUserCount2, -1, sizeof nUserCount2);
-				BASE_GetHttpRequest(g_pServerList[i][0], szUserCount, sizeof szUserCount);
-
-				sscanf_s(szUserCount, "%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n",
-					&nUserCount2[0], &nUserCount2[1], &nUserCount2[2], &nUserCount2[3], &nUserCount2[4], &nUserCount2[5],
-					&nUserCount2[6], &nUserCount2[7], &nUserCount2[8], &nUserCount2[9], &nUserCount2[10]);
-
-				// 
-				nUserCount[nDay[serverGroup- i]] = nUserCount2[nDay[serverGroup - i]];
-				sprintf_s(g_pServerList[currentServerGroupIndex][i + 1], "%s", g_pServerList[serverGroup - i - 1][nDay[serverGroup - i] + 1]);
-			}
-		}
-		else
-		{
-			BASE_GetHttpRequest(g_pServerList[currentServerGroupIndex][0], szUserCount, sizeof szUserCount);
-			sscanf_s(szUserCount, "%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n",
-				&nUserCount[0], &nUserCount[1], &nUserCount[2], &nUserCount[3], &nUserCount[4], &nUserCount[5],
-				&nUserCount[6], &nUserCount[7], &nUserCount[8], &nUserCount[9]);
-		}
-
-		m_pMessagePanel->SetVisible(0, 1);
-
-		SListBox* pServerList = m_pServerList;
-		if (pServerList)
-		{
-			pServerList->Empty();
-			for (int num = 1;; ++num)
-			{
-				if (num >= MAX_SERVERNUMBER)
-				{
-					pServerList->SetVisible(1);
-
-					if (m_pServerPanel)
-						m_pServerPanel->SetVisible(1);
-					break;
-				}
-
-				if (g_pServerList[currentServerGroupIndex][num][0])
-				{
-					char iStrText[32] = { 0 }; // original = 14
-					if (serverGroup == currentServerGroupIndex)
-					{
-						if (currentServerGroupIndex - num < 0)
-							continue;
-
-						if (g_szServerName[currentServerGroupIndex - num][nDay[currentServerGroupIndex - num]][0])
-							sprintf_s(iStrText, "%s-%s", g_szServerNameList[currentServerGroupIndex - num], g_szServerName[currentServerGroupIndex - num][nDay[currentServerGroupIndex - num] - 1]);
-						else
-						{
-							sprintf_s(iStrText, "%s-%d", g_szServerNameList[currentServerGroupIndex - num], nDay[currentServerGroupIndex - num]);
-							if (nUserCount[num] > 500)
-							{
-								int len = strlen(iStrText);
-
-								if (len < 14)
-								{
-									for (int n1 = len; n1 < len; ++n1)
-										iStrText[n1] = ' ';
-								}
-
-								iStrText[14] = 0;
-								strcat(iStrText, "FULL");
-							}
-						}
-					}
-					else if (g_szServerNameList[currentServerGroupIndex][0])
-					{
-						if (g_szServerName[currentServerGroupIndex][num - 1][0])
-							sprintf_s(iStrText, "%s-%s", g_szServerNameList[currentServerGroupIndex], g_szServerName[currentServerGroupIndex][num - 1]);
-						else
-						{
-							sprintf_s(iStrText, "%s-%d", g_szServerNameList[currentServerGroupIndex], num);
-
-							if (nUserCount[num] > 600)
-							{
-								int len = strlen(iStrText);
-
-								if (len < 14)
-								{
-									for (int n1 = len; n1 < len; ++n1)
-										iStrText[n1] = ' ';
-								}
-
-								iStrText[14] = 0;
-								strcat(iStrText, "FULL");
-							}
-						}
-					}
-					else
-						sprintf_s(iStrText, g_pMessageStringTable[68], num + 1, num);
-
-					int nCount = nUserCount[num];
-					if (nCount < 0)
-						nCount = 0;
-
-					int nTextureSet = -1;
-					if (nDay[currentServerGroupIndex] == num)
-						nTextureSet = -2;
-
-					if (currentServerGroupIndex == serverGroup)
-						nTextureSet = -2;
-
-					// -1??
-					auto server = new SListBoxServerItem(nTextureSet, iStrText, 0xFFFFFFFF, 0.0f, 0.0f, static_cast<float>(g_nChannelWidth), 16.0f, nCount, 0, 0, num);
-
-					if (nUserCount[num] < 0)
-						server->m_cConnected = 0;
-					pServerList->AddItem(server);
-				}
-				else if (serverGroup == currentServerGroupIndex && num < serverGroup)
-				{
-					char iStrTexr[14] = { 0 };
-					sprintf_s(iStrTexr, g_pMessageStringTable[70]);
-
-					auto server = new SListBoxServerItem(6, iStrTexr, 0xFFFFFFFF, 0.0f, 0.0f, static_cast<float>(g_nChannelWidth), 16.0f, nUserCount2[num], 0, 0, 0);
-					if (nUserCount[num] < 0)
-						server->m_cConnected = 0;
-
-					pServerList->AddItem(server);
-				}
-			}
-		}
+		int nReturnValue = 0;
+		if (OnControl_SysServer(idwControlID, nReturnValue))
+			return nReturnValue;
 	}
 
 	if (idwControlID == B_QUEST_BUTTON)
@@ -913,4 +738,192 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return OnControl_AutoTrade667(idwControlID, idwEvent);
 
 	return 0;
+}
+
+/// Botão de troca de servidor do menu do sistema (`B_SYS_SERVER`).
+/// @note Extraído de `TMFieldScene::OnControlEvent` (Fase 3); locais da função passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::OnControl_SysServer(unsigned int& idwControlID, int& nReturnValue)
+{
+if (idwControlID == B_SYS_SERVER)
+{
+	if (!m_pServerPanel)
+	{
+		m_dwLastSelServer = g_pTimerManager->GetServerTime();
+		MSG_STANDARDPARM stParm{};
+		stParm.Header.ID = m_pMyHuman->m_dwID;
+		stParm.Header.Type = MSG_SysQuit_Opcode;
+		g_pSocketManager->SendOneMessage((char*)&stParm, sizeof(stParm));
+		{ nReturnValue = 1; return true; }
+	}
+
+	m_pSystemPanel->SetVisible(0);
+
+	m_pMessagePanel->SetMessage(g_pMessageStringTable[23], 0);
+	m_pMessagePanel->SetVisible(1, 0);
+
+	auto serverGroup = 0; // v445
+	for (int nn = 0; nn < MAX_SERVERNUMBER; ++nn)
+	{
+		if (!g_pServerList[nn][0][0])
+		{
+			serverGroup = nn - 1;
+			break;
+		}
+	}
+
+	int nDay[10] = { 0 }; // v678;
+
+	_SYSTEMTIME time{};
+	GetLocalTime(&time);
+	int wDay = time.wDay % 10;
+	if (!wDay)
+		wDay = 10;
+
+	for (int i = 0; i < MAX_SERVERGROUP; ++i)
+	{
+		for (int k = 1; k < MAX_SERVERNUMBER; ++k)
+			if (g_pServerList[i][k][0] != 0)
+				++nDay[i];
+
+		if (nDay[i])
+			nDay[i] = !(time.wDay % nDay[i]) ? nDay[i] : time.wDay % nDay[i];
+	}
+
+	auto currentServerGroupIndex = g_pObjectManager->m_nServerGroupIndex; // v438
+
+	char szUserCount[1024] = { 0 };
+	int nUserCount[MAX_SERVERNUMBER] = { 0 };
+	int nUserCount2[MAX_SERVERNUMBER] = { 0 };
+	if (currentServerGroupIndex == serverGroup)
+	{
+		for (int i = serverGroup; i < MAX_SERVERGROUP; ++i)
+			g_pServerList[i][0][0] = 0;
+
+		for (int i = 0; i < serverGroup; ++i)
+		{
+			memset(nUserCount2, -1, sizeof nUserCount2);
+			BASE_GetHttpRequest(g_pServerList[i][0], szUserCount, sizeof szUserCount);
+
+			sscanf_s(szUserCount, "%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n",
+				&nUserCount2[0], &nUserCount2[1], &nUserCount2[2], &nUserCount2[3], &nUserCount2[4], &nUserCount2[5],
+				&nUserCount2[6], &nUserCount2[7], &nUserCount2[8], &nUserCount2[9], &nUserCount2[10]);
+
+			// 
+			nUserCount[nDay[serverGroup- i]] = nUserCount2[nDay[serverGroup - i]];
+			sprintf_s(g_pServerList[currentServerGroupIndex][i + 1], "%s", g_pServerList[serverGroup - i - 1][nDay[serverGroup - i] + 1]);
+		}
+	}
+	else
+	{
+		BASE_GetHttpRequest(g_pServerList[currentServerGroupIndex][0], szUserCount, sizeof szUserCount);
+		sscanf_s(szUserCount, "%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n",
+			&nUserCount[0], &nUserCount[1], &nUserCount[2], &nUserCount[3], &nUserCount[4], &nUserCount[5],
+			&nUserCount[6], &nUserCount[7], &nUserCount[8], &nUserCount[9]);
+	}
+
+	m_pMessagePanel->SetVisible(0, 1);
+
+	SListBox* pServerList = m_pServerList;
+	if (pServerList)
+	{
+		pServerList->Empty();
+		for (int num = 1;; ++num)
+		{
+			if (num >= MAX_SERVERNUMBER)
+			{
+				pServerList->SetVisible(1);
+
+				if (m_pServerPanel)
+					m_pServerPanel->SetVisible(1);
+				break;
+			}
+
+			if (g_pServerList[currentServerGroupIndex][num][0])
+			{
+				char iStrText[32] = { 0 }; // original = 14
+				if (serverGroup == currentServerGroupIndex)
+				{
+					if (currentServerGroupIndex - num < 0)
+						continue;
+
+					if (g_szServerName[currentServerGroupIndex - num][nDay[currentServerGroupIndex - num]][0])
+						sprintf_s(iStrText, "%s-%s", g_szServerNameList[currentServerGroupIndex - num], g_szServerName[currentServerGroupIndex - num][nDay[currentServerGroupIndex - num] - 1]);
+					else
+					{
+						sprintf_s(iStrText, "%s-%d", g_szServerNameList[currentServerGroupIndex - num], nDay[currentServerGroupIndex - num]);
+						if (nUserCount[num] > 500)
+						{
+							int len = strlen(iStrText);
+
+							if (len < 14)
+							{
+								for (int n1 = len; n1 < len; ++n1)
+									iStrText[n1] = ' ';
+							}
+
+							iStrText[14] = 0;
+							strcat(iStrText, "FULL");
+						}
+					}
+				}
+				else if (g_szServerNameList[currentServerGroupIndex][0])
+				{
+					if (g_szServerName[currentServerGroupIndex][num - 1][0])
+						sprintf_s(iStrText, "%s-%s", g_szServerNameList[currentServerGroupIndex], g_szServerName[currentServerGroupIndex][num - 1]);
+					else
+					{
+						sprintf_s(iStrText, "%s-%d", g_szServerNameList[currentServerGroupIndex], num);
+
+						if (nUserCount[num] > 600)
+						{
+							int len = strlen(iStrText);
+
+							if (len < 14)
+							{
+								for (int n1 = len; n1 < len; ++n1)
+									iStrText[n1] = ' ';
+							}
+
+							iStrText[14] = 0;
+							strcat(iStrText, "FULL");
+						}
+					}
+				}
+				else
+					sprintf_s(iStrText, g_pMessageStringTable[68], num + 1, num);
+
+				int nCount = nUserCount[num];
+				if (nCount < 0)
+					nCount = 0;
+
+				int nTextureSet = -1;
+				if (nDay[currentServerGroupIndex] == num)
+					nTextureSet = -2;
+
+				if (currentServerGroupIndex == serverGroup)
+					nTextureSet = -2;
+
+				// -1??
+				auto server = new SListBoxServerItem(nTextureSet, iStrText, 0xFFFFFFFF, 0.0f, 0.0f, static_cast<float>(g_nChannelWidth), 16.0f, nCount, 0, 0, num);
+
+				if (nUserCount[num] < 0)
+					server->m_cConnected = 0;
+				pServerList->AddItem(server);
+			}
+			else if (serverGroup == currentServerGroupIndex && num < serverGroup)
+			{
+				char iStrTexr[14] = { 0 };
+				sprintf_s(iStrTexr, g_pMessageStringTable[70]);
+
+				auto server = new SListBoxServerItem(6, iStrTexr, 0xFFFFFFFF, 0.0f, 0.0f, static_cast<float>(g_nChannelWidth), 16.0f, nUserCount2[num], 0, 0, 0);
+				if (nUserCount[num] < 0)
+					server->m_cConnected = 0;
+
+				pServerList->AddItem(server);
+			}
+		}
+	}
+}
+	return false;
 }
