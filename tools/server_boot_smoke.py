@@ -208,13 +208,15 @@ class WineHost:
     def problems(self, server):
         return wine_log_problems(server.name, server.log)
 
-    def stop(self, servers):
+    def stop(self, servers, graceful=False):
+        # O msvcrt do wine já deixa o log em disco; matar o prefixo basta.
         subprocess.run(["wineserver", "-k"], env=self.env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         for s in servers:
             try:
                 s.proc.wait(timeout=20)
             except subprocess.TimeoutExpired:
                 s.proc.kill()
+        return []
 
     def close(self):
         self.xvfb.send_signal(signal.SIGTERM)
@@ -239,12 +241,31 @@ class NativeHost:
         u.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
         u.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
         u.GetDlgItemTextW.argtypes = [wintypes.HWND, ctypes.c_int, wintypes.LPWSTR, ctypes.c_int]
+        u.GetWindowThreadProcessId.restype = wintypes.DWORD
+        u.PostThreadMessageW.argtypes = [wintypes.DWORD, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
         self.user32 = u
 
     def start(self, name, cwd):
         proc = subprocess.Popen([str(cwd / (name + ".exe"))], cwd=cwd,
                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return Server(self, name, proc, None)
+
+    def windows(self, pid):
+        """(hwnd, thread id, classe) das janelas de topo do processo."""
+        ctypes, wintypes, u = self.ctypes, self.wintypes, self.user32
+        out = []
+
+        def cb(hwnd, _):
+            owner = wintypes.DWORD()
+            tid = u.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+            if owner.value == pid:
+                cls = ctypes.create_unicode_buffer(64)
+                u.GetClassNameW(hwnd, cls, 64)
+                out.append((hwnd, tid, cls.value))
+            return True
+
+        u.EnumWindows(self.WNDENUMPROC(cb), 0)
+        return out
 
     def dialogs(self, pid):
         ctypes, wintypes, u = self.ctypes, self.wintypes, self.user32
@@ -270,11 +291,26 @@ class NativeHost:
     def problems(self, server):
         return [f'{server.name}: MessageBox "{d}"' for d in self.dialogs(server.proc.pid)]
 
-    def stop(self, servers):
-        for s in servers:
+    def stop(self, servers, graceful=False):
+        """graceful: WM_QUIT na thread das janelas. O GetMessage do WinMain devolve 0 e a saída
+        normal do CRT grava os logs (o Log() não faz fflush; matando o processo eles se perdem).
+        O WM_CLOSE não serve: os dois servidores pedem confirmação numa MessageBox."""
+        problems = []
+        for s in reversed(servers):
+            if graceful and s.proc.poll() is None:
+                tids = {tid for _, tid, cls in self.windows(s.proc.pid) if cls != "#32770"}
+                for tid in tids:
+                    self.user32.PostThreadMessageW(tid, 0x0012, 0, 0)  # WM_QUIT
+                try:
+                    code = s.proc.wait(timeout=30)
+                    if code != 0:
+                        problems.append(f"{s.name}: saiu com código {code} / 0x{code & 0xFFFFFFFF:08X} após WM_QUIT")
+                except subprocess.TimeoutExpired:
+                    problems.append(f"{s.name}: não terminou 30s após WM_QUIT")
             if s.proc.poll() is None:
                 s.proc.kill()
             s.proc.wait(timeout=20)
+        return problems
 
     def close(self):
         pass
@@ -334,6 +370,7 @@ def self_test(host, work, exe_dir, timeout):
 def boot(host, work, exe_dir, args):
     db_dir, tm_dir, game_host = prepare(work, exe_dir)
     servers = []
+    graceful = False  # só encerra com WM_QUIT se os dois chegaram ao fim do tempo no ar
     try:
         t0 = time.time()
         servers.append(host.start("DBSrv", db_dir))
@@ -352,8 +389,10 @@ def boot(host, work, exe_dir, args):
                 problems.append(f"conexão de teste em {h}:{port} recusada")
         time.sleep(args.settle)
         problems += [p for s in servers for p in s.problems()]
+        graceful = not problems
     finally:
-        host.stop(servers)
+        stop_problems = host.stop(servers, graceful=graceful)
+    problems += stop_problems
     # O TMSrv só grava "sys,start server" depois de ler o heightmap e o BASE_InitializeBaseDef;
     # sem o heightmap, o Reboot() só registra o erro e volta, e o boot pareceria bom.
     tm_log, db_log = server_log(tm_dir), server_log(db_dir)
