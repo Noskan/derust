@@ -181,6 +181,40 @@ def measure_layout(side, structs, opcodes, work):
     return sizes, fields, ops
 
 
+def flatten(structs, sizes, fields):
+    """Campos-folha de cada struct, descendo nas structs aninhadas: `Affect[].Level` é o campo Level do
+    primeiro elemento de Affect (os outros elementos repetem o mesmo layout). Campos de tipo que não é
+    struct medida (inteiros, arrays de char, unions) ficam como estão. Devolve também, por struct, as
+    posições dos blocos de bytes (`char x[N]`): ali quem envia grava bytes crus, sem campos."""
+    decls = {n: {f: d for f, d, _ in fl} for n, fl in structs.items()}
+    memo = {}
+
+    def leaves(name, depth=0):
+        if name in memo:
+            return memo[name]
+        out, blocks = {}, []
+        for f, pos in fields.get(name, {}).items():
+            d = decls.get(name, {}).get(f, "")
+            m = re.match(r"^(?:const\s+|struct\s+)*(\w+)\s+\w+((?:\[[^\]]*\])*)$", d)
+            sub = m and m.group(1)
+            # O cabeçalho fica inteiro: o servidor o declara pela macro _MSG, sem campos próprios.
+            if sub and sub in fields and sub not in (name, "MSG_STANDARD") and depth < 6:
+                arr = "[]" * len(re.findall(r"\[", m.group(2)))
+                sub_out, sub_blocks = leaves(sub, depth + 1)
+                for sf, (so, ss) in sub_out.items():
+                    out[f"{f}{arr}.{sf}"] = (pos[0] + so, ss)
+                blocks += [(pos[0] + bo, bs) for bo, bs in sub_blocks]
+            else:
+                out[f] = tuple(pos)
+                if re.match(r"^(?:unsigned\s+|signed\s+)?char\s+\w+\[", d):
+                    blocks.append(tuple(pos))
+        memo[name] = (out, blocks)
+        return memo[name]
+
+    res = {n: leaves(n) for n in fields}
+    return {n: r[0] for n, r in res.items()}, {n: r[1] for n, r in res.items() if r[1]}
+
+
 def build_rules(side, work):
     cfg = SIDES[side]
     flags = compile_flags(side, work)
@@ -396,10 +430,35 @@ def write_report(out_path, L, rules, bodies, usage, only):
             return {"Header": (0, 12)}
         return side_layout["fields"].get(name, {})
 
+    def leaves(side_layout, name):
+        if name == "MSG_STANDARD":
+            return {"Header": (0, 12)}
+        return side_layout["flat"].get(name, {})
+
     def misaligned(sl, snd_name, rl, rcv_name):
-        """Campos de quem lê que não têm um campo do mesmo offset e tamanho em quem envia."""
-        have = set(positions(sl, snd_name).values())
-        return [f for f, pos in sorted(positions(rl, rcv_name).items(), key=lambda kv: kv[1]) if pos not in have]
+        """Campos de quem lê (descendo nas structs aninhadas) sem um campo do mesmo offset e tamanho em quem
+        envia, ou cujo nome existe em quem envia em outro offset (dois campos trocados de lugar)."""
+        snd = leaves(sl, snd_name)
+        have = {tuple(v) for v in snd.values()}
+        starts = {v[0]: v[0] + v[1] for v in snd.values()}
+        blocks = sl["blocks"].get(snd_name, [])
+
+        def covered(pos):
+            o, n = pos
+            if tuple(pos) in have:
+                return True
+            # Dentro de um bloco de bytes de quem envia: bytes crus, sem campos para comparar.
+            if any(b[0] <= o and o + n <= b[0] + b[1] for b in blocks):
+                return True
+            # Coberto por campos seguidos de quem envia (um array dividido em campos, como LearnedSkill).
+            while o in starts and starts[o] <= pos[0] + n:
+                o = starts[o]
+                if o == pos[0] + n:
+                    return True
+            return False
+
+        return [f for f, pos in sorted(leaves(rl, rcv_name).items(), key=lambda kv: kv[1])
+                if not covered(pos) or (f in snd and tuple(snd[f]) != tuple(pos))]
 
     pairs = []
     for v in sorted(set(usage["server"]) | set(usage["client"])):
@@ -495,6 +554,12 @@ def write_report(out_path, L, rules, bodies, usage, only):
     w("  conta para o mesmo opcode e aparece marcado \"(eco)\". Um handler sem cast conta como leitura do")
     w("  cabeçalho (`MSG_STANDARD`). Cada linha")
     w("  traz o local no código para conferir.")
+    w("- **Campos**: a comparação desce nas structs aninhadas (`MOB.CurrentScore.Level`; num array de structs,")
+    w("  o primeiro elemento, `Affect[].Value`, já que os outros repetem o layout). Um campo de quem lê bate")
+    w("  se do outro lado há um campo no mesmo offset e com o mesmo tamanho, se cai dentro de um bloco de")
+    w("  bytes (`char x[N]`, que o outro lado preenche cru ou zera) ou se é coberto exatamente por campos")
+    w("  seguidos (um array dividido em campos). Um nome que existe dos dois lados em offsets diferentes conta")
+    w("  como desalinhado, mesmo que os offsets batam com outros campos: são dois campos trocados de lugar.")
     w("- **Regras**: `tools/divergence/base_compare.cpp` é compilado uma vez contra cada lado. As tabelas que o")
     w("  jogo carrega de arquivo (`g_pItemList`, `g_pSpell`, `g_pAttribute`, mapa de alturas) recebem os mesmos")
     w("  valores sintéticos, campo a campo, mesmo onde o nome ou o offset muda, e as entradas ficam no domínio")
@@ -536,9 +601,10 @@ def write_report(out_path, L, rules, bodies, usage, only):
 
     w("## Pacotes com campos em outros offsets")
     w("")
-    w("Quem lê cabe no que foi enviado, mas alguns dos campos que ele lê não têm, do outro lado, um campo no")
-    w("mesmo offset e com o mesmo tamanho: o valor chega trocado ou cortado. A última coluna lista esses campos")
-    w("da struct de quem lê.")
+    w("Quem lê cabe no que foi enviado, mas alguns dos campos que ele lê (também dentro das structs")
+    w("aninhadas) não têm, do outro lado, um campo no mesmo offset e com o mesmo tamanho, ou têm o mesmo")
+    w("nome em outro offset: o valor chega trocado ou cortado. A última coluna lista esses campos da struct")
+    w("de quem lê.")
     w("")
     pair_table(proto_mis, mis_cell)
 
@@ -643,8 +709,10 @@ def main():
     L = {}
     for side, cfg in SIDES.items():
         text = "\n".join(read(ROOT / h) for h in cfg["headers"])
-        sizes, fields, ops = measure_layout(side, structs_in(text), opcode_names(side, text), work)
-        L[side] = dict(sizes=sizes, fields=fields, ops=ops)
+        structs = structs_in(text)
+        sizes, fields, ops = measure_layout(side, structs, opcode_names(side, text), work)
+        flat, blocks = flatten(structs, sizes, fields)
+        L[side] = dict(sizes=sizes, fields=fields, ops=ops, flat=flat, blocks=blocks)
         print(f"{side}: {len(sizes)} structs, {sum(len(v) for v in fields.values())} campos, {len(ops)} opcodes medidos")
 
     usage = {side: packet_usage(side, L[side]["ops"], set(L[side]["sizes"])) for side in SIDES}
