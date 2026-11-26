@@ -536,50 +536,7 @@ int TMHuman::InitObject()
     SetHandEffect(m_nHandEffect);
     SAFE_DELETE(m_pMantua);
 
-    if (m_cMantua > 0
-        && (!m_nSkinMeshType
-            || m_nSkinMeshType == 1
-            || m_nSkinMeshType == 8
-            || m_nSkinMeshType == 3
-            || m_nSkinMeshType == 2))
-    {
-        LOOK_INFO stLook{};
-        SANC_INFO stSanc{};
-
-        if (!nCos)
-        {
-            stLook.Skin0 = m_wMantuaSkin;
-            stSanc.Sanc0 = m_ucMantuaSanc;
-            stSanc.Legend0 = m_ucMantuaLegend;
-
-            m_pMantua = new TMSkinMesh(&stLook, &stSanc, 85, 0, 0, 1, 0, 0);
-        }
-        else if (nCos == 100)
-        {
-            if (m_sMantuaIndex == 545 || m_sMantuaIndex == 3197 || m_sMantuaIndex >= 1766 && m_sMantuaIndex <= 1768)
-                stLook.Skin0 = 0;
-            if (m_sMantuaIndex == 546 || m_sMantuaIndex == 3198 || m_sMantuaIndex == 1770 || m_sMantuaIndex == 1769)
-                stLook.Skin0 = 1;
-            if (m_sMantuaIndex == 548 || m_sMantuaIndex == 3199 || m_sMantuaIndex >= 572 && m_sMantuaIndex <= 574)
-                stLook.Skin0 = 2;
-
-            stSanc.Sanc0 = static_cast<char>(m_citizen);
-            stSanc.Legend0 = m_ucMantuaLegend;
-
-            m_pMantua = new TMSkinMesh(&stLook, &stSanc, 85, 0, 0, 1, nCos, 0);
-        }
-
-        if (m_pMantua != nullptr)
-        {
-            m_pMantua->m_pOwner = 0;
-            m_pMantua->RestoreDeviceObjects();
-            m_pMantua->m_dwFPS = 40;
-            m_pMantua->m_vScale.x = m_fScale;
-            m_pMantua->m_vScale.y = m_fScale;
-            m_pMantua->m_vScale.z = m_fScale;
-            m_pMantua->SetVecMantua(1, m_nMountSkinMeshType);
-        }
-    }
+    InitObject_Mantua(nCos);
 
     UpdateMount();
     if (m_stScore.Hp <= 0)
@@ -1462,6 +1419,56 @@ void TMHuman::InitObject_Class39Look()
     {
         m_stSancInfo.Sanc0 = 4;
         m_stSancInfo.Sanc1 = 4;
+    }
+}
+
+/// Cria a malha da capa (`m_pMantua`) para os tipos de malha humanos.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_Mantua(int& nCos)
+{
+    if (m_cMantua > 0
+        && (!m_nSkinMeshType
+            || m_nSkinMeshType == 1
+            || m_nSkinMeshType == 8
+            || m_nSkinMeshType == 3
+            || m_nSkinMeshType == 2))
+    {
+        LOOK_INFO stLook{};
+        SANC_INFO stSanc{};
+
+        if (!nCos)
+        {
+            stLook.Skin0 = m_wMantuaSkin;
+            stSanc.Sanc0 = m_ucMantuaSanc;
+            stSanc.Legend0 = m_ucMantuaLegend;
+
+            m_pMantua = new TMSkinMesh(&stLook, &stSanc, 85, 0, 0, 1, 0, 0);
+        }
+        else if (nCos == 100)
+        {
+            if (m_sMantuaIndex == 545 || m_sMantuaIndex == 3197 || m_sMantuaIndex >= 1766 && m_sMantuaIndex <= 1768)
+                stLook.Skin0 = 0;
+            if (m_sMantuaIndex == 546 || m_sMantuaIndex == 3198 || m_sMantuaIndex == 1770 || m_sMantuaIndex == 1769)
+                stLook.Skin0 = 1;
+            if (m_sMantuaIndex == 548 || m_sMantuaIndex == 3199 || m_sMantuaIndex >= 572 && m_sMantuaIndex <= 574)
+                stLook.Skin0 = 2;
+
+            stSanc.Sanc0 = static_cast<char>(m_citizen);
+            stSanc.Legend0 = m_ucMantuaLegend;
+
+            m_pMantua = new TMSkinMesh(&stLook, &stSanc, 85, 0, 0, 1, nCos, 0);
+        }
+
+        if (m_pMantua != nullptr)
+        {
+            m_pMantua->m_pOwner = 0;
+            m_pMantua->RestoreDeviceObjects();
+            m_pMantua->m_dwFPS = 40;
+            m_pMantua->m_vScale.x = m_fScale;
+            m_pMantua->m_vScale.y = m_fScale;
+            m_pMantua->m_vScale.z = m_fScale;
+            m_pMantua->SetVecMantua(1, m_nMountSkinMeshType);
+        }
     }
 }
 

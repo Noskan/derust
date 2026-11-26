@@ -68,6 +68,7 @@ public:
     void InitObject_SingleMeshLook(int& nCos);
     void InitObject_SkinMesh26Look();
     void InitObject_Class39Look();
+    void InitObject_Mantua(int& nCos);
     int Render() final;
     int FrameMove(unsigned int dwServerTime) final;
     void InitPosition(float fX, float fY, float fZ) final;
