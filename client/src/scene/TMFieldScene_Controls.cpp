@@ -2889,3 +2889,26 @@ int TMFieldScene::OnControl_PlayerMenu862(unsigned int idwControlID, unsigned in
 	}
 	return 1;
 }
+
+/// Menu de contexto do jogador alvo, controle 620.
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_PlayerMenu620(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pPGTPanel)
+	{
+		m_pBtnPGTParty->SetVisible(0);
+		m_pBtnPGTGuild->SetVisible(0);
+		m_pBtnPGTTrade->SetVisible(0);
+		m_pBtnPGTChallenge->SetVisible(0);
+		m_pBtnPGT1_V_1->SetVisible(1);
+		m_pBtnPGT5_V_5->SetVisible(1);
+		m_pBtnPGT10_V_10->SetVisible(1);
+		m_pBtnPGTAll_V_All->SetVisible(1);
+		m_pPGTPanel->SetVisible(1);
+		m_pBtnPGTGICommon->SetVisible(0);
+		m_pBtnPGTGIChief1->SetVisible(0);
+		m_pBtnPGTGIChief2->SetVisible(0);
+		m_pBtnPGTGIChief3->SetVisible(0);
+	}
+	return 0;
+}

@@ -868,25 +868,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 1;
 	}
 	if (idwControlID == 620)
-	{
-		if (m_pPGTPanel)
-		{
-			m_pBtnPGTParty->SetVisible(0);
-			m_pBtnPGTGuild->SetVisible(0);
-			m_pBtnPGTTrade->SetVisible(0);
-			m_pBtnPGTChallenge->SetVisible(0);
-			m_pBtnPGT1_V_1->SetVisible(1);
-			m_pBtnPGT5_V_5->SetVisible(1);
-			m_pBtnPGT10_V_10->SetVisible(1);
-			m_pBtnPGTAll_V_All->SetVisible(1);
-			m_pPGTPanel->SetVisible(1);
-			m_pBtnPGTGICommon->SetVisible(0);
-			m_pBtnPGTGIChief1->SetVisible(0);
-			m_pBtnPGTGIChief2->SetVisible(0);
-			m_pBtnPGTGIChief3->SetVisible(0);
-		}
-		return 0;
-	}
+		return OnControl_PlayerMenu620(idwControlID, idwEvent);
 	if (idwControlID == 639 || idwControlID == 621 || idwControlID == 622 || idwControlID == 623)
 		return OnControl_PlayerMenu639(idwControlID, idwEvent);
 	if (idwControlID == 1617)
