@@ -285,288 +285,7 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 	if ((int)m_pMyHuman->m_vecPosition.x >> 7 != 31 && (int)m_pMyHuman->m_vecPosition.y >> 7 != 31 && m_pGambleStore->m_bVisible == 1)
 		SetVisibleGamble(0, 0);
 
-	if (!g_bCastleWar2)
-	{
-		STRUCT_MOB* pMobData = &g_pObjectManager->m_stMobData;
-		if (bInTown == 1)
-		{
-			POINT pt;
-			pt.x = (int)m_pMyHuman->m_vecPosition.x;
-			pt.y = (int)m_pMyHuman->m_vecPosition.y;
-
-			int nMusicIndex = 0;
-			if (PtInRect(&rectTownInCastle, pt) != 1)
-			{
-				int city = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
-				if (city == 2)
-					city = 0;
-
-				nMusicIndex = 2 * city + 1;
-			}
-			else
-				nMusicIndex = 8;
-
-			if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-			{
-				m_dwInTownTime = dwServerTime;
-				if (g_pApp->m_pBGMManager)
-				{
-					SAFE_DELETE(g_pApp->m_pBGMManager);
-
-					g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-					g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-					g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-				}
-
-				DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-				
-				MSG_STANDARDPARM dst{};
-				dst.Header.ID = g_pObjectManager->m_dwCharID;
-				dst.Header.Type = 0x291;
-				dst.Parm = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
-
-				if (dst.Parm < 4)
-				{
-					SendOneMessage((char*)&dst, 16);
-					g_pObjectManager->m_stSelCharData.HomeTownX[g_pObjectManager->m_cCharacterSlot] = (int)m_pMyHuman->m_vecPosition.x;
-					g_pObjectManager->m_stSelCharData.HomeTownY[g_pObjectManager->m_cCharacterSlot] = (int)m_pMyHuman->m_vecPosition.y;
-				}
-			}
-		}
-		else if((int)m_pMyHuman->m_vecPosition.y >> 7 < 25)
-		{
-			if ((int)m_pMyHuman->m_vecPosition.x <= 1664 || (int)m_pMyHuman->m_vecPosition.x >= 1792 || 
-				(int)m_pMyHuman->m_vecPosition.y <= 1536 || (int)m_pMyHuman->m_vecPosition.y >= 1920)
-			{
-				if (RenderDevice::m_bDungeon == 3)
-				{
-					int nMusicIndex = 9;
-					if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-					{
-						m_dwFieldTime = dwServerTime;
-						if (g_pApp->m_pBGMManager)
-						{
-							SAFE_DELETE(g_pApp->m_pBGMManager);
-
-							g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-							g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-							g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-						}
-						DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-					}
-					if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
-						SetVisibleAutoTrade(0, 0);
-				}		
-				else if ((int)m_pMyHuman->m_vecPosition.x >> 7 > 26	&& (int)m_pMyHuman->m_vecPosition.x >> 7 < 31 && 
-						 (int)m_pMyHuman->m_vecPosition.y >> 7 > 20 && (int)m_pMyHuman->m_vecPosition.y >> 7 < 25)
-				{
-					int nMusicIndex = 9;
-					if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-					{
-						m_dwFieldTime = dwServerTime;
-						if (g_pApp->m_pBGMManager)
-						{
-							SAFE_DELETE(g_pApp->m_pBGMManager);
-
-							g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-							g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-							g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-						}
-						DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-					}
-					if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
-						SetVisibleAutoTrade(0, 0);
-				}
-				else
-				{
-					POINT pt;
-					pt.x = (int)m_pMyHuman->m_vecPosition.x;
-					pt.y = (int)m_pMyHuman->m_vecPosition.y;
-
-					int m;
-					for (m = 0; m < 2; ++m)
-					{
-						if (PtInRect(&g_rectField[m], pt) != 1)
-							break;
-					}
-
-					if (m == 2)
-						m = 1;
-
-					int nMusicIndex = 2 * m + 2;
-					if (RenderDevice::m_bDungeon == 4 && m_pRemainText->m_bVisible == 1)
-						nMusicIndex = 5;
-
-					if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-					{
-						m_dwFieldTime = dwServerTime;
-						if (g_pApp->m_pBGMManager)
-						{
-							SAFE_DELETE(g_pApp->m_pBGMManager);
-
-							g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-							g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-							g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-						}
-						DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-					}
-					if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
-						SetVisibleAutoTrade(0, 0);
-				}
-			}
-			else
-			{
-				int nMusicIndex = 6;
-				if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-				{
-					m_dwFieldTime = dwServerTime;
-					if (g_pApp->m_pBGMManager)
-					{
-						SAFE_DELETE(g_pApp->m_pBGMManager);
-
-						g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-						g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-						g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-					}
-					DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-				}
-
-				if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
-					SetVisibleAutoTrade(0, 0);
-			}
-		}
-		else
-		{
-			if ((int)m_pMyHuman->m_vecPosition.x >> 7 < 16 && (int)m_pMyHuman->m_vecPosition.x >> 7 > 8 &&
-				(int)m_pMyHuman->m_vecPosition.y >> 7 > 25)
-			{
-				int nMusicIndex = 7;
-				if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-				{
-					m_dwFieldTime = dwServerTime;
-					if (g_pApp->m_pBGMManager)
-					{
-						SAFE_DELETE(g_pApp->m_pBGMManager);
-
-						g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-						g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-						g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-					}
-					DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-				}
-			}
-			else if ((int)m_pMyHuman->m_vecPosition.x >> 7 == 18 && (int)m_pMyHuman->m_vecPosition.y >> 7 == 30)
-			{
-				int nMusicIndex = 12;
-				if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-				{
-					m_dwFieldTime = dwServerTime;
-					if (g_pApp->m_pBGMManager)
-					{
-						SAFE_DELETE(g_pApp->m_pBGMManager);
-
-						g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-						g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-						g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-					}
-					DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-				}
-				if (m_pMyHuman && m_pMyHuman->m_vecPosition.y >= 3918.0)
-					SetVisibleKhepraPortal(m_dwKhepraID == 0);
-				else
-					SetVisibleKhepraPortal(0);
-
-				FrameMove_KhepraDieEffect(dwServerTime);
-			}
-			else if ((int)m_pMyHuman->m_vecPosition.x >> 7 > 16 && (int)m_pMyHuman->m_vecPosition.x >> 7 < 20 && (int)m_pMyHuman->m_vecPosition.y >> 7 > 29)
-			{
-				int nMusicIndex = 11;
-				if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-				{
-					m_dwFieldTime = dwServerTime;
-					if (g_pApp->m_pBGMManager)
-					{
-						SAFE_DELETE(g_pApp->m_pBGMManager);
-
-						g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-						g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-						g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-					}
-					DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-				}
-			}
-			else
-			{
-				int nMusicIndex = 5;
-
-				if ((int)m_pMyHuman->m_vecPosition.x >> 7 != 31 && (int)m_pMyHuman->m_vecPosition.y >> 7 != 31)
-				{
-					if (m_pGambleStore->m_bVisible == 1)
-						SetVisibleGamble(0, 0);
-				}
-				else
-					nMusicIndex = 6;
-
-				if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-				{
-					m_dwFieldTime = dwServerTime;
-					if (g_pApp->m_pBGMManager)
-					{
-						SAFE_DELETE(g_pApp->m_pBGMManager);
-
-						g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-						g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-						g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-					}
-					DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-				}
-			}
-
-			if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
-				SetVisibleAutoTrade(0, 0);
-		}
-	}
-	else
-	{
-		if (bInTown == 1)
-		{
-			int nVillage = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
-			if (m_nVillage != nVillage)
-			{
-				MSG_STANDARDPARM stParam{};
-				stParam.Header.ID = g_pObjectManager->m_dwCharID;
-				stParam.Header.Type = 0x291;
-				stParam.Parm = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
-				m_nVillage = nVillage;
-
-				if (stParam.Parm < 4)
-				{
-					SendOneMessage((char*)&stParam, 16);
-					g_pObjectManager->m_stSelCharData.HomeTownX[g_pObjectManager->m_cCharacterSlot] = (int)m_pMyHuman->m_vecPosition.x;
-					g_pObjectManager->m_stSelCharData.HomeTownY[g_pObjectManager->m_cCharacterSlot] = (int)m_pMyHuman->m_vecPosition.y;
-				}
-			}
-		}
-		else
-		{
-			m_nVillage = -1;
-		}
-
-		int nMusicIndex = 10;
-		if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
-		{
-			m_dwFieldTime = dwServerTime;
-			if (g_pApp->m_pBGMManager)
-			{
-				SAFE_DELETE(g_pApp->m_pBGMManager);
-
-				g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
-				g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
-				g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
-			}
-			DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
-		}
-	}
+	FrameMove_CastleWarState(dwServerTime, bInTown);
 	if (m_pPositionText)
 	{
 		if (m_pPositionText->IsVisible() == 1)
@@ -1584,6 +1303,294 @@ if (m_pMiniMapPanel)
 				}
 			}
 		}
+	}
+}
+}
+
+/// Estado da guerra de castelo (`g_bCastleWar2`) e avisos associados.
+/// @note Extraído de `TMFieldScene::FrameMove` (Fase 3); locais da função passadas por referência.
+void TMFieldScene::FrameMove_CastleWarState(unsigned int& dwServerTime, bool& bInTown)
+{
+if (!g_bCastleWar2)
+{
+	STRUCT_MOB* pMobData = &g_pObjectManager->m_stMobData;
+	if (bInTown == 1)
+	{
+		POINT pt;
+		pt.x = (int)m_pMyHuman->m_vecPosition.x;
+		pt.y = (int)m_pMyHuman->m_vecPosition.y;
+
+		int nMusicIndex = 0;
+		if (PtInRect(&rectTownInCastle, pt) != 1)
+		{
+			int city = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
+			if (city == 2)
+				city = 0;
+
+			nMusicIndex = 2 * city + 1;
+		}
+		else
+			nMusicIndex = 8;
+
+		if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+		{
+			m_dwInTownTime = dwServerTime;
+			if (g_pApp->m_pBGMManager)
+			{
+				SAFE_DELETE(g_pApp->m_pBGMManager);
+
+				g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+				g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+				g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+			}
+
+			DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+			
+			MSG_STANDARDPARM dst{};
+			dst.Header.ID = g_pObjectManager->m_dwCharID;
+			dst.Header.Type = 0x291;
+			dst.Parm = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
+
+			if (dst.Parm < 4)
+			{
+				SendOneMessage((char*)&dst, 16);
+				g_pObjectManager->m_stSelCharData.HomeTownX[g_pObjectManager->m_cCharacterSlot] = (int)m_pMyHuman->m_vecPosition.x;
+				g_pObjectManager->m_stSelCharData.HomeTownY[g_pObjectManager->m_cCharacterSlot] = (int)m_pMyHuman->m_vecPosition.y;
+			}
+		}
+	}
+	else if((int)m_pMyHuman->m_vecPosition.y >> 7 < 25)
+	{
+		if ((int)m_pMyHuman->m_vecPosition.x <= 1664 || (int)m_pMyHuman->m_vecPosition.x >= 1792 || 
+			(int)m_pMyHuman->m_vecPosition.y <= 1536 || (int)m_pMyHuman->m_vecPosition.y >= 1920)
+		{
+			if (RenderDevice::m_bDungeon == 3)
+			{
+				int nMusicIndex = 9;
+				if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+				{
+					m_dwFieldTime = dwServerTime;
+					if (g_pApp->m_pBGMManager)
+					{
+						SAFE_DELETE(g_pApp->m_pBGMManager);
+
+						g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+						g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+						g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+					}
+					DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+				}
+				if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
+					SetVisibleAutoTrade(0, 0);
+			}		
+			else if ((int)m_pMyHuman->m_vecPosition.x >> 7 > 26	&& (int)m_pMyHuman->m_vecPosition.x >> 7 < 31 && 
+					 (int)m_pMyHuman->m_vecPosition.y >> 7 > 20 && (int)m_pMyHuman->m_vecPosition.y >> 7 < 25)
+			{
+				int nMusicIndex = 9;
+				if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+				{
+					m_dwFieldTime = dwServerTime;
+					if (g_pApp->m_pBGMManager)
+					{
+						SAFE_DELETE(g_pApp->m_pBGMManager);
+
+						g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+						g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+						g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+					}
+					DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+				}
+				if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
+					SetVisibleAutoTrade(0, 0);
+			}
+			else
+			{
+				POINT pt;
+				pt.x = (int)m_pMyHuman->m_vecPosition.x;
+				pt.y = (int)m_pMyHuman->m_vecPosition.y;
+
+				int m;
+				for (m = 0; m < 2; ++m)
+				{
+					if (PtInRect(&g_rectField[m], pt) != 1)
+						break;
+				}
+
+				if (m == 2)
+					m = 1;
+
+				int nMusicIndex = 2 * m + 2;
+				if (RenderDevice::m_bDungeon == 4 && m_pRemainText->m_bVisible == 1)
+					nMusicIndex = 5;
+
+				if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+				{
+					m_dwFieldTime = dwServerTime;
+					if (g_pApp->m_pBGMManager)
+					{
+						SAFE_DELETE(g_pApp->m_pBGMManager);
+
+						g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+						g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+						g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+					}
+					DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+				}
+				if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
+					SetVisibleAutoTrade(0, 0);
+			}
+		}
+		else
+		{
+			int nMusicIndex = 6;
+			if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+			{
+				m_dwFieldTime = dwServerTime;
+				if (g_pApp->m_pBGMManager)
+				{
+					SAFE_DELETE(g_pApp->m_pBGMManager);
+
+					g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+					g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+					g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+				}
+				DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+			}
+
+			if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
+				SetVisibleAutoTrade(0, 0);
+		}
+	}
+	else
+	{
+		if ((int)m_pMyHuman->m_vecPosition.x >> 7 < 16 && (int)m_pMyHuman->m_vecPosition.x >> 7 > 8 &&
+			(int)m_pMyHuman->m_vecPosition.y >> 7 > 25)
+		{
+			int nMusicIndex = 7;
+			if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+			{
+				m_dwFieldTime = dwServerTime;
+				if (g_pApp->m_pBGMManager)
+				{
+					SAFE_DELETE(g_pApp->m_pBGMManager);
+
+					g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+					g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+					g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+				}
+				DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+			}
+		}
+		else if ((int)m_pMyHuman->m_vecPosition.x >> 7 == 18 && (int)m_pMyHuman->m_vecPosition.y >> 7 == 30)
+		{
+			int nMusicIndex = 12;
+			if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+			{
+				m_dwFieldTime = dwServerTime;
+				if (g_pApp->m_pBGMManager)
+				{
+					SAFE_DELETE(g_pApp->m_pBGMManager);
+
+					g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+					g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+					g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+				}
+				DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+			}
+			if (m_pMyHuman && m_pMyHuman->m_vecPosition.y >= 3918.0)
+				SetVisibleKhepraPortal(m_dwKhepraID == 0);
+			else
+				SetVisibleKhepraPortal(0);
+
+			FrameMove_KhepraDieEffect(dwServerTime);
+		}
+		else if ((int)m_pMyHuman->m_vecPosition.x >> 7 > 16 && (int)m_pMyHuman->m_vecPosition.x >> 7 < 20 && (int)m_pMyHuman->m_vecPosition.y >> 7 > 29)
+		{
+			int nMusicIndex = 11;
+			if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+			{
+				m_dwFieldTime = dwServerTime;
+				if (g_pApp->m_pBGMManager)
+				{
+					SAFE_DELETE(g_pApp->m_pBGMManager);
+
+					g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+					g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+					g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+				}
+				DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+			}
+		}
+		else
+		{
+			int nMusicIndex = 5;
+
+			if ((int)m_pMyHuman->m_vecPosition.x >> 7 != 31 && (int)m_pMyHuman->m_vecPosition.y >> 7 != 31)
+			{
+				if (m_pGambleStore->m_bVisible == 1)
+					SetVisibleGamble(0, 0);
+			}
+			else
+				nMusicIndex = 6;
+
+			if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+			{
+				m_dwFieldTime = dwServerTime;
+				if (g_pApp->m_pBGMManager)
+				{
+					SAFE_DELETE(g_pApp->m_pBGMManager);
+
+					g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+					g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+					g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+				}
+				DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
+			}
+		}
+
+		if (m_pAutoTrade && m_pAutoTrade->IsVisible() == 1)
+			SetVisibleAutoTrade(0, 0);
+	}
+}
+else
+{
+	if (bInTown == 1)
+	{
+		int nVillage = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
+		if (m_nVillage != nVillage)
+		{
+			MSG_STANDARDPARM stParam{};
+			stParam.Header.ID = g_pObjectManager->m_dwCharID;
+			stParam.Header.Type = 0x291;
+			stParam.Parm = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
+			m_nVillage = nVillage;
+
+			if (stParam.Parm < 4)
+			{
+				SendOneMessage((char*)&stParam, 16);
+				g_pObjectManager->m_stSelCharData.HomeTownX[g_pObjectManager->m_cCharacterSlot] = (int)m_pMyHuman->m_vecPosition.x;
+				g_pObjectManager->m_stSelCharData.HomeTownY[g_pObjectManager->m_cCharacterSlot] = (int)m_pMyHuman->m_vecPosition.y;
+			}
+		}
+	}
+	else
+	{
+		m_nVillage = -1;
+	}
+
+	int nMusicIndex = 10;
+	if (DS_SOUND_MANAGER::m_nMusicIndex != nMusicIndex)
+	{
+		m_dwFieldTime = dwServerTime;
+		if (g_pApp->m_pBGMManager)
+		{
+			SAFE_DELETE(g_pApp->m_pBGMManager);
+
+			g_pApp->m_pBGMManager = new DS_SOUND_MANAGER(1, 30 * g_pApp->m_nMusic - 3000);
+			g_pApp->m_pBGMManager->SetVolume(0, g_pApp->m_pBGMManager->m_lBGMVolume);
+			g_pApp->m_pBGMManager->PlayMusic(nMusicIndex);
+		}
+		DS_SOUND_MANAGER::m_nMusicIndex = nMusicIndex;
 	}
 }
 }

@@ -349,6 +349,7 @@ private:
 	/// @{
 	void FrameMove_CPanel(unsigned int& dwServerTime, SPanel*& pCPanel);
 	void FrameMove_MiniMap();
+	void FrameMove_CastleWarState(unsigned int& dwServerTime, bool& bInTown);
 	/// @}
 
 public:
