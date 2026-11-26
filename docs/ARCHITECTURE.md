@@ -189,12 +189,13 @@ Depois da Onda 4, o tamanho restante está concentrado em poucas funções, e di
 
 | Função | Linhas |
 |---|---|
-| `TMFieldScene::OnControlEvent` | ~3.500 → ~860 (71 handlers `OnControl_*` em `TMFieldScene_Controls.cpp`) |
-| `TMFieldScene::OnPacketAttack` | ~2.270 |
-| `TMFieldScene::SkillUse` | ~1.570 → ~1.490 (`SendAreaAttack` extraído) |
-| `TMFieldScene::FrameMove` | ~1.510 → ~570 (8 etapas `FrameMove_*` extraídas) |
+| `TMFieldScene::OnControlEvent` | ~3.500 → ~680 (71 handlers `OnControl_*` em `TMFieldScene_Controls.cpp` + `OnControl_SysServer`) |
+| `TMFieldScene::OnPacketAttack` | ~2.270 → ~70 (`PacketAttack_Attacker` ~1.230, `PacketAttack_ApplyTargets` ~990) |
+| `TMFieldScene::SkillUse` | ~1.570 → ~430 (`SendAreaAttack`, `SkillUse_CastleWarCheck`, `SkillUse_CastSelfOrArea` ~950, `SkillUse_ApproachTarget`) |
+| `TMFieldScene::FrameMove` | ~1.510 → ~475 (9 etapas `FrameMove_*` extraídas) |
 | `TMFieldScene::InitializeScene` | ~1.500 (sequência plana, sem blocos grandes) |
-| `TMFieldScene::AutoSkillUse`, `TMHuman::InitObject`, `TMHuman::FrameMove` | ~1.000 cada |
+| `TMFieldScene::AutoSkillUse` | ~1.100 → ~340 (`AutoSkillUse_CastSelfOrArea` ~640, `AutoSkillUse_PKCheck`) |
+| `TMHuman::InitObject`, `TMHuman::FrameMove` | ~1.000 cada |
 
 Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que podem cair para o próximo `if`, locais compartilhadas), o que deixa de ser movimentação de código. Rede de segurança (Fase 3, passos 1 e 2 — concluídos na branch `refactor/phase3-mingw-ci`):
 1. **Job `mingw-check` no CI** (`ubuntu-24.04`): [`tools/mingw_check.py`](../tools/mingw_check.py) compila todas as 256 TUs do servidor, do cliente e dos testes com mingw-w64 i686, linka o DBSrv e roda `w2pp_common_tests` no wine. Só as TUs listadas em [`tools/mingw_known_failures.txt`](../tools/mingw_known_failures.txt) podem falhar; uma falha nova quebra o job e uma TU consertada gera aviso para sair da lista.
@@ -209,7 +210,13 @@ Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que p
    - Mais 43 handlers de `OnControlEvent` (blocos de 12+ linhas, mesmo critério). A função fica com ~860 linhas.
    - Extração `void` de statements de nível 1 sem `return` nem `goto` em `FrameMove` (8 etapas `FrameMove_*`: painel, minimapa, guerra de castelo, timers de afeto, parada de movimento, clima/sons, barras de skill, tempo de ranking) e em `SkillUse` (`SendAreaAttack`). Como o bloco é filho direto do corpo da função, todo `break`/`continue` dentro dele mira um laço interno. As locais e os parâmetros que ele usa passam **por referência**: é o mesmo objeto, então as escritas continuam visíveis depois da chamada. Cada extração foi conferida reinserindo o corpo no lugar, e a lista de parâmetros foi cruzada com todas as declarações de nível 1 anteriores ao bloco.
    - `AutoSkillUse` tinha uma cópia idêntica do bloco de ataque em área e passou a chamar `SendAreaAttack`.
-5. **Próximo passo**: os blocos grandes que restam (`OnPacketAttack`, o corpo principal de `SkillUse`/`AutoSkillUse`) têm `return` no meio de um fluxo que cai adiante. Extraí-los exige um valor de retorno que distinga "retornou X" de "continua", o que já é reescrita de controle de fluxo. Recomenda-se fazer isso só com teste de execução do cliente.
+5. **Terceira leva (branch `refactor/phase3-early-return`)**: 9 blocos com `return` no meio de um fluxo que cai adiante viraram `bool Nome(..., int& nReturnValue)`. A transformação é mecânica:
+   - cada `return X;` do bloco vira `{ nReturnValue = X; return true; }`. X é avaliado no mesmo ponto e com os mesmos objetos, e a conversão para `int` é a mesma;
+   - o fim do bloco ganha `return false;`, que significa "não retornou, continue";
+   - o ponto de chamada vira `{ int nReturnValue = 0; if (Nome(...)) return nReturnValue; }`.
+
+   Ficam de fora blocos com `goto`, lambda (cujo `return` não é da função) ou pré-processador. A verificação desfaz a reescrita e reinsere o corpo (texto idêntico), e cruza os parâmetros com todas as declarações de nível 1 anteriores ao bloco. Com isso, `OnPacketAttack`, `SkillUse` e `AutoSkillUse` passam a ler como uma sequência de etapas nomeadas.
+6. **Próximo passo**: as etapas grandes (`PacketAttack_Attacker`, `PacketAttack_ApplyTargets`, `SkillUse_CastSelfOrArea`, `AutoSkillUse_CastSelfOrArea`) continuam longas por dentro. Elas podem ser decompostas com as mesmas três técnicas, descendo um nível (o corpo de `if (pAttacker) { ... }`). Também falta `TMHuman::InitObject`/`FrameMove`.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.
