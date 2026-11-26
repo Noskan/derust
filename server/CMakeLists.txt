@@ -28,7 +28,7 @@ target_compile_definitions(w2pp_common
 
 target_compile_options(w2pp_common
   PUBLIC
-    $<$<CXX_COMPILER_ID:MSVC>:/W3>
+    $<$<CXX_COMPILER_ID:MSVC>:/W3 /source-charset:utf-8>
 )
 
 target_link_libraries(w2pp_common
