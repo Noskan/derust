@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Teste de partida dos servidores (DBSrv + TMSrv) no wine, com dados sintéticos.
+"""Teste de partida dos servidores (DBSrv + TMSrv), no wine ou no Windows, com dados sintéticos.
 
 Não usa dados do jogo: monta uma árvore mínima com arquivos gerados aqui (listas vazias,
 mapas zerados, um itemlist.csv com três itens) e o `server/common/ItemEffect.h` do
@@ -12,14 +12,20 @@ O que confere:
   3. Uma conexão TCP de fora é aceita e fechada nas duas portas.
   4. Os dois continuam vivos por alguns segundos, com os timers (ProcessSecTimer/MinTimer)
      rodando.
-  5. Nenhum dos dois abre MessageBox. Toda caixa de erro do boot é uma MessageBox; o texto
-     é capturado pelo canal `relay` do wine (só MessageBoxA/W, para não pesar).
+  5. Nenhum dos dois abre MessageBox nem sofre exceção não tratada. Toda caixa de erro do
+     boot é uma MessageBox.
 
 Cobre partida, carregamento e laço de timers, não jogabilidade (não há cliente nem conta).
 
-Precisa de wine (32 bits) e Xvfb: as janelas dos servidores pedem um display, e o driver
-`null` do wine não serve para isso em todas as versões. Usa um prefixo do wine próprio,
-dentro do diretório de trabalho, para poder ligar o canal relay sem mexer no do usuário.
+Antes, um autoteste sobe o DBSrv sem o SkillData.csv e exige que a MessageBox seja vista:
+garante que o detector funciona na plataforma em uso (desligue com --no-self-test).
+
+Plataformas:
+  - Linux: wine (32 bits) e Xvfb, porque as janelas dos servidores pedem um display e o driver
+    `null` do wine não serve para isso em todas as versões. Usa um prefixo do wine próprio,
+    dentro do diretório de trabalho, para ligar o canal relay sem mexer no do usuário.
+  - Windows: executa os .exe direto (é como o CI testa os builds MSVC). As MessageBox são lidas
+    das janelas de diálogo do processo; exceções encerram o processo (sem janela do WER).
 
 Uso: python3 tools/server_boot_smoke.py <dir com DBSrv.exe e TMSrv.exe> [--keep DIR] [--settle S]
 """
@@ -91,7 +97,7 @@ def build_tree(work, exe_dir):
     db = work / "srv" / "DBSrv"
     tm = work / "srv" / "TMSrv"
     for d in (common, db, tm):
-        d.mkdir(parents=True)
+        d.mkdir(parents=True)  # work é <trabalho>/selftest ou <trabalho>/boot
 
     ips = local_ips()[:10]  # MAX_SERVERGROUP
     # Um grupo por endereço: índice 0 é o DBSrv, índice 1 o TMSrv.
@@ -173,17 +179,116 @@ def port_open(port, host="127.0.0.1"):
         return False
 
 
+class WineHost:
+    """Linux: wine 32 bits num prefixo próprio, num Xvfb próprio. As MessageBox saem pelo canal
+    relay (só MessageBoxA/W) no stderr do wine, que vai para <dir>/wine.log."""
+
+    def __init__(self, work):
+        for tool in ("wine", "wineserver", "wineboot", "Xvfb"):
+            if not shutil.which(tool):
+                raise SystemExit(f"falta {tool} no PATH")
+        self.xvfb, display = start_xvfb()
+        self.env = dict(os.environ, WINEPREFIX=str(work / "wineprefix"), DISPLAY=display,
+                        WINEDLLOVERRIDES="mscoree,mshtml=")
+        self.env.pop("WAYLAND_DISPLAY", None)
+        quiet = dict(self.env, WINEDEBUG="-all")
+        subprocess.run(["wineboot", "-i"], env=quiet, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=300)
+        subprocess.run(["wine", "reg", "add", r"HKCU\Software\Wine\Debug", "/v", "RelayInclude",
+                        "/d", "user32.MessageBoxA;user32.MessageBoxW", "/f"],
+                       env=quiet, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True, timeout=120)
+        subprocess.run(["wineserver", "-w"], env=quiet, timeout=120)
+        self.relay = dict(self.env, WINEDEBUG="-all,+relay")
+
+    def start(self, name, cwd):
+        log = cwd / "wine.log"
+        proc = subprocess.Popen(["wine", name + ".exe"], cwd=cwd, env=self.relay,
+                                stdout=subprocess.DEVNULL, stderr=open(log, "wb"))
+        return Server(self, name, proc, log)
+
+    def problems(self, server):
+        return wine_log_problems(server.name, server.log)
+
+    def stop(self, servers):
+        subprocess.run(["wineserver", "-k"], env=self.env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        for s in servers:
+            try:
+                s.proc.wait(timeout=20)
+            except subprocess.TimeoutExpired:
+                s.proc.kill()
+
+    def close(self):
+        self.xvfb.send_signal(signal.SIGTERM)
+        self.xvfb.wait(timeout=20)
+
+
+class NativeHost:
+    """Windows: executa os .exe direto. Uma MessageBox (e a caixa de asserção do CRT de Debug)
+    é uma janela de diálogo de classe #32770 do processo; o texto está no controle 0xFFFF.
+    SetErrorMode(SEM_NOGPFAULTERRORBOX), herdado pelos filhos, faz uma exceção não tratada
+    encerrar o processo (com o código da exceção) em vez de abrir a janela do WER."""
+
+    def __init__(self, work):
+        import ctypes
+        from ctypes import wintypes
+        self.ctypes, self.wintypes = ctypes, wintypes
+        ctypes.windll.kernel32.SetErrorMode(0x0001 | 0x0002 | 0x8000)  # FAILCRITICAL | NOGPFAULTERRORBOX | NOOPENFILEERRORBOX
+        u = ctypes.WinDLL("user32", use_last_error=True)
+        self.WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+        u.EnumWindows.argtypes = [self.WNDENUMPROC, wintypes.LPARAM]
+        u.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+        u.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+        u.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+        u.GetDlgItemTextW.argtypes = [wintypes.HWND, ctypes.c_int, wintypes.LPWSTR, ctypes.c_int]
+        self.user32 = u
+
+    def start(self, name, cwd):
+        proc = subprocess.Popen([str(cwd / (name + ".exe"))], cwd=cwd,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return Server(self, name, proc, None)
+
+    def dialogs(self, pid):
+        ctypes, wintypes, u = self.ctypes, self.wintypes, self.user32
+        found = []
+
+        def cb(hwnd, _):
+            owner = wintypes.DWORD()
+            u.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
+            if owner.value == pid:
+                cls = ctypes.create_unicode_buffer(64)
+                u.GetClassNameW(hwnd, cls, 64)
+                if cls.value == "#32770":
+                    cap = ctypes.create_unicode_buffer(512)
+                    txt = ctypes.create_unicode_buffer(4096)
+                    u.GetWindowTextW(hwnd, cap, 512)
+                    u.GetDlgItemTextW(hwnd, 0xFFFF, txt, 4096)
+                    found.append(" / ".join(s for s in (txt.value.replace("\r\n", " ").strip(), cap.value) if s))
+            return True
+
+        u.EnumWindows(self.WNDENUMPROC(cb), 0)
+        return found
+
+    def problems(self, server):
+        return [f'{server.name}: MessageBox "{d}"' for d in self.dialogs(server.proc.pid)]
+
+    def stop(self, servers):
+        for s in servers:
+            if s.proc.poll() is None:
+                s.proc.kill()
+            s.proc.wait(timeout=20)
+
+    def close(self):
+        pass
+
+
 class Server:
-    def __init__(self, name, cwd, env):
-        self.name = name
-        self.log = cwd / "wine.log"
-        self.proc = subprocess.Popen(["wine", name + ".exe"], cwd=cwd, env=env,
-                                     stdout=subprocess.DEVNULL, stderr=open(self.log, "wb"))
+    def __init__(self, host, name, proc, log):
+        self.host, self.name, self.proc, self.log = host, name, proc, log
 
     def problems(self):
-        msgs = wine_log_problems(self.name, self.log)
-        if self.proc.poll() is not None:
-            msgs.append(f"{self.name}: processo terminou (código {self.proc.returncode})")
+        msgs = self.host.problems(self)
+        code = self.proc.poll()
+        if code is not None:
+            msgs.append(f"{self.name}: processo terminou (código {code} / 0x{code & 0xFFFFFFFF:08X})")
         return msgs
 
 
@@ -199,21 +304,84 @@ def wait_port(port, host, servers, timeout):
     return [f"porta {port} não abriu em {timeout}s"]
 
 
+def prepare(work, exe_dir):
+    db_dir, tm_dir, game_host = build_tree(work, exe_dir)
+    for d in (db_dir, tm_dir):
+        (d / "Log").mkdir()  # StartLog grava em .\\Log\\, que os servidores não criam
+    return db_dir, tm_dir, game_host
+
+
+def self_test(host, work, exe_dir, timeout):
+    """Confere o próprio detector: sem o SkillData.csv o DBSrv abre uma MessageBox antes de
+    escutar em qualquer porta. Se o detector não a vir, o OK do teste principal não vale nada."""
+    db_dir, _, _ = prepare(work, exe_dir)
+    (work / "Common" / "SkillData.csv").unlink()
+    server = host.start("DBSrv", db_dir)
+    try:
+        end = time.time() + timeout
+        seen = []
+        while time.time() < end and not seen:
+            seen = server.problems()
+            time.sleep(0.5)
+    finally:
+        host.stop([server])
+    if any("MessageBox" in p and "SkillData.csv" in p for p in seen):
+        print("autoteste: a MessageBox do SkillData.csv ausente foi detectada")
+        return []
+    return [f"autoteste: esperava a MessageBox do SkillData.csv ausente, veio {seen or 'nada'}"]
+
+
+def boot(host, work, exe_dir, args):
+    db_dir, tm_dir, game_host = prepare(work, exe_dir)
+    servers = []
+    try:
+        t0 = time.time()
+        servers.append(host.start("DBSrv", db_dir))
+        problems = wait_port(DB_PORT, "127.0.0.1", servers, args.timeout)
+        if problems:
+            return problems
+        print(f"DBSrv escutando na {DB_PORT} ({time.time() - t0:.1f}s)")
+        t0 = time.time()
+        servers.append(host.start("TMSrv", tm_dir))
+        problems = wait_port(GAME_PORT, game_host, servers, args.timeout)
+        if problems:
+            return problems
+        print(f"TMSrv conectado ao DBSrv e escutando em {game_host}:{GAME_PORT} ({time.time() - t0:.1f}s)")
+        for h, port in (("127.0.0.1", DB_PORT), ("127.0.0.1", ADMIN_PORT), (game_host, GAME_PORT)):
+            if not port_open(port, h):
+                problems.append(f"conexão de teste em {h}:{port} recusada")
+        time.sleep(args.settle)
+        problems += [p for s in servers for p in s.problems()]
+    finally:
+        host.stop(servers)
+    # O TMSrv só grava "sys,start server" depois de ler o heightmap e o BASE_InitializeBaseDef;
+    # sem o heightmap, o Reboot() só registra o erro e volta, e o boot pareceria bom.
+    tm_log, db_log = server_log(tm_dir), server_log(db_dir)
+    if "sys,start server" not in tm_log:
+        problems.append("TMSrv: o log não tem \"sys,start server\" (Reboot não carregou a base)")
+    # O DBSrv fecha conexões de IPs fora do serverlist; o TMSrv registraria a queda.
+    if "err wsareaddb" in tm_log:
+        problems.append("TMSrv: perdeu a conexão com o DBSrv (\"err wsareaddb\")")
+    if f"err wsa_accept request from  {game_host}" in db_log:
+        problems.append(f"DBSrv: recusou a conexão do TMSrv ({game_host})")
+    if not problems:
+        print(f"os dois seguem no ar após {args.settle:.0f}s, sem MessageBox")
+    return problems
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("exe_dir", help="diretório com DBSrv.exe e TMSrv.exe")
     ap.add_argument("--keep", help="diretório de trabalho a manter (padrão: temporário)")
     ap.add_argument("--settle", type=float, default=15, help="segundos com os dois no ar (padrão 15)")
     ap.add_argument("--timeout", type=float, default=90, help="espera máxima por cada porta (padrão 90)")
+    ap.add_argument("--no-self-test", action="store_true", help="pula o autoteste do detector de MessageBox")
     args = ap.parse_args()
 
     exe_dir = Path(args.exe_dir).resolve()
     for exe in ("DBSrv.exe", "TMSrv.exe"):
         if not (exe_dir / exe).exists():
             raise SystemExit(f"falta {exe_dir / exe}")
-    for tool in ("wine", "wineserver", "Xvfb"):
-        if not shutil.which(tool):
-            raise SystemExit(f"falta {tool} no PATH")
     game_host = local_ips()[0]  # o TMSrv escuta só no IP do LocalIP.txt
     busy = [p for p in (DB_PORT, ADMIN_PORT) if port_open(p)] + [GAME_PORT] * port_open(GAME_PORT, game_host)
     if busy:
@@ -227,60 +395,14 @@ def main():
     else:
         work = Path(tempfile.mkdtemp(prefix="server_boot_"))
 
-    db_dir, tm_dir, game_host = build_tree(work, exe_dir)
-    for d in (db_dir, tm_dir):
-        (d / "Log").mkdir()  # StartLog grava em .\\Log\\, que os servidores não criam
-
-    xvfb, display = start_xvfb()
-    env = dict(os.environ, WINEPREFIX=str(work / "wineprefix"), DISPLAY=display, WINEDLLOVERRIDES="mscoree,mshtml=")
-    env.pop("WAYLAND_DISPLAY", None)
-    servers = []
-    problems = []
+    host = NativeHost(work) if os.name == "nt" else WineHost(work)
+    print(f"plataforma: {'Windows nativo' if os.name == 'nt' else 'wine + Xvfb'}")
     try:
-        quiet = dict(env, WINEDEBUG="-all")
-        subprocess.run(["wineboot", "-i"], env=quiet, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=300)
-        subprocess.run(["wine", "reg", "add", r"HKCU\Software\Wine\Debug", "/v", "RelayInclude",
-                        "/d", "user32.MessageBoxA;user32.MessageBoxW", "/f"],
-                       env=quiet, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True, timeout=120)
-        subprocess.run(["wineserver", "-w"], env=quiet, timeout=120)
-        relay = dict(env, WINEDEBUG="-all,+relay")
-
-        t0 = time.time()
-        servers.append(Server("DBSrv", db_dir, relay))
-        problems = wait_port(DB_PORT, "127.0.0.1", servers, args.timeout)
+        problems = [] if args.no_self_test else self_test(host, work / "selftest", exe_dir, args.timeout)
         if not problems:
-            print(f"DBSrv escutando na {DB_PORT} ({time.time() - t0:.1f}s)")
-            t0 = time.time()
-            servers.append(Server("TMSrv", tm_dir, relay))
-            problems = wait_port(GAME_PORT, game_host, servers, args.timeout)
-        if not problems:
-            print(f"TMSrv conectado ao DBSrv e escutando em {game_host}:{GAME_PORT} ({time.time() - t0:.1f}s)")
-            for host, port in (("127.0.0.1", DB_PORT), ("127.0.0.1", ADMIN_PORT), (game_host, GAME_PORT)):
-                if not port_open(port, host):
-                    problems.append(f"conexão de teste em {host}:{port} recusada")
-            time.sleep(args.settle)
-            problems += [p for s in servers for p in s.problems()]
-            # O TMSrv só grava "sys,start server" depois de ler o heightmap e o BASE_InitializeBaseDef;
-            # sem o heightmap, o Reboot() só registra o erro e volta, e o boot pareceria bom.
-            tm_log, db_log = server_log(tm_dir), server_log(db_dir)
-            if "sys,start server" not in tm_log:
-                problems.append("TMSrv: o log não tem \"sys,start server\" (Reboot não carregou a base)")
-            # O DBSrv fecha conexões de IPs fora do serverlist; o TMSrv registraria a queda.
-            if "err wsareaddb" in tm_log:
-                problems.append("TMSrv: perdeu a conexão com o DBSrv (\"err wsareaddb\")")
-            if f"err wsa_accept request from  {game_host}" in db_log:
-                problems.append(f"DBSrv: recusou a conexão do TMSrv ({game_host})")
-            if not problems:
-                print(f"os dois seguem no ar após {args.settle:.0f}s, sem MessageBox")
+            problems = boot(host, work / "boot", exe_dir, args)
     finally:
-        subprocess.run(["wineserver", "-k"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        for s in servers:
-            try:
-                s.proc.wait(timeout=20)
-            except subprocess.TimeoutExpired:
-                s.proc.kill()
-        xvfb.send_signal(signal.SIGTERM)
-        xvfb.wait(timeout=20)
+        host.close()
 
     if problems:
         for p in problems:

@@ -79,8 +79,8 @@ jobs:
         with:
           name: server-boot-logs
           path: |
-            ${{ runner.temp }}/server_boot/srv/*/Log/
-            ${{ runner.temp }}/server_boot/srv/*/wine.log
+            ${{ runner.temp }}/server_boot/*/srv/*/Log/
+            ${{ runner.temp }}/server_boot/*/srv/*/wine.log
           if-no-files-found: ignore
 
   build-windows:
@@ -134,6 +134,19 @@ jobs:
             Where-Object { $_.DirectoryName -match "\\${{ matrix.config }}$" -and $_.FullName -notmatch "\\CMakeFiles\\" -and $_.Name -notmatch "_tests\.exe$" } |
             Copy-Item -Destination dist/${{ matrix.config }} -Force
           Get-ChildItem dist/${{ matrix.config }}
+
+      # Mesmo teste de partida do job mingw, agora com os binários MSVC, nativos.
+      - name: Boot DBSrv + TMSrv (${{ matrix.config }}, synthetic data)
+        timeout-minutes: 10
+        run: python tools/server_boot_smoke.py dist/${{ matrix.config }} --keep "${{ runner.temp }}/server_boot"
+
+      - name: Upload server boot logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-boot-logs-${{ matrix.config }}
+          path: ${{ runner.temp }}/server_boot/*/srv/*/Log/
+          if-no-files-found: ignore
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
