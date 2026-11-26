@@ -354,6 +354,7 @@ private:
 	/// @name Etapas com retorno antecipado extraídas de SkillUse (Fase 3)
 	/// @{
 	bool SkillUse_CastleWarCheck(unsigned int& dwServerTime, TMHuman*& pOver, char& cSkillIndex, int& nReturnValue);
+	bool SkillUse_CastSelfOrArea(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& bMoving, int& nSpecForce, STRUCT_MOB*& pMobData, TMHuman*& pOver, char& cSkillIndex, int& nCannonIndex, int& nReturnValue);
 	/// @}
 
 	/// @name Etapas com retorno antecipado extraídas de FrameMove (Fase 3)
