@@ -331,6 +331,7 @@ private:
 	int OnControl_PlayerMenu863(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_PlayerMenu816(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_PlayerMenu817(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_PlayerMenu818(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
