@@ -908,28 +908,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 475139)
 		return OnControl_ChatListOpen(idwControlID, idwEvent);
 	if (idwControlID == 617)
-	{
-		if (m_dwLastCheckTime + 2000 <= g_pApp->m_pTimerManager->GetServerTime())
-		{
-			auto pButton = (SButton*)m_pControlContainer->FindControl(617u);
-			pButton->m_bSelected = pButton->m_bSelected == 0;
-			g_pObjectManager->m_stTrade.MyCheck = pButton->m_bSelected;
-
-			MSG_Trade stTrade{};
-
-			memcpy(&stTrade, &g_pObjectManager->m_stTrade, sizeof(stTrade));
-			stTrade.Header.Type = 0x383;
-			SendOneMessage((char*)&stTrade, sizeof(stTrade));
-
-			m_dwLastCheckTime = g_pApp->m_pTimerManager->GetServerTime();
-			return 0;
-		}
-
-		m_pMessagePanel->SetMessage(g_pMessageStringTable[41], 2000);
-		m_pMessagePanel->SetVisible(1, 1);
-		m_dwLastCheckTime = g_pApp->m_pTimerManager->GetServerTime();
-		return 1;
-	}
+		return OnControl_TradeCheck(idwControlID, idwEvent);
 	if (idwControlID == 667)
 		return OnControl_AutoTrade667(idwControlID, idwEvent);
 
