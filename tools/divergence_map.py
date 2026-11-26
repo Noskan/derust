@@ -36,9 +36,9 @@ import mingw_check as M  # noqa: E402
 SIDES = OrderedDict(
     server=dict(
         label="servidor",
-        headers=["server/common/Basedef.h"],
+        headers=["shared/protocol/GameStructs.h", "server/common/Basedef.h"],
         includes=["common/Basedef.h"],
-        incs=["server", "server/common"], extra=[],
+        incs=["shared", "server", "server/common"], extra=[],
         sources=["server/tmsrv", "server/common"],
         opcode=r"_MSG_\w+|0x[0-9A-Fa-f]+",
         rules_sources=sorted(str(p.relative_to(ROOT)) for p in (ROOT / "server/common").glob("*.cpp")),
@@ -47,9 +47,9 @@ SIDES = OrderedDict(
     ),
     client=dict(
         label="cliente",
-        headers=["client/src/common/Basedef.h", "client/src/common/Structures.h"],
+        headers=["shared/protocol/GameStructs.h", "client/src/common/Basedef.h", "client/src/common/Structures.h"],
         includes=["core/pch.h", "common/Basedef.h", "common/Structures.h"],
-        incs=["client/src"], extra=["-D_MBCS"],
+        incs=["shared", "client/src"], extra=["-D_MBCS"],
         sources=["client/src"],
         opcode=r"MSG_\w+_Opcode|0x[0-9A-Fa-f]+",
         rules_sources=M.CLIENT_TEST_SOURCES,

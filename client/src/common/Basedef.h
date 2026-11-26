@@ -93,21 +93,7 @@ struct STRUCT_SCORE
 	unsigned short Special[4];
 };
 
-union STRUCT_BONUSEFFECT
-{
-	struct
-	{
-		unsigned char cEffect;
-		unsigned char cValue;
-	};
-	short sValue;
-};
-
-struct STRUCT_ITEM
-{
-	short sIndex;
-	STRUCT_BONUSEFFECT stEffect[3];
-};
+#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_TREASURE, STRUCT_DAM, STRUCT_SPELL (iguais nos dois lados)
 
 struct STRUCT_SELCHAR
 {
@@ -301,38 +287,6 @@ struct STRUCT_EXT2
 	char Dummy[126];
 };
 
-struct STRUCT_DAM
-{
-	unsigned short TargetID;
-	int Damage;
-};
-
-struct STRUCT_SPELL
-{
-	int SkillPoint;
-	int TargetType;
-	int ManaSpent;
-	int Delay;
-	int Range;
-	int InstanceType;
-	int InstanceValue;
-	int TickType;
-	int TickValue;
-	int AffectType;
-	int AffectValue;
-	int AffectTime;
-	char Act1[8];
-	char Act2[8];
-	int InstanceAttribute;
-	int TickAttribute;
-	int Aggressive;
-	int MaxTarget;
-	int bParty;
-	int AffectResist;
-	int Passive;
-	int ForceDamage;
-};
-
 struct STRUCT_INITITEM
 {
 	short PosX;
@@ -393,13 +347,6 @@ struct STRUCT_GUILDLIST
 	char Citizen;
 	char Mandle;
 	unsigned int Fame;
-};
-
-struct STRUCT_TREASURE
-{
-	short Source;
-	STRUCT_ITEM Target[5];
-	short Rate[5];
 };
 
 struct STRUCT_TOTODATA

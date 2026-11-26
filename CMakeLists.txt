@@ -13,6 +13,9 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Cabeçalhos comuns aos dois lados (shared/protocol), usados pelo servidor e pelo cliente.
+add_subdirectory(shared)
+
 if(DERUST_BUILD_SERVER)
   add_subdirectory(server)
 endif()

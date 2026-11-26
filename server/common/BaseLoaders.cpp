@@ -1108,8 +1108,8 @@ void BASE_InitializeSkill()
 
 		// As duas colunas de movimentos ("1.2.3.4.5.6"), como Act1 e Act2 do cliente. Antes as duas iam
 		// para o mesmo buffer e só a segunda ficava. O memset acima zera o resto.
-		sscanf(act1, "%hhu.%hhu.%hhu.%hhu.%hhu.%hhu", &temp.Act1[0], &temp.Act1[1], &temp.Act1[2], &temp.Act1[3], &temp.Act1[4], &temp.Act1[5]);
-		sscanf(act2, "%hhu.%hhu.%hhu.%hhu.%hhu.%hhu", &temp.Act2[0], &temp.Act2[1], &temp.Act2[2], &temp.Act2[3], &temp.Act2[4], &temp.Act2[5]);
+		sscanf(act1, "%hhd.%hhd.%hhd.%hhd.%hhd.%hhd", &temp.Act1[0], &temp.Act1[1], &temp.Act1[2], &temp.Act1[3], &temp.Act1[4], &temp.Act1[5]);
+		sscanf(act2, "%hhd.%hhd.%hhd.%hhd.%hhd.%hhd", &temp.Act2[0], &temp.Act2[1], &temp.Act2[2], &temp.Act2[3], &temp.Act2[4], &temp.Act2[5]);
 
 		g_pSpell[Index] = temp;
 	 }

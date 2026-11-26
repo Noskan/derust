@@ -36,6 +36,7 @@ target_compile_options(w2pp_common
 
 target_link_libraries(w2pp_common
   PUBLIC
+    w2_shared
     ws2_32
     winmm
 )

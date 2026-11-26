@@ -397,22 +397,7 @@
 
 #pragma region Structures
 
-/// @brief Estrutura binária de um item (8 bytes: índice + 3 pares efeito/valor).
-struct STRUCT_ITEM
-{
-	short sIndex;
-	union
-	{
-		short sValue;
-
-		struct
-		{
-			unsigned char cEffect;
-			unsigned char cValue;
-		};
-
-	}stEffect[3];
-};
+#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_TREASURE, STRUCT_DAM, STRUCT_SPELL (iguais nos dois lados)
 
 /// @brief Atributos de combate, defesa, HP/MP, pontos base e maestrias de um mob/personagem (48 bytes).
 struct STRUCT_SCORE
@@ -651,15 +636,6 @@ struct STRUCT_BEASTBONUS
 	int Unk17; // BaseSanc ? // 64
 };
 
-struct STRUCT_TREASURE
-{
-	short Source;
-
-	STRUCT_ITEM Target[5];
-
-	short Rate[5];
-};
-
 struct STRUCT_PISTA
 {
 	struct
@@ -871,33 +847,6 @@ struct STRUCT_ACCOUNTFILE
 	int Donate;
 
 	char TempKey[52];
-};
-
-/// @brief Dados de uma skill (96 bytes, layout do cliente). O servidor carrega do SkillData.csv.
-struct STRUCT_SPELL
-{
-	int	SkillPoint;
-	int	TargetType;
-	int	ManaSpent;
-	int	Delay;
-	int	Range;
-	int	InstanceType;
-	int	InstanceValue;
-	int	TickType;
-	int	TickValue;
-	int	AffectType;
-	int	AffectValue;
-	int	AffectTime;
-	unsigned char Act1[8];	// Movimentos da skill (cliente: Act1 para um tipo de malha, Act2 para o outro)
-	unsigned char Act2[8];
-	int	InstanceAttribute;
-	int	TickAttribute;
-	int	Aggressive;
-	int	MaxTarget;
-	int	bParty;
-	int	AffectResist;
-	int	Passive;
-	int	ForceDamage;	// Do cliente; o SkillData.csv do servidor não tem a coluna e fica 0
 };
 
 struct STRUCT_ITEMLIST
@@ -2031,12 +1980,6 @@ struct		 MSG_SplitItem
 	int sIndex;
 
 	int Num;
-};
-
-struct	STRUCT_DAM
-{
-	unsigned short	TargetID;	// 2 bytes no cliente; os 2 seguintes são preenchimento
-	int				Damage;
 };
 
 const short  _MSG_Attack					= (103 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);

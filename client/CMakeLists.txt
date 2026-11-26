@@ -227,6 +227,7 @@ set_source_files_properties(
 
 target_link_libraries(TMProject
   PRIVATE
+    w2_shared
     tm_directx
     tm_crypto
     wininet

@@ -43,7 +43,7 @@ if(DERUST_BUILD_CLIENT)
   target_compile_options(tmproject_characterization_tests PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/W3 /permissive->
   )
-  target_link_libraries(tmproject_characterization_tests PRIVATE tm_directx wininet)
+  target_link_libraries(tmproject_characterization_tests PRIVATE w2_shared tm_directx wininet)
   add_test(NAME tmproject_characterization_tests COMMAND tmproject_characterization_tests)
 
   # Cliente sintético do login (tools/login_client), com o CPSock e as estruturas do cliente. Não
@@ -70,5 +70,5 @@ if(DERUST_BUILD_CLIENT)
   target_compile_options(LoginClient PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/W3 /permissive->
   )
-  target_link_libraries(LoginClient PRIVATE tm_directx wininet ws2_32 iphlpapi)
+  target_link_libraries(LoginClient PRIVATE w2_shared tm_directx wininet ws2_32 iphlpapi)
 endif()

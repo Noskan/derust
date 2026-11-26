@@ -69,13 +69,13 @@ COMMON_FLAGS = [
 
 # Módulo -> (diretórios de include, flags extras, objetos entram no link?)
 MODULES = {
-    "server/common": (["server", "server/common"], [], True),
-    "server/dbsrv": (["server", "server/common", "server/dbsrv"], [], True),
-    "server/tmsrv": (["server", "server/common", "server/tmsrv"], [], True),
-    "client/src": (["client/src"], ["-D_MBCS"], False),
-    "tests/tmproject_characterization_tests.cpp": (["client/src"], ["-D_MBCS"], True),
-    "tests": (["server", "server/common"], [], True),
-    "tools/login_client": (["client/src"], ["-D_MBCS"], True),
+    "server/common": (["shared", "server", "server/common"], [], True),
+    "server/dbsrv": (["shared", "server", "server/common", "server/dbsrv"], [], True),
+    "server/tmsrv": (["shared", "server", "server/common", "server/tmsrv"], [], True),
+    "client/src": (["shared", "client/src"], ["-D_MBCS"], False),
+    "tests/tmproject_characterization_tests.cpp": (["shared", "client/src"], ["-D_MBCS"], True),
+    "tests": (["shared", "server", "server/common"], [], True),
+    "tools/login_client": (["shared", "client/src"], ["-D_MBCS"], True),
 }
 
 # Testes do cliente: linkados com estes fontes do cliente (como em tests/CMakeLists.txt), não com w2pp_common.

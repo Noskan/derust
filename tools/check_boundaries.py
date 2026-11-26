@@ -32,7 +32,7 @@ def scan_files(base: pathlib.Path):
 def check_repo() -> list[str]:
     errors: list[str] = []
 
-    for area in ("server", "client/src"):
+    for area in ("shared", "server", "client/src"):
         base = ROOT / area
         if not base.exists():
             errors.append(f"Diretorio esperado nao encontrado: {area}")
@@ -52,7 +52,11 @@ def check_repo() -> list[str]:
 
                 top_mod = inc.split("/", 1)[0] if "/" in inc else ""
 
-                if rel.startswith("server/common/"):
+                if rel.startswith("shared/"):
+                    # shared/ é usado pelos dois lados: só pode incluir o próprio shared/.
+                    if top_mod != "protocol":
+                        errors.append(f"{rel}:{line_no}: shared/ so pode incluir shared/protocol/: \"{inc}\"")
+                elif rel.startswith("server/common/"):
                     if top_mod in {"dbsrv", "tmsrv", "tools"}:
                         errors.append(f"{rel}:{line_no}: server/common nao pode depender de {top_mod}/: \"{inc}\"")
                 elif rel.startswith("server/dbsrv/"):
