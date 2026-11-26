@@ -542,40 +542,8 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 						nDistanceFromMe = 0;
 				}
 			}
-			if (cSkillIndex == 0 || cSkillIndex == 35 || cSkillIndex == 16 || cSkillIndex == 7 || cSkillIndex == 17 || 
-				cSkillIndex == 23 || cSkillIndex == 39 || cSkillIndex == 51 || cSkillIndex == 55 || cSkillIndex == 95)
-			{
-				if (nDistanceFromMe > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range && g_pSpell[(unsigned char)cSkillIndex].Range != -1)
-					{ nReturnValue = 0; return true; }
-				if (g_pSpell[(unsigned char)cSkillIndex].Range == -1)
-				{
-					if (nDistanceFromMe > nSpecForce + BASE_GetMobAbility(&g_pObjectManager->m_stMobData, 27))
-						{ nReturnValue = 0; return true; }
-				}
-
-				int sx = (int)m_pMyHuman->m_vecPosition.x;
-				int sy = (int)m_pMyHuman->m_vecPosition.y;
-				int tx = nSX;
-				int ty = nSY;
-				BASE_GetHitPosition(sx, sy, &tx, &ty, (char*)m_HeightMapData, 8);
-				if (pOver && pOver->m_nClass == 56 && !pOver->m_stLookInfo.FaceMesh)
-				{
-					tx = nSX;
-					ty = nSY;
-				}
-				if (tx != nSX || ty != nSY)
-					{ nReturnValue = 0; return true; }
-			}
-			else
-			{
-				nSX = (int)m_pMyHuman->m_vecPosition.x;
-				nSY = (int)m_pMyHuman->m_vecPosition.y;
-				if (m_stMoveStop.NextX)
-				{
-					nSX = m_stMoveStop.NextX;
-					nSY = m_stMoveStop.NextY;
-				}
-			}
+			if (AutoSkillUse_AreaRangeCheck(nSpecForce, pOver, cSkillIndex, nSX, nSY, nDistanceFromMe, nReturnValue))
+				return true;
 
 			int nDistance = BASE_GetDistance(nSX, nSY, x2, y2);
 			int nTX = x2;
@@ -1059,6 +1027,48 @@ bool TMFieldScene::AutoSkillUse_AreaCenterOnTarget(TMHuman*& pOver, char& cSkill
 				nSX = (int)pOver->m_vecPosition.x;
 				nSY = (int)pOver->m_vecPosition.y;
 			}
+		}
+	}
+	return false;
+}
+
+/// Skills de área centradas no alvo: confere o alcance até o centro.
+/// @note Extraído de `TMFieldScene::AutoSkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::AutoSkillUse_AreaRangeCheck(int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& nSX, int& nSY, int& nDistanceFromMe, int& nReturnValue)
+{
+	if (cSkillIndex == 0 || cSkillIndex == 35 || cSkillIndex == 16 || cSkillIndex == 7 || cSkillIndex == 17 || 
+		cSkillIndex == 23 || cSkillIndex == 39 || cSkillIndex == 51 || cSkillIndex == 55 || cSkillIndex == 95)
+	{
+		if (nDistanceFromMe > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range && g_pSpell[(unsigned char)cSkillIndex].Range != -1)
+			{ nReturnValue = 0; return true; }
+		if (g_pSpell[(unsigned char)cSkillIndex].Range == -1)
+		{
+			if (nDistanceFromMe > nSpecForce + BASE_GetMobAbility(&g_pObjectManager->m_stMobData, 27))
+				{ nReturnValue = 0; return true; }
+		}
+
+		int sx = (int)m_pMyHuman->m_vecPosition.x;
+		int sy = (int)m_pMyHuman->m_vecPosition.y;
+		int tx = nSX;
+		int ty = nSY;
+		BASE_GetHitPosition(sx, sy, &tx, &ty, (char*)m_HeightMapData, 8);
+		if (pOver && pOver->m_nClass == 56 && !pOver->m_stLookInfo.FaceMesh)
+		{
+			tx = nSX;
+			ty = nSY;
+		}
+		if (tx != nSX || ty != nSY)
+			{ nReturnValue = 0; return true; }
+	}
+	else
+	{
+		nSX = (int)m_pMyHuman->m_vecPosition.x;
+		nSY = (int)m_pMyHuman->m_vecPosition.y;
+		if (m_stMoveStop.NextX)
+		{
+			nSX = m_stMoveStop.NextX;
+			nSY = m_stMoveStop.NextY;
 		}
 	}
 	return false;
