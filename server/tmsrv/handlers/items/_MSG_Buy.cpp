@@ -101,10 +101,14 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 		goto DonateBuy;
 	}
 
-	int Price = g_pItemList[itemIndex].Price;
-	int Price2 = Price;
-	int Village = BASE_GetVillage(pMob[TargetID].TargetX, pMob[TargetID].TargetY);
-	int CityTax = g_pGuildZone[Village].CityTax;
+	int Price;
+	Price = g_pItemList[itemIndex].Price;
+	int Price2;
+	Price2 = Price;
+	int Village;
+	Village = BASE_GetVillage(pMob[TargetID].TargetX, pMob[TargetID].TargetY);
+	int CityTax;
+	CityTax = g_pGuildZone[Village].CityTax;
 
 	if (Village < 0 || Village >= 5 || CityTax <= 0 || CityTax >= 30)
 		goto LABEL_BUY1;
@@ -118,13 +122,18 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 	if (Price < 0)
 		return;
 
-	int GuildTax = (Price - Price2) / 2;
+	int GuildTax;
+	GuildTax = (Price - Price2) / 2;
 LABEL_BUY1:
 
-	int bPrice = Price;
-	int Desconto = 0;
-	int TargetVillage = BASE_GetVillage(pMob[TargetID].TargetX, pMob[TargetID].TargetY);
-	int Guild = pMob[conn].MOB.Guild;
+	int bPrice;
+	bPrice = Price;
+	int Desconto;
+	Desconto = 0;
+	int TargetVillage;
+	TargetVillage = BASE_GetVillage(pMob[TargetID].TargetX, pMob[TargetID].TargetY);
+	int Guild;
+	Guild = pMob[conn].MOB.Guild;
 					 
 	if (Price <= 1999999999 && TargetVillage >= 0 && TargetVillage < 5 && Guild > 0 && g_pGuildZone[TargetVillage].ChargeGuild == Guild)
 	{
@@ -235,7 +244,8 @@ LABEL_BUY1:
 
 	if (Price >= 0)
 	{
-		int x = 0;
+		int x;
+		x = 0;
 
 		for (x = 0; x < MAX_MOB_MERC; x++)
 		{

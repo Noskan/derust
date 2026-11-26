@@ -58,8 +58,10 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		}
 
 							 
-		int Arena = BASE_GetArena(pMob[conn].TargetX, pMob[conn].TargetY);
-		int Village = BASE_GetVillage(pMob[conn].TargetX, pMob[conn].TargetY);
+		int Arena;
+		Arena = BASE_GetArena(pMob[conn].TargetX, pMob[conn].TargetY);
+		int Village;
+		Village = BASE_GetVillage(pMob[conn].TargetX, pMob[conn].TargetY);
 
 		if (Arena < MAX_GUILDZONE || Village < MAX_GUILDZONE)
 		{
