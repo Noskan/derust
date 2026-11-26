@@ -11,10 +11,6 @@ As TUs que hoje só compilam no MSVC ficam em tools/mingw_known_failures.txt. A 
 falha se uma TU fora dessa lista não compilar e avisa quando uma TU da lista passar a
 compilar (para que seja removida da lista).
 
-Enquanto a Fase 3 não remove as construções exclusivas do MSVC, as linhas
-`#pragma region`/`#pragma endregion` são descartadas antes de compilar (o GCC não as
-aceita entre `}` e `else`).
-
 Uso: python3 tools/mingw_check.py [--jobs N] [--no-wine] [--keep DIR]
 """
 
@@ -36,6 +32,9 @@ KNOWN = ROOT / "tools" / "mingw_known_failures.txt"
 COMMON_FLAGS = [
     "-std=gnu++17", "-fpermissive", "-w", "-fms-extensions",
     "-DWIN32", "-D_WINDOWS",
+    # mingw-w64 mais antigos (ex.: Ubuntu 24.04) incluem <strsafe.h> a partir de <dshow.h>,
+    # que redefine sprintf/strcpy/strcat como macros de deprecação.
+    "-DSTRSAFE_NO_DEPRECATE",
     # time_t de 64 bits, como no MSVC Win32 (mantém as travas de ABI de ProtocolLayoutCheck.cpp).
     "-D__MINGW_USE_VC2005_COMPAT",
 ]
@@ -49,7 +48,6 @@ MODULES = {
     "tests": (["server", "server/common"], [], True),
 }
 
-PRAGMA_REGION = re.compile(rb"^[ \t]*#[ \t]*pragma[ \t]+(?:end)?region\b.*$", re.M)
 SYS_INCLUDE = re.compile(rb'^[ \t]*#[ \t]*include[ \t]*<([^>]+)>', re.M)
 
 
@@ -89,15 +87,10 @@ def module_of(rel):
 
 def compile_tu(src, work, shim_dir):
     rel = src.relative_to(ROOT).as_posix()
-    mod = module_of(rel)
-    incs, extra, want_obj = MODULES[mod]
-    flt = work / "src" / rel
-    flt.parent.mkdir(parents=True, exist_ok=True)
-    flt.write_bytes(PRAGMA_REGION.sub(b"", src.read_bytes()))
+    incs, extra, want_obj = MODULES[module_of(rel)]
     obj = work / "obj" / (rel.replace("/", "_") + ".o")
-    cmd = [CXX, *COMMON_FLAGS, *extra, f"-I{shim_dir}", "-iquote", str(src.parent)]
-    cmd += [f"-I{ROOT / i}" for i in incs]
-    cmd += ["-c", str(flt), "-o", str(obj)] if want_obj else ["-fsyntax-only", str(flt)]
+    cmd = [CXX, *COMMON_FLAGS, *extra, f"-I{shim_dir}"] + [f"-I{ROOT / i}" for i in incs]
+    cmd += ["-c", str(src), "-o", str(obj)] if want_obj else ["-fsyntax-only", str(src)]
     r = subprocess.run(cmd, capture_output=True, text=True, errors="replace")
     errs = [l for l in r.stderr.splitlines() if " error: " in l or "fatal error" in l]
     return rel, r.returncode == 0, errs[:5], obj if want_obj else None
@@ -150,7 +143,7 @@ def main():
     for r in new_fail:
         print(f"::error file={r}::TU nao compila no mingw (fora de {KNOWN.name})")
         for e in results[r][1]:
-            print("    " + e.replace(str(work / "src") + "/", ""))
+            print("    " + e.replace(str(ROOT) + "/", ""))
         status = 1
     for r in fixed:
         print(f"::warning file={r}::TU agora compila no mingw: remova de {KNOWN.name}")

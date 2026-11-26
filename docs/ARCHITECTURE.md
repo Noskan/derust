@@ -195,10 +195,10 @@ Depois da Onda 4, o tamanho restante está concentrado em poucas funções, e di
 | `TMFieldScene::FrameMove` / `InitializeScene` | ~1.500 cada |
 | `TMFieldScene::AutoSkillUse`, `TMHuman::InitObject`, `TMHuman::FrameMove` | ~1.000 cada |
 
-Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que podem cair para o próximo `if`, locais compartilhadas), o que deixa de ser movimentação de código. Recomendação antes de começar:
-1. Rede de segurança: adicionar ao CI um job Linux com cross-compile mingw i686 (compila servidor e cliente, linka DBSrv e roda `w2pp_common_tests` no wine), cobrindo também plataformas fora do MSVC.
-2. Portabilidade mínima: remover construções aceitas só pelo MSVC (`#pragma region` entre `}` e `else`, `goto` que salta inicializações) para que todas as TUs compilem no GCC/Clang.
-3. Só então decompor por handler (ex.: `OnControlEvent` → `OnControl_<Painel>`), um handler por commit, com revisão do fluxo de `return`.
+Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que podem cair para o próximo `if`, locais compartilhadas), o que deixa de ser movimentação de código. Rede de segurança (Fase 3, passos 1 e 2 — concluídos na branch `refactor/phase3-mingw-ci`):
+1. **Job `mingw-check` no CI** (`ubuntu-24.04`): [`tools/mingw_check.py`](../tools/mingw_check.py) compila todas as 256 TUs do servidor, do cliente e dos testes com mingw-w64 i686, linka o DBSrv e roda `w2pp_common_tests` no wine. Só as TUs listadas em [`tools/mingw_known_failures.txt`](../tools/mingw_known_failures.txt) podem falhar; uma falha nova quebra o job e uma TU consertada gera aviso para sair da lista.
+2. **Construções exclusivas do MSVC removidas**: `goto` que saltava `int x = expr;` (a declaração foi separada da atribuição, o que preserva o comportamento), `#pragma region` entre `}` e `else` ou dentro de inicializadores (virou comentário `// region`), `sizeof TIPO` sem parênteses e `std::exception(const char*)` (trocado por `std::runtime_error`). Hoje restam 3 TUs na lista, todas por APIs do DirectX SDK legado (`D3DXMATRIXA16`, `D3D9b_SDK_VERSION` e o `ID3DXSprite` antigo).
+3. **Próximo passo**: decompor as funções gigantes por handler (ex.: `OnControlEvent` → `OnControl_<Painel>`), um handler por commit, revisando o fluxo de `return`.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.
