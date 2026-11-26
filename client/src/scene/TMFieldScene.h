@@ -273,6 +273,7 @@ private:
 	/// @{
 	int OnControl_HellStoreSelect(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_GambleArrows(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_GambleStart(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	/// @}
 
 public:

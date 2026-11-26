@@ -110,59 +110,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID >= TMB_GAMBLE_LEFTX2 && idwControlID <= TMB_GAMBLE_RIGHT)
 		return OnControl_GambleArrows(idwControlID, idwEvent);
 	if (idwControlID == TMB_GAMBLE_START)
-	{
-		if (m_pReelPanel2->m_dwStopTime || m_pReelPanel2->m_bRoling == 1)
-			return 1;
-		if (m_pReelPanel->m_dwStopTime || m_pReelPanel->m_bRoling == 1)
-			return 1;
-
-		auto pGridInv = m_pGridInv;
-		auto vec = pGridInv->CanAddItemInEmpty(1, 1);
-		if (vec.x < 0 || vec.y < 0)
-		{
-			auto pChatList = m_pChatList;
-
-			auto ipNewItem = new SListBoxItem(g_pMessageStringTable[1],
-				0xFFFFAAAA,
-				0.0,
-				0.0,
-				300.0f,
-				16.0f,
-				0,
-				0x77777777,
-				1u,
-				0);
-
-			if (ipNewItem)
-				pChatList->AddItem(ipNewItem);
-
-			GetSoundAndPlay(33, 0, 0);
-			return 1;
-		}
-
-		if (pMobData->Coin - m_nBet >= 0)
-		{
-			MSG_STANDARDPARM2 stParm2{};
-			stParm2.Header.ID = g_pObjectManager->m_dwCharID;
-			stParm2.Header.Type = MSG_DoJackpotBet_Opcode;
-			stParm2.Parm1 = 1;
-			stParm2.Parm2 = m_nBet;
-			SendOneMessage((char*)&stParm2, sizeof(stParm2));
-
-			m_pReelPanel->m_dwBatCoin = m_nBet;
-			m_pReelPanel2->m_dwBatCoin = m_nBet;
-
-			m_pReelPanel->SetRoll(1, 0, 0, 0, 3000);
-			m_pReelPanel2->SetRoll(1, 0, 0, 0, 3000);
-			pMobData->Coin -= m_nBet;
-
-			GetSoundAndPlay(338, 0, 0);
-
-			UpdateScoreUI(0);
-			return 1;
-		}
-		return 1;
-	}
+		return OnControl_GambleStart(idwControlID, idwEvent, pMobData);
 	if (idwControlID == TMB_GAMBLE_QUIT)
 	{
 		SetVisibleGamble(0, 0);
