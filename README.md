@@ -45,7 +45,8 @@ python3 tools/check_boundaries.py
 - **Fase 1 (concluída)**: Reorganização modular via `git mv`, migração para CMake + presets Win32, pipeline CI no GitHub Actions (`windows-latest` Debug/Release), verificador de fronteiras e travas de ABI em `ProtocolLayoutCheck.cpp`.
 - **Fase 2 — Onda 1 (concluída)**: Limpeza de `ItemEffect.h` para PT-BR, `.clang-format`, documentação Doxygen/inline em PT-BR e fatiamento dos 4 maiores *god-files*: `server/common/Basedef.cpp` (`Basedef`/`BaseItem`/`BaseCombat`), `tmsrv/core/Server.cpp` (5 sistemas em `tmsrv/systems/`), `TMFieldScene.cpp` (5 TUs) e `TMHuman.cpp` (5 TUs).
 - **Fase 2 — Onda 2 (concluída)**: Fatiamento de `_MSG_UseItem.cpp` (5 sub-handlers), `_MSG_Quest.cpp` (3 sub-handlers), `MobKilled.cpp` (Exp/Drops/PvP), `CFileDB.cpp` (pacotes de conta e mundo), `SGrid.cpp` (4 TUs) e `TMGround.cpp` (3 TUs), além da suíte CTest [`w2pp_common_tests`](tests/w2pp_common_tests.cpp) integrada ao CI.
-- **Fase 2 — Onda 3 (próxima etapa)**: Fatiamento de `RenderDevice.cpp`, `client/src/common/Basedef.cpp`, `SControl.cpp`, `TMScene.cpp`, `dbsrv/core/Server.cpp` e `ProcessSecMinTimer.cpp`.
+- **Fase 2 — Onda 3 (concluída)**: Fatiamento de `dbsrv/core/Server.cpp` (Admin/Config/Logs), `ProcessSecMinTimer.cpp` (`ScheduledEventSystem` e `MobAISystem` em `tmsrv/systems/`), `RenderDevice.cpp` (Shaders/Rect/Geom), `client/src/common/Basedef.cpp` (`BaseItem`/`BaseCombat`/`BaseWorld`), `SControl.cpp` (Text/Buttons/List) e `TMScene.cpp` (Resources/Packets/Ground).
+- **Fase 2 — Onda 4 (próxima etapa)**: Segunda passada nas TUs que seguem grandes (`TMFieldScene_UI.cpp`, `TMHuman.cpp`, `TMFieldScene_Packets.cpp`, `tmsrv/core/Server.cpp`, `server/common/Basedef.cpp`) e promoção de subsistemas a static libs com testes.
 
 ## Histórico e Licença
 

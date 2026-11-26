@@ -18,14 +18,14 @@ O monorepo reúne o servidor e o cliente C++ do *With Your Destiny (WYD)* sob um
 | Diretório | Target CMake | Responsabilidade |
 | --- | --- | --- |
 | `server/common/` | `w2pp_common` (STATIC) | Tipos base, pacotes, criptografia/socket (`Basedef`, `CPSock`, `ItemEffect`) e trava de layout ABI (`ProtocolLayoutCheck.cpp`). |
-| `server/dbsrv/core/` | `DBSrv` (WIN32) | Ponto de entrada (`Server`), leitura de arquivos de dados (`CReadFiles`), `stdafx.h`. |
+| `server/dbsrv/core/` | `DBSrv` (WIN32) | Ponto de entrada (`Server`), protocolo admin (`Server_Admin`), configuração (`Server_Config`), logs (`Server_Logs`), leitura de arquivos de dados (`CReadFiles`), `stdafx.h`. |
 | `server/dbsrv/persistence/` | `DBSrv` | Persistência de contas/personagens em disco (`CFileDB`) e ranking (`CRanking`). |
 | `server/dbsrv/net/` | `DBSrv` | Sessões conectadas de GameServers no DBSrv (`CUser`). |
 | `server/dbsrv/resources/` | `DBSrv` | Script de recursos Win32 (`DBSrv.rc`, `resource.h`, `icon1.ico`). |
 | `server/tmsrv/core/` | `TMSrv` (WIN32) | Loop principal (`Server`), timers de segundo/minuto (`ProcessSecMinTimer`), leitura de dados (`CReadFiles`), strings (`Language.h`). |
 | `server/tmsrv/entities/` | `TMSrv` | Entidades e geradores de mundo (`CMob`, `CItem`, `CUser`, `CNPCGene`). |
 | `server/tmsrv/net/` | `TMSrv` | Roteamento cliente/DB (`ProcessClientMessage`, `ProcessDBMessage`) e helpers de envio/consulta (`SendFunc`, `GetFunc`). |
-| `server/tmsrv/systems/` | `TMSrv` | Sistemas de mundo/eventos (`MobKilled`, `CCastleZakum`, `CWarTower`, comandos `imple`). |
+| `server/tmsrv/systems/` | `TMSrv` | Sistemas de mundo/eventos (`MobKilled`, `MobAISystem`, `ScheduledEventSystem`, `CCastleZakum`, `CWarTower`, comandos `imple`). |
 | `server/tmsrv/handlers/account/` | `TMSrv` | Login, senha numérica, criação/remoção e seleção de personagem (`_MSG_AccountLogin`, `_MSG_CharacterLogin`, etc.). |
 | `server/tmsrv/handlers/combat/` | `TMSrv` | Ataque, movimento, ações, distribuição de pontos, barra de skills, PK (`_MSG_Attack`, `_MSG_Action`, etc.). |
 | `server/tmsrv/handlers/items/` | `TMSrv` | Uso, compra/venda NPC, drop/pickup, baú, divisão e cápsula (`_MSG_UseItem`, `_MSG_Buy`, `_MSG_Deposit`, etc.). |
@@ -164,9 +164,18 @@ Na **Fase 2**, os arquivos monolíticos são fatiados por coesão (preservando 1
 - **Cliente — `TMGround.cpp` (4.502 → 1.420 linhas)**: dividido em `TMGround.cpp`, `TMGround_Tables.cpp` (2.242L) e `TMGround_Render.cpp` (872L), com documentação Doxygen em [`TMGround.h`](../client/src/world/TMGround.h).
 - **Testes automatizados (CTest)**: adicionada a suíte [`tests/w2pp_common_tests.cpp`](../tests/w2pp_common_tests.cpp) executada automaticamente pelo CI Windows em `Debug` e `Release`.
 
-### Onda 3 (próximos alvos)
-- **Cliente**: `RenderDevice.cpp` (~3,5 mil linhas), `client/src/common/Basedef.cpp` (~3,4 mil), `SControl.cpp` (~3,0 mil), `TMScene.cpp` (~2,7 mil).
-- **Servidor**: `dbsrv/core/Server.cpp` (~2,3 mil linhas), `tmsrv/core/ProcessSecMinTimer.cpp` (~2,3 mil), e promoção gradual de subsistemas desacoplados a static libs CMake com testes adicionais.
+### Onda 3 (concluída na branch `refactor/modularize-phase2-wave3`)
+- **Servidor — `dbsrv/core/Server.cpp` (2.343 → 1.131 linhas)**: funções inteiras movidas para `Server_Admin.cpp` (918L, protocolo administrativo e bloqueio de contas), `Server_Config.cpp` (170L, configuração e transferência de guildas) e `Server_Logs.cpp` (267L, logs e relatórios diários).
+- **Servidor — `tmsrv/core/ProcessSecMinTimer.cpp` (2.315 → 946 linhas)**: os 4 maiores blocos de `ProcessSecTimer()` viraram funções declaradas em [`SecTimerInternal.h`](../server/tmsrv/systems/SecTimerInternal.h): `ScheduledEventSystem.cpp` (787L: `ProcessRuneQuestPortals`, `ProcessScheduledWorldEvents`) e `MobAISystem.cpp` (726L: `ProcessNpcMovementTick`, `ProcessMobCombatTick`). Os blocos não têm `return`, `break`/`continue` escapando nem `goto` entre blocos; as antigas variáveis locais (`bb`, `initial`, `Sec4`, `Sec16`) viraram parâmetros de mesmo nome.
+- **Cliente — `render/RenderDevice.cpp` (3.486 → 912 linhas)**: `RenderDevice_Shaders.cpp` (1.053L), `RenderDevice_Rect.cpp` (908L) e `RenderDevice_Geom.cpp` (678L).
+- **Cliente — `common/Basedef.cpp` (3.388 → 638 linhas)**: `BaseItem.cpp` (1.590L), `BaseCombat.cpp` (444L) e `BaseWorld.cpp` (751L), espelhando a divisão de `server/common/`.
+- **Cliente — `ui/SControl.cpp` (2.994 → 630 linhas)**: `SControl_Text.cpp` (824L), `SControl_Buttons.cpp` (684L) e `SControl_List.cpp` (895L).
+- **Cliente — `scene/TMScene.cpp` (2.699 → 822 linhas)**: `TMScene_Resources.cpp` (800L), `TMScene_Packets.cpp` (484L) e `TMScene_Ground.cpp` (673L).
+- Os headers [`RenderDevice.h`](../client/src/render/RenderDevice.h), [`client/src/common/Basedef.h`](../client/src/common/Basedef.h), [`SControl.h`](../client/src/ui/SControl.h) e [`TMScene.h`](../client/src/scene/TMScene.h) documentam (Doxygen, PT-BR) onde cada parte da implementação vive.
+
+### Próximos alvos (Onda 4)
+- **Cliente**: as TUs já fatiadas que seguem grandes — `TMFieldScene_UI.cpp` (~7,8 mil linhas), `TMHuman.cpp` (~5,2 mil), `TMFieldScene_Packets.cpp` (~5,1 mil), `TMFieldScene.cpp` (~5,0 mil) e `TMFieldScene_Combat.cpp` (~4,4 mil).
+- **Servidor**: `tmsrv/core/Server.cpp` (~2,9 mil), `server/common/Basedef.cpp` (~2,8 mil) e `BaseCombat.cpp` (~2,4 mil), além da promoção gradual de subsistemas desacoplados a static libs CMake com testes adicionais.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.
