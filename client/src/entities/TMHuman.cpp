@@ -449,42 +449,7 @@ int TMHuman::InitObject()
         m_stLookInfo.LeftMesh = 0;
         m_stLookInfo.RightMesh = 0;
     }
-    if (m_nSkinMeshType == 26 || m_nSkinMeshType == 35)
-    {
-        m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
-        m_stLookInfo.CoatMesh = m_stLookInfo.HelmMesh;
-        m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
-        m_stLookInfo.CoatSkin = m_stLookInfo.HelmSkin;
-        m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
-        m_stSancInfo.Sanc2 = m_stSancInfo.Sanc1;
-        m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
-        m_stSancInfo.Legend2 = m_stSancInfo.Legend1;
-        m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
-        m_stColorInfo.Sanc2 = m_stColorInfo.Sanc1;
-    }
-    else if (m_nSkinMeshType == 11 || m_nSkinMeshType == 37 || m_nSkinMeshType == 44)
-    {
-        m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
-        m_stLookInfo.CoatMesh = m_stLookInfo.HelmMesh;
-        m_stLookInfo.PantsMesh = m_stLookInfo.CoatMesh;
-        m_stLookInfo.GlovesMesh = m_stLookInfo.PantsMesh;
-        m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
-        m_stLookInfo.CoatSkin = m_stLookInfo.HelmSkin;
-        m_stLookInfo.PantsSkin = m_stLookInfo.CoatSkin;
-        m_stLookInfo.GlovesSkin = m_stLookInfo.PantsSkin;
-        m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
-        m_stSancInfo.Sanc2 = m_stSancInfo.Sanc1;
-        m_stSancInfo.Sanc3 = m_stSancInfo.Sanc2;
-        m_stSancInfo.Sanc4 = m_stSancInfo.Sanc3;
-        m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
-        m_stSancInfo.Legend2 = m_stSancInfo.Legend1;
-        m_stSancInfo.Legend3 = m_stSancInfo.Legend2;
-        m_stSancInfo.Legend4 = m_stSancInfo.Legend3;
-        m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
-        m_stColorInfo.Sanc2 = m_stColorInfo.Sanc1;
-        m_stColorInfo.Sanc3 = m_stColorInfo.Sanc2;
-        m_stColorInfo.Sanc4 = m_stColorInfo.Sanc3;
-    }
+    InitObject_SkinMesh26Look();
     if (m_nClass == 39 || m_nClass == 40 || m_nClass == 63)
     {
         m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
@@ -1448,6 +1413,48 @@ void TMHuman::InitObject_SingleMeshLook(int& nCos)
             TMHuman::m_vecPickSize[55].y = 0.449f;
             TMHuman::m_vecPickSize[55].x = 0.449f;
         }
+    }
+}
+
+/// Tipos de malha 26 e 35: elmo e corpo seguem o rosto.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_SkinMesh26Look()
+{
+    if (m_nSkinMeshType == 26 || m_nSkinMeshType == 35)
+    {
+        m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
+        m_stLookInfo.CoatMesh = m_stLookInfo.HelmMesh;
+        m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
+        m_stLookInfo.CoatSkin = m_stLookInfo.HelmSkin;
+        m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
+        m_stSancInfo.Sanc2 = m_stSancInfo.Sanc1;
+        m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
+        m_stSancInfo.Legend2 = m_stSancInfo.Legend1;
+        m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
+        m_stColorInfo.Sanc2 = m_stColorInfo.Sanc1;
+    }
+    else if (m_nSkinMeshType == 11 || m_nSkinMeshType == 37 || m_nSkinMeshType == 44)
+    {
+        m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
+        m_stLookInfo.CoatMesh = m_stLookInfo.HelmMesh;
+        m_stLookInfo.PantsMesh = m_stLookInfo.CoatMesh;
+        m_stLookInfo.GlovesMesh = m_stLookInfo.PantsMesh;
+        m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
+        m_stLookInfo.CoatSkin = m_stLookInfo.HelmSkin;
+        m_stLookInfo.PantsSkin = m_stLookInfo.CoatSkin;
+        m_stLookInfo.GlovesSkin = m_stLookInfo.PantsSkin;
+        m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
+        m_stSancInfo.Sanc2 = m_stSancInfo.Sanc1;
+        m_stSancInfo.Sanc3 = m_stSancInfo.Sanc2;
+        m_stSancInfo.Sanc4 = m_stSancInfo.Sanc3;
+        m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
+        m_stSancInfo.Legend2 = m_stSancInfo.Legend1;
+        m_stSancInfo.Legend3 = m_stSancInfo.Legend2;
+        m_stSancInfo.Legend4 = m_stSancInfo.Legend3;
+        m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
+        m_stColorInfo.Sanc2 = m_stColorInfo.Sanc1;
+        m_stColorInfo.Sanc3 = m_stColorInfo.Sanc2;
+        m_stColorInfo.Sanc4 = m_stColorInfo.Sanc3;
     }
 }
 
