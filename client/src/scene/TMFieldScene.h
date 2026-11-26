@@ -296,6 +296,7 @@ private:
 	int OnControl_AddSpecial1(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_AddSpecial2(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_AddSpecial3(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
+	int OnControl_AddSpecial4(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	/// @}
 
 public:
