@@ -4,10 +4,9 @@ Comportamentos do código legado encontrados pelos testes de caracterização
 ([`tests/w2pp_characterization_tests.cpp`](../tests/w2pp_characterization_tests.cpp)) e pela
 checagem de avisos do GCC ([`tools/mingw_check.py`](../tools/mingw_check.py)).
 
-**Nenhum foi corrigido.** A modularização mantém paridade de comportamento: todos já existiam
-na tag `pre-modularization`. Corrigir qualquer um deles muda o comportamento do jogo, então cada
-correção deve ser uma decisão explícita, num commit próprio, de preferência acompanhada de um
-teste no jogo.
+A modularização mantém paridade de comportamento: todos já existiam na tag `pre-modularization`.
+Corrigir qualquer um deles muda o comportamento do jogo, então cada correção é uma decisão
+explícita, num commit próprio, com um teste que mostra o defeito. Os corrigidos estão no fim.
 
 ## Leitura fora dos limites (resultado depende do layout de memória)
 
@@ -15,7 +14,6 @@ teste no jogo.
 |---|---|---|
 | `server/common/BaseItem.cpp:845`, `BASE_GetGrowthRate` | Lê `g_pSancRate[2][cEffect / 10]`, mas a tabela tem 12 colunas | Montaria (2360..2389) com `stEffect[1].cEffect` ≥ 120 |
 | `server/common/BaseItem.cpp:1128` e `:1196`, `BASE_CanCarry`/`BASE_CanCargo` | Lê `g_pItemGrid[grid]` (8 entradas) com `grid = EF_GRID` do item, sem validar | Item com `EF_GRID` ≥ 8 (dado de item corrompido ou adulterado) |
-| `server/common/BaseItem.cpp:1243`, `BASE_CanCargo` | A grade é gravada com `linha * CARGOGRIDX` (9), mas a conferência lê `linha * CARGOGRIDY` (14). Para linha ≥ 9 a leitura passa do fim de `CargoGrid[128]`, na pilha | Itens nas linhas de baixo do baú |
 | `server/common/BaseCombat.cpp:1753`, `BASE_GetCurrentScore` | `mount <= 2390` aceita 2390, e `g_pMountBonus[mount - 2360]` tem 30 linhas | Item 2390 no slot de montaria |
 
 O GCC (`-Warray-bounds`) aponta ainda, no cliente:
@@ -28,12 +26,10 @@ O GCC (`-Warray-bounds`) aponta ainda, no cliente:
 | `client/src/scene/TMFieldScene_Controls.cpp:571` | Índice 70 em `char [16]`. Já existia em `TMFieldScene_UI.cpp` antes da Fase 3 |
 | `server/tmsrv/systems/ScheduledEventSystem.cpp:668` | Índice 3 em `STRUCT_PISTA::<struct> [3]` |
 
-## Grade com a célula errada ou memória não inicializada
+## Memória possivelmente não inicializada
 
 | Onde | O que acontece |
 |---|---|
-| `server/common/BaseItem.cpp:1179`, `BASE_CanCarry` | Mesma troca: grava com `linha * CARRYGRIDX` (9) e confere com `linha * CARRYGRIDY` (7). A leitura fica dentro do buffer, mas olha a célula errada |
-| `server/common/BaseItem.cpp:1134` e `:1202` | `memset(CarryGrid, 0, MAX_CARRY-1)` e `memset(CargoGrid, 0, MAX_CARGO-2)` deixam 1 e 2 bytes finais com lixo da pilha |
 | `server/tmsrv/handlers/items/_MSG_Buy.cpp:273..307` | O GCC aponta `GuildTax`, `Price`, `Price2`, `CityTax`, `bPrice` e `Desconto` possivelmente não inicializados nos caminhos `goto LABEL_BUY1`/`goto DonateBuy`. É o mesmo comportamento que o MSVC já tinha antes da separação declaração/atribuição. Falta confirmar se as condições de guarda impedem o uso |
 | `server/tmsrv/handlers/items/UseItem_Quests.cpp:514`, `server/tmsrv/entities/CMob.cpp:595`, `client/src/render/CFrame.cpp:311` | O GCC aponta `-Wmaybe-uninitialized` (`when.tm_min`/`tm_sec`, `iterator`, `vecOut3`) |
 
@@ -45,3 +41,9 @@ O GCC (`-Warray-bounds`) aponta ainda, no cliente:
 | `client/src/common/BaseItem.cpp:571`, `client/src/gameplay/MrItemMix.cpp:193` | `memset`/`memcpy` com `sizeof` do próprio ponteiro |
 | `client/src/render/DXUtil.cpp:937`, `:965` | `delete` de `void*` (comportamento indefinido) |
 | `server/tmsrv/net/GetFunc.cpp:1213`, `server/tmsrv/systems/ItemSpawnSystem.cpp:1307`, `:1806` | `-204` atribuído a `unsigned char` (vira 52) |
+
+## Corrigidos
+
+| Onde | Defeito | Correção |
+|---|---|---|
+| `server/common/BaseItem.cpp`, `BASE_CanCarry` e `BASE_CanCargo` | A grade de ocupação era gravada com `linha * CARRYGRIDX`/`CARGOGRIDX` (9 colunas), mas conferida com `linha * CARRYGRIDY`/`CARGOGRIDY` (7 e 14). A conferência olhava outra célula. Os chamadores (`_MSG_TradingItem`, `ProcessDBMessage`, `CReadFiles` no DBSrv) percorrem os slots com `DestX = i % 9`, `DestY = i / 9` e gravam o item no primeiro slot em que a função devolve TRUE, sem conferir `sIndex`. Com o slot 9 ocupado e a célula 14 livre, o baú devolvia TRUE e **sobrescrevia o item do slot 9**. No baú, a partir da linha 9 a leitura ainda passava do fim de `CargoGrid[128]`, na pilha | A conferência passa a usar a mesma largura da gravação (`CARRYGRIDX`/`CARGOGRIDX`). Os `memset` de 63 e 126 bytes cobrem exatamente as grades 9×7 e 9×14, então não precisaram mudar. Teste: `TestCarryCargoGrid` em `tests/w2pp_common_tests.cpp`, que falha no código antigo. O hash `CanEquipCarry` da caracterização foi regravado |

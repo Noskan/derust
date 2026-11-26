@@ -327,9 +327,7 @@ uint64_t CaseCanEquipCarry()
 		STRUCT_ITEM cargo[MAX_CARGO]{};
 		for (int k = 0; k < MAX_CARGO; ++k)
 			cargo[k] = r.Range(0, 2) ? RandomItem(r) : STRUCT_ITEM{};
-		// DestY <= 5: BASE_CanCargo lê CargoGrid[linha * CARGOGRIDY + coluna] (deveria ser CARGOGRIDX);
-		// com linhas maiores a leitura passa do fim do buffer de 128 bytes na pilha.
-		h.Int(BASE_CanCargo(&it, cargo, r.Range(0, 8), r.Range(0, 5)));
+		h.Int(BASE_CanCargo(&it, cargo, r.Range(0, 8), r.Range(0, CARGOGRIDY - 1)));
 	}
 	return h.h;
 }
@@ -476,12 +474,14 @@ struct Expected
 };
 
 /// Valores gerados com o código da tag `pre-modularization` (ver @file), em ponto flutuante SSE2
-/// (padrão do MSVC Win32; o mingw usa `-msse2 -mfpmath=sse`). Idênticos ao código atual.
+/// (padrão do MSVC Win32; o mingw usa `-msse2 -mfpmath=sse`), com uma mudança intencional:
+/// - `CanEquipCarry` foi regravado na correção da largura da linha em BASE_CanCarry/CanCargo
+///   (ver TestCarryCargoGrid em w2pp_common_tests.cpp e docs/BUGS_LATENTES.md).
 const Expected kExpected[] = {
 	{ "ItemAbility", 0x4be087df618daaaaull },
 	{ "ItemSancAndAmount", 0xfcec5af4597c1fbeull },
 	{ "VisualCodes", 0x6fcaf7a9a9970a97ull },
-	{ "CanEquipCarry", 0xb10e393d032f681aull },
+	{ "CanEquipCarry", 0x1c5586b9a0b19b5aull },
 	{ "MobScores", 0xd7d142ebb152a56eull },
 	{ "CurrentScore", 0x6d5c84b4dd23e63dull },
 	{ "CombatFormulas", 0xc76e7e2a252190c8ull },

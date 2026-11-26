@@ -1176,9 +1176,9 @@ int BASE_CanCarry(STRUCT_ITEM *item, STRUCT_ITEM *carry, int DestX, int DestY, i
 				return FALSE;
 			}
 
-			if(CarryGrid[(yy + DestY) * CARRYGRIDY + xx + DestX] != 0)
+			if(CarryGrid[(yy + DestY) * CARRYGRIDX + xx + DestX] != 0)
 			{
-				*error = CarryGrid[(yy + DestY) * CARRYGRIDY + xx + DestX];
+				*error = CarryGrid[(yy + DestY) * CARRYGRIDX + xx + DestX];
 
 				return FALSE;
 			}
@@ -1240,7 +1240,7 @@ int BASE_CanCargo(STRUCT_ITEM *item, STRUCT_ITEM *cargo, int DestX, int DestY)
 			if(yy + DestY < 0 || xx + DestX < 0 || yy + DestY >= CARGOGRIDY || xx + DestX >= CARGOGRIDX)
 				return FALSE;
 
-			if(CargoGrid[(yy + DestY) * CARGOGRIDY + xx + DestX] == 1)
+			if(CargoGrid[(yy + DestY) * CARGOGRIDX + xx + DestX] == 1)
 				return FALSE;
 		}
 	}

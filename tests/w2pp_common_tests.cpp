@@ -208,6 +208,34 @@ void TestCombatHelpers()
 	CHECK(BASE_GetDamage(500, 100, 10) > BASE_GetDamage(100, 100, 0));
 }
 
+/// @brief Testa a conferência de espaço na grade do inventário e do baú.
+/// @details Os chamadores percorrem os slots com DestX = i % 9 e DestY = i / 9 e gravam o item no
+/// slot i quando a função devolve TRUE. Até a correção, a conferência usava a altura da grade
+/// (CARRYGRIDY/CARGOGRIDY) como largura da linha e olhava outra célula: com o slot 9 ocupado,
+/// olhava a célula 7 (inventário) ou 14 (baú), devolvia TRUE e o item do slot 9 era sobrescrito.
+void TestCarryCargoGrid()
+{
+	STRUCT_ITEM item{};
+	item.sIndex = 1; // g_pItemList zerado neste teste: EF_GRID 0 = item de uma célula
+
+	STRUCT_ITEM cargo[MAX_CARGO]{};
+	cargo[9].sIndex = 1; // linha 1, coluna 0
+	CHECK(BASE_CanCargo(&item, cargo, 0, 1) == FALSE); // slot 9 ocupado
+	CHECK(BASE_CanCargo(&item, cargo, 5, 1) == TRUE);  // slot 14 livre
+	CHECK(BASE_CanCargo(&item, cargo, 0, 0) == TRUE);  // slot 0 livre
+	CHECK(BASE_CanCargo(&item, cargo, 8, 13) == TRUE); // último slot (125), dentro da grade 9x14
+	CHECK(BASE_CanCargo(&item, cargo, 0, 14) == FALSE); // fora da grade
+
+	STRUCT_ITEM carry[MAX_CARRY]{};
+	carry[9].sIndex = 1;
+	int error = 0;
+	CHECK(BASE_CanCarry(&item, carry, 0, 1, &error) == FALSE);
+	CHECK(error == 10); // devolve slot + 1
+	error = 0;
+	CHECK(BASE_CanCarry(&item, carry, 7, 0, &error) == TRUE); // slot 7 livre
+	CHECK(BASE_CanCarry(&item, carry, 9, 0, &error) == FALSE && error == -1); // fora da grade
+}
+
 /// @brief Testa utilitários de string, validação de nomes e checksum legado.
 void TestStringAndChecksum()
 {
@@ -248,6 +276,7 @@ int main()
 	TestItemAmountAndClear();
 	TestVisualCodes();
 	TestCombatHelpers();
+	TestCarryCargoGrid();
 	TestStringAndChecksum();
 
 	if (g_failures != 0)
