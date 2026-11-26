@@ -221,43 +221,7 @@ if (pAttacker)
 			pTarget->SetWantAngle(fAngle + D3DXToRadian(180));
 		}
 
-		if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104 || 
-			pAttack->SkillIndex >= 151 && pAttack->SkillIndex <= 155 || 
-			pAttack->SkillIndex == 104 || pAttack->SkillIndex == 105 || pAttack->SkillIndex == 111)
-		{
-			pAttacker->m_stEffectEvent.sEffectIndex = pAttack->SkillIndex;
-			pAttacker->m_stEffectEvent.sEffectLevel = (unsigned char)pAttack->SkillParm;
-			if ((unsigned char)pAttack->Motion == 254)
-				pAttacker->m_stEffectEvent.sEffectLevel = 1;
-
-			if (!pTarget)
-			{
-				float iY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY)) * 0.1f;
-				pAttacker->m_stEffectEvent.vecTo = TMVector3((float)pAttack->TargetX, iY, (float)pAttack->TargetY);
-				pAttacker->m_stEffectEvent.pTarget = 0;
-			}
-			else
-			{
-				pAttacker->m_stEffectEvent.pTarget = pTarget;
-				if (pTarget && pAttacker && pTarget->m_nClass == 56 && !pTarget->m_stLookInfo.FaceMesh)
-				{
-					TMVector3 Len{ pTarget->m_vecPosition.x - pAttacker->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y - pAttacker->m_vecPosition.y };
-					pAttacker->m_stEffectEvent.vecTo = TMVector3((float)(Len.x / 2.0f) + pAttacker->m_vecPosition.x, pTarget->m_fHeight, (float)(Len.z / 2.0f) + pAttacker->m_vecPosition.y);
-				}
-				else
-					pAttacker->m_stEffectEvent.vecTo = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
-			}
-
-			if (pAttack->SkillIndex >= 151 && pAttack->SkillIndex <= 153 || 
-				pAttack->SkillIndex == 104 || pAttack->SkillIndex == 105)
-			{
-				pAttacker->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 200;
-			}
-			else
-			{
-				pAttacker->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
-			}
-		}
+		PacketAttack_PrepareEffectEvent(pAttack, pAttacker, pTarget);
 		if (pAttacker->m_nClass == 62 && pAttacker->m_stLookInfo.FaceMesh == 2 && pAttack->SkillIndex == 108 && pTarget)
 		{
 			TMVector3 vecStart{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
@@ -1372,6 +1336,49 @@ void TMFieldScene::PacketAttack_SwingEffect(MSG_Attack*& pAttack, TMHuman*& pAtt
 				pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_cSForce = 1;
 
 			pAttacker->m_pSkinMesh->m_pSwingEffect[1]->m_dwStartTime = dwStartTime;
+		}
+	}
+}
+
+/// Prepara `m_stEffectEvent` do atacante (skill, nível, alvo ou ponto de destino) para as skills de efeito padrão.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_PrepareEffectEvent(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget)
+{
+	if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104 || 
+		pAttack->SkillIndex >= 151 && pAttack->SkillIndex <= 155 || 
+		pAttack->SkillIndex == 104 || pAttack->SkillIndex == 105 || pAttack->SkillIndex == 111)
+	{
+		pAttacker->m_stEffectEvent.sEffectIndex = pAttack->SkillIndex;
+		pAttacker->m_stEffectEvent.sEffectLevel = (unsigned char)pAttack->SkillParm;
+		if ((unsigned char)pAttack->Motion == 254)
+			pAttacker->m_stEffectEvent.sEffectLevel = 1;
+
+		if (!pTarget)
+		{
+			float iY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY)) * 0.1f;
+			pAttacker->m_stEffectEvent.vecTo = TMVector3((float)pAttack->TargetX, iY, (float)pAttack->TargetY);
+			pAttacker->m_stEffectEvent.pTarget = 0;
+		}
+		else
+		{
+			pAttacker->m_stEffectEvent.pTarget = pTarget;
+			if (pTarget && pAttacker && pTarget->m_nClass == 56 && !pTarget->m_stLookInfo.FaceMesh)
+			{
+				TMVector3 Len{ pTarget->m_vecPosition.x - pAttacker->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y - pAttacker->m_vecPosition.y };
+				pAttacker->m_stEffectEvent.vecTo = TMVector3((float)(Len.x / 2.0f) + pAttacker->m_vecPosition.x, pTarget->m_fHeight, (float)(Len.z / 2.0f) + pAttacker->m_vecPosition.y);
+			}
+			else
+				pAttacker->m_stEffectEvent.vecTo = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
+		}
+
+		if (pAttack->SkillIndex >= 151 && pAttack->SkillIndex <= 153 || 
+			pAttack->SkillIndex == 104 || pAttack->SkillIndex == 105)
+		{
+			pAttacker->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 200;
+		}
+		else
+		{
+			pAttacker->m_stEffectEvent.dwTime = g_pTimerManager->GetServerTime() + 500;
 		}
 	}
 }
