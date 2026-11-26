@@ -1453,17 +1453,17 @@ void SendReqParty(int conn, int Leaderconn, int PartyID)
 	sm_srp.Type = _MSG_SendReqParty;
 	sm_srp.Size = sizeof(MSG_SendReqParty);
 
-	sm_srp.Class = pMob[Leaderconn].MOB.Class;
+	sm_srp.Leader.Class = pMob[Leaderconn].MOB.Class;
 
-	sm_srp.Level = pMob[Leaderconn].MOB.CurrentScore.Level;
-	sm_srp.MaxHp = pMob[Leaderconn].MOB.CurrentScore.MaxHp;
-	sm_srp.Hp = pMob[Leaderconn].MOB.CurrentScore.Hp;
+	sm_srp.Leader.Level = pMob[Leaderconn].MOB.CurrentScore.Level;
+	sm_srp.Leader.MaxHp = pMob[Leaderconn].MOB.CurrentScore.MaxHp;
+	sm_srp.Leader.Hp = pMob[Leaderconn].MOB.CurrentScore.Hp;
 
-	sm_srp.PartyPos = 0;
+	sm_srp.Leader.PartyPos = 0;
 
-	sm_srp.PartyID = PartyID;
+	sm_srp.Leader.PartyID = PartyID;
 
-	strcpy(sm_srp.MobName, pMob[Leaderconn].MOB.MobName);
+	strcpy(sm_srp.Leader.MobName, pMob[Leaderconn].MOB.MobName);
 
 	if (!pUser[conn].cSock.AddMessage((char*)&sm_srp, sizeof(MSG_SendReqParty)))
 		CloseUser(conn);
@@ -1487,19 +1487,18 @@ void SendAddParty(int Leaderconn, int conn, int PartyID)
 	sm_cap.Type = _MSG_CNFAddParty;
 	sm_cap.Size = sizeof(MSG_CNFAddParty);
 
-	if (PartyID == 0)
-		sm_cap.Leaderconn = conn;
-	else
-		sm_cap.Leaderconn = 30000;
+	// O layout antigo mandava aqui Leaderconn (conn do líder ou 30000), que o cliente lia como
+	// Class e PartyPos: o ícone saía errado e o destaque do líder dependia de conn < 256.
+	sm_cap.Party.Class = pMob[conn].MOB.Class;
+	sm_cap.Party.PartyPos = (char)PartyID;
 
-	sm_cap.Level = pMob[conn].MOB.CurrentScore.Level;
-	sm_cap.MaxHp = pMob[conn].MOB.CurrentScore.MaxHp > 32000 ? ((pMob[conn].MOB.CurrentScore.MaxHp+1) / 100) : pMob[conn].MOB.CurrentScore.MaxHp;
-	sm_cap.Hp = pMob[conn].MOB.CurrentScore.Hp > 32000 ? ((pMob[conn].MOB.CurrentScore.Hp+1) / 100) : pMob[conn].MOB.CurrentScore.Hp;
+	sm_cap.Party.Level = pMob[conn].MOB.CurrentScore.Level;
+	sm_cap.Party.MaxHp = pMob[conn].MOB.CurrentScore.MaxHp > 32000 ? ((pMob[conn].MOB.CurrentScore.MaxHp+1) / 100) : pMob[conn].MOB.CurrentScore.MaxHp;
+	sm_cap.Party.Hp = pMob[conn].MOB.CurrentScore.Hp > 32000 ? ((pMob[conn].MOB.CurrentScore.Hp+1) / 100) : pMob[conn].MOB.CurrentScore.Hp;
 
-	sm_cap.PartyID = conn;//Check:
-	sm_cap.Target = (short)52428;
+	sm_cap.Party.PartyID = conn;//Check:
 
-	strcpy(sm_cap.MobName, pMob[conn].MOB.MobName);
+	strcpy(sm_cap.Party.MobName, pMob[conn].MOB.MobName);
 
 	if (!pUser[Leaderconn].cSock.SendOneMessage((char*)&sm_cap, sizeof(MSG_CNFAddParty)))
 		CloseUser(Leaderconn);
@@ -1525,7 +1524,6 @@ void SendRemoveParty(int conn, int connExit)
 	sm_rp.Size = sizeof(MSG_RemoveParty);
 
 	sm_rp.Leaderconn = connExit;
-	sm_rp.unk = 0;
 
 	if (!pUser[conn].cSock.AddMessage((char*)&sm_rp, sizeof(MSG_RemoveParty)))
 		CloseUser(conn);

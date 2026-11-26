@@ -111,4 +111,19 @@ W2_FIELD(MSG_MessageWhisper, Color, 156, 2);
 static_assert(sizeof(MSG_MagicTrumpet) == 160, "MSG_MagicTrumpet deve ter 160 bytes (MSG_MessageWhisper no cliente).");
 W2_FIELD(MSG_MagicTrumpet, MobName, 12, 16);
 W2_FIELD(MSG_MagicTrumpet, String, 28, 128);
+
+static_assert(sizeof(STRUCT_PARTY) == 26, "STRUCT_PARTY deve ter 26 bytes (PARTY no cliente).");
+W2_FIELD(STRUCT_PARTY, Class, 0, 1);
+W2_FIELD(STRUCT_PARTY, PartyPos, 1, 1);                      // (PartyIndex)
+W2_FIELD(STRUCT_PARTY, Level, 2, 2);
+W2_FIELD(STRUCT_PARTY, MaxHp, 4, 2);
+W2_FIELD(STRUCT_PARTY, Hp, 6, 2);
+W2_FIELD(STRUCT_PARTY, PartyID, 8, 2);                       // (ID)
+W2_FIELD(STRUCT_PARTY, MobName, 10, 16);                     // (Name)
+static_assert(sizeof(MSG_SendReqParty) == 44, "MSG_SendReqParty deve ter 44 bytes (MSG_REQParty).");
+W2_FIELD(MSG_SendReqParty, Leader, 12, 26);
+W2_FIELD(MSG_SendReqParty, TargetID, 40, 4);
+static_assert(sizeof(MSG_CNFAddParty) == 40, "MSG_CNFAddParty deve ter 40 bytes (MSG_AddParty).");
+W2_FIELD(MSG_CNFAddParty, Party, 12, 26);
+W2_FIELD(MSG_RemoveParty, Leaderconn, 12, 4);                // (MSG_STANDARDPARM::Parm)
 #endif

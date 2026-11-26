@@ -21,10 +21,10 @@ void Exec_MSG_SendReqParty(int conn, char *pMsg)
 {
 	MSG_SendReqParty *m = (MSG_SendReqParty*)pMsg;
 
-	int partyID = m->PartyID;
-	int targetID = m->unk;
+	int partyID = m->Leader.PartyID;
+	int targetID = m->TargetID;
 
-	m->MobName[NAME_LENGTH - 1] = 0;
+	m->Leader.MobName[NAME_LENGTH - 1] = 0;
 
 	if (partyID <= 0 || partyID >= MAX_USER || partyID != conn)
 	{

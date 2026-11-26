@@ -1889,20 +1889,25 @@ struct		  MSG_CNFDropItem
 };
 
 const short  _MSG_CNFAddParty				= (125 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
-struct		  MSG_CNFAddParty
+/// @brief Membro da party como o cliente o lê (PARTY em client/src/common/Basedef.h).
+struct		  STRUCT_PARTY
 {
-	_MSG;
-
-	short Leaderconn;
+	char Class;
+	char PartyPos;			// Vaga na party; 0 = líder (o cliente o destaca)
 	short Level;
 	short MaxHp;
 	short Hp;
 
-	short PartyID;
+	short PartyID;			// Id do membro (conn)
 
 	char MobName[NAME_LENGTH];
+};
 
-	short Target;
+struct		  MSG_CNFAddParty
+{
+	_MSG;
+
+	STRUCT_PARTY Party;
 };
 
 const short  _MSG_SendReqParty				= (127 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
@@ -1910,19 +1915,9 @@ struct		  MSG_SendReqParty
 {
 	_MSG;
 
-	char Class;
-	char PartyPos;
+	STRUCT_PARTY Leader;
 
-	short Level;
-	short MaxHp;
-	short Hp;
-
-	short PartyID;
-
-	char MobName[NAME_LENGTH];
-
-	int unk;
-	short Target;
+	int TargetID;			// Quem é convidado (cliente → servidor)
 };
 
 const short  _MSG_RemoveParty				= (126 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
@@ -1930,8 +1925,7 @@ struct		  MSG_RemoveParty
 {
 	_MSG;
 
-	short Leaderconn;
-	short unk;
+	int Leaderconn;			// MSG_STANDARDPARM::Parm no cliente
 };
 
 
