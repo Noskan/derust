@@ -1770,3 +1770,47 @@ int TMFieldScene::OnControl_PlayerMenu639(unsigned int idwControlID, unsigned in
 	}
 	return 0;
 }
+
+/// Distribuição de ponto especial 1 (controle 65754, `SpecialBonus`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_AddSpecial1(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData)
+{
+	if (m_pMyHuman->m_cDie == 1)
+		return 1;
+	if (pMobData->SpecialBonus <= 0)
+		return 0;
+
+	int totalSpecial = 0;
+	if (m_pMyHuman->Is2stClass() != 2)
+	{
+		totalSpecial = 3 * (pMobData->CurrentScore.Level + 1) / 2;
+	}
+	else if (!pMobData->Class && IsValidSkill(205) == 1)
+	{
+		totalSpecial = 280;
+	}
+	else if (pMobData->Class != 2 || IsValidSkill(233) != 1)
+	{
+		totalSpecial = 200;
+	}
+	else
+	{
+		totalSpecial = 230;
+	}
+
+	if (pMobData->CurrentScore.Special[0] < totalSpecial)
+	{
+		MSG_ApplyBonus stApplyBonus{};
+		stApplyBonus.Header.ID = m_pMyHuman->m_dwID;
+		stApplyBonus.Header.Type = MSG_ApplyBonus_Opcode;
+		stApplyBonus.BonusType = 1;
+		stApplyBonus.Detail = 0;
+		SendOneMessage((char*)&stApplyBonus, sizeof(stApplyBonus));
+	}
+	else
+	{
+		m_pMessagePanel->SetMessage(g_pMessageStringTable[39], 2000);
+		m_pMessagePanel->SetVisible(1, 1);
+	}
+	return 1;
+}
