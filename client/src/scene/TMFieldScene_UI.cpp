@@ -333,29 +333,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 1;
 	}
 	if (idwControlID == TMB_GUILDONOFF)
-	{
-		MSG_MessageChat stMsgChat{};
-		stMsgChat.Header.ID = g_pObjectManager->m_dwCharID;
-		stMsgChat.Header.Type = MSG_MessageChat_Opcode;
-
-		if (m_pBtnGuildOnOff)
-		{
-			if(m_pBtnGuildOnOff->m_bSelected == 1)
-				sprintf(stMsgChat.String, "guildon");
-			else
-				sprintf(stMsgChat.String, "guildoff");
-		}
-		else
-		{
-			m_cGuildOnOff = m_cGuildOnOff == 0;
-			if (m_cGuildOnOff == 1)
-				sprintf(stMsgChat.String, "guildon");
-			else
-				sprintf(stMsgChat.String, "guildoff");
-		}
-		SendOneMessage((char*)&stMsgChat, sizeof(stMsgChat));
-		return 1;
-	}
+		return OnControl_GuildOnOff(idwControlID, idwEvent);
 	if (idwControlID == TMB_RUNMODE)
 	{
 		SetRunMode();

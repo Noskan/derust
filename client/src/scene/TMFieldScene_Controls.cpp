@@ -2545,3 +2545,30 @@ int TMFieldScene::OnControl_CargoPage3(unsigned int idwControlID, unsigned int i
 	m_pStorePageBtn3->SetTextureSetIndex(536);
 	return 0;
 }
+
+/// Liga/desliga exibição de guilda (`TMB_GUILDONOFF`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_GuildOnOff(unsigned int idwControlID, unsigned int idwEvent)
+{
+	MSG_MessageChat stMsgChat{};
+	stMsgChat.Header.ID = g_pObjectManager->m_dwCharID;
+	stMsgChat.Header.Type = MSG_MessageChat_Opcode;
+
+	if (m_pBtnGuildOnOff)
+	{
+		if(m_pBtnGuildOnOff->m_bSelected == 1)
+			sprintf(stMsgChat.String, "guildon");
+		else
+			sprintf(stMsgChat.String, "guildoff");
+	}
+	else
+	{
+		m_cGuildOnOff = m_cGuildOnOff == 0;
+		if (m_cGuildOnOff == 1)
+			sprintf(stMsgChat.String, "guildon");
+		else
+			sprintf(stMsgChat.String, "guildoff");
+	}
+	SendOneMessage((char*)&stMsgChat, sizeof(stMsgChat));
+	return 1;
+}

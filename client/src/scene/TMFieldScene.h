@@ -316,6 +316,7 @@ private:
 	int OnControl_CargoPage1(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_CargoPage2(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_CargoPage3(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_GuildOnOff(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
