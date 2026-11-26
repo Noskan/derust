@@ -387,6 +387,7 @@ private:
 	void PacketAttack_Skill114Targets(MSG_Attack*& pAttack, TMVector3& vecTarget, TMVector3& vecStart);
 	void PacketAttack_Skill115Quake(TMHuman*& pAttacker, int& ran);
 	bool PacketAttack_ApplyTargets(MSG_Attack*& pAttack, TMHuman*& pAttacker, bool& bomb, TMVector2& vecAttackerPos, int& nClass, TMVector3& vecStart, TMVector3& vecTarget, unsigned int& dwDelay, int& nReturnValue);
+	void PacketAttack_ApplyHealHp(MSG_Attack*& pAttack, int& i, TMHuman*& pTargetHuman, int& nDamageRate);
 	/// @}
 
 	/// @name Etapas com retorno antecipado extraídas de OnControlEvent (Fase 3)

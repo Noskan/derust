@@ -1539,48 +1539,7 @@ if (g_pSpell[pAttack->SkillIndex].TargetType != 3 && g_pSpell[pAttack->SkillInde
 					g_pSpell[pAttack->SkillIndex].InstanceType == 6 && 
 					(pAttack->Dam[i].Damage >= 0 || pAttack->Dam[i].Damage <= -6))
 				{
-					if (!pAttack->FlagLocal)
-					{
-						if (!pTargetHuman->m_MaxBigHp)
-						{
-							int HealDam = pAttack->Dam[i].Damage / nDamageRate;
-							int Dam = pTargetHuman->m_stScore.Hp - HealDam;
-
-							if (Dam > pTargetHuman->m_stScore.MaxHp)
-								Dam = pTargetHuman->m_stScore.MaxHp;
-							if (Dam <= 0)
-								pTargetHuman->m_stScore.Hp = 0;
-							else
-								pTargetHuman->m_stScore.Hp = Dam;
-						}
-						else
-						{
-							int Dam = pAttack->Dam[i].Damage;
-							if (pTargetHuman->m_BigHp == Dam)
-								pTargetHuman->m_BigHp = 0;
-							else
-								pTargetHuman->m_BigHp -= Dam;
-							if (!nDamageRate)
-								nDamageRate = 1;
-
-							pTargetHuman->m_stScore.Hp = (short)(pTargetHuman->m_BigHp / nDamageRate);
-						}
-
-						if (pTargetHuman == m_pMyHuman)
-						{
-							int HealDam = pAttack->Dam[i].Damage / nDamageRate;
-							int Dam = HealDam + m_nReqHP;
-							// TODO: change to define
-							if (Dam > 100000)
-								Dam = 100000;
-							if (Dam <= 0)
-								m_nReqHP = 0;
-							else
-								m_nReqHP = Dam;
-
-							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-						}
-					}
+					PacketAttack_ApplyHealHp(pAttack, i, pTargetHuman, nDamageRate);
 					int nTX = 0;
 					int nTY = 0;
 					if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y,	&nTX, &nTY))
@@ -2457,4 +2416,52 @@ else
 	}
 }
 	return false;
+}
+
+/// Cura (`InstanceType` 6) em alvo único: atualiza o HP do alvo (ou o HP grande dos chefes).
+/// @note Extraído de `TMFieldScene::PacketAttack_ApplyTargets` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_ApplyHealHp(MSG_Attack*& pAttack, int& i, TMHuman*& pTargetHuman, int& nDamageRate)
+{
+	if (!pAttack->FlagLocal)
+	{
+		if (!pTargetHuman->m_MaxBigHp)
+		{
+			int HealDam = pAttack->Dam[i].Damage / nDamageRate;
+			int Dam = pTargetHuman->m_stScore.Hp - HealDam;
+
+			if (Dam > pTargetHuman->m_stScore.MaxHp)
+				Dam = pTargetHuman->m_stScore.MaxHp;
+			if (Dam <= 0)
+				pTargetHuman->m_stScore.Hp = 0;
+			else
+				pTargetHuman->m_stScore.Hp = Dam;
+		}
+		else
+		{
+			int Dam = pAttack->Dam[i].Damage;
+			if (pTargetHuman->m_BigHp == Dam)
+				pTargetHuman->m_BigHp = 0;
+			else
+				pTargetHuman->m_BigHp -= Dam;
+			if (!nDamageRate)
+				nDamageRate = 1;
+
+			pTargetHuman->m_stScore.Hp = (short)(pTargetHuman->m_BigHp / nDamageRate);
+		}
+
+		if (pTargetHuman == m_pMyHuman)
+		{
+			int HealDam = pAttack->Dam[i].Damage / nDamageRate;
+			int Dam = HealDam + m_nReqHP;
+			// TODO: change to define
+			if (Dam > 100000)
+				Dam = 100000;
+			if (Dam <= 0)
+				m_nReqHP = 0;
+			else
+				m_nReqHP = Dam;
+
+			memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+		}
+	}
 }
