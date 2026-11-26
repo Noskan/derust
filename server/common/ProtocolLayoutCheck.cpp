@@ -68,7 +68,7 @@ W2_FIELD(MSG_DBCNFAccountLogin, Coin, 1896, 4);
 W2_FIELD(MSG_DBCNFAccountLogin, AccountName, 1900, 16);
 
 static_assert(sizeof(MSG_AccountSecure) == 32, "MSG_AccountSecure deve ter 32 bytes (MSG_CHARPASSWORD).");
-W2_FIELD(MSG_AccountSecure, NumericToken, 12, 6);            // (ItemPassWord, até 6 dígitos)
+W2_FIELD(MSG_AccountSecure, NumericToken, 12, 16);           // (ItemPassWord; só 6 dígitos contam)
 W2_FIELD(MSG_AccountSecure, ChangeNumeric, 28, 1);           // (State)
 
 static_assert(sizeof(MSG_CreateCharacter) == 36, "MSG_CreateCharacter deve ter 36 bytes (MSG_NewCharacter).");
@@ -98,8 +98,8 @@ W2_FIELD(MSG_CNFClientCharacterLogin, Slot, 1040, 2);
 W2_FIELD(MSG_CNFClientCharacterLogin, ClientID, 1042, 2);
 W2_FIELD(MSG_CNFClientCharacterLogin, Weather, 1044, 2);
 W2_FIELD(MSG_CNFClientCharacterLogin, ShortSkill, 1046, 16);
-W2_FIELD(MSG_CNFClientCharacterLogin, Ext1, 1062, 288);
-W2_FIELD(MSG_CNFClientCharacterLogin, Ext2, 1350, 362);
+W2_FIELD(MSG_CNFClientCharacterLogin, Ext1, 1064, 288);
+W2_FIELD(MSG_CNFClientCharacterLogin, Ext2, 1352, 360);
 
 // Pacotes de jogo (docs/DIVERGENCIAS.md, "Pacotes com campos em outros offsets").
 static_assert(sizeof(MSG_MessageChat) == 140, "MSG_MessageChat deve ter 140 bytes (cliente).");

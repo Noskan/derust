@@ -1272,10 +1272,8 @@ struct		  MSG_AccountSecure
 {
 	_MSG;
 
-	char NumericToken[6];
-	char Unknown[10];
+	char NumericToken[16];			// Só os 6 primeiros contam (STRUCT_ACCOUNTINFO::NumericToken)
 	unsigned char ChangeNumeric;	// 1 byte no cliente (MSG_CHARPASSWORD::State); o resto é preenchimento
-	char Pad[3];
 };
 
 const short  _MSG_CreateCharacter			= (15 | FLAG_CLIENT2GAME);
@@ -1401,12 +1399,13 @@ struct		  MSG_CNFClientCharacterLogin
 	unsigned short Weather;
 
 	unsigned char ShortSkill[16];
+	char Pad[2];			// Alinhamento de STRUCT_EXT1 (4) no cliente
 
 	// STRUCT_EXT1 do cliente (Data[8] e Affect[32]) e STRUCT_EXT2 (quests, subclasses, senha de
 	// itens). O servidor não tem esses dados aqui: envia zerado, e os affects seguem no
 	// _MSG_SendAffect.
 	char Ext1[288];
-	char Ext2[362];
+	char Ext2[360];
 };
 const short  _MSG_CharacterLogout			= (21 | FLAG_CLIENT2GAME);
 
