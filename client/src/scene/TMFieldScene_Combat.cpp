@@ -889,78 +889,7 @@ if (dwServerTime > m_dwOldAttackTime + 1000 &&
 	}
 	else if (cSkillIndex == 29 || cSkillIndex == 44)
 	{
-		if (m_pMyHuman->m_bParty == 1)
-		{
-			int nIndex = 0;
-			int nIndexCount = 0;
-
-			stIDDis stPartys[12]{};
-
-			auto pPartyList = m_pPartyList;
-			for (int k = 0; k < pPartyList->m_nNumItem; ++k)
-			{
-				auto pPartyItem = (SListBoxPartyItem*)pPartyList->m_pItemList[k];
-				auto pHuman = (TMHuman*)g_pObjectManager->GetHumanByID(pPartyItem->m_dwCharID);
-
-				if (pHuman && (m_pMyHuman->IsInPKZone() || pHuman->IsInPKZone() != 1))
-				{
-					int nMX = (signed int)m_pMyHuman->m_vecPosition.x;
-					int nMY = (signed int)m_pMyHuman->m_vecPosition.y;
-					if (m_stMoveStop.NextX)
-					{
-						nMX = m_stMoveStop.NextX;
-						nMY = m_stMoveStop.NextY;
-					}
-
-					int nDistanceFromMe = BASE_GetDistance(nMX, nMY, (int)pHuman->m_vecPosition.x, (int)pHuman->m_vecPosition.y);
-					if (nDistanceFromMe < nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
-					{
-						stPartys[nIndex].dwID = pPartyItem->m_dwCharID;
-						stPartys[nIndex++].nLen = nDistanceFromMe;
-					}
-				}
-
-				nIndexCount = nIndex;
-				if (nIndex >= 12)
-					nIndexCount = 12;
-
-				int nMaxIndex = 0;
-
-				for (int nIndex = 0; nIndex < nIndexCount; ++nIndex)
-				{
-					nMaxIndex = nIndex;
-
-					stIDDis stMax{};
-					stMax.dwID = stPartys[nIndex].dwID;
-					stMax.nLen = stPartys[nIndex].nLen;
-					for (int j = nIndex + 1; j < nIndexCount; ++j)
-					{
-						if (stMax.nLen > stPartys[j].nLen)
-						{
-							stMax.dwID = stPartys[j].dwID;
-							stMax.nLen = stPartys[j].nLen;
-							nMaxIndex = j;
-						}
-					}
-
-					stPartys[nMaxIndex].dwID = stPartys[nIndex].dwID;
-					stPartys[nMaxIndex].nLen = stPartys[nIndex].nLen;
-					stPartys[nIndex].dwID = stMax.dwID;
-					stPartys[nIndex].nLen = stMax.nLen;
-				}
-				int nTargetI = 0;
-				for (nIndex = 0; nIndex < nIndexCount && g_pSpell[(unsigned char)cSkillIndex].MaxTarget > nTargetI && nTargetI < 13; ++nIndex)
-				{
-					stAttack.Dam[nTargetI].TargetID = stPartys[nIndex].dwID;
-					stAttack.Dam[nTargetI++].Damage = -1;
-				}
-			}
-		}
-		else
-		{
-			stAttack.Dam[0].TargetID = m_pMyHuman->m_dwID;
-			stAttack.Dam[0].Damage = -1;
-		}
+		SkillUse_PartyTargets(nSpecForce, cSkillIndex, stAttack);
 	}
 	else
 	{
@@ -1530,6 +1459,84 @@ void TMFieldScene::SkillUse_AreaAddTarget(TMHuman*& pOver, char& cSkillIndex, MS
 
 			++nTargetIndex;
 		}
+	}
+}
+
+/// Skills 29 e 44 em grupo: alvos são os membros do grupo, ordenados pela distância.
+/// @note Extraído de `TMFieldScene::SkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+void TMFieldScene::SkillUse_PartyTargets(int& nSpecForce, char& cSkillIndex, MSG_Attack& stAttack)
+{
+	if (m_pMyHuman->m_bParty == 1)
+	{
+		int nIndex = 0;
+		int nIndexCount = 0;
+
+		stIDDis stPartys[12]{};
+
+		auto pPartyList = m_pPartyList;
+		for (int k = 0; k < pPartyList->m_nNumItem; ++k)
+		{
+			auto pPartyItem = (SListBoxPartyItem*)pPartyList->m_pItemList[k];
+			auto pHuman = (TMHuman*)g_pObjectManager->GetHumanByID(pPartyItem->m_dwCharID);
+
+			if (pHuman && (m_pMyHuman->IsInPKZone() || pHuman->IsInPKZone() != 1))
+			{
+				int nMX = (signed int)m_pMyHuman->m_vecPosition.x;
+				int nMY = (signed int)m_pMyHuman->m_vecPosition.y;
+				if (m_stMoveStop.NextX)
+				{
+					nMX = m_stMoveStop.NextX;
+					nMY = m_stMoveStop.NextY;
+				}
+
+				int nDistanceFromMe = BASE_GetDistance(nMX, nMY, (int)pHuman->m_vecPosition.x, (int)pHuman->m_vecPosition.y);
+				if (nDistanceFromMe < nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
+				{
+					stPartys[nIndex].dwID = pPartyItem->m_dwCharID;
+					stPartys[nIndex++].nLen = nDistanceFromMe;
+				}
+			}
+
+			nIndexCount = nIndex;
+			if (nIndex >= 12)
+				nIndexCount = 12;
+
+			int nMaxIndex = 0;
+
+			for (int nIndex = 0; nIndex < nIndexCount; ++nIndex)
+			{
+				nMaxIndex = nIndex;
+
+				stIDDis stMax{};
+				stMax.dwID = stPartys[nIndex].dwID;
+				stMax.nLen = stPartys[nIndex].nLen;
+				for (int j = nIndex + 1; j < nIndexCount; ++j)
+				{
+					if (stMax.nLen > stPartys[j].nLen)
+					{
+						stMax.dwID = stPartys[j].dwID;
+						stMax.nLen = stPartys[j].nLen;
+						nMaxIndex = j;
+					}
+				}
+
+				stPartys[nMaxIndex].dwID = stPartys[nIndex].dwID;
+				stPartys[nMaxIndex].nLen = stPartys[nIndex].nLen;
+				stPartys[nIndex].dwID = stMax.dwID;
+				stPartys[nIndex].nLen = stMax.nLen;
+			}
+			int nTargetI = 0;
+			for (nIndex = 0; nIndex < nIndexCount && g_pSpell[(unsigned char)cSkillIndex].MaxTarget > nTargetI && nTargetI < 13; ++nIndex)
+			{
+				stAttack.Dam[nTargetI].TargetID = stPartys[nIndex].dwID;
+				stAttack.Dam[nTargetI++].Damage = -1;
+			}
+		}
+	}
+	else
+	{
+		stAttack.Dam[0].TargetID = m_pMyHuman->m_dwID;
+		stAttack.Dam[0].Damage = -1;
 	}
 }
 
