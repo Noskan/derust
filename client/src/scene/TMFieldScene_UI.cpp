@@ -223,17 +223,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == B_CARGO_PAGE1)
 		return OnControl_CargoPage1(idwControlID, idwEvent);
 	if (idwControlID == B_CARGO_PAGE2)
-	{
-		m_pCargoGridList[0]->SetVisible(0);
-		m_pCargoGridList[1]->SetVisible(0);
-		m_pCargoGridList[2]->SetVisible(0);
-		m_pCargoGrid = m_pCargoGridList[1];
-		m_pCargoGrid->SetVisible(1);
-		m_pStorePageBtn1->SetTextureSetIndex(531);
-		m_pStorePageBtn2->SetTextureSetIndex(534);
-		m_pStorePageBtn3->SetTextureSetIndex(535);
-		return 0;
-	}
+		return OnControl_CargoPage2(idwControlID, idwEvent);
 	if (idwControlID == B_CARGO_PAGE3)
 	{
 		m_pCargoGridList[0]->SetVisible(0);
