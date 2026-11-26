@@ -569,98 +569,7 @@ int TMHuman::InitObject()
         }
     }
 
-    if (m_nClass == 36 || m_nClass == 37)
-    {
-        int nSkelType = 0;
-        if (m_nClass == 37)
-            nSkelType = 3;
-        if (m_stLookInfo.HelmMesh == 11)
-            nSkelType = 1;
-        if (m_stLookInfo.HelmMesh == 10)
-            nSkelType = 2;
-
-        unsigned int dwColor[4]{};
-        dwColor[0] = 0xFF005555;
-        dwColor[1] = 0xFF885500;
-        dwColor[2] = 0xFF550000;
-        dwColor[3] = 0xFF005500;
-
-        if (nSkelType == 2 && m_stLookInfo.LeftMesh != 930)
-        {
-            int nMeshIndex[7]{};
-            nMeshIndex[0] = 3;
-            nMeshIndex[1] = 6;
-            nMeshIndex[2] = 4;
-            nMeshIndex[3] = 7;
-            nMeshIndex[4] = 5;
-            nMeshIndex[5] = 6;
-            nMeshIndex[6] = 7;
-
-            for (int j = 0; j < 7; ++j)
-            {
-                m_pRotateBone[j] = nullptr;
-                m_pRotateBone[j] = new TMEffectMeshRotate(TMVector3(m_vecPosition.x, (float)(m_fHeight + 0.80000001f) + (float)((float)j * 0.2f), m_vecPosition.y), 0, this, 1, 0);
-
-                if (m_pRotateBone[j])
-                {
-                    m_pRotateBone[j]->m_dwStartTime = 150 * j;
-                    m_pRotateBone[j]->m_nMeshIndex = nMeshIndex[j];
-                    g_pCurrentScene->m_pEffectContainer->AddChild(m_pRotateBone[j]);
-                }
-            }
-        }
-
-        int nPosIndex[7]{};
-        nPosIndex[0] = 8;
-        nPosIndex[1] = 9;
-        nPosIndex[2] = 1;
-        nPosIndex[3] = 6;
-        nPosIndex[4] = 7;
-        nPosIndex[5] = 2;
-        nPosIndex[6] = 3;
-
-        float fSizeX[4][7] = {
-            { 0.2f, 0.8f, 0.2f, 0.6f, 0.8f, 0.6f, 0.8f },
-            { 0.2f, 0.8f, 0.2f, 0.6f, 0.8f, 0.6f, 0.8f },
-            { 0.2f, 0.8f, 0.2f, 0.6f, 0.8f, 0.6f, 0.8f },
-            { 0.2f, 0.8f, 0.2f, 0.6f, 0.8f, 0.6f, 0.8f },
-        };
-
-        float fSizeY[4][7] = {
-            { 0.3f, 1.0f, 0.3f, 0.8f, 1.0f, 0.8f, 1.0f },
-            { 0.3f, 1.0f, 0.3f, 0.8f, 1.0f, 0.8f, 1.0f },
-            { 0.3f, 1.0f, 0.3f, 0.8f, 1.0f, 0.8f, 1.0f },
-            { 0.3f, 1.0f, 0.3f, 0.8f, 1.0f, 0.8f, 1.0f },
-        };
-
-        for (int k = 0; k < 7; ++k)
-        {
-            if (k != 2 || nSkelType != 1 && nSkelType != 2)
-            {
-                if (k >= 5 && nSkelType != 2)
-                    break;
-
-                m_pEyeFire[k] = new TMEffectBillBoard(101,
-                    0,
-                    fSizeX[nSkelType][k] * m_fScale,
-                    fSizeY[nSkelType][k] * m_fScale,
-                    fSizeX[nSkelType][k] * m_fScale,
-                    0.0,
-                    8,
-                    80);
-
-                if (m_pEyeFire[k])
-                {
-                    m_pEyeFire[k]->SetColor(dwColor[nSkelType]);
-                    m_pEyeFire[k]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                    m_pEyeFire[k]->m_nFade = 0;
-                    m_pEyeFire[k]->m_vecPosition = m_vecTempPos[nPosIndex[k]];
-                    m_pEyeFire[k]->m_bFrameMove = 0;
-                    g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[k]);
-                }
-            }
-        }
-    }
+    InitObject_Class36Wings();
 
     for (int i = 0; i < 4; ++i)
     {
@@ -1468,6 +1377,104 @@ void TMHuman::InitObject_Mantua(int& nCos)
             m_pMantua->m_vScale.y = m_fScale;
             m_pMantua->m_vScale.z = m_fScale;
             m_pMantua->SetVecMantua(1, m_nMountSkinMeshType);
+        }
+    }
+}
+
+/// Classes 36 e 37: escolhe o esqueleto pelo elmo e cria os efeitos presos aos ossos.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_Class36Wings()
+{
+    if (m_nClass == 36 || m_nClass == 37)
+    {
+        int nSkelType = 0;
+        if (m_nClass == 37)
+            nSkelType = 3;
+        if (m_stLookInfo.HelmMesh == 11)
+            nSkelType = 1;
+        if (m_stLookInfo.HelmMesh == 10)
+            nSkelType = 2;
+
+        unsigned int dwColor[4]{};
+        dwColor[0] = 0xFF005555;
+        dwColor[1] = 0xFF885500;
+        dwColor[2] = 0xFF550000;
+        dwColor[3] = 0xFF005500;
+
+        if (nSkelType == 2 && m_stLookInfo.LeftMesh != 930)
+        {
+            int nMeshIndex[7]{};
+            nMeshIndex[0] = 3;
+            nMeshIndex[1] = 6;
+            nMeshIndex[2] = 4;
+            nMeshIndex[3] = 7;
+            nMeshIndex[4] = 5;
+            nMeshIndex[5] = 6;
+            nMeshIndex[6] = 7;
+
+            for (int j = 0; j < 7; ++j)
+            {
+                m_pRotateBone[j] = nullptr;
+                m_pRotateBone[j] = new TMEffectMeshRotate(TMVector3(m_vecPosition.x, (float)(m_fHeight + 0.80000001f) + (float)((float)j * 0.2f), m_vecPosition.y), 0, this, 1, 0);
+
+                if (m_pRotateBone[j])
+                {
+                    m_pRotateBone[j]->m_dwStartTime = 150 * j;
+                    m_pRotateBone[j]->m_nMeshIndex = nMeshIndex[j];
+                    g_pCurrentScene->m_pEffectContainer->AddChild(m_pRotateBone[j]);
+                }
+            }
+        }
+
+        int nPosIndex[7]{};
+        nPosIndex[0] = 8;
+        nPosIndex[1] = 9;
+        nPosIndex[2] = 1;
+        nPosIndex[3] = 6;
+        nPosIndex[4] = 7;
+        nPosIndex[5] = 2;
+        nPosIndex[6] = 3;
+
+        float fSizeX[4][7] = {
+            { 0.2f, 0.8f, 0.2f, 0.6f, 0.8f, 0.6f, 0.8f },
+            { 0.2f, 0.8f, 0.2f, 0.6f, 0.8f, 0.6f, 0.8f },
+            { 0.2f, 0.8f, 0.2f, 0.6f, 0.8f, 0.6f, 0.8f },
+            { 0.2f, 0.8f, 0.2f, 0.6f, 0.8f, 0.6f, 0.8f },
+        };
+
+        float fSizeY[4][7] = {
+            { 0.3f, 1.0f, 0.3f, 0.8f, 1.0f, 0.8f, 1.0f },
+            { 0.3f, 1.0f, 0.3f, 0.8f, 1.0f, 0.8f, 1.0f },
+            { 0.3f, 1.0f, 0.3f, 0.8f, 1.0f, 0.8f, 1.0f },
+            { 0.3f, 1.0f, 0.3f, 0.8f, 1.0f, 0.8f, 1.0f },
+        };
+
+        for (int k = 0; k < 7; ++k)
+        {
+            if (k != 2 || nSkelType != 1 && nSkelType != 2)
+            {
+                if (k >= 5 && nSkelType != 2)
+                    break;
+
+                m_pEyeFire[k] = new TMEffectBillBoard(101,
+                    0,
+                    fSizeX[nSkelType][k] * m_fScale,
+                    fSizeY[nSkelType][k] * m_fScale,
+                    fSizeX[nSkelType][k] * m_fScale,
+                    0.0,
+                    8,
+                    80);
+
+                if (m_pEyeFire[k])
+                {
+                    m_pEyeFire[k]->SetColor(dwColor[nSkelType]);
+                    m_pEyeFire[k]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                    m_pEyeFire[k]->m_nFade = 0;
+                    m_pEyeFire[k]->m_vecPosition = m_vecTempPos[nPosIndex[k]];
+                    m_pEyeFire[k]->m_bFrameMove = 0;
+                    g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[k]);
+                }
+            }
         }
     }
 }
