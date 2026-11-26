@@ -486,7 +486,9 @@ int CMob::SetSegment()
 		return 0;
 	}
 
-	int iterator;
+	// Valor padrão para o caminho que sai sem atribuir (rota 4 com SegmentProgress -1, que não
+	// acontece: a direção 1 só é usada nas rotas 2 e 3).
+	int iterator = 0;
 	while (1)
 	{
 		if (SegmentDirection == 0)
@@ -524,6 +526,7 @@ int CMob::SetSegment()
 			else if (RouteType == 4)
 			{
 				Log("SetSegment SegmentProgress -1 but route type 4", MOB.MobName, 0);
+				SegmentProgress = 0; // evita ler SegmentListX[-1] abaixo
 				break;
 			}
 			continue;
