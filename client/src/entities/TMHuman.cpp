@@ -581,45 +581,7 @@ int TMHuman::InitObject()
     }
     InitObject_FlyEffects();
 
-    if (m_nClass == 34 || m_nClass == 23 || m_nClass == 21 && m_stLookInfo.FaceMesh == 10)
-    {
-        m_cDodge = 1;
-        int nCount = 1;
-        int nTexIndex = 71;
-        int dwColor = 0x0FFFFAAFF;
-        if (m_nClass == 23)
-        {
-            nCount = 2;
-            m_cDodge = 0;
-            dwColor = 0x0FF33FF66;
-        }
-        else if (m_nClass == 21)
-        {
-            nTexIndex = 60;
-            dwColor = 0x0FFEE8800;
-        }
-
-        for (int m = 0; m < nCount; ++m)
-        {
-            if (m_pEyeFire[m])
-            {
-                g_pObjectManager->DeleteObject(m_pEyeFire[m]);
-                m_pEyeFire[m] = nullptr;
-            }
-
-            m_pEyeFire[m] = new TMEffectBillBoard(nTexIndex, 0, 1.0f, 1.0f, 1.0f, 0.0f, 1, 80);
-
-            if (m_pEyeFire[m])
-            {
-                m_pEyeFire[m]->SetColor(dwColor);
-                m_pEyeFire[m]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                m_pEyeFire[m]->m_nFade = 0;
-                m_pEyeFire[m]->m_vecPosition = m_vecTempPos[0];
-                m_pEyeFire[m]->m_bFrameMove = 0;
-                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[m]);
-            }
-        }
-    }
+    InitObject_DodgeGlow();
     if (m_nClass == 29 && m_stLookInfo.FaceMesh == 1)
     {
         for (int n = 0; n < 1; ++n)
@@ -1481,6 +1443,51 @@ void TMHuman::InitObject_FlyEffects()
                 m_pFly[l]->m_fCircleSpeed = (float)l + 8.0f;
 
                 g_pCurrentScene->m_pEffectContainer->AddChild(m_pFly[l]);
+            }
+        }
+    }
+}
+
+/// Classes 34, 23 e 21 (rosto 10): esquiva ligada e brilho nos olhos.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_DodgeGlow()
+{
+    if (m_nClass == 34 || m_nClass == 23 || m_nClass == 21 && m_stLookInfo.FaceMesh == 10)
+    {
+        m_cDodge = 1;
+        int nCount = 1;
+        int nTexIndex = 71;
+        int dwColor = 0x0FFFFAAFF;
+        if (m_nClass == 23)
+        {
+            nCount = 2;
+            m_cDodge = 0;
+            dwColor = 0x0FF33FF66;
+        }
+        else if (m_nClass == 21)
+        {
+            nTexIndex = 60;
+            dwColor = 0x0FFEE8800;
+        }
+
+        for (int m = 0; m < nCount; ++m)
+        {
+            if (m_pEyeFire[m])
+            {
+                g_pObjectManager->DeleteObject(m_pEyeFire[m]);
+                m_pEyeFire[m] = nullptr;
+            }
+
+            m_pEyeFire[m] = new TMEffectBillBoard(nTexIndex, 0, 1.0f, 1.0f, 1.0f, 0.0f, 1, 80);
+
+            if (m_pEyeFire[m])
+            {
+                m_pEyeFire[m]->SetColor(dwColor);
+                m_pEyeFire[m]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                m_pEyeFire[m]->m_nFade = 0;
+                m_pEyeFire[m]->m_vecPosition = m_vecTempPos[0];
+                m_pEyeFire[m]->m_bFrameMove = 0;
+                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[m]);
             }
         }
     }
