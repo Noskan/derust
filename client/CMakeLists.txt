@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
-set(_tm_directx_include_dir "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Directx/Include")
-set(_tm_directx_lib_dir "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Directx/Lib")
+set(_tm_directx_include_dir "${CMAKE_CURRENT_SOURCE_DIR}/third_party/directx/Include")
+set(_tm_directx_lib_dir "${CMAKE_CURRENT_SOURCE_DIR}/third_party/directx/Lib")
 file(TO_NATIVE_PATH "${_tm_directx_include_dir}" _tm_directx_include_native)
 file(TO_NATIVE_PATH "${_tm_directx_lib_dir}" _tm_directx_lib_native)
 
@@ -27,117 +27,126 @@ target_link_libraries(tm_directx
     $<$<CXX_COMPILER_ID:MSVC>:legacy_stdio_definitions>
 )
 
-add_executable(TMProject WIN32
-  Projects/TMProject/Basedef.cpp
-  Projects/TMProject/CFrame.cpp
-  Projects/TMProject/CMesh.cpp
-  Projects/TMProject/CPSock.cpp
-  Projects/TMProject/D3DDevice.cpp
-  Projects/TMProject/D3DEnumeration.cpp
-  Projects/TMProject/DirShow.cpp
-  Projects/TMProject/dsutil.cpp
-  Projects/TMProject/DXUtil.cpp
-  Projects/TMProject/EventTranslator.cpp
-  Projects/TMProject/GeomObject.cpp
-  Projects/TMProject/JBlur.cpp
-  Projects/TMProject/MeshManager.cpp
-  Projects/TMProject/Mission.cpp
-  Projects/TMProject/MrItemMix.cpp
-  Projects/TMProject/NewApp.cpp
-  Projects/TMProject/ObjectManager.cpp
-  Projects/TMProject/RenderDevice.cpp
-  Projects/TMProject/SControl.cpp
-  Projects/TMProject/SControlContainer.cpp
-  Projects/TMProject/SGrid.cpp
-  Projects/TMProject/TextureManager.cpp
-  Projects/TMProject/TimerManager.cpp
-  Projects/TMProject/TMArrow.cpp
-  Projects/TMProject/TMBike.cpp
-  Projects/TMProject/TMButterFly.cpp
-  Projects/TMProject/TMCamera.cpp
-  Projects/TMProject/TMCannon.cpp
-  Projects/TMProject/TMDemoScene.cpp
-  Projects/TMProject/TMDrop.cpp
-  Projects/TMProject/TMDust.cpp
-  Projects/TMProject/TMEffect.cpp
-  Projects/TMProject/TMEffectBillBoard.cpp
-  Projects/TMProject/TMEffectBillBoard2.cpp
-  Projects/TMProject/TMEffectBillBoard3.cpp
-  Projects/TMProject/TMEffectBillBoard4.cpp
-  Projects/TMProject/TMEffectCharge.cpp
-  Projects/TMProject/TMEffectDust.cpp
-  Projects/TMProject/TMEffectFirework.cpp
-  Projects/TMProject/TMEffectGold.cpp
-  Projects/TMProject/TMEffectLevelUp.cpp
-  Projects/TMProject/TMEffectMesh.cpp
-  Projects/TMProject/TMEffectMeshRotate.cpp
-  Projects/TMProject/TMEffectParticle.cpp
-  Projects/TMProject/TMEffectSkinMesh.cpp
-  Projects/TMProject/TMEffectSpark.cpp
-  Projects/TMProject/TMEffectSpark2.cpp
-  Projects/TMProject/TMEffectStart.cpp
-  Projects/TMProject/TMEffectSWSwing.cpp
-  Projects/TMProject/TMFieldScene.cpp
-  Projects/TMProject/TMFireEffect.cpp
-  Projects/TMProject/TMFish.cpp
-  Projects/TMProject/TMFlail.cpp
-  Projects/TMProject/TMFloat.cpp
-  Projects/TMProject/TMFont2.cpp
-  Projects/TMProject/TMFont3.cpp
-  Projects/TMProject/TMGate.cpp
-  Projects/TMProject/TMGlobal.cpp
-  Projects/TMProject/TMGround.cpp
-  Projects/TMProject/TMHouse.cpp
-  Projects/TMProject/TMHuman.cpp
-  Projects/TMProject/TMItem.cpp
-  Projects/TMProject/TMLeaf.cpp
-  Projects/TMProject/TMLight.cpp
-  Projects/TMProject/TMLog.cpp
-  Projects/TMProject/TMMesh.cpp
-  Projects/TMProject/TMObject.cpp
-  Projects/TMProject/TMObjectContainer.cpp
-  Projects/TMProject/TMProject.cpp
-  Projects/TMProject/TMRain.cpp
-  Projects/TMProject/TMScene.cpp
-  Projects/TMProject/TMSea.cpp
-  Projects/TMProject/TMSelectCharScene.cpp
-  Projects/TMProject/TMSelectServerScene.cpp
-  Projects/TMProject/TMShade.cpp
-  Projects/TMProject/TMShip.cpp
-  Projects/TMProject/TMSkillBash.cpp
-  Projects/TMProject/TMSkillCure.cpp
-  Projects/TMProject/TMSkillDoubleSwing.cpp
-  Projects/TMProject/TMSkillExplosion2.cpp
-  Projects/TMProject/TMSkillFire.cpp
-  Projects/TMProject/TMSkillFlash.cpp
-  Projects/TMProject/TMSkillFreezeBlade.cpp
-  Projects/TMProject/TMSkillHaste.cpp
-  Projects/TMProject/TMSkillHeal.cpp
-  Projects/TMProject/TMSkillHeavenDust.cpp
-  Projects/TMProject/TMSkillHolyTouch.cpp
-  Projects/TMProject/TMSkillIceSpear.cpp
-  Projects/TMProject/TMSkillJudgement.cpp
-  Projects/TMProject/TMSkillLusterFurnish.cpp
-  Projects/TMProject/TMSkillMagicArrow.cpp
-  Projects/TMProject/TMSkillMagicShield.cpp
-  Projects/TMProject/TMSkillMeteorStorm.cpp
-  Projects/TMProject/TMSkillPoison.cpp
-  Projects/TMProject/TMSkillSlowSlash.cpp
-  Projects/TMProject/TMSkillSnow.cpp
-  Projects/TMProject/TMSkillSpChange.cpp
-  Projects/TMProject/TMSkillSpeedUp.cpp
-  Projects/TMProject/TMSkillThunderBolt.cpp
-  Projects/TMProject/TMSkillTownPortal.cpp
-  Projects/TMProject/TMSkinMesh.cpp
-  Projects/TMProject/TMSky.cpp
-  Projects/TMProject/TMSnow.cpp
-  Projects/TMProject/TMSun.cpp
-  Projects/TMProject/TMTree.cpp
-  Projects/TMProject/TMUtil.cpp
-  Projects/TMProject/TMVideoWnd.cpp
-  Projects/TMProject/TreeNode.cpp
-  Projects/TMProject/TMProject.rc
+add_library(tm_crypto INTERFACE)
+
+target_include_directories(tm_crypto
+  INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+
+set(TMPROJECT_SOURCES
+  src/audio/DirShow.cpp
+  src/audio/dsutil.cpp
+  src/audio/TMVideoWnd.cpp
+  src/common/Basedef.cpp
+  src/core/EventTranslator.cpp
+  src/core/NewApp.cpp
+  src/core/TMGlobal.cpp
+  src/core/TMLog.cpp
+  src/core/TMProject.cpp
+  src/core/TMUtil.cpp
+  src/core/TimerManager.cpp
+  src/effects/TMEffect.cpp
+  src/effects/TMEffectBillBoard.cpp
+  src/effects/TMEffectBillBoard2.cpp
+  src/effects/TMEffectBillBoard3.cpp
+  src/effects/TMEffectBillBoard4.cpp
+  src/effects/TMEffectCharge.cpp
+  src/effects/TMEffectDust.cpp
+  src/effects/TMEffectFirework.cpp
+  src/effects/TMEffectGold.cpp
+  src/effects/TMEffectLevelUp.cpp
+  src/effects/TMEffectMesh.cpp
+  src/effects/TMEffectMeshRotate.cpp
+  src/effects/TMEffectParticle.cpp
+  src/effects/TMEffectSWSwing.cpp
+  src/effects/TMEffectSkinMesh.cpp
+  src/effects/TMEffectSpark.cpp
+  src/effects/TMEffectSpark2.cpp
+  src/effects/TMEffectStart.cpp
+  src/effects/TMFireEffect.cpp
+  src/entities/TMArrow.cpp
+  src/entities/TMBike.cpp
+  src/entities/TMButterFly.cpp
+  src/entities/TMCannon.cpp
+  src/entities/TMDrop.cpp
+  src/entities/TMDust.cpp
+  src/entities/TMFish.cpp
+  src/entities/TMFlail.cpp
+  src/entities/TMFloat.cpp
+  src/entities/TMHuman.cpp
+  src/entities/TMItem.cpp
+  src/entities/TMLeaf.cpp
+  src/entities/TMShade.cpp
+  src/gameplay/Mission.cpp
+  src/gameplay/MrItemMix.cpp
+  src/net/CPSock.cpp
+  src/render/CFrame.cpp
+  src/render/CMesh.cpp
+  src/render/D3DDevice.cpp
+  src/render/D3DEnumeration.cpp
+  src/render/DXUtil.cpp
+  src/render/GeomObject.cpp
+  src/render/JBlur.cpp
+  src/render/MeshManager.cpp
+  src/render/RenderDevice.cpp
+  src/render/TMCamera.cpp
+  src/render/TMFont2.cpp
+  src/render/TMFont3.cpp
+  src/render/TMLight.cpp
+  src/render/TMMesh.cpp
+  src/render/TMSkinMesh.cpp
+  src/render/TextureManager.cpp
+  src/scene/ObjectManager.cpp
+  src/scene/TMDemoScene.cpp
+  src/scene/TMFieldScene.cpp
+  src/scene/TMObject.cpp
+  src/scene/TMObjectContainer.cpp
+  src/scene/TMScene.cpp
+  src/scene/TMSelectCharScene.cpp
+  src/scene/TMSelectServerScene.cpp
+  src/scene/TreeNode.cpp
+  src/skills/TMSkillBash.cpp
+  src/skills/TMSkillCure.cpp
+  src/skills/TMSkillDoubleSwing.cpp
+  src/skills/TMSkillExplosion2.cpp
+  src/skills/TMSkillFire.cpp
+  src/skills/TMSkillFlash.cpp
+  src/skills/TMSkillFreezeBlade.cpp
+  src/skills/TMSkillHaste.cpp
+  src/skills/TMSkillHeal.cpp
+  src/skills/TMSkillHeavenDust.cpp
+  src/skills/TMSkillHolyTouch.cpp
+  src/skills/TMSkillIceSpear.cpp
+  src/skills/TMSkillJudgement.cpp
+  src/skills/TMSkillLusterFurnish.cpp
+  src/skills/TMSkillMagicArrow.cpp
+  src/skills/TMSkillMagicShield.cpp
+  src/skills/TMSkillMeteorStorm.cpp
+  src/skills/TMSkillPoison.cpp
+  src/skills/TMSkillSlowSlash.cpp
+  src/skills/TMSkillSnow.cpp
+  src/skills/TMSkillSpChange.cpp
+  src/skills/TMSkillSpeedUp.cpp
+  src/skills/TMSkillThunderBolt.cpp
+  src/skills/TMSkillTownPortal.cpp
+  src/ui/SControl.cpp
+  src/ui/SControlContainer.cpp
+  src/ui/SGrid.cpp
+  src/world/TMGate.cpp
+  src/world/TMGround.cpp
+  src/world/TMHouse.cpp
+  src/world/TMRain.cpp
+  src/world/TMSea.cpp
+  src/world/TMShip.cpp
+  src/world/TMSky.cpp
+  src/world/TMSnow.cpp
+  src/world/TMSun.cpp
+  src/world/TMTree.cpp
+  src/resources/TMProject.rc
+)
+
+add_executable(TMProject WIN32 ${TMPROJECT_SOURCES})
 
 set_target_properties(TMProject PROPERTIES
   VS_USER_PROPS "${_tm_directx_props}"
@@ -145,7 +154,7 @@ set_target_properties(TMProject PROPERTIES
 
 target_include_directories(TMProject
   PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMProject
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 target_compile_features(TMProject PRIVATE cxx_std_17)
@@ -168,12 +177,12 @@ target_compile_options(TMProject
 
 target_precompile_headers(TMProject
   PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMProject/pch.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core/pch.h
 )
 
 set_source_files_properties(
-  ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMProject/D3DEnumeration.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Projects/TMProject/DXUtil.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/render/D3DEnumeration.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/render/DXUtil.cpp
   PROPERTIES
     SKIP_PRECOMPILE_HEADERS ON
 )
@@ -181,6 +190,7 @@ set_source_files_properties(
 target_link_libraries(TMProject
   PRIVATE
     tm_directx
+    tm_crypto
     wininet
     wsock32
     imm32
@@ -193,3 +203,5 @@ target_link_options(TMProject
   PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/SAFESEH:NO>
 )
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src FILES ${TMPROJECT_SOURCES})
