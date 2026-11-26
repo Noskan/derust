@@ -605,36 +605,7 @@ int TMHuman::InitObject()
             }
         }
     }
-    if (m_nClass == 32 && m_stLookInfo.FaceMesh == 2)
-    {
-        for (int i = 0; i < 6; ++i)
-        {
-            if (m_pEyeFire[i])
-            {
-                g_pObjectManager->DeleteObject(m_pEyeFire[i]);
-                m_pEyeFire[i] = 0;
-            }
-
-            m_pEyeFire[i] = new TMEffectBillBoard(11,
-                0,
-                1.2f * m_fScale,
-                1.8f * m_fScale,
-                1.2f * m_fScale,
-                0.0,
-                8,
-                80);
-
-            if (m_pEyeFire[i])
-            {
-                m_pEyeFire[i]->SetColor(0x0FFAA8800);
-                m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                m_pEyeFire[i]->m_nFade = 0;
-                m_pEyeFire[i]->m_vecPosition = m_vecTempPos[i];
-                m_pEyeFire[i]->m_bFrameMove = 0;
-                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
-            }
-        }
-    }
+    InitObject_Class32EyeFire();
     if (m_nClass == 16 && !m_stLookInfo.FaceMesh && m_stLookInfo.FaceSkin == 1 && m_cLegend != 4)
     {
         float fSize = 0.4f;
@@ -1488,6 +1459,42 @@ void TMHuman::InitObject_DodgeGlow()
                 m_pEyeFire[m]->m_vecPosition = m_vecTempPos[0];
                 m_pEyeFire[m]->m_bFrameMove = 0;
                 g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[m]);
+            }
+        }
+    }
+}
+
+/// Classe 32 com rosto 2: seis pontos de fogo (`m_pEyeFire`).
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_Class32EyeFire()
+{
+    if (m_nClass == 32 && m_stLookInfo.FaceMesh == 2)
+    {
+        for (int i = 0; i < 6; ++i)
+        {
+            if (m_pEyeFire[i])
+            {
+                g_pObjectManager->DeleteObject(m_pEyeFire[i]);
+                m_pEyeFire[i] = 0;
+            }
+
+            m_pEyeFire[i] = new TMEffectBillBoard(11,
+                0,
+                1.2f * m_fScale,
+                1.8f * m_fScale,
+                1.2f * m_fScale,
+                0.0,
+                8,
+                80);
+
+            if (m_pEyeFire[i])
+            {
+                m_pEyeFire[i]->SetColor(0x0FFAA8800);
+                m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                m_pEyeFire[i]->m_nFade = 0;
+                m_pEyeFire[i]->m_vecPosition = m_vecTempPos[i];
+                m_pEyeFire[i]->m_bFrameMove = 0;
+                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
             }
         }
     }
