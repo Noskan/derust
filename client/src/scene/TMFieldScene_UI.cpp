@@ -1005,36 +1005,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 1;
 	}
 	if (idwControlID == B_CCMOVE)
-	{
-		if (++m_AutoPostionUse >= 3)
-			m_AutoPostionUse = 0;
-
-		int nAutoPostionUse = m_AutoPostionUse;
-
-		int startX = 0;
-		int startY = 0;
-		if (!nAutoPostionUse)
-		{
-			m_pSetType->SetTextureSetIndex(463);
-			m_pSetType->m_pAltText->SetText(g_UIString[233], 0);
-		}
-		else if (nAutoPostionUse == 1)
-		{
-			m_pSetType->SetTextureSetIndex(464);
-			startX = (int)m_pMyHuman->m_vecPosition.x;
-			startY = (int)m_pMyHuman->m_vecPosition.y;
-			m_pSetType->m_pAltText->SetText(g_UIString[234], 0);
-		}
-		else if (nAutoPostionUse == 2)
-		{
-			m_pSetType->SetTextureSetIndex(465);
-			m_pSetType->m_pAltText->SetText(g_UIString[232], 0);
-		}
-
-		m_AutoStartPointX = startX;
-		m_AutoStartPointY = startY;
-		return 1;
-	}
+		return OnControl_CCMove(idwControlID, idwEvent);
 	if (idwControlID == B_ITEMMIX_RUN)
 	{
 		m_pMessageBox->SetMessage(g_pMessageStringTable[319], B_ITEMMIX_RUN, 0);

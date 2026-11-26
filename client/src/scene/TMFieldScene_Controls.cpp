@@ -1402,3 +1402,37 @@ int TMFieldScene::OnControl_CCAttack(unsigned int idwControlID, unsigned int idw
 	}
 	return 1;
 }
+
+/// Comando de movimento do modo CC (`B_CCMOVE`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CCMove(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (++m_AutoPostionUse >= 3)
+		m_AutoPostionUse = 0;
+
+	int nAutoPostionUse = m_AutoPostionUse;
+
+	int startX = 0;
+	int startY = 0;
+	if (!nAutoPostionUse)
+	{
+		m_pSetType->SetTextureSetIndex(463);
+		m_pSetType->m_pAltText->SetText(g_UIString[233], 0);
+	}
+	else if (nAutoPostionUse == 1)
+	{
+		m_pSetType->SetTextureSetIndex(464);
+		startX = (int)m_pMyHuman->m_vecPosition.x;
+		startY = (int)m_pMyHuman->m_vecPosition.y;
+		m_pSetType->m_pAltText->SetText(g_UIString[234], 0);
+	}
+	else if (nAutoPostionUse == 2)
+	{
+		m_pSetType->SetTextureSetIndex(465);
+		m_pSetType->m_pAltText->SetText(g_UIString[232], 0);
+	}
+
+	m_AutoStartPointX = startX;
+	m_AutoStartPointY = startY;
+	return 1;
+}
