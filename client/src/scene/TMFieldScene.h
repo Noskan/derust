@@ -340,6 +340,7 @@ private:
 	int OnControl_AddScore1(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_AddScore2(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	int OnControl_AddScore3(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
+	int OnControl_AddScore4(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	/// @}
 
 public:

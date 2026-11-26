@@ -894,20 +894,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 65722)
 		return OnControl_AddScore3(idwControlID, idwEvent, pMobData);
 	if (idwControlID == 65725)
-	{
-		if (m_pMyHuman->m_cDie == 1)
-			return 1;
-		if (pMobData->ScoreBonus <= 0)
-			return 0;
-
-		MSG_ApplyBonus stApplyBonus{};
-		stApplyBonus.Header.ID = m_pMyHuman->m_dwID;
-		stApplyBonus.Header.Type = MSG_ApplyBonus_Opcode;
-		stApplyBonus.BonusType = 0;
-		stApplyBonus.Detail = 3;
-		SendOneMessage((char*)&stApplyBonus, sizeof(stApplyBonus));
-		return 1;
-	}
+		return OnControl_AddScore4(idwControlID, idwEvent, pMobData);
 	if (idwControlID == 65754)
 		return OnControl_AddSpecial1(idwControlID, idwEvent, pMobData);
 	if (idwControlID == 65757)
