@@ -392,6 +392,7 @@ private:
 	void PacketAttack_ApplyDamageHp(MSG_Attack*& pAttack, int& i, TMHuman*& pTargetHuman, int& nDamageRate);
 	bool PacketAttack_ShowDamage(MSG_Attack*& pAttack, TMHuman*& pAttacker, unsigned int& dwDelay, int& i, TMHuman*& pTargetHuman, int& bInScreen, int& nTX, int& nTY, int& nReturnValue);
 	void PacketAttack_AreaShowHealText(MSG_Attack*& pAttack, TMHuman*& pAttacker, unsigned int& dwDelay, int& i, TMHuman*& pTargetHuman, int& nStartX, int& nStartY);
+	void PacketAttack_AreaApplyHealHp(MSG_Attack*& pAttack, int& i, TMHuman*& pTargetHuman, int& nDamageRate);
 	/// @}
 
 	/// @name Etapas com retorno antecipado extraídas de OnControlEvent (Fase 3)

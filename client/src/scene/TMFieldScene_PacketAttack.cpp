@@ -1705,33 +1705,7 @@ else
 				}
 				else
 				{
-					if (!pAttack->FlagLocal)
-					{
-						if (!pTargetHuman->m_MaxBigHp)
-						{
-							if (pTargetHuman->m_stScore.Hp - pAttack->Dam[i].Damage / nDamageRate <= 0)
-								pTargetHuman->m_stScore.Hp = 0;
-							else
-								pTargetHuman->m_stScore.Hp -= pAttack->Dam[i].Damage / nDamageRate;
-						}
-						else
-						{
-							if (pTargetHuman->m_BigHp == pAttack->Dam[i].Damage)
-								pTargetHuman->m_BigHp = 0;
-							else
-								pTargetHuman->m_BigHp -= pAttack->Dam[i].Damage;
-							pTargetHuman->m_stScore.Hp = (short)pTargetHuman->m_BigHp;
-						}
-						if (pTargetHuman == m_pMyHuman)
-						{
-							if (m_nReqHP - pAttack->Dam[i].Damage <= 0)
-								m_nReqHP = 0;
-							else
-								m_nReqHP -= pAttack->Dam[i].Damage / nDamageRate;
-
-							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-						}
-					}
+					PacketAttack_AreaApplyHealHp(pAttack, i, pTargetHuman, nDamageRate);
 
 					pTargetHuman->m_wAttackerID = pAttack->AttackerID;
 
@@ -2493,6 +2467,39 @@ void TMFieldScene::PacketAttack_AreaShowHealText(MSG_Attack*& pAttack, TMHuman*&
 		{
 			auto pFont = new TMFont3(szStr, nStartX, nStartY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFF5555FF, 2.0f, dwDelay, 1, 1500, 0, 2);
 			m_pExtraContainer->AddChild(pFont);
+		}
+	}
+}
+
+/// Cura em área: atualiza o HP de cada alvo (ou o HP grande dos chefes).
+/// @note Extraído de `TMFieldScene::PacketAttack_ApplyTargets` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_AreaApplyHealHp(MSG_Attack*& pAttack, int& i, TMHuman*& pTargetHuman, int& nDamageRate)
+{
+	if (!pAttack->FlagLocal)
+	{
+		if (!pTargetHuman->m_MaxBigHp)
+		{
+			if (pTargetHuman->m_stScore.Hp - pAttack->Dam[i].Damage / nDamageRate <= 0)
+				pTargetHuman->m_stScore.Hp = 0;
+			else
+				pTargetHuman->m_stScore.Hp -= pAttack->Dam[i].Damage / nDamageRate;
+		}
+		else
+		{
+			if (pTargetHuman->m_BigHp == pAttack->Dam[i].Damage)
+				pTargetHuman->m_BigHp = 0;
+			else
+				pTargetHuman->m_BigHp -= pAttack->Dam[i].Damage;
+			pTargetHuman->m_stScore.Hp = (short)pTargetHuman->m_BigHp;
+		}
+		if (pTargetHuman == m_pMyHuman)
+		{
+			if (m_nReqHP - pAttack->Dam[i].Damage <= 0)
+				m_nReqHP = 0;
+			else
+				m_nReqHP -= pAttack->Dam[i].Damage / nDamageRate;
+
+			memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
 		}
 	}
 }
