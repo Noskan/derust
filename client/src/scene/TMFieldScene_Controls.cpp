@@ -2993,3 +2993,21 @@ int TMFieldScene::OnControl_AddScore2(unsigned int idwControlID, unsigned int id
 	SendOneMessage((char*)&stApplyBonus, sizeof(stApplyBonus));
 	return 1;
 }
+
+/// Distribuição de ponto de atributo 3 (controle 65722, `ScoreBonus`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_AddScore3(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData)
+{
+	if (m_pMyHuman->m_cDie == 1)
+		return 1;
+	if (pMobData->ScoreBonus <= 0)
+		return 0;
+
+	MSG_ApplyBonus stApplyBonus{};
+	stApplyBonus.Header.ID = m_pMyHuman->m_dwID;
+	stApplyBonus.Header.Type = MSG_ApplyBonus_Opcode;
+	stApplyBonus.BonusType = 0;
+	stApplyBonus.Detail = 2;
+	SendOneMessage((char*)&stApplyBonus, sizeof(stApplyBonus));
+	return 1;
+}
