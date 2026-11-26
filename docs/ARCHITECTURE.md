@@ -173,9 +173,32 @@ Na **Fase 2**, os arquivos monolíticos são fatiados por coesão (preservando 1
 - **Cliente — `scene/TMScene.cpp` (2.699 → 822 linhas)**: `TMScene_Resources.cpp` (800L), `TMScene_Packets.cpp` (484L) e `TMScene_Ground.cpp` (673L).
 - Os headers [`RenderDevice.h`](../client/src/render/RenderDevice.h), [`client/src/common/Basedef.h`](../client/src/common/Basedef.h), [`SControl.h`](../client/src/ui/SControl.h) e [`TMScene.h`](../client/src/scene/TMScene.h) documentam (Doxygen, PT-BR) onde cada parte da implementação vive.
 
-### Próximos alvos (Onda 4)
-- **Cliente**: as TUs já fatiadas que seguem grandes — `TMFieldScene_UI.cpp` (~7,8 mil linhas), `TMHuman.cpp` (~5,2 mil), `TMFieldScene_Packets.cpp` (~5,1 mil), `TMFieldScene.cpp` (~5,0 mil) e `TMFieldScene_Combat.cpp` (~4,4 mil).
-- **Servidor**: `tmsrv/core/Server.cpp` (~2,9 mil), `server/common/Basedef.cpp` (~2,8 mil) e `BaseCombat.cpp` (~2,4 mil), além da promoção gradual de subsistemas desacoplados a static libs CMake com testes adicionais.
+### Onda 4 (concluída na branch `refactor/modularize-phase2-wave4`)
+Segunda passada nas TUs que ainda passavam de ~2,5 mil linhas, isolando as funções gigantes em TUs próprias (definições inteiras movidas sem alteração, bytes preservados):
+- **Servidor — `tmsrv/core/Server.cpp` (2.913 → 1.423 linhas)**: `Server_Window.cpp` (951L: `WinMain`, `MainWndProc`, `DrawConfig`), `Server_Config.cpp` (477L: `ReadConfig`, `ReadLevelItemConfig`) e `Server_Logs.cpp` (198L).
+- **Servidor — `server/common/Basedef.cpp` (2.845 → 1.504 linhas)**: `BaseLoaders.cpp` (1.382L) com os 20 carregadores/gravadores de tabelas (itens, skills, mensagens, nomes, itens iniciais, guildas, servidores, taxa de acerto, atributos de mapa).
+- **Cliente — `TMFieldScene_UI.cpp` (7.754 → 3.574 linhas, agora só `OnControlEvent`)**: `TMFieldScene_Panels.cpp` (1.940L, `SetVisible*`), `TMFieldScene_HUD.cpp` (1.695L, `UpdateScoreUI`/chat/câmera) e `TMFieldScene_MsgBox.cpp` (726L, `OnMsgBoxEvent`/`Guildmark_*`).
+- **Cliente — `TMFieldScene_Packets.cpp` (5.129 → 1.850 linhas)**: `TMFieldScene_PacketAttack.cpp` (2.333L, `OnPacketAttack`) e `TMFieldScene_PacketItems.cpp` (1.065L, itens e lojas).
+- **Cliente — `TMFieldScene.cpp` (5.046 → 1.140 linhas)**: `TMFieldScene_Init.cpp` (2.098L, construtor/`InitializeScene`) e `TMFieldScene_FrameMove.cpp` (1.927L).
+- **Cliente — `TMFieldScene_Combat.cpp` (4.432 → 2.582 linhas)**: `TMFieldScene_AutoSkill.cpp` (1.159L) e `TMFieldScene_Items.cpp` (809L, poções/itens).
+- **Cliente — `TMHuman.cpp` (5.153 → 2.101 linhas)**: `TMHuman_FrameMove.cpp` (1.245L) e `TMHuman_Render.cpp` (1.927L, `Render`/rótulos).
+- **Codificação**: 7 comentários CP1252 de `TMFieldScene_PacketAttack.cpp` convertidos para UTF-8. Os únicos bytes não-UTF-8 restantes (`DirShow.cpp`, `NewApp.cpp`, `TMFieldScene_Input.cpp`) estão em literais de string/char (tabelas CP949 de IME) e são mantidos de propósito, pois o build MBCS depende deles.
+
+### Próxima fase (Fase 3): decomposição das funções gigantes
+Depois da Onda 4, o tamanho restante está concentrado em poucas funções, e dividir arquivos deixa de ajudar:
+
+| Função | Linhas |
+|---|---|
+| `TMFieldScene::OnControlEvent` | ~3.500 (cadeia de 153 `if (idwControlID == ...)`) |
+| `TMFieldScene::OnPacketAttack` | ~2.270 |
+| `TMFieldScene::SkillUse` | ~1.570 |
+| `TMFieldScene::FrameMove` / `InitializeScene` | ~1.500 cada |
+| `TMFieldScene::AutoSkillUse`, `TMHuman::InitObject`, `TMHuman::FrameMove` | ~1.000 cada |
+
+Decompô-las exige reescrever fluxo de controle (`return` dentro de blocos que podem cair para o próximo `if`, locais compartilhadas), o que deixa de ser movimentação de código. Recomendação antes de começar:
+1. Rede de segurança: adicionar ao CI um job Linux com cross-compile mingw i686 (compila servidor e cliente, linka DBSrv e roda `w2pp_common_tests` no wine), cobrindo também plataformas fora do MSVC.
+2. Portabilidade mínima: remover construções aceitas só pelo MSVC (`#pragma region` entre `}` e `else`, `goto` que salta inicializações) para que todas as TUs compilem no GCC/Clang.
+3. Só então decompor por handler (ex.: `OnControlEvent` → `OnControl_<Painel>`), um handler por commit, com revisão do fluxo de `return`.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.
