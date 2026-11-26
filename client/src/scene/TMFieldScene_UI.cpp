@@ -163,18 +163,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		return 0;
 	}
 	if (idwControlID == B_INV_CLOSE)
-	{
-		SetVisibleInventory();
-
-		auto pEquipBtn = static_cast<SButton*>(m_pControlContainer->FindControl(B_EQUIP));
-
-		pEquipBtn->SetSelected(m_pInvenPanel->m_bVisible);
-
-		if (g_nKeyType == 1)
-			m_pControlContainer->SetFocusedControl(m_pEditChat);
-
-		return 0;
-	}
+		return OnControl_InvClose(idwControlID, idwEvent);
 	if (idwControlID == B_CHAR_CLOSE)
 	{
 		SetVisibleCharInfo();

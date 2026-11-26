@@ -301,6 +301,7 @@ private:
 	int OnControl_PartyListClick(unsigned int idwControlID, unsigned int idwEvent, unsigned int dwServerTime, int cktrans);
 	int OnControl_AutoTrade667(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_CargoMoney(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_InvClose(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:

@@ -2181,3 +2181,19 @@ int TMFieldScene::OnControl_CargoMoney(unsigned int idwControlID, unsigned int i
 	}
 	return 1;
 }
+
+/// Fechar inventário (`B_INV_CLOSE`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_InvClose(unsigned int idwControlID, unsigned int idwEvent)
+{
+	SetVisibleInventory();
+
+	auto pEquipBtn = static_cast<SButton*>(m_pControlContainer->FindControl(B_EQUIP));
+
+	pEquipBtn->SetSelected(m_pInvenPanel->m_bVisible);
+
+	if (g_nKeyType == 1)
+		m_pControlContainer->SetFocusedControl(m_pEditChat);
+
+	return 0;
+}
