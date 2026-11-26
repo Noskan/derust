@@ -363,6 +363,7 @@ private:
 	bool SkillUse_CastSelfOrArea(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& bMoving, int& nSpecForce, STRUCT_MOB*& pMobData, TMHuman*& pOver, char& cSkillIndex, int& nCannonIndex, int& nReturnValue);
 	void SkillUse_CollectSelfAreaTargets(char& cSkillIndex, MSG_Attack& stAttack, int& nTargetIndex, TMHuman*& pNode, float& fMyAngle, int& nMastery, int& nMobCount);
 	bool SkillUse_AreaCenterOnTarget(TMHuman*& pOver, char& cSkillIndex, int& nSX, int& nSY, int& nReturnValue);
+	bool SkillUse_AreaRangeCheck(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& bMoving, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& nCannonIndex, int& nSX, int& nSY, int& nDistanceFromMe, int& nReturnValue);
 	bool SkillUse_ApproachTarget(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& bMoving, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& nTX, int& nTY, int& nDistance, int& nMobAttackRange, int& nDX, int& nDY, int& nReturnValue);
 	/// @}
 

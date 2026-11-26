@@ -707,159 +707,8 @@ if (dwServerTime > m_dwOldAttackTime + 1000 &&
 				if (nDistanceFromMe < 0)
 					nDistanceFromMe = 0;
 			}
-			if (cSkillIndex == 0 || cSkillIndex == 35 || cSkillIndex == 16 || cSkillIndex == 7 || cSkillIndex == 17 ||
-				cSkillIndex == 23 || cSkillIndex == 39 || cSkillIndex == 51 || cSkillIndex == 55 || cSkillIndex == 79 || cSkillIndex == 97)
-			{
-				if (nDistanceFromMe > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range && g_pSpell[(unsigned char)cSkillIndex].Range != -1)
-				{
-					if (cSkillIndex == 35 || cSkillIndex == 39 || cSkillIndex == 97)
-						{ nReturnValue = 0; return true; }
-
-					int tx = nSX;
-					int ty = nSY;
-					bool bHit = true;
-
-					BASE_GetHitPosition((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y, &tx, &ty, (char*)m_HeightMapData, 8);
-
-					if (tx != nSX || ty != nSY)
-						bHit = false;
-
-					if (!bMoving)
-						{ nReturnValue = 0; return true; }
-
-					if (nDistanceFromMe < nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
-						{ nReturnValue = 0; return true; }
-
-					if (!bHit)
-						{ nReturnValue = 0; return true; }
-
-					if ((int)m_pMyHuman->m_eMotion >= 4 && (int)m_pMyHuman->m_eMotion <= 9)
-					{
-						unsigned int dwMod = MeshManager::m_BoneAnimationList[m_pMyHuman->m_nSkinMeshType].numAniCut[m_pMyHuman->m_pSkinMesh->m_nAniIndex];
-						if (dwMod > 2)
-							dwMod -= 2;
-
-						if (g_pEventTranslator->button[0])
-						{
-							if (dwServerTime < m_pMyHuman->m_dwStartAnimationTime + 4 * dwMod * m_pMyHuman->m_pSkinMesh->m_dwFPS)
-								{ nReturnValue = 1; return true; }
-						}
-					}
-
-					if (m_pGround == nullptr)
-						{ nReturnValue = 0; return true; }
-
-					if (vec.y < -5000.0f && pOver)
-					{
-						vec.x = pOver->m_vecPosition.x;
-						vec.z = pOver->m_vecPosition.y;
-						vec.y = pOver->m_fHeight;
-					}
-
-					m_pMyHuman->SetSpeed(m_bMountDead);
-					if (vec.x == m_pMyHuman->m_vecPosition.x && vec.z == m_pMyHuman->m_vecPosition.y)
-						{ nReturnValue = 1; return true; }
-
-					m_pTargetItem = nullptr;
-					m_pMyHuman->m_pMoveSkillTargetHuman = pOver;
-					m_dwLastSetTargetHuman = dwServerTime;
-					if (m_pMyHuman->m_cCantMove)
-						{ nReturnValue = 0; return true; }
-
-					int nMoveSX = (int)m_pMyHuman->m_vecPosition.x;
-					int nMoveSY = (int)m_pMyHuman->m_vecPosition.y;
-					if (m_stMoveStop.NextX)
-					{
-						nMoveSX = m_stMoveStop.NextX;
-						nMoveSY = m_stMoveStop.NextY;
-					}
-
-					if (!pOver)
-						{ nReturnValue = 0; return true; }
-
-					tx = (int)pOver->m_vecPosition.x;
-					ty = (int)pOver->m_vecPosition.y;
-
-					int nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, tx, ty);
-					int PlusX = 1;
-					int PlusY = 1;
-					if (nMoveSX > tx)
-						PlusX = -1;
-					if (nMoveSY > ty)
-						PlusY = -1;
-
-					int nBreak = 0;
-					while (nMoveDistance2 > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
-					{
-						if (nBreak > 500)
-							{ nReturnValue = 1; return true; }
-
-						if (nMoveSX != tx)
-							nMoveSX += PlusX;
-						if (nMoveSY != ty)
-							nMoveSY += PlusY;
-
-						nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, tx, ty);
-						++nBreak;
-					}
-
-					m_vecMyNext.x = nMoveSX;
-					m_vecMyNext.y = nMoveSY;
-					{ nReturnValue = 0; return true; }
-				}
-				if (cSkillIndex == 97)
-				{
-					if (nDistanceFromMe < 4)
-						{ nReturnValue = 1; return true; }
-
-					auto pCannon = (TMItem*)g_pObjectManager->GetItemByID(nCannonIndex);
-					float fAngle = atan2f((float)(nSX - (int)m_pMyHuman->m_vecPosition.x), (float)(nSY - (int)m_pMyHuman->m_vecPosition.y));
-
-					if (fAngle < 0.0f)
-						fAngle = fAngle + D3DXToRadian(360);
-					if (pCannon->m_fAngle - D3DXToRadian(90) > fAngle)
-						{ nReturnValue = 1; return true; }
-					if (fAngle > pCannon->m_fAngle + D3DXToRadian(90))
-						{ nReturnValue = 1; return true; }
-				}
-				if (cSkillIndex == 35)
-				{
-					if ((pOver->m_dwID > 0 && pOver->m_dwID < 1000 || pOver->m_bParty == 1) &&
-						g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1 && !pOver->IsInPKZone())
-					{
-						{ nReturnValue = 1; return true; }
-					}
-				}
-				if (g_pSpell[(unsigned char)cSkillIndex].Range == -1)
-				{
-					if (nDistanceFromMe > nSpecForce + BASE_GetMobAbility(&g_pObjectManager->m_stMobData, 27))
-						{ nReturnValue = 1; return true; }
-				}
-
-				int sx = (int)m_pMyHuman->m_vecPosition.x;
-				int sy = (int)m_pMyHuman->m_vecPosition.y;
-				int nDTX = nSX;
-				int nDTY = nSY;
-				BASE_GetHitPosition(sx, sy, &nDTX, &nDTY, (char*)m_HeightMapData, 8);
-				if (pOver && pOver->m_nClass == 56 && !pOver->m_stLookInfo.FaceMesh)
-				{
-					nDTX = nSX;
-					nDTY = nSY;
-				}
-
-				if (nDTX != nSX || nDTY != nSY)
-					{ nReturnValue = 1; return true; }
-			}
-			else
-			{
-				nSX = (int)m_pMyHuman->m_vecPosition.x;
-				nSY = (int)m_pMyHuman->m_vecPosition.y;
-				if (m_stMoveStop.NextX)
-				{
-					nSX = m_stMoveStop.NextX;
-					nSY = m_stMoveStop.NextY;
-				}
-			}
+			if (SkillUse_AreaRangeCheck(vec, dwServerTime, bMoving, nSpecForce, pOver, cSkillIndex, nCannonIndex, nSX, nSY, nDistanceFromMe, nReturnValue))
+				return true;
 
 			int nDistance = BASE_GetDistance(nSX, nSY, x2, y2);
 			int nTX = x2;
@@ -1511,6 +1360,167 @@ bool TMFieldScene::SkillUse_AreaCenterOnTarget(TMHuman*& pOver, char& cSkillInde
 				nSX = (signed int)pOver->m_vecPosition.x;
 				nSY = (signed int)pOver->m_vecPosition.y;
 			}
+		}
+	}
+	return false;
+}
+
+/// Skills de área centradas no alvo: confere o alcance e o ponto de acerto até o centro.
+/// @note Extraído de `TMFieldScene::SkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::SkillUse_AreaRangeCheck(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& bMoving, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& nCannonIndex, int& nSX, int& nSY, int& nDistanceFromMe, int& nReturnValue)
+{
+	if (cSkillIndex == 0 || cSkillIndex == 35 || cSkillIndex == 16 || cSkillIndex == 7 || cSkillIndex == 17 ||
+		cSkillIndex == 23 || cSkillIndex == 39 || cSkillIndex == 51 || cSkillIndex == 55 || cSkillIndex == 79 || cSkillIndex == 97)
+	{
+		if (nDistanceFromMe > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range && g_pSpell[(unsigned char)cSkillIndex].Range != -1)
+		{
+			if (cSkillIndex == 35 || cSkillIndex == 39 || cSkillIndex == 97)
+				{ nReturnValue = 0; return true; }
+
+			int tx = nSX;
+			int ty = nSY;
+			bool bHit = true;
+
+			BASE_GetHitPosition((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y, &tx, &ty, (char*)m_HeightMapData, 8);
+
+			if (tx != nSX || ty != nSY)
+				bHit = false;
+
+			if (!bMoving)
+				{ nReturnValue = 0; return true; }
+
+			if (nDistanceFromMe < nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
+				{ nReturnValue = 0; return true; }
+
+			if (!bHit)
+				{ nReturnValue = 0; return true; }
+
+			if ((int)m_pMyHuman->m_eMotion >= 4 && (int)m_pMyHuman->m_eMotion <= 9)
+			{
+				unsigned int dwMod = MeshManager::m_BoneAnimationList[m_pMyHuman->m_nSkinMeshType].numAniCut[m_pMyHuman->m_pSkinMesh->m_nAniIndex];
+				if (dwMod > 2)
+					dwMod -= 2;
+
+				if (g_pEventTranslator->button[0])
+				{
+					if (dwServerTime < m_pMyHuman->m_dwStartAnimationTime + 4 * dwMod * m_pMyHuman->m_pSkinMesh->m_dwFPS)
+						{ nReturnValue = 1; return true; }
+				}
+			}
+
+			if (m_pGround == nullptr)
+				{ nReturnValue = 0; return true; }
+
+			if (vec.y < -5000.0f && pOver)
+			{
+				vec.x = pOver->m_vecPosition.x;
+				vec.z = pOver->m_vecPosition.y;
+				vec.y = pOver->m_fHeight;
+			}
+
+			m_pMyHuman->SetSpeed(m_bMountDead);
+			if (vec.x == m_pMyHuman->m_vecPosition.x && vec.z == m_pMyHuman->m_vecPosition.y)
+				{ nReturnValue = 1; return true; }
+
+			m_pTargetItem = nullptr;
+			m_pMyHuman->m_pMoveSkillTargetHuman = pOver;
+			m_dwLastSetTargetHuman = dwServerTime;
+			if (m_pMyHuman->m_cCantMove)
+				{ nReturnValue = 0; return true; }
+
+			int nMoveSX = (int)m_pMyHuman->m_vecPosition.x;
+			int nMoveSY = (int)m_pMyHuman->m_vecPosition.y;
+			if (m_stMoveStop.NextX)
+			{
+				nMoveSX = m_stMoveStop.NextX;
+				nMoveSY = m_stMoveStop.NextY;
+			}
+
+			if (!pOver)
+				{ nReturnValue = 0; return true; }
+
+			tx = (int)pOver->m_vecPosition.x;
+			ty = (int)pOver->m_vecPosition.y;
+
+			int nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, tx, ty);
+			int PlusX = 1;
+			int PlusY = 1;
+			if (nMoveSX > tx)
+				PlusX = -1;
+			if (nMoveSY > ty)
+				PlusY = -1;
+
+			int nBreak = 0;
+			while (nMoveDistance2 > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
+			{
+				if (nBreak > 500)
+					{ nReturnValue = 1; return true; }
+
+				if (nMoveSX != tx)
+					nMoveSX += PlusX;
+				if (nMoveSY != ty)
+					nMoveSY += PlusY;
+
+				nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, tx, ty);
+				++nBreak;
+			}
+
+			m_vecMyNext.x = nMoveSX;
+			m_vecMyNext.y = nMoveSY;
+			{ nReturnValue = 0; return true; }
+		}
+		if (cSkillIndex == 97)
+		{
+			if (nDistanceFromMe < 4)
+				{ nReturnValue = 1; return true; }
+
+			auto pCannon = (TMItem*)g_pObjectManager->GetItemByID(nCannonIndex);
+			float fAngle = atan2f((float)(nSX - (int)m_pMyHuman->m_vecPosition.x), (float)(nSY - (int)m_pMyHuman->m_vecPosition.y));
+
+			if (fAngle < 0.0f)
+				fAngle = fAngle + D3DXToRadian(360);
+			if (pCannon->m_fAngle - D3DXToRadian(90) > fAngle)
+				{ nReturnValue = 1; return true; }
+			if (fAngle > pCannon->m_fAngle + D3DXToRadian(90))
+				{ nReturnValue = 1; return true; }
+		}
+		if (cSkillIndex == 35)
+		{
+			if ((pOver->m_dwID > 0 && pOver->m_dwID < 1000 || pOver->m_bParty == 1) &&
+				g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1 && !pOver->IsInPKZone())
+			{
+				{ nReturnValue = 1; return true; }
+			}
+		}
+		if (g_pSpell[(unsigned char)cSkillIndex].Range == -1)
+		{
+			if (nDistanceFromMe > nSpecForce + BASE_GetMobAbility(&g_pObjectManager->m_stMobData, 27))
+				{ nReturnValue = 1; return true; }
+		}
+
+		int sx = (int)m_pMyHuman->m_vecPosition.x;
+		int sy = (int)m_pMyHuman->m_vecPosition.y;
+		int nDTX = nSX;
+		int nDTY = nSY;
+		BASE_GetHitPosition(sx, sy, &nDTX, &nDTY, (char*)m_HeightMapData, 8);
+		if (pOver && pOver->m_nClass == 56 && !pOver->m_stLookInfo.FaceMesh)
+		{
+			nDTX = nSX;
+			nDTY = nSY;
+		}
+
+		if (nDTX != nSX || nDTY != nSY)
+			{ nReturnValue = 1; return true; }
+	}
+	else
+	{
+		nSX = (int)m_pMyHuman->m_vecPosition.x;
+		nSY = (int)m_pMyHuman->m_vecPosition.y;
+		if (m_stMoveStop.NextX)
+		{
+			nSX = m_stMoveStop.NextX;
+			nSY = m_stMoveStop.NextY;
 		}
 	}
 	return false;
