@@ -2470,3 +2470,33 @@ int TMFieldScene::OnControl_InvPage3(unsigned int idwControlID, unsigned int idw
 
 	return 0;
 }
+
+/// Página 4 do inventário (`B_INV_PAGE4`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_InvPage4(unsigned int idwControlID, unsigned int idwEvent)
+{
+	m_bJPNBag[3] = 1;
+	m_bJPNBag[2] = 0;
+	m_bJPNBag[1] = 0;
+	m_bJPNBag[0] = 0;
+	m_pGridInvList[0]->SetVisible(0);
+	m_pGridInvList[1]->SetVisible(0);
+	m_pGridInvList[2]->SetVisible(0);
+	m_pGridInvList[3]->SetVisible(0);
+	m_pGridInv = m_pGridInvList[3];
+	m_pGridInv->SetVisible(1);
+	m_pInvPageBtn1->SetTextureSetIndex(528);
+	m_pInvPageBtn2->SetTextureSetIndex(528);
+
+	if (g_pObjectManager->m_stMobData.Carry[60].sIndex == 3467)
+		m_pInvPageBtn3->SetTextureSetIndex(528);
+	else
+		m_pInvPageBtn3->SetTextureSetIndex(549);
+
+	if (g_pObjectManager->m_stMobData.Carry[61].sIndex == 3467)
+		m_pInvPageBtn4->SetTextureSetIndex(527);
+	else
+		m_pInvPageBtn4->SetTextureSetIndex(548);
+
+	return 0;
+}
