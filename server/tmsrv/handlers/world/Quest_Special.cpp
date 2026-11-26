@@ -21,7 +21,7 @@
 
 #include "handlers/world/QuestInternal.h"
 
-bool HandleQuest_Special(int conn, int npcIndex, int confirm, int npcMode, int npcMerc, int npcGrade)
+bool HandleQuest_Special(int conn, int npcIndex, int confirm, int npcMode, int npcMerc, int npcGrade, MSG_STANDARDPARM2* m)
 {
 	switch (npcMode)
 	{

@@ -164,11 +164,11 @@ void Exec_MSG_Quest(int conn, char *pMsg)
 #pragma endregion
 
 
-	if (HandleQuest_Progression(conn, npcIndex, confirm, npcMode, npcMerc, npcGrade))
+	if (HandleQuest_Progression(conn, npcIndex, confirm, npcMode, npcMerc, npcGrade, m))
 		return;
-	if (HandleQuest_Kingdom(conn, npcIndex, confirm, npcMode, npcMerc, npcGrade))
+	if (HandleQuest_Kingdom(conn, npcIndex, confirm, npcMode, npcMerc, npcGrade, m))
 		return;
-	if (HandleQuest_Special(conn, npcIndex, confirm, npcMode, npcMerc, npcGrade))
+	if (HandleQuest_Special(conn, npcIndex, confirm, npcMode, npcMerc, npcGrade, m))
 		return;
 
 	switch (npcMode)

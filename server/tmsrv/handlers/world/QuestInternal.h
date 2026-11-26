@@ -25,14 +25,14 @@
 /// @brief Trata NPCs de progressão, treino inicial, quests clássicas e composições básicas
 ///        (MOUNT_MASTER, ZAKUM, AMU_MISTICO, Coveiro..Elfos, JEFFI, SHAMA, TREINADORNEWBIE1..4, etc.).
 /// @return true se o npcMode foi tratado; false caso contrário.
-bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, int npcMerc, int npcGrade);
+bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, int npcMerc, int npcGrade, MSG_STANDARDPARM2* m);
 
 /// @brief Trata NPCs de reino, guerra, contribuição e dragões
 ///        (KING, KINGDOM, URNAMMU, UXMAL, ARZAN_DRAGON, GOLD_DRAGON, EXPLOIT_LEADER, GODGOVERNMENT).
 /// @return true se o npcMode foi tratado; false caso contrário.
-bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int npcMerc, int npcGrade);
+bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int npcMerc, int npcGrade, MSG_STANDARDPARM2* m);
 
 /// @brief Trata NPCs especiais, reset/habilidades, eventos e trocas avançadas
 ///        (MESTREHAB, COMP_SEPHI, BLACKORACLE, CARBUNCLE_WIND, PERZEN, KIBITA, SOBREVIVENTE, GUARDA_REAL_EVT1).
 /// @return true se o npcMode foi tratado; false caso contrário.
-bool HandleQuest_Special(int conn, int npcIndex, int confirm, int npcMode, int npcMerc, int npcGrade);
+bool HandleQuest_Special(int conn, int npcIndex, int confirm, int npcMode, int npcMerc, int npcGrade, MSG_STANDARDPARM2* m);
