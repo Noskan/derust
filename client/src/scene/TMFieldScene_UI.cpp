@@ -1564,50 +1564,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == 65754)
 		return OnControl_AddSpecial1(idwControlID, idwEvent, pMobData);
 	if (idwControlID == 65757)
-	{
-		if (m_pMyHuman->m_cDie == 1)
-			return 1;
-		if (pMobData->SpecialBonus <= 0)
-			return 0;
-
-		int totalSpecial = 0;
-		if (m_pMyHuman->Is2stClass() == 2)
-			totalSpecial = 200;
-		else
-			totalSpecial = 3 * (pMobData->CurrentScore.Level + 1) / 2;
-		if (pMobData->Class == 3 && IsValidSkill(238) == 1)
-		{
-			totalSpecial = 400;
-		}
-		else if (IsValidSkill(200) == 1)
-		{
-			totalSpecial = 320;
-		}
-		else if (IsValidSkill(31) == 1)
-		{
-			totalSpecial = 255;
-		}
-		else if (totalSpecial > 200)
-		{
-			totalSpecial = 200;
-		}
-
-		if (pMobData->CurrentScore.Special[1] < totalSpecial)
-		{
-			MSG_ApplyBonus stApplyBonus{};
-			stApplyBonus.Header.ID = m_pMyHuman->m_dwID;
-			stApplyBonus.Header.Type = MSG_ApplyBonus_Opcode;
-			stApplyBonus.BonusType = 1;
-			stApplyBonus.Detail = 1;
-			SendOneMessage((char*)&stApplyBonus, sizeof(stApplyBonus));
-		}
-		else
-		{
-			m_pMessagePanel->SetMessage(g_pMessageStringTable[39], 2000);
-			m_pMessagePanel->SetVisible(1, 1);
-		}
-		return 1;
-	}
+		return OnControl_AddSpecial2(idwControlID, idwEvent, pMobData);
 	if (idwControlID == 65760)
 	{
 		if (m_pMyHuman->m_cDie == 1)
