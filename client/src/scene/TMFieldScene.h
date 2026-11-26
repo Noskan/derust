@@ -337,6 +337,7 @@ private:
 	int OnControl_RpsRock(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_RpsPaper(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_RpsScissors(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_AddScore1(unsigned int idwControlID, unsigned int idwEvent, STRUCT_MOB* pMobData);
 	/// @}
 
 public:
