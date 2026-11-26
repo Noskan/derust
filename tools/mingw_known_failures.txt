@@ -1,0 +1,25 @@
+# TUs que hoje só compilam no MSVC (usado por tools/mingw_check.py).
+# Remova a linha assim que a TU passar a compilar no mingw (a checagem avisa).
+
+# goto que salta inicialização de variável (MSVC aceita, GCC/Clang não)
+server/tmsrv/handlers/items/UseItem_Scrolls.cpp
+server/tmsrv/handlers/items/_MSG_Buy.cpp
+server/tmsrv/handlers/items/_MSG_Sell.cpp
+server/tmsrv/handlers/items/_MSG_UpdateItem.cpp
+
+# `sizeof TIPO` sem parênteses (extensão do MSVC)
+client/src/audio/dsutil.cpp
+client/src/entities/TMButterFly.cpp
+client/src/gameplay/MrItemMix.cpp
+client/src/scene/TMSelectCharScene.cpp
+client/src/scene/TMSelectServerScene.cpp
+client/src/skills/TMSkillMagicShield.cpp
+client/src/skills/TMSkillMeteorStorm.cpp
+
+# std::exception(const char*) (construtor exclusivo da STL do MSVC)
+client/src/render/TextureManager.cpp
+
+# APIs do DirectX SDK legado ausentes/diferentes nos headers do mingw-w64
+client/src/render/CMesh.cpp
+client/src/render/D3DDevice.cpp
+client/src/render/RenderDevice_Rect.cpp

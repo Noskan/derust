@@ -21,6 +21,28 @@ jobs:
       - name: Check module include boundaries
         run: python3 tools/check_boundaries.py
 
+  mingw-check:
+    name: MinGW i686 Cross Check (Linux + wine)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install mingw-w64 and wine32
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update -q
+          sudo apt-get install -y -q --no-install-recommends g++-mingw-w64-i686 wine wine32:i386
+          i686-w64-mingw32-g++ --version | head -n1
+          wine --version
+
+      - name: Cross-compile all TUs, link DBSrv and run w2pp_common_tests under wine
+        env:
+          WINEDEBUG: -all
+          WINEPREFIX: ${{ runner.temp }}/wineprefix
+        run: python3 tools/mingw_check.py --jobs 4
+
   build-windows:
     name: MSVC Win32 (${{ matrix.config }})
     runs-on: windows-latest

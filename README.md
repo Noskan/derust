@@ -40,6 +40,13 @@ Para verificar localmente as fronteiras de `#include`:
 python3 tools/check_boundaries.py
 ```
 
+Checagem cruzada com mingw-w64 i686 no Linux (compila todas as TUs, linka o DBSrv e roda `w2pp_common_tests` no wine; as TUs que ainda só compilam no MSVC ficam em [`tools/mingw_known_failures.txt`](tools/mingw_known_failures.txt)):
+
+```bash
+sudo apt install g++-mingw-w64-i686 wine   # wine32 para executar os testes
+python3 tools/mingw_check.py
+```
+
 ## Status da Modularização
 
 - **Fase 1 (concluída)**: Reorganização modular via `git mv`, migração para CMake + presets Win32, pipeline CI no GitHub Actions (`windows-latest` Debug/Release), verificador de fronteiras e travas de ABI em `ProtocolLayoutCheck.cpp`.
