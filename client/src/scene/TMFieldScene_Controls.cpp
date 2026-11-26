@@ -2816,3 +2816,19 @@ int TMFieldScene::OnControl_PlayerMenu863(unsigned int idwControlID, unsigned in
 	}
 	return 0;
 }
+
+/// Menu de contexto do jogador alvo, controle 816 (mensagem 36).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_PlayerMenu816(unsigned int idwControlID, unsigned int idwEvent)
+{
+	m_pPGTOver = 0;
+	if (m_pMessageBox->IsVisible())
+	{
+		m_pPGTPanel->SetVisible(0);
+		return 0;
+	}
+	m_pMessageBox->SetMessage(g_pMessageStringTable[36], 816u, 0);
+	m_pMessageBox->m_dwArg = m_dwOpID;
+	m_pMessageBox->SetVisible(1);
+	return 1;
+}

@@ -329,6 +329,7 @@ private:
 	int OnControl_ServerListSelect(unsigned int idwControlID, unsigned int idwEvent, unsigned int dwServerTime);
 	int OnControl_PlayerMenu642(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_PlayerMenu863(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_PlayerMenu816(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:

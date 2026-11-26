@@ -849,18 +849,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID >= 913 && idwControlID <= 915)
 		return OnControl_PlayerMenu913(idwControlID, idwEvent);
 	if (idwControlID == 816)
-	{
-		m_pPGTOver = 0;
-		if (m_pMessageBox->IsVisible())
-		{
-			m_pPGTPanel->SetVisible(0);
-			return 0;
-		}
-		m_pMessageBox->SetMessage(g_pMessageStringTable[36], 816u, 0);
-		m_pMessageBox->m_dwArg = m_dwOpID;
-		m_pMessageBox->SetVisible(1);
-		return 1;
-	}
+		return OnControl_PlayerMenu816(idwControlID, idwEvent);
 	if (idwControlID == 817)
 	{
 		if (m_pMessageBox->IsVisible())
