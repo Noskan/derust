@@ -525,12 +525,15 @@ void TMHuman::Attack(ECHAR_MOTION eMotion, TMVector2 vecTarget, char cSkillIndex
     {
         m_bSkill = 1;
         m_nMotionIndex = 0;
+        // A reconstrução tinha `Act1[i + m_cMount ? 3 : 0]`, que é `(i + m_cMount) ? 3 : 0`: todo
+        // movimento depois do primeiro vinha da posição 3. O índice é i, deslocado 3 na montaria, como
+        // no outro laço deste arquivo.
         for (int i = 0; i < 4; ++i)
         {
             if (m_nSkinMeshType == 1)
-                m_eMotionBuffer[i] = (ECHAR_MOTION)(g_pSpell[cSkillIndex].Act2[i + m_cMount ? 3 : 0] - 1);
+                m_eMotionBuffer[i] = (ECHAR_MOTION)(g_pSpell[cSkillIndex].Act2[i + (m_cMount ? 3 : 0)] - 1);
             else
-                m_eMotionBuffer[i] = (ECHAR_MOTION)(g_pSpell[cSkillIndex].Act1[i + m_cMount ? 3 : 0] - 1);
+                m_eMotionBuffer[i] = (ECHAR_MOTION)(g_pSpell[cSkillIndex].Act1[i + (m_cMount ? 3 : 0)] - 1);
         }
 
         m_eMotionBuffer[3] = ECHAR_MOTION::ECMOTION_NONE;
