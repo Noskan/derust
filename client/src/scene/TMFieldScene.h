@@ -358,6 +358,7 @@ private:
 	bool AutoSkillUse_AreaCenterOnTarget(TMHuman*& pOver, char& cSkillIndex, int& nSX, int& nSY, int& nReturnValue);
 	bool AutoSkillUse_AreaRangeCheck(int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& nSX, int& nSY, int& nDistanceFromMe, int& nReturnValue);
 	void AutoSkillUse_AreaAddTarget(TMHuman*& pOver, char& cSkillIndex, MSG_Attack& stAttack, int& nTargetIndex, TMHuman*& pNode, int& x2, int& y2, int& nDistance, int& nTX, int& nTY, int& nGridDistance);
+	bool AutoSkillUse_SendAttack(unsigned int& dwServerTime, int& nSpecForce, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue);
 	bool AutoSkillUse_PKCheck(TMHuman*& pOver, char& cSkillIndex, int& nReturnValue);
 	/// @}
 

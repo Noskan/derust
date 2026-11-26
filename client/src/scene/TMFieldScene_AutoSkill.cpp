@@ -688,41 +688,8 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 		stAttack.TargetY = nSY;
 	}
 
-	if ((int)stAttack.Dam[0].TargetID > 0 || cSkillIndex == 97 || cSkillIndex == 35 || cSkillIndex == 51)
-	{
-		for (int i = g_pSpell[(unsigned char)cSkillIndex].MaxTarget; i < 13; ++i)
-		{
-			stAttack.Dam[i].TargetID = 0;
-			stAttack.Dam[i].Damage = 0;
-		}
-
-		int nSize = sizeof(MSG_Attack);
-		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget == 1)
-		{
-			stAttack.Header.Type = MSG_Attack_One_Opcode;
-			nSize = sizeof(MSG_AttackOne);
-		}
-		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget == 2)
-		{
-			stAttack.Header.Type = MSG_Attack_Two_Opcode;
-			nSize = sizeof(MSG_AttackTwo);
-		}
-
-		SendOneMessage((char*)&stAttack, nSize);
-		IncSkillSel();
-
-		MSG_Attack stAttackLocal{};
-		memcpy(&stAttackLocal, &stAttack, nSize);
-		stAttackLocal.Header.ID = m_dwID;
-		stAttackLocal.FlagLocal = 1;
-		if (nSpecForce)
-			stAttackLocal.DoubleCritical |= 8;
-
-		OnPacketEvent(stAttack.Header.Type, (char*)&stAttackLocal);
-		m_dwOldAttackTime = dwServerTime;
-		m_dwSkillLastTime[(unsigned char)cSkillIndex] = dwServerTime;
-		{ nReturnValue = 1; return true; }
-	}
+	if (AutoSkillUse_SendAttack(dwServerTime, nSpecForce, cSkillIndex, stAttack, nReturnValue))
+		return true;
 	if (cSkillIndex == 29)
 	{
 		if (m_pMyHuman->m_bParty == 1)
@@ -1079,6 +1046,49 @@ void TMFieldScene::AutoSkillUse_AreaAddTarget(TMHuman*& pOver, char& cSkillIndex
 			++nTargetIndex;
 		}
 	}
+}
+
+/// Monta o pacote conforme `MaxTarget`, aplica localmente (`OnPacketEvent`) e envia.
+/// @note Extraído de `TMFieldScene::AutoSkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::AutoSkillUse_SendAttack(unsigned int& dwServerTime, int& nSpecForce, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue)
+{
+	if ((int)stAttack.Dam[0].TargetID > 0 || cSkillIndex == 97 || cSkillIndex == 35 || cSkillIndex == 51)
+	{
+		for (int i = g_pSpell[(unsigned char)cSkillIndex].MaxTarget; i < 13; ++i)
+		{
+			stAttack.Dam[i].TargetID = 0;
+			stAttack.Dam[i].Damage = 0;
+		}
+
+		int nSize = sizeof(MSG_Attack);
+		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget == 1)
+		{
+			stAttack.Header.Type = MSG_Attack_One_Opcode;
+			nSize = sizeof(MSG_AttackOne);
+		}
+		if (g_pSpell[(unsigned char)cSkillIndex].MaxTarget == 2)
+		{
+			stAttack.Header.Type = MSG_Attack_Two_Opcode;
+			nSize = sizeof(MSG_AttackTwo);
+		}
+
+		SendOneMessage((char*)&stAttack, nSize);
+		IncSkillSel();
+
+		MSG_Attack stAttackLocal{};
+		memcpy(&stAttackLocal, &stAttack, nSize);
+		stAttackLocal.Header.ID = m_dwID;
+		stAttackLocal.FlagLocal = 1;
+		if (nSpecForce)
+			stAttackLocal.DoubleCritical |= 8;
+
+		OnPacketEvent(stAttack.Header.Type, (char*)&stAttackLocal);
+		m_dwOldAttackTime = dwServerTime;
+		m_dwSkillLastTime[(unsigned char)cSkillIndex] = dwServerTime;
+		{ nReturnValue = 1; return true; }
+	}
+	return false;
 }
 
 /// Validações de PK/guerra de guilda antes da skill automática em jogador.
