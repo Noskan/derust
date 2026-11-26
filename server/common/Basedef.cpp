@@ -1351,9 +1351,7 @@ int BASE_GetHttpRequest(char *httpname, char *Request, int MaxBuffer)
 
 int BASE_GetEnglish(char *name)
 {
-	char temp[256];
-	strncpy(temp, name, sizeof(name));
-    
+	// Havia uma cópia para um `temp` nunca usado, com sizeof(name) (o ponteiro) como tamanho.
 	for(int i = 0; i < MAX_ENGLISH; i++)
 	{
 		if(!strcmp(name, g_pEnglish[i][0]))
