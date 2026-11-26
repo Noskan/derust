@@ -430,57 +430,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 99) // Muro de Espinhos
 		{
-			if (pTarget)
-			{
-				bool bExpand = false;
-				if (pTarget->m_nClass == 4 || pTarget->m_nClass == 8)
-					bExpand = 1;
-
-				auto pEffectSkinMesh = new TMEffectSkinMesh(
-					pTarget->m_nSkinMeshType,
-					TMVector3(0.0f, 0.0f, 0.0f), 
-					TMVector3(0.0f, 0.0f, 0.0f), 
-					0,
-					nullptr);
-
-				if (pTarget && pTarget->m_cMount > 0 && pTarget->m_pMount)
-				{
-					pEffectSkinMesh->m_nSkinMeshType = pTarget->m_nMountSkinMeshType;
-					memcpy(&pEffectSkinMesh->m_stLookInfo, &pTarget->m_stMountLook, sizeof(pTarget->m_stMountLook));
-					pEffectSkinMesh->m_nSkinMeshType2 = pTarget->m_nSkinMeshType;
-					memcpy(&pEffectSkinMesh->m_stLookInfo2, &pTarget->m_stLookInfo, sizeof(pTarget->m_stLookInfo));
-				}
-				else
-				{
-					memcpy(&pEffectSkinMesh->m_stLookInfo, &pTarget->m_stLookInfo, sizeof(pTarget->m_stLookInfo));
-				}
-
-				pEffectSkinMesh->m_StartColor.r = 0.5f;
-				pEffectSkinMesh->m_StartColor.g = 0.5f;
-				pEffectSkinMesh->m_StartColor.b = 0.5f;
-				pEffectSkinMesh->InitObject(bExpand);
-				pEffectSkinMesh->m_nFade = 1;
-				pEffectSkinMesh->m_dwLifeTime = 3000;
-				pEffectSkinMesh->InitPosition(pTarget->m_vecPosition.x, pTarget->m_fHeight + 6.0f, pTarget->m_vecPosition.y);
-
-				if (pTarget->m_cMount > 0 && pTarget->m_pMount)
-				{
-					if (pEffectSkinMesh->m_pSkinMesh)
-						pEffectSkinMesh->m_pSkinMesh->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType].dwAniTable[0]);
-					if (pEffectSkinMesh->m_pSkinMesh2)
-						pEffectSkinMesh->m_pSkinMesh2->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType2].dwAniTable[24]);
-				}
-				else
-				{
-					pEffectSkinMesh->m_pSkinMesh->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType].dwAniTable[0]);
-				}
-
-				pEffectSkinMesh->m_fStartAngle = pTarget->m_fAngle;
-				pEffectSkinMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-				pEffectSkinMesh->m_nMotionType = 8;
-
-				m_pEffectContainer->AddChild(pEffectSkinMesh);
-			}
+			PacketAttack_Skill99TargetImage(pTarget);
 
 			unsigned int dwColor = 0xAAAAAAAA;
 
@@ -1408,6 +1358,63 @@ void TMFieldScene::PacketAttack_Skill86Arrows(MSG_Attack*& pAttack, TMHuman*& pA
 				m_pEffectContainer->AddChild(pArrow);
 			}
 		}
+	}
+}
+
+/// Skill 99: cópia visual do alvo (`TMEffectSkinMesh`), com a montaria quando houver.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill99TargetImage(TMHuman*& pTarget)
+{
+	if (pTarget)
+	{
+		bool bExpand = false;
+		if (pTarget->m_nClass == 4 || pTarget->m_nClass == 8)
+			bExpand = 1;
+
+		auto pEffectSkinMesh = new TMEffectSkinMesh(
+			pTarget->m_nSkinMeshType,
+			TMVector3(0.0f, 0.0f, 0.0f), 
+			TMVector3(0.0f, 0.0f, 0.0f), 
+			0,
+			nullptr);
+
+		if (pTarget && pTarget->m_cMount > 0 && pTarget->m_pMount)
+		{
+			pEffectSkinMesh->m_nSkinMeshType = pTarget->m_nMountSkinMeshType;
+			memcpy(&pEffectSkinMesh->m_stLookInfo, &pTarget->m_stMountLook, sizeof(pTarget->m_stMountLook));
+			pEffectSkinMesh->m_nSkinMeshType2 = pTarget->m_nSkinMeshType;
+			memcpy(&pEffectSkinMesh->m_stLookInfo2, &pTarget->m_stLookInfo, sizeof(pTarget->m_stLookInfo));
+		}
+		else
+		{
+			memcpy(&pEffectSkinMesh->m_stLookInfo, &pTarget->m_stLookInfo, sizeof(pTarget->m_stLookInfo));
+		}
+
+		pEffectSkinMesh->m_StartColor.r = 0.5f;
+		pEffectSkinMesh->m_StartColor.g = 0.5f;
+		pEffectSkinMesh->m_StartColor.b = 0.5f;
+		pEffectSkinMesh->InitObject(bExpand);
+		pEffectSkinMesh->m_nFade = 1;
+		pEffectSkinMesh->m_dwLifeTime = 3000;
+		pEffectSkinMesh->InitPosition(pTarget->m_vecPosition.x, pTarget->m_fHeight + 6.0f, pTarget->m_vecPosition.y);
+
+		if (pTarget->m_cMount > 0 && pTarget->m_pMount)
+		{
+			if (pEffectSkinMesh->m_pSkinMesh)
+				pEffectSkinMesh->m_pSkinMesh->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType].dwAniTable[0]);
+			if (pEffectSkinMesh->m_pSkinMesh2)
+				pEffectSkinMesh->m_pSkinMesh2->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType2].dwAniTable[24]);
+		}
+		else
+		{
+			pEffectSkinMesh->m_pSkinMesh->SetAnimation(g_MobAniTable[pEffectSkinMesh->m_nSkinMeshType].dwAniTable[0]);
+		}
+
+		pEffectSkinMesh->m_fStartAngle = pTarget->m_fAngle;
+		pEffectSkinMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+		pEffectSkinMesh->m_nMotionType = 8;
+
+		m_pEffectContainer->AddChild(pEffectSkinMesh);
 	}
 }
 
