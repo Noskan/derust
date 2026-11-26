@@ -341,71 +341,7 @@ int TMHuman::FrameMove(unsigned int dwServerTime)
     if (nWalkSndIndex == 11)
         nWalkSndIndex = 1;
 
-    if ((m_nClass != 45 || !m_cHide) && !m_cShadow)
-    {
-        int nDust = 1;
-        if (pScene && pScene->m_eSceneType == ESCENE_TYPE::ESCENE_FIELD)
-        {
-            int isInPos = ((int)m_vecPosition.x >> 7 <= 26 || (int)m_vecPosition.x >> 7 >= 31 ||
-                (int)m_vecPosition.y >> 7 <= 20 || (int)m_vecPosition.y >> 7 >= 25);
-            if (g_nWeather == 1 || !isInPos)
-                nDust = 0;
-        }
-
-        if (m_cAvatar == 1 && !m_cDie)
-        {
-            int nTextureIndex = 0;
-            if (nWalkSndIndex == 8)
-                nTextureIndex = 193;
-
-            float fSpeed = 0.0392f;
-            fSpeed = (float)(m_fScale * TMHuman::m_vecPickSize[m_nSkinMeshType].x) * 0.0392f;
-            if (!m_cMount && m_nSkinMeshType != 40 || m_cMount && m_nMountSkinMeshType != 40)
-            {
-                TMEffectBillBoard* pChild = new TMEffectBillBoard(10, 450, 0.1f, 0.1f, 0.1f, fSpeed, 1, 80);
-
-                if (pChild)
-                {
-                    pChild->m_bStickGround = 1;
-                    pChild->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                    pChild->m_vecPosition = TMVector3(m_vecPosition.x,
-                        m_fHeight - 0.89999998f,
-                        m_vecPosition.y);
-
-                    g_pCurrentScene->m_pEffectContainer->AddChild(pChild);
-                    m_dwLastDustTime = dwServerTime;
-                }
-
-                pChild->SetColor(0x30101010);
-            }
-        }
-        else if (nDust && (!g_pDevice->m_bSavage && !g_pDevice->m_bIntel && m_eMotion == ECHAR_MOTION::ECMOTION_RUN && !m_cHide
-                || (m_nClass == 22 || m_nClass == 20) && m_eMotion == ECHAR_MOTION::ECMOTION_WALK) && 
-            dwServerTime - m_dwLastDustTime > (unsigned int)(1000.0f / m_fMaxSpeed))
-        {
-            int nTextureIndex = 0;
-            if (nWalkSndIndex == 8)
-                nTextureIndex = 193;
-
-            float fVelocity = 0.0012f;
-            fVelocity = (float)(m_fScale * TMHuman::m_vecPickSize[m_nSkinMeshType].x) * 0.0012000001f;
-            if (!m_cMount && m_nSkinMeshType != 40 || m_cMount && m_nMountSkinMeshType != 40)
-            {
-                TMEffectBillBoard* pChild = new TMEffectBillBoard(nTextureIndex, 2000, 0.5f, 0.5f, 0.5f, fVelocity, 1, 80);
-
-                if (pChild)
-                {
-                    pChild->m_bStickGround = 1;
-                    pChild->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                    pChild->SetColor(0x0FFFFFFFF);
-                    pChild->m_vecPosition = TMVector3(m_vecPosition.x, m_fHeight, m_vecPosition.y);
-
-                    g_pCurrentScene->m_pEffectContainer->AddChild(pChild);
-                    m_dwLastDustTime = dwServerTime;
-                }
-            }
-        }
-    }    
+    FrameMove_Dust(dwServerTime, pScene, nWalkSndIndex);
     if (m_nClass != 45 && !m_cHide)
     {
         unsigned dwFootTerm = (unsigned int)((1000.0f * m_fScale) / m_fMaxSpeed);
@@ -1038,6 +974,77 @@ bool TMHuman::FrameMove_RouteArrival(unsigned int& dwServerTime, TMScene*& pScen
             SetAnimation(ECHAR_MOTION::ECMOTION_WALK, 1);
     }
     return false;
+}
+
+/// Poeira ao andar, fora da chuva e de algumas regiões.
+/// @note Extraído de `TMHuman::FrameMove` (Fase 3); locais passadas por referência.
+void TMHuman::FrameMove_Dust(unsigned int& dwServerTime, TMScene*& pScene, int& nWalkSndIndex)
+{
+    if ((m_nClass != 45 || !m_cHide) && !m_cShadow)
+    {
+        int nDust = 1;
+        if (pScene && pScene->m_eSceneType == ESCENE_TYPE::ESCENE_FIELD)
+        {
+            int isInPos = ((int)m_vecPosition.x >> 7 <= 26 || (int)m_vecPosition.x >> 7 >= 31 ||
+                (int)m_vecPosition.y >> 7 <= 20 || (int)m_vecPosition.y >> 7 >= 25);
+            if (g_nWeather == 1 || !isInPos)
+                nDust = 0;
+        }
+
+        if (m_cAvatar == 1 && !m_cDie)
+        {
+            int nTextureIndex = 0;
+            if (nWalkSndIndex == 8)
+                nTextureIndex = 193;
+
+            float fSpeed = 0.0392f;
+            fSpeed = (float)(m_fScale * TMHuman::m_vecPickSize[m_nSkinMeshType].x) * 0.0392f;
+            if (!m_cMount && m_nSkinMeshType != 40 || m_cMount && m_nMountSkinMeshType != 40)
+            {
+                TMEffectBillBoard* pChild = new TMEffectBillBoard(10, 450, 0.1f, 0.1f, 0.1f, fSpeed, 1, 80);
+
+                if (pChild)
+                {
+                    pChild->m_bStickGround = 1;
+                    pChild->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                    pChild->m_vecPosition = TMVector3(m_vecPosition.x,
+                        m_fHeight - 0.89999998f,
+                        m_vecPosition.y);
+
+                    g_pCurrentScene->m_pEffectContainer->AddChild(pChild);
+                    m_dwLastDustTime = dwServerTime;
+                }
+
+                pChild->SetColor(0x30101010);
+            }
+        }
+        else if (nDust && (!g_pDevice->m_bSavage && !g_pDevice->m_bIntel && m_eMotion == ECHAR_MOTION::ECMOTION_RUN && !m_cHide
+                || (m_nClass == 22 || m_nClass == 20) && m_eMotion == ECHAR_MOTION::ECMOTION_WALK) && 
+            dwServerTime - m_dwLastDustTime > (unsigned int)(1000.0f / m_fMaxSpeed))
+        {
+            int nTextureIndex = 0;
+            if (nWalkSndIndex == 8)
+                nTextureIndex = 193;
+
+            float fVelocity = 0.0012f;
+            fVelocity = (float)(m_fScale * TMHuman::m_vecPickSize[m_nSkinMeshType].x) * 0.0012000001f;
+            if (!m_cMount && m_nSkinMeshType != 40 || m_cMount && m_nMountSkinMeshType != 40)
+            {
+                TMEffectBillBoard* pChild = new TMEffectBillBoard(nTextureIndex, 2000, 0.5f, 0.5f, 0.5f, fVelocity, 1, 80);
+
+                if (pChild)
+                {
+                    pChild->m_bStickGround = 1;
+                    pChild->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                    pChild->SetColor(0x0FFFFFFFF);
+                    pChild->m_vecPosition = TMVector3(m_vecPosition.x, m_fHeight, m_vecPosition.y);
+
+                    g_pCurrentScene->m_pEffectContainer->AddChild(pChild);
+                    m_dwLastDustTime = dwServerTime;
+                }
+            }
+        }
+    }    
 }
 
 void TMHuman::DelayDelete()
