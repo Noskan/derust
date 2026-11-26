@@ -8,7 +8,7 @@ servidor teria de mudar para falar com este cliente, ou uma decisão a tomar.
 ## Resumo
 
 - **Pacotes**, casados pelo valor do opcode e pela struct que cada lado envia ou lê (uma "direção" é um opcode num sentido): **2 direções em que quem lê espera mais bytes do que o outro lado envia** e **1 em que os campos lidos não estão nos offsets enviados**. Outras 16 batem em offsets mas trocam nomes de campos, e 90 batem por inteiro. Em 39, o cliente envia ou espera um pacote que o servidor não lê ou não envia; em 47, é o servidor que envia ou lê algo que o cliente não usa (fora 53 do tráfego com o DBSrv).
-- **Structs de jogo e de arquivo** de mesmo nome: 13, das quais 10 diferem. `STRUCT_MOB` tem 1024 bytes no servidor e 1024 no cliente, e vai dentro dos pacotes de login.
+- **Structs de jogo e de arquivo** de mesmo nome: 13, das quais 8 diferem. `STRUCT_MOB` tem 1024 bytes no servidor e 1024 no cliente, e vai dentro dos pacotes de login.
 - **Regras `BASE_*`** comparadas com as mesmas entradas: 29. **0 divergem** em ao menos uma entrada; 29 concordam em todas.
 - **Só de um lado**: 50 funções `BASE_*` só no servidor e 26 só no cliente.
 
@@ -26,6 +26,12 @@ servidor teria de mudar para falar com este cliente, ou uma decisão a tomar.
   conta para o mesmo opcode e aparece marcado "(eco)". Um handler sem cast conta como leitura do
   cabeçalho (`MSG_STANDARD`). Cada linha
   traz o local no código para conferir.
+- **Campos**: a comparação desce nas structs aninhadas (`MOB.CurrentScore.Level`; num array de structs,
+  o primeiro elemento, `Affect[].Value`, já que os outros repetem o layout). Um campo de quem lê bate
+  se do outro lado há um campo no mesmo offset e com o mesmo tamanho, se cai dentro de um bloco de
+  bytes (`char x[N]`, que o outro lado preenche cru ou zera) ou se é coberto exatamente por campos
+  seguidos (um array dividido em campos). Um nome que existe dos dois lados em offsets diferentes conta
+  como desalinhado, mesmo que os offsets batam com outros campos: são dois campos trocados de lugar.
 - **Regras**: `tools/divergence/base_compare.cpp` é compilado uma vez contra cada lado. As tabelas que o
   jogo carrega de arquivo (`g_pItemList`, `g_pSpell`, `g_pAttribute`, mapa de alturas) recebem os mesmos
   valores sintéticos, campo a campo, mesmo onde o nome ou o offset muda, e as entradas ficam no domínio
@@ -49,9 +55,10 @@ espera mais bytes do que chegam: ou o pacote é recusado, ou os campos do fim sa
 
 ## Pacotes com campos em outros offsets
 
-Quem lê cabe no que foi enviado, mas alguns dos campos que ele lê não têm, do outro lado, um campo no
-mesmo offset e com o mesmo tamanho: o valor chega trocado ou cortado. A última coluna lista esses campos
-da struct de quem lê.
+Quem lê cabe no que foi enviado, mas alguns dos campos que ele lê (também dentro das structs
+aninhadas) não têm, do outro lado, um campo no mesmo offset e com o mesmo tamanho, ou têm o mesmo
+nome em outro offset: o valor chega trocado ou cortado. A última coluna lista esses campos da struct
+de quem lê.
 
 | Opcode | Direção | Envia | Lê | Onde | Campos |
 |---|---|---|---|---|---|
@@ -178,14 +185,14 @@ Quem lê cabe no que foi enviado e todos os campos que ele lê estão nos mesmos
 | `0x334` | cliente → servidor | `MSG_MessageWhisper` (160) | `MSG_MessageWhisper` (160) | `client/src/entities/TMHuman_Packets.cpp:1141`<br>`server/tmsrv/net/ProcessClientMessage.cpp:164` |
 | `0x339` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/SendFunc.cpp:1241`<br>`client/src/scene/TMFieldScene_Packets.cpp:105` |
 | `0x366` | servidor → cliente | `MSG_Action` (52) | `MSG_STANDARD` (12) | `server/tmsrv/net/ProcessClientMessage.cpp:97 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:73` |
-| `0x366` | cliente → servidor | `MSG_Action` (52) | `MSG_Action` (52) | `client/src/entities/TMHuman_Combat.cpp:1294`<br>`server/tmsrv/net/ProcessClientMessage.cpp:97` |
+| `0x366` | cliente → servidor | `MSG_Action` (52) | `MSG_Action` (52) | `client/src/entities/TMHuman_Combat.cpp:1297`<br>`server/tmsrv/net/ProcessClientMessage.cpp:97` |
 | `0x367` | servidor → cliente | `MSG_Attack` (168) | `MSG_Attack` (168) | `server/tmsrv/net/GetFunc.cpp:1584`<br>`client/src/scene/TMFieldScene_Packets.cpp:191` |
 | `0x367` | cliente → servidor | `MSG_Attack` (168) | `MSG_Attack` (168) | `client/src/scene/TMFieldScene_AutoSkill.cpp:1076`<br>`server/tmsrv/net/ProcessClientMessage.cpp:192` |
 | `0x368` | servidor → cliente | `MSG_Action` (52) | `MSG_Action` (52) | `server/tmsrv/handlers/combat/_MSG_Action.cpp:168`<br>`client/src/entities/TMHuman_Packets.cpp:74` |
 | `0x368` | cliente → servidor | `MSG_Action` (52) | `MSG_Action` (52) | `client/src/scene/TMFieldScene_Combat.cpp:1465`<br>`server/tmsrv/net/ProcessClientMessage.cpp:98` |
 | `0x369` | cliente → servidor | `MSG_REQMobByID` (16), `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/scene/TMFieldScene_PacketAttack.cpp:708`<br>`server/tmsrv/net/ProcessClientMessage.cpp:112` |
 | `0x36C` | servidor → cliente | `MSG_Action` (52) | `MSG_STANDARD` (12) | `server/tmsrv/net/GetFunc.cpp:1257`<br>`client/src/scene/TMFieldScene_Packets.cpp:72` |
-| `0x36C` | cliente → servidor | `MSG_Action` (52) | `MSG_Action` (52) | `client/src/entities/TMHuman_Combat.cpp:1071`<br>`server/tmsrv/net/ProcessClientMessage.cpp:96` |
+| `0x36C` | cliente → servidor | `MSG_Action` (52) | `MSG_Action` (52) | `client/src/entities/TMHuman_Combat.cpp:1074`<br>`server/tmsrv/net/ProcessClientMessage.cpp:96` |
 | `0x374` | servidor → cliente | `MSG_UpdateItem` (20) | `MSG_UpdateItem` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:180 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:115` |
 | `0x374` | cliente → servidor | `MSG_UpdateItem` (20) | `MSG_UpdateItem` (20) | `client/src/scene/TMFieldScene_Items.cpp:185`<br>`server/tmsrv/net/ProcessClientMessage.cpp:180` |
 | `0x376` | servidor → cliente | `MSG_TradingItem` (20) | `MSG_SwapItem` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:160 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:179` |
@@ -212,9 +219,9 @@ Quem lê cabe no que foi enviado e todos os campos que ele lê estão nos mesmos
 | `0x39A` | cliente → servidor | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/scene/TMFieldScene_Input.cpp:933`<br>`server/tmsrv/net/ProcessClientMessage.cpp:176` |
 | `0x39B` | servidor → cliente | `MSG_STANDARDPARM2` (20) | `MSG_STANDARDPARM2` (20) | `server/tmsrv/handlers/trade/_MSG_ReqBuy.cpp:185`<br>`client/src/scene/TMFieldScene_Packets.cpp:103` |
 | `0x39D` | servidor → cliente | `MSG_Attack` (168), `MSG_AttackOne` (72) | `MSG_Attack` (168) | `server/tmsrv/net/GetFunc.cpp:1300`<br>`client/src/scene/TMFieldScene_Packets.cpp:192` |
-| `0x39D` | cliente → servidor | `MSG_Attack` (168), `MSG_AttackOne` (72) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1893`<br>`server/tmsrv/net/ProcessClientMessage.cpp:193` |
+| `0x39D` | cliente → servidor | `MSG_Attack` (168), `MSG_AttackOne` (72) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1896`<br>`server/tmsrv/net/ProcessClientMessage.cpp:193` |
 | `0x39E` | servidor → cliente | `MSG_Attack` (168) | `MSG_Attack` (168) | `server/tmsrv/net/ProcessClientMessage.cpp:194 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:193` |
-| `0x39E` | cliente → servidor | `MSG_Attack` (168) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1985`<br>`server/tmsrv/net/ProcessClientMessage.cpp:194` |
+| `0x39E` | cliente → servidor | `MSG_Attack` (168) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1988`<br>`server/tmsrv/net/ProcessClientMessage.cpp:194` |
 | `0x39F` | servidor → cliente | `MSG_STANDARDPARM2` (20) | `MSG_STANDARDPARM2` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:242 (eco)`<br>`client/src/entities/TMHuman_Packets.cpp:158` |
 | `0x39F` | cliente → servidor | `MSG_STANDARDPARM2` (20) | `MSG_STANDARDPARM2` (20) | `client/src/scene/TMFieldScene_Controls.cpp:1747`<br>`server/tmsrv/net/ProcessClientMessage.cpp:242` |
 | `0x3A1` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/core/ProcessSecMinTimer.cpp:450`<br>`client/src/scene/TMFieldScene_Packets.cpp:156` |
@@ -245,17 +252,15 @@ arquivos que as gravam (contas, `.bin`). `A → B` é um campo que mudou de nome
 | Struct | Servidor | Cliente | Diferenças |
 |---|---|---|---|
 | `STRUCT_ACCOUNTFILE` | 8640 | 8000 | `Info` só no servidor (0+220); `Char` 224+4096 → 216+4096; `Cargo` 4320+1024 → 4312+1024; `Coin` 5344+4 → 5336+4; `ShortSkill` 5348+64 → 5340+64; `affect` só no servidor (5412+1024); `mobExtra` só no servidor (6440+2144); `Donate` só no servidor (8584+4); `TempKey` só no servidor (8588+52); `Account` só no cliente (0+212); `Ext1` só no cliente (5404+1152); `Ext2` só no cliente (6560+1440) |
-| `STRUCT_AFFECT` | 8 | 8 | `Value` 1+1 → 2+2; `Level` 2+2 → 1+1 |
 | `STRUCT_BEASTBONUS` | 68 | 68 | `Unk` → `Int_Damage`; `Unk2` → `Spe_Damage`; `Unk3` → `Int_Ac`; `Unk4` → `Spe_Ac`; `Unk5` → `Int_Hp`; `Unk6` → `Spe_Hp`; `Unk7` → `Int_Run`; `Unk8` → `Spe_Run`; `Unk9` → `Int_Attack`; `Unk10` → `Spe_Attack`; `Unk11` → `Int_Critical`; `Unk12` → `Spe_Critical`; `Unk13` → `Int_Resist`; `Unk14` → `Spe_Regist`; `Unk15` → `Int_Delay`; `Unk16` → `Spe_Delay`; `Unk17` → `SancLevel` |
 | `STRUCT_GUILDZONE` | 84 | 84 | `GuildSpawnX` → `GuildStartX`; `GuildSpawnY` → `GuildStartY`; `CitySpawnX` só no servidor (16+4); `CitySpawnY` só no servidor (20+4); `CityLimitX1` → `vx1`; `CityLimitY1` → `vy1`; `CityLimitX2` → `vx2`; `CityLimitY2` → `vy2`; `WarAreaX1` → `ax1`; `WarAreaY1` → `ay1`; `WarAreaX2` → `ax2`; `WarAreaY2` → `ay2`; `ChargeWarSpawnX` → `hx`; `ChargeWarSpawnY` → `hy`; `ChallangeWarSpawnX` → `gx`; `ChallangeWarSpawnY` → `gy`; `CityTax` → `Tax`; `Clan` → `ChargeClan`; `Victory` → `ChargeCount`; `Start` só no cliente (16+8) |
 | `STRUCT_INITITEM` | 8 | 8 | `ItemIndex` → `sIndex` |
 | `STRUCT_ITEMLIST` | 140 | 140 | `IndexMesh` → `nIndexMesh`; `IndexTexture` → `nIndexTexture`; `IndexVisualEffect` → `nIndexVisualEffect`; `ReqLvl` → `nReqLvl`; `ReqStr` → `nReqStr`; `ReqInt` → `nReqInt`; `ReqDex` → `nReqDex`; `ReqCon` → `nReqCon`; `Price` → `nPrice`; `Extra` → `nExtra`; `Grade` → `nGrade` |
 | `STRUCT_MOB` | 1024 | 1024 | `SPX` → `HomeTownX`; `SPY` → `HomeTownY`; `LearnedSkill` 780+4 → 780+8; `SecLearnedSkill` só no servidor (784+4); `SkillBar` → `ShortSkill`; `Reserved` → `dummy` |
-| `STRUCT_SCORE` | 48 | 48 | `Level` 0+4 → 0+2; `Merchant` → `Reserved`; `Direction` só no servidor (14+1); `ChaosRate` só no servidor (15+1) |
+| `STRUCT_SCORE` | 48 | 48 | `Merchant` → `Reserved`; `Direction` só no servidor (14+1); `ChaosRate` só no servidor (15+1) |
 | `STRUCT_SELCHAR` | 840 | 840 | `SPX` → `HomeTownX`; `SPY` → `HomeTownY`; `Name` → `MobName` |
-| `STRUCT_SPELL` | 84 | 96 | `Act` → `Act1`; `InstanceAttribute` 56+4 → 64+4; `TickAttribute` 60+4 → 68+4; `Aggressive` 64+4 → 72+4; `MaxTarget` 68+4 → 76+4; `bParty` 72+4 → 80+4; `AffectResist` 76+4 → 84+4; `Passive` 80+4 → 88+4; `Act2` só no cliente (56+8); `ForceDamage` só no cliente (92+4) |
 
-Idênticas (mesmo tamanho, mesmos campos nos mesmos offsets): `STRUCT_DAM`, `STRUCT_ITEM`, `STRUCT_TREASURE`.
+Idênticas (mesmo tamanho, mesmos campos nos mesmos offsets): `STRUCT_AFFECT`, `STRUCT_DAM`, `STRUCT_ITEM`, `STRUCT_SPELL`, `STRUCT_TREASURE`.
 
 ## Regras `BASE_*`
 
