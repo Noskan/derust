@@ -241,7 +241,7 @@ void ProcessMobKilledPvP(int target, int conn, MSG_CNFMobKill& sm)
 					}
 				}
 			}
-#pragma region PK Drop - CP
+// region PK Drop - CP
 			else
 			{
 				if (!AtWar && NewbieEventServer == 0)
@@ -385,7 +385,7 @@ void ProcessMobKilledPvP(int target, int conn, MSG_CNFMobKill& sm)
 #endif
 				}
 			}
-#pragma endregion
+// endregion
 
 			GetCreateMob(conn, &sCreateMob);
 			GridMulticast(pMob[conn].TargetX, pMob[conn].TargetY, (MSG_STANDARD*)&sCreateMob, 0);

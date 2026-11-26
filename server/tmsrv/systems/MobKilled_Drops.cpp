@@ -101,7 +101,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 						{
 							int GenerateID = pMob[target].GenerateIndex;
 
-#pragma region Portões de Noatum
+// region Portões de Noatum
 							if (pMob[target].MOB.Equip[0].sIndex == 220 && CastleState)
 							{
 								if (pMob[target].TargetX < 0 || pMob[target].TargetX >= MAX_GRIDX || pMob[target].TargetY < 0 || pMob[target].TargetY >= MAX_GRIDY)
@@ -139,11 +139,11 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 								else
 									Log("err,no castle gato to open", "-system", 0);
 							}
-#pragma endregion
-#pragma region Drops especiais - IMP - NYERDS - AGUA - REI - ZAKUM
+// endregion
+// region Drops especiais - IMP - NYERDS - AGUA - REI - ZAKUM
 							else
 							{
-#pragma region Agua M
+// region Agua M
 								//AguaM
 								if (GenerateID >= WATER_M_INITIAL && GenerateID <= WATER_M_INITIAL + 7)
 								{
@@ -216,8 +216,8 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										}
 									}
 								}
-#pragma endregion
-#pragma region Agua N
+// endregion
+// region Agua N
 								else if (GenerateID >= WATER_N_INITIAL && GenerateID <= WATER_N_INITIAL + 7)
 								{
 									int CurrentNumMob = mNPCGen.pList[GenerateID].CurrentNumMob;
@@ -289,8 +289,8 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										}
 									}
 								}
-#pragma endregion
-#pragma region Agua A
+// endregion
+// region Agua A
 								else if (GenerateID >= WATER_A_INITIAL && GenerateID <= WATER_A_INITIAL + 7)
 								{
 									int CurrentNumMob = mNPCGen.pList[GenerateID].CurrentNumMob;
@@ -362,7 +362,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										}
 									}
 								}
-#pragma endregion
+// endregion
 								CCastleZakum::MobKilled(target, conn, PosX, PosY);
 								// CEncampment::MobKilled(target, conn, PosX, PosY);
 
@@ -383,7 +383,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									Kingdom2Clear = 1;
 									SendNoticeArea(g_pMessageStringTable[_NN_King2_Killed], 1676, 1816, 1776, 1892);
 								}
-#pragma region Boss R Lac R Ori Circulo divino
+// region Boss R Lac R Ori Circulo divino
 								else if (GenerateID == 0 || GenerateID == 1 || GenerateID == 2)
 								{
 									STRUCT_ITEM item;
@@ -427,7 +427,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										//CreateItem(AlvoX, AlvoY, &item, rand() % 4, 1);
 									}
 								}
-#pragma endregion
+// endregion
 
 								else if (GenerateID == 3)
 								{
@@ -457,7 +457,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										//CreateItem(AlvoX, AlvoY, &item, rand() % 4, 1);
 									}
 								}
-#pragma region Pesas
+// region Pesas
 
 								else if (GenerateIndex >= NIGHTMARE_M_INITIAL && GenerateIndex <= NIGHTMARE_M_END)
 									GenerateMob(GenerateIndex, 0, 0);//Pesa M
@@ -467,7 +467,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 
 								else if (GenerateIndex >= NIGHTMARE_A_INITIAL && GenerateIndex <= NIGHTMARE_A_END)
 									GenerateMob(GenerateIndex, 0, 0);//Pesa A
-#pragma endregion
+// endregion
 #pragma region Carta de duelo N
 								//Carta N
 								if (GenerateID >= SECRET_ROOM_N_SALA1_MOB_1 && GenerateID <= SECRET_ROOM_N_SALA1_MOB_2)
@@ -1110,7 +1110,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 #pragma endregion
 								
 							}
-#pragma endregion
+// endregion
 #pragma region Drop Gold
 							int MobCoin = pMob[target].MOB.Coin;
 							int UNKGOLD = 18;

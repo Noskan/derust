@@ -205,7 +205,7 @@ int  ProcessAffect(int idx)
 	if (currentTarget == idx)
 		pMob[idx].CurrentTarget = 0;
 
-#pragma region Fada attack
+// region Fada attack
 	else
 	{
 		if (currentTarget > 0 && currentTarget < MAX_MOB)
@@ -324,7 +324,7 @@ int  ProcessAffect(int idx)
 		else
 			pMob[idx].CurrentTarget = 0;
 	}
-#pragma endregion
+// endregion
 LABEL_59:
 
 	int regen = 0;

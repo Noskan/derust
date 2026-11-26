@@ -62,7 +62,7 @@ bool ProcessMobKilledExp(int target, int conn, int Leader)
 							party = pMob[Leader].PartyList[i];
 						else
 							party = Leader;
-#pragma region Pesa A
+// region Pesa A
 						if (party > 0 && party < MAX_USER && pMob[party].MOB.CurrentScore.Hp > 0 && (tx / 128) == 9 && (pMob[party].TargetX / 128) == 9
 							&& (ty / 128) == 1 && (pMob[party].TargetY / 128) == 1)
 						{
@@ -156,8 +156,8 @@ bool ProcessMobKilledExp(int target, int conn, int Leader)
 #pragma endregion
 							}
 						}
-#pragma endregion
-#pragma region Pesa M
+// endregion
+// region Pesa M
 						else if (party > 0 && party < MAX_USER && pMob[party].MOB.CurrentScore.Hp > 0 && (tx / 128) == 8 && (pMob[party].TargetX / 128) == 8
 							&& (ty / 128) == 2 && (pMob[party].TargetY / 128) == 2)
 						{
@@ -250,8 +250,8 @@ bool ProcessMobKilledExp(int target, int conn, int Leader)
 #pragma endregion
 							}
 						}
-#pragma endregion
-#pragma region Pesa N
+// endregion
+// region Pesa N
 						else if (party > 0 && party < MAX_USER && pMob[party].MOB.CurrentScore.Hp > 0 && (tx / 128) == 10 && (pMob[party].TargetX / 128) == 10
 							&& (ty / 128) == 2 && (pMob[party].TargetY / 128) == 2)
 						{
@@ -343,7 +343,7 @@ bool ProcessMobKilledExp(int target, int conn, int Leader)
 #pragma endregion
 							}
 						}
-#pragma endregion
+// endregion
 						else if (party > 0 && party < MAX_USER && pMob[party].MOB.CurrentScore.Hp > 0 && tx >= pMob[party].TargetX - HALFGRIDX
 							&& tx <= pMob[party].TargetX + HALFGRIDX && ty >= pMob[party].TargetY - HALFGRIDY && ty <= pMob[party].TargetY + HALFGRIDY)
 						{

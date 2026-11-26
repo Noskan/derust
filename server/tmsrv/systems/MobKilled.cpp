@@ -184,7 +184,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 
 		conn = Summoner;
 	}
-#pragma region PvE
+// region PvE
 	if (target >= MAX_USER || pMob[target].MOB.BaseScore.Level > MAX_LEVEL + 5)
 	{
 		if (target >= MAX_USER || pMob[target].MOB.BaseScore.Level <= MAX_LEVEL)
@@ -230,10 +230,10 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 			SendScore(target);
 		}
 	}
-#pragma endregion
+// endregion
 
-#pragma region PvP
+// region PvP
 	else
 		ProcessMobKilledPvP(target, conn, sm);
-#pragma endregion
+// endregion
 }

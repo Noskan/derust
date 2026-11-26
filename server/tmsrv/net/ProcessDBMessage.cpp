@@ -52,7 +52,7 @@ void ProcessDBMessage(char *Msg)
 	}
 
 	int conn = std->ID;
-#pragma region DB - TM
+// region DB - TM
 	if (conn == 0)
 	{
 		switch (std->Type)
@@ -183,8 +183,8 @@ void ProcessDBMessage(char *Msg)
 
 		}
 	}
-#pragma endregion
-#pragma region DB - TM - CLIENT
+// endregion
+// region DB - TM - CLIENT
 	else
 	{
 		if ((conn > 0 && conn < MAX_USER) && pUser[conn].Mode == 0)
@@ -1326,5 +1326,5 @@ void ProcessDBMessage(char *Msg)
 
 		}
 	}
-#pragma endregion
+// endregion
 }

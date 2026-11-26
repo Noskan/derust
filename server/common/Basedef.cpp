@@ -106,7 +106,7 @@ int g_pSuccessRate[11] = {5, 5, 5, 5, 4, 4, 3, 3, 2, 1, 0};
 
 char g_pItemGrid[8][4][2] = 
 {
-#pragma region ItemGrid
+// region ItemGrid
 	{
 		{01, 00},
 		{00, 00},
@@ -157,7 +157,7 @@ char g_pItemGrid[8][4][2] =
 		{01, 01}
 	}
 
-#pragma endregion
+// endregion
 };
 
 int	g_pDistanceTable[7][7] =
@@ -569,7 +569,7 @@ int g_pBonusType[10] = {10, 30, 2, 5, 3, 10, 2, 8, 2, 8 };
 
 int DungeonPos[30][2] = 
 {
-#pragma region DungeonPos
+// region DungeonPos
 	{244, 3822}, 
 	{380, 3810},
 	{352, 3780},
@@ -600,7 +600,7 @@ int DungeonPos[30][2] =
 	{1104, 3737},
 	{1124, 3804}, 
 	{1132, 3756}
-#pragma endregion
+// endregion
 };
 
 int DungeonItem[10] = {	421, 422, 423, 419, 420, 685, 691, 696, 696, 696 };

@@ -45,7 +45,7 @@ const char* const CCastleZakum::CASTLE_QUEST_PATH = "../../Common/Settings/Castl
 
 int CastleQuestPosition[MAX_CASTLE_POS][4] =
 {
-#pragma region Hidden
+// region Hidden
 	{ 2221, 1270, 2259, 1246 }, //Primeiro bloco
 
 	//Lado Esquerdo da quest
@@ -59,7 +59,7 @@ int CastleQuestPosition[MAX_CASTLE_POS][4] =
 	{ 2273, 1210, 2291, 1232 },
 	{ 2268, 1171, 2287, 1193 },
 	{ 2240, 1171, 2258, 1198 },
-#pragma endregion
+// endregion
 };
 
 int CastleQuestClear = 0;
@@ -102,7 +102,7 @@ BOOL CCastleZakum::OpenCastleGate(int conn, int gateid, MSG_UpdateItem *m)
 		return TRUE;
 	}
 
-#pragma region Portão de entrada
+// region Portão de entrada
 	if (gatekey == 10)
 	{//Portão principal do castelo zakum onde define qual level será a quest.
 		if (Quest < 0 || Quest >= MAX_CASTLE_QUEST)
@@ -183,14 +183,14 @@ BOOL CCastleZakum::OpenCastleGate(int conn, int gateid, MSG_UpdateItem *m)
 			CastleQuestParty[x] = pMob[Leader].PartyList[x];
 		}
 	}
-#pragma endregion
-#pragma region Portões de dentro
+// endregion
+// region Portões de dentro
 	else if (gatekey >= 11 && gatekey <= 14)
 	{
 		if (Quest != CastleQuestLevel)
 			return TRUE;
 	}
-#pragma endregion
+// endregion
 
 	memset(&pMob[conn].MOB.Carry[i], 0, sizeof(STRUCT_ITEM));
 	SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
