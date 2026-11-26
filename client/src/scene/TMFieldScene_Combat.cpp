@@ -932,46 +932,8 @@ if (dwServerTime > m_dwOldAttackTime + 1000 &&
 		}
 	}
 	
-	if (cSkillIndex == 98)
-	{
-		int nTX = (int)vec.x;
-		int nTY = (int)vec.z;
-		int nMX = (int)m_pMyHuman->m_vecPosition.x;
-		int nMY = (int)m_pMyHuman->m_vecPosition.y;
-		if (m_stMoveStop.NextX)
-		{
-			nMX = m_stMoveStop.NextX;
-			nMY = m_stMoveStop.NextY;
-		}
-
-		int nDistance = BASE_GetDistance(nMX, nMY, nTX, nTY);
-		int nMobAttackRange = nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range;
-		int nDX = nTX;
-		int nDY = nTY;
-		BASE_GetHitPosition(nMX, nMY, &nDX, &nDY, (char*)m_HeightMapData, 8);
-		if (nMobAttackRange == -1)
-			nMobAttackRange = 1;
-
-		if (BASE_GetItemAbility(&pMobData->Equip[6], 21) < 100)
-		{
-			if (nSpecForce + BASE_GetMobAbility(pMobData, 27) > nMobAttackRange)
-				nMobAttackRange = nSpecForce + BASE_GetMobAbility(pMobData, 27);
-		}
-
-		BASE_GetDistance(nMX, nMY, nDX, nDY);
-		if (nDistance > nMobAttackRange || nDX != nTX || nDY != nTY)
-			{ nReturnValue = 1; return true; }
-
-		if (BASE_GetDistance(nMX, nMY, (int)vec.x, (int)vec.z) > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
-			{ nReturnValue = 1; return true; }
-		stAttack.Dam[0].TargetID = m_pMyHuman->m_dwID;
-		stAttack.Dam[0].Damage = -1;
-		stAttack.TargetX = (int)vec.x;
-		stAttack.TargetY = (int)vec.z;
-		int bValue = g_pAttribute[(int)stAttack.TargetY >> 2][(int)stAttack.TargetX >> 2];
-		if (bValue & 1 && !(bValue & 0x40))
-			{ nReturnValue = 1; return true; }
-	}
+	if (SkillUse_Skill98TargetCheck(vec, nSpecForce, pMobData, cSkillIndex, stAttack, nReturnValue))
+		return true;
 	if (cSkillIndex == 102)
 	{
 		int nCls = m_pMyHuman->m_sHeadIndex % 10;
@@ -1546,6 +1508,54 @@ bool TMFieldScene::SkillUse_Skill73Dash(D3DXVECTOR3& vec, unsigned int& dwServer
 			m_pMyHuman->m_dwOldMovePacketTime = dwServerTime;
 		}
 		{ nReturnValue = 1; return true; }
+	}
+	return false;
+}
+
+/// Skill 98: confere alcance, ponto de acerto e atributo do mapa no ponto clicado e mira no próprio personagem.
+/// @note Extraído de `TMFieldScene::SkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::SkillUse_Skill98TargetCheck(D3DXVECTOR3& vec, int& nSpecForce, STRUCT_MOB*& pMobData, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue)
+{
+	if (cSkillIndex == 98)
+	{
+		int nTX = (int)vec.x;
+		int nTY = (int)vec.z;
+		int nMX = (int)m_pMyHuman->m_vecPosition.x;
+		int nMY = (int)m_pMyHuman->m_vecPosition.y;
+		if (m_stMoveStop.NextX)
+		{
+			nMX = m_stMoveStop.NextX;
+			nMY = m_stMoveStop.NextY;
+		}
+
+		int nDistance = BASE_GetDistance(nMX, nMY, nTX, nTY);
+		int nMobAttackRange = nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range;
+		int nDX = nTX;
+		int nDY = nTY;
+		BASE_GetHitPosition(nMX, nMY, &nDX, &nDY, (char*)m_HeightMapData, 8);
+		if (nMobAttackRange == -1)
+			nMobAttackRange = 1;
+
+		if (BASE_GetItemAbility(&pMobData->Equip[6], 21) < 100)
+		{
+			if (nSpecForce + BASE_GetMobAbility(pMobData, 27) > nMobAttackRange)
+				nMobAttackRange = nSpecForce + BASE_GetMobAbility(pMobData, 27);
+		}
+
+		BASE_GetDistance(nMX, nMY, nDX, nDY);
+		if (nDistance > nMobAttackRange || nDX != nTX || nDY != nTY)
+			{ nReturnValue = 1; return true; }
+
+		if (BASE_GetDistance(nMX, nMY, (int)vec.x, (int)vec.z) > nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range)
+			{ nReturnValue = 1; return true; }
+		stAttack.Dam[0].TargetID = m_pMyHuman->m_dwID;
+		stAttack.Dam[0].Damage = -1;
+		stAttack.TargetX = (int)vec.x;
+		stAttack.TargetY = (int)vec.z;
+		int bValue = g_pAttribute[(int)stAttack.TargetY >> 2][(int)stAttack.TargetX >> 2];
+		if (bValue & 1 && !(bValue & 0x40))
+			{ nReturnValue = 1; return true; }
 	}
 	return false;
 }

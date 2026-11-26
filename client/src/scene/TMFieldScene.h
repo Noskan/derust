@@ -367,6 +367,7 @@ private:
 	void SkillUse_AreaAddTarget(TMHuman*& pOver, char& cSkillIndex, MSG_Attack& stAttack, int& nTargetIndex, TMHuman*& pNode, int& x2, int& y2, int& nDistance, int& nTX, int& nTY, int& nGridDistance);
 	void SkillUse_PartyTargets(int& nSpecForce, char& cSkillIndex, MSG_Attack& stAttack);
 	bool SkillUse_Skill73Dash(D3DXVECTOR3& vec, unsigned int& dwServerTime, char& cSkillIndex, int& nReturnValue);
+	bool SkillUse_Skill98TargetCheck(D3DXVECTOR3& vec, int& nSpecForce, STRUCT_MOB*& pMobData, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue);
 	bool SkillUse_ApproachTarget(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& bMoving, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& nTX, int& nTY, int& nDistance, int& nMobAttackRange, int& nDX, int& nDY, int& nReturnValue);
 	/// @}
 
