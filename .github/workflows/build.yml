@@ -39,7 +39,7 @@ jobs:
       - name: Build targets (${{ matrix.config }})
         shell: pwsh
         run: |
-          $targets = @("w2pp_common", "DBSrv", "TMSrv", "ClientPatch_v7662", "TMProject")
+          $targets = @("w2pp_common", "DBSrv", "TMSrv", "ClientPatch_v7662", "TMProject", "w2pp_common_tests")
           $failed = @()
           foreach ($t in $targets) {
             Write-Host "=== Building $t (${{ matrix.config }}) ==="
@@ -61,12 +61,15 @@ jobs:
             throw "Failed targets: $($failed -join ', ')"
           }
 
+      - name: Run unit tests (${{ matrix.config }})
+        run: ctest --test-dir build/win32-msvc -C ${{ matrix.config }} --output-on-failure
+
       - name: Collect artifacts
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path dist/${{ matrix.config }} | Out-Null
           Get-ChildItem -Path build/win32-msvc -Recurse -Include *.exe,*.dll |
-            Where-Object { $_.DirectoryName -match "\\${{ matrix.config }}$" -and $_.FullName -notmatch "\\CMakeFiles\\" } |
+            Where-Object { $_.DirectoryName -match "\\${{ matrix.config }}$" -and $_.FullName -notmatch "\\CMakeFiles\\" -and $_.Name -notmatch "_tests\.exe$" } |
             Copy-Item -Destination dist/${{ matrix.config }} -Force
           Get-ChildItem dist/${{ matrix.config }}
 

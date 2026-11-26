@@ -57,6 +57,9 @@ O monorepo reúne o servidor e o cliente C++ do *With Your Destiny (WYD)* sob um
 | `client/src/resources/` | `TMProject` | Recursos Win32 (`TMProject.rc`, `Resource.h`, ícones e cursores). |
 | `client/docs/` | — | Notas históricas do cliente (`Files Name.txt`). |
 
+| [`tools/check_boundaries.py`](../tools/check_boundaries.py) | — | Verificador automático de fronteiras de dependência entre módulos. |
+| [`tests/`](../tests/CMakeLists.txt) | `w2pp_common_tests` (CTest) | Suíte de testes unitários para funções puras e layout binário de `w2pp_common`. |
+
 ---
 
 ## 3. Dependências e Fronteiras
@@ -113,16 +116,20 @@ cmake -S . -B build/win32-msvc -A Win32 -DW2PP_BUILD_CLIENT_PATCH=ON
 # Compilar Debug ou Release
 cmake --build build/win32-msvc --config Debug --parallel
 cmake --build build/win32-msvc --config Release --parallel
+
+# Executar testes unitários via CTest
+ctest --test-dir build/win32-msvc -C Debug --output-on-failure
 ```
 
 Opções CMake disponíveis na raiz:
 - `DERUST_BUILD_SERVER` (`ON` por padrão)
 - `DERUST_BUILD_CLIENT` (`ON` por padrão)
+- `DERUST_BUILD_TESTS` (`ON` por padrão)
 - `W2PP_BUILD_CLIENT_PATCH` (`OFF` por padrão)
 
 No GitHub Actions ([`.github/workflows/build.yml`](../.github/workflows/build.yml)):
 - `check-boundaries` (`ubuntu-latest`): executa `python3 tools/check_boundaries.py`.
-- `build-windows` (`windows-latest`, matriz `Debug` e `Release`): compila `w2pp_common`, `DBSrv`, `TMSrv`, `ClientPatch_v7662` e `TMProject`, publicando os binários como artifacts.
+- `build-windows` (`windows-latest`, matriz `Debug` e `Release`): compila `w2pp_common`, `DBSrv`, `TMSrv`, `ClientPatch_v7662`, `TMProject` e `w2pp_common_tests`, executa `ctest` e publica os binários executáveis/DLLs como artifacts.
 
 ---
 
@@ -148,9 +155,18 @@ Na **Fase 2**, os arquivos monolíticos são fatiados por coesão (preservando 1
 - **`client/src/scene/TMFieldScene.cpp` (24.476 → 5.045 linhas)**: dividido em `TMFieldScene.cpp`, `TMFieldScene_UI.cpp` (7.753L), `TMFieldScene_Packets.cpp` (5.128L), `TMFieldScene_Combat.cpp` (4.431L) e `TMFieldScene_Input.cpp` (2.368L).
 - **`client/src/entities/TMHuman.cpp` (16.323 → 5.152 linhas)**: dividido em `TMHuman.cpp`, `TMHuman_Effects.cpp` (3.147L), `TMHuman_Animation.cpp` (3.126L), `TMHuman_Packets.cpp` (3.021L) e `TMHuman_Combat.cpp` (2.125L).
 
-### Onda 2 (próximos alvos)
-- **Cliente**: `SGrid.cpp` (~5,3 mil linhas), `TMGround.cpp` (~4,5 mil), `RenderDevice.cpp` (~3,5 mil), `client/src/common/Basedef.cpp` (~3,4 mil), além da promoção de subsistemas desacoplados a static libs CMake com testes CTest.
-- **Servidor**: `handlers/items/_MSG_UseItem.cpp` (~5,7 mil linhas), `handlers/world/_MSG_Quest.cpp` (~2,7 mil), `dbsrv/persistence/CFileDB.cpp` (~2,7 mil), `systems/MobKilled.cpp` (~2,5 mil).
+### Onda 2 (concluída na branch `refactor/modularize-phase2-wave2`)
+- **Servidor — `_MSG_UseItem.cpp` (5.726 → 90 linhas)**: dividido via [`UseItemInternal.h`](../server/tmsrv/handlers/items/UseItemInternal.h) em 5 sub-handlers coesos por faixa de `EF_VOLATILE`: `UseItem_Refine.cpp` (1.231L), `UseItem_Scrolls.cpp` (962L), `UseItem_Quests.cpp` (1.461L), `UseItem_Mithril.cpp` (1.182L) e `UseItem_Extractions.cpp` (955L).
+- **Servidor — `_MSG_Quest.cpp` (2.712 → 181 linhas)**: dividido via [`QuestInternal.h`](../server/tmsrv/handlers/world/QuestInternal.h) em `Quest_Progression.cpp` (913L), `Quest_Kingdom.cpp` (1.117L) e `Quest_Special.cpp` (610L).
+- **Servidor — `MobKilled.cpp` (2.469 → 239 linhas)**: dividido via [`MobKilledInternal.h`](../server/tmsrv/systems/MobKilledInternal.h) em `MobKilled_Exp.cpp` (446L), `MobKilled_Drops.cpp` (1.417L) e `MobKilled_PvP.cpp` (434L).
+- **Servidor — `CFileDB.cpp` (2.688 → 831 linhas)**: despacho de pacotes em `CFileDB::ProcessMessage` extraído em `CFileDB_AccountPackets.cpp` (1.507L) e `CFileDB_WorldPackets.cpp` (484L).
+- **Cliente — `SGrid.cpp` (5.332 → 986 linhas)**: dividido em `SGrid.cpp`, `SGrid_Trade.cpp` (1.457L), `SGrid_Input.cpp` (1.137L) e `SGrid_Tooltip.cpp` (1.792L), com documentação Doxygen em [`SGrid.h`](../client/src/ui/SGrid.h).
+- **Cliente — `TMGround.cpp` (4.502 → 1.420 linhas)**: dividido em `TMGround.cpp`, `TMGround_Tables.cpp` (2.242L) e `TMGround_Render.cpp` (872L), com documentação Doxygen em [`TMGround.h`](../client/src/world/TMGround.h).
+- **Testes automatizados (CTest)**: adicionada a suíte [`tests/w2pp_common_tests.cpp`](../tests/w2pp_common_tests.cpp) executada automaticamente pelo CI Windows em `Debug` e `Release`.
+
+### Onda 3 (próximos alvos)
+- **Cliente**: `RenderDevice.cpp` (~3,5 mil linhas), `client/src/common/Basedef.cpp` (~3,4 mil), `SControl.cpp` (~3,0 mil), `TMScene.cpp` (~2,7 mil).
+- **Servidor**: `dbsrv/core/Server.cpp` (~2,3 mil linhas), `tmsrv/core/ProcessSecMinTimer.cpp` (~2,3 mil), e promoção gradual de subsistemas desacoplados a static libs CMake com testes adicionais.
 
 ### Diretrizes de Comentários e Higiene (Fase 2)
 - Idioma: **Português (PT-BR)** nos novos comentários e documentação.

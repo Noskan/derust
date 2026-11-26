@@ -15,6 +15,7 @@ Monorepo unificando o servidor (**W2PP**) e o cliente (**TMProject**) do *With Y
   - `client/docs/` — Documentação auxiliar do cliente.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Mapa completo de módulos, diagrama de dependências, travas de ABI, regras de fronteira e roteiro da Fase 2.
 - [`tools/check_boundaries.py`](tools/check_boundaries.py) — Verificador automático de fronteiras de dependência entre módulos.
+- [`tests/`](tests/CMakeLists.txt) — Suíte de testes unitários CTest (`w2pp_common_tests`) para funções puras e layout binário do servidor.
 
 ## Build (Windows Win32 / MSVC)
 
@@ -28,6 +29,9 @@ cmake -S . -B build/win32-msvc -A Win32
 # Compilar Debug ou Release
 cmake --build build/win32-msvc --config Debug --parallel
 cmake --build build/win32-msvc --config Release --parallel
+
+# Executar testes unitários (CTest)
+ctest --test-dir build/win32-msvc -C Debug --output-on-failure
 ```
 
 Para verificar localmente as fronteiras de `#include`:
@@ -40,7 +44,8 @@ python3 tools/check_boundaries.py
 
 - **Fase 1 (concluída)**: Reorganização modular via `git mv`, migração para CMake + presets Win32, pipeline CI no GitHub Actions (`windows-latest` Debug/Release), verificador de fronteiras e travas de ABI em `ProtocolLayoutCheck.cpp`.
 - **Fase 2 — Onda 1 (concluída)**: Limpeza de `ItemEffect.h` para PT-BR, `.clang-format`, documentação Doxygen/inline em PT-BR e fatiamento dos 4 maiores *god-files*: `server/common/Basedef.cpp` (`Basedef`/`BaseItem`/`BaseCombat`), `tmsrv/core/Server.cpp` (5 sistemas em `tmsrv/systems/`), `TMFieldScene.cpp` (5 TUs) e `TMHuman.cpp` (5 TUs).
-- **Fase 2 — Onda 2 (próxima etapa)**: Fatiamento de `_MSG_UseItem.cpp`, `SGrid.cpp`, `TMGround.cpp`, `_MSG_Quest.cpp`, `CFileDB.cpp`, `MobKilled.cpp` e testes CTest nos módulos extraídos.
+- **Fase 2 — Onda 2 (concluída)**: Fatiamento de `_MSG_UseItem.cpp` (5 sub-handlers), `_MSG_Quest.cpp` (3 sub-handlers), `MobKilled.cpp` (Exp/Drops/PvP), `CFileDB.cpp` (pacotes de conta e mundo), `SGrid.cpp` (4 TUs) e `TMGround.cpp` (3 TUs), além da suíte CTest [`w2pp_common_tests`](tests/w2pp_common_tests.cpp) integrada ao CI.
+- **Fase 2 — Onda 3 (próxima etapa)**: Fatiamento de `RenderDevice.cpp`, `client/src/common/Basedef.cpp`, `SControl.cpp`, `TMScene.cpp`, `dbsrv/core/Server.cpp` e `ProcessSecMinTimer.cpp`.
 
 ## Histórico e Licença
 
