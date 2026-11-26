@@ -568,7 +568,9 @@ int TMFieldScene::OnControl_ChatInput(unsigned int idwControlID, unsigned int id
 			else
 			{
 				strncpy(dest, stMsgWhisper.String, maxLen - 1);
-				sprintf(dest2, "%s", &stMsgWhisper.MobName[maxLen + 15]);
+				// Mesmo endereço que a decompilação escrevia como &MobName[maxLen + 15] (String vem
+				// logo depois de MobName[16]), sem passar do fim de MobName.
+				sprintf(dest2, "%s", &stMsgWhisper.String[maxLen - 1]);
 			}
 
 			auto ipNewItem = new SListBoxItem(istrText, idwFontColor, 0.0, 0.0, 280.0f, 16.0f, 0, 0x77777777, 1, 0);

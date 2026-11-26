@@ -806,9 +806,10 @@ int TMItem::Render()
         pMesh->m_pVB->Lock(0, 0, (void**)&pVertex, 0);
 
         int nCount = vDesc.Size / sizeof(RDLVERTEX);
-        // TODO: review this loops, very strange
+        // Uma cor por malha 737..739. A decompilação deixou `nMeshIndex - 2980`, que neste ramo
+        // (nMeshIndex 737..739) dá -2243..-2241 e lia antes do início de dwColor.
         for (int i = 0; i < nCount; ++i)
-            pVertex[i].diffuse = dwColor[nMeshIndex - 2980];
+            pVertex[i].diffuse = dwColor[nMeshIndex - 737];
 
         pMesh->m_pVB->Unlock();
         pMesh->m_nTextureIndex[0] = 204;

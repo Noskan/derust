@@ -5,9 +5,7 @@
 1 shadow client/src/common/BaseWorld.cpp
 1 shadow client/src/effects/TMEffectSpark.cpp
 1 shadow client/src/entities/TMButterFly.cpp
-4 array-bounds client/src/entities/TMHuman.cpp
 2 shadow client/src/entities/TMHuman_Packets.cpp
-1 array-bounds client/src/entities/TMItem.cpp
 2 shadow client/src/entities/TMShade.cpp
 1 sizeof-pointer-memaccess client/src/gameplay/MrItemMix.cpp
 3 maybe-uninitialized client/src/render/CFrame.cpp
@@ -17,7 +15,6 @@
 3 shadow client/src/scene/TMFieldScene.cpp
 3 shadow client/src/scene/TMFieldScene_AutoSkill.cpp
 3 shadow client/src/scene/TMFieldScene_Combat.cpp
-1 array-bounds client/src/scene/TMFieldScene_Controls.cpp
 3 shadow client/src/scene/TMFieldScene_Input.cpp
 1 shadow client/src/scene/TMFieldScene_MsgBox.cpp
 4 shadow client/src/scene/TMFieldScene_PacketAttack.cpp

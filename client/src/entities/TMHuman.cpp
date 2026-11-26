@@ -1140,15 +1140,18 @@ int TMHuman::InitObject()
     if (m_nClass == 16 && !m_stLookInfo.FaceMesh && m_stLookInfo.FaceSkin == 1 && m_cLegend != 4)
     {
         float fSize = 0.4f;
+        // Olhos 8 e 9 ficam em m_pEyeFire2[1] e [2] (atualizados em RenderEffect_EmeraldDragon com
+        // m_vecTempPos[i + 7]). A decompilação escrevia m_pEyeFire[8]/[9], além do fim do vetor de 7,
+        // que caíam nessa mesma memória.
         for (int i = 8; i < 10; ++i)
         {
-            if (m_pEyeFire[i])
+            if (m_pEyeFire2[i - 7])
             {
-                g_pObjectManager->DeleteObject(m_pEyeFire[i]);
-                m_pEyeFire[i] = 0;
+                g_pObjectManager->DeleteObject(m_pEyeFire2[i - 7]);
+                m_pEyeFire2[i - 7] = 0;
             }
 
-            m_pEyeFire[i] = new TMEffectBillBoard(
+            m_pEyeFire2[i - 7] = new TMEffectBillBoard(
                 101,
                 0,
                 fSize * m_fScale,
@@ -1158,14 +1161,14 @@ int TMHuman::InitObject()
                 8,
                 80);
 
-            if (m_pEyeFire[i])
+            if (m_pEyeFire2[i - 7])
             {
-                m_pEyeFire[i]->SetColor(0x0FF88FFAA);
-                m_pEyeFire[i]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-                m_pEyeFire[i]->m_nFade = 0;
-                m_pEyeFire[i]->m_vecPosition = m_vecTempPos[i];
-                m_pEyeFire[i]->m_bFrameMove = 0;
-                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[i]);
+                m_pEyeFire2[i - 7]->SetColor(0x0FF88FFAA);
+                m_pEyeFire2[i - 7]->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+                m_pEyeFire2[i - 7]->m_nFade = 0;
+                m_pEyeFire2[i - 7]->m_vecPosition = m_vecTempPos[i];
+                m_pEyeFire2[i - 7]->m_bFrameMove = 0;
+                g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire2[i - 7]);
             }
         }
     }

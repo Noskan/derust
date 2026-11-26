@@ -25,15 +25,36 @@ Outros comportamentos do cliente que o teste fixa como estão (não leem fora do
 - **`BASE_ClearItem`**: `memset(item, 0, sizeof(item))` zera só o tamanho do ponteiro (4 bytes em Win32). O item de 8 bytes fica com `stEffect[1]` e `stEffect[2]` intactos.
 - **`BASE_GetAttribute`**: a guarda confere `x <= 4096` duas vezes e nunca `y`. A máscara `& 1023` mantém o índice dentro da tabela.
 
-O GCC (`-Warray-bounds`) aponta ainda, no cliente:
+O GCC (`-Warray-bounds`) aponta ainda:
 
 | Onde | Aviso |
 |---|---|
-| `client/src/entities/TMHuman.cpp:1145..1164` | Índice 8 em `TMEffectBillBoard* [7]` |
-| `client/src/entities/TMItem.cpp:811` | Índice -2241 em `const unsigned int [3]` |
-| `client/src/render/MeshManager.cpp:329` | Índice 7 em `short [6][60][56]` |
-| `client/src/scene/TMFieldScene_Controls.cpp:571` | Índice 70 em `char [16]`. Já existia em `TMFieldScene_UI.cpp` antes da Fase 3 |
+| `client/src/render/MeshManager.cpp:329` | Índice 7 (e 28) em `short [6][60][56]`. Ver abaixo |
 | `server/tmsrv/systems/ScheduledEventSystem.cpp:668` | Índice 3 em `STRUCT_PISTA::<struct> [3]` |
+
+### `MeshManager::m_sAnimationArray` menor do que o uso (não corrigido)
+
+`m_sAnimationArray` é declarado com `MAX_ANI_CLASS = 6` classes, mas:
+
+- o carregador (`MeshManager.cpp`, laço sobre o arquivo de animações) **grava** em
+  `m_sAnimationArray[nCount]` com `nCount == 7` ou `28`, que vem do arquivo: são 60×56 `short`
+  gravados além do fim, por cima de outras variáveis globais;
+- os leitores (`TMHuman_Animation.cpp`, `TMHuman_Effects.cpp`) indexam
+  `m_sAnimationArray[m_nSkinMeshType]` sem guarda, e o tipo de malha chega a 20, 21, 28, 29
+  (montarias) e até 59 (`g_MobAniTable[60]`).
+
+O mais provável é que a decompilação tenha errado o tamanho da primeira dimensão. Aumentá-la
+tiraria a escrita fora dos limites, mas muda os índices de animação que os monstros e montarias
+leem hoje (o que está depois do vetor na memória passaria a ser 0). Isso só pode ser validado
+rodando o cliente com os arquivos do jogo, então fica para quando o teste no jogo for possível.
+
+### Cor das malhas 737..739 na interface (não corrigido)
+
+`RenderDevice_Geom.cpp:582` grava `pVertex[i].diffuse = ipControl->n3DObjIndex - 2964`, um
+número pequeno negativo no lugar de uma cor, ao lado de um `dwColor[3]` que não é usado. É o
+mesmo desenho do `TMItem::Render` corrigido abaixo, onde a intenção (`dwColor[índice - 737]`)
+fica clara. Aqui não há leitura fora dos limites, e a cor exibida hoje é determinística; corrigir
+muda o visual no inventário, então fica como decisão separada.
 
 ## Memória possivelmente não inicializada
 
@@ -63,8 +84,12 @@ O GCC (`-Warray-bounds`) aponta ainda, no cliente:
 | `client/src/common/BaseWorld.cpp`, `BASE_GetAttr` | `g_pAttribute[nY / 4 % 1024][nX / 4 % 1024]`: com coordenada negativa o resto era negativo e lia antes do início da tabela | Coordenada negativa devolve 0, como `BASE_GetAttribute` fora do mapa |
 | `server/tmsrv/handlers/items/_MSG_Buy.cpp` | O GCC apontava `GuildTax`, `Price`, `Price2`, `CityTax`, `bPrice` e `Desconto` possivelmente não inicializados. Análise: (1) `GuildTax` no `goto LABEL_BUY1` é inalcançável, porque o único uso exige cidade e imposto válidos, exatamente a negação do `goto`; (2) na compra por doação, o `goto DonateBuy` pula as declarações e o `ItemLog` gravava `price:` com lixo da pilha (a mensagem de depuração com `FREEEXP == -2` também); (3) `g_pGuildZone[Village].CityTax` era lido antes de validar `Village`, além do fim da tabela fora das cidades, e o valor era descartado pelo `goto` | As seis variáveis são declaradas com 0 antes do `goto DonateBuy`, e `CityTax` só é lido com índice válido (0 fora das cidades, como em `SendShopList`). Preço, imposto e dinheiro do jogador não mudam em nenhum caminho; o log da compra por doação passa a gravar `price:0`. Os 6 avisos `-Wmaybe-uninitialized` saíram da linha de base |
 | `server/tmsrv/net/GetFunc.cpp`, `GetCreateItem` | Item 3145 (estandarte da cidade): `g_pGuildZone[zone].Victory` e `.ChargeGuild` lidos sem validar `zone`. Fora das cidades `BASE_GetVillage` devolve 5, a leitura passava do fim da tabela e o valor entrava no índice e nos efeitos do item enviado ao cliente. Só dispara se o dado do jogo puser o 3145 fora de uma cidade | Com zona válida, nada muda. Fora das cidades `Victory` e `ChargeGuild` valem 0: estandarte sem vitória e sem guilda dona |
+| `client/src/entities/TMHuman.cpp`, `TMHuman::InitObject` | Classe 16 (dragão esmeralda): os olhos 8 e 9 eram criados em `m_pEyeFire[8]`/`[9]`, além do fim do vetor de 7, e caíam em `m_pEyeFire2[1]`/`[2]`, o membro seguinte (que `RenderEffect_EmeraldDragon` atualiza com `m_vecTempPos[i + 7]` e as rotinas de limpeza apagam) | Grava direto em `m_pEyeFire2[i - 7]`: mesma memória, sem comportamento indefinido. O comportamento não muda |
+| `client/src/entities/TMItem.cpp`, `TMItem::Render` | Malhas 737..739 no chão: `dwColor[nMeshIndex - 2980]` dava índice -2243..-2241 e lia antes do início de `dwColor[3]` (laranja, azul, verde) | `dwColor[nMeshIndex - 737]`, uma cor por malha. **Muda o visual**: antes a cor vinha de memória fora do vetor |
+| `client/src/scene/TMFieldScene_Controls.cpp`, sussurro longo | `&stMsgWhisper.MobName[maxLen + 15]` passava do fim de `MobName[16]` para chegar a `String` | `&stMsgWhisper.String[maxLen - 1]`: mesmo endereço (sem preenchimento entre os dois vetores de `char`). O comportamento não muda |
 
-Essas correções só mudam o resultado para entradas fora do domínio do jogo: os hashes de
+As correções das funções `BASE_*` só mudam o resultado para entradas fora do domínio do jogo
+(a única correção com efeito visível com dados válidos é a cor do `TMItem::Render`): os hashes de
 caracterização (que só usam entradas válidas) não mudaram. `TestOutOfDomainInputs` em
 `tests/w2pp_common_tests.cpp` e `CheckOutOfDomainInputs` em
 `tests/tmproject_characterization_tests.cpp` conferem os valores definidos. No código antigo,
