@@ -692,68 +692,8 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 		return true;
 	if (AutoSkillUse_Skill29Party(dwServerTime, nSpecForce, cSkillIndex, stAttack, nReturnValue))
 		return true;
-	if (cSkillIndex == 27)
-	{
-		int nMX = (int)m_pMyHuman->m_vecPosition.x;
-		int nMY = (int)m_pMyHuman->m_vecPosition.y;
-		if (m_stMoveStop.NextX)
-		{
-			nMX = m_stMoveStop.NextX;
-			nMY = m_stMoveStop.NextY;
-		}
-
-		int nTX = (int)pOver->m_vecPosition.x;
-		int nTY = (int)pOver->m_vecPosition.y;
-		int nDistance = BASE_GetDistance(nMX, nMY, nTX, nTY);
-		int nMobRange = nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range;
-		int nDX = nTX;
-		int nDY = nTY;
-
-		BASE_GetHitPosition(nMX, nMY, &nDX, &nDY, (char*)m_HeightMapData, 8);
-		if (nDistance > nMobRange || nDX != nTX || nDY != nTY)
-			{ nReturnValue = 1; return true; }
-
-		int bMyValue = g_pAttribute[nMY / 4][nMX / 4];
-		int bNodeValue = g_pAttribute[nTY / 4][nTX / 4];
-		if (!(bMyValue & 0x40) && bNodeValue & 0x40)
-			{ nReturnValue = 1; return true; }
-
-		MSG_Attack Msg{};
-		Msg.Header.Type = MSG_Attack_Multi_Opcode;
-		Msg.Header.ID = m_pMyHuman->m_dwID;
-		Msg.AttackerID = m_pMyHuman->m_dwID;
-		Msg.PosX = (int)m_pMyHuman->m_vecPosition.x;
-		Msg.PosY = (int)m_pMyHuman->m_vecPosition.y;
-		Msg.CurrentMp = -1;
-		Msg.SkillIndex = (unsigned char)cSkillIndex;
-		Msg.SkillParm = 0;
-		Msg.Motion = -1;
-		Msg.Dam[0].TargetID = pOver->m_dwID;
-		Msg.Dam[0].Damage = -1;
-		Msg.TargetX = (int)m_pMyHuman->m_vecPosition.x;
-		Msg.TargetY = (int)m_pMyHuman->m_vecPosition.y;
-		if (m_stMoveStop.NextX)
-		{
-			Msg.PosX = m_stMoveStop.NextX;
-			Msg.TargetX = Msg.PosX;
-			Msg.PosY = m_stMoveStop.NextY;
-			Msg.TargetY = Msg.PosY;
-		}
-
-		SendOneMessage((char*)&Msg, sizeof(Msg));
-
-		MSG_Attack stAttackLocal{};
-		memcpy(&stAttackLocal, &stAttack, sizeof(MSG_Attack));
-		stAttackLocal.Header.ID = m_dwID;
-		stAttackLocal.FlagLocal = 1;
-		if (nSpecForce)
-			stAttackLocal.DoubleCritical |= 8;
-
-		OnPacketEvent(stAttack.Header.Type, (char*)&stAttackLocal);
-		m_dwOldAttackTime = dwServerTime;
-		m_dwSkillLastTime[(unsigned char)cSkillIndex] = dwServerTime;
-		{ nReturnValue = 1; return true; }
-	}
+	if (AutoSkillUse_Skill27(dwServerTime, nSpecForce, pOver, cSkillIndex, stAttack, nReturnValue))
+		return true;
 	if (cSkillIndex != 85)
 		{ nReturnValue = 0; return true; }
 }
@@ -1085,6 +1025,76 @@ bool TMFieldScene::AutoSkillUse_Skill29Party(unsigned int& dwServerTime, int& nS
 		}
 
 		SendOneMessage((char*)&stAttack, sizeof(stAttack));
+
+		MSG_Attack stAttackLocal{};
+		memcpy(&stAttackLocal, &stAttack, sizeof(MSG_Attack));
+		stAttackLocal.Header.ID = m_dwID;
+		stAttackLocal.FlagLocal = 1;
+		if (nSpecForce)
+			stAttackLocal.DoubleCritical |= 8;
+
+		OnPacketEvent(stAttack.Header.Type, (char*)&stAttackLocal);
+		m_dwOldAttackTime = dwServerTime;
+		m_dwSkillLastTime[(unsigned char)cSkillIndex] = dwServerTime;
+		{ nReturnValue = 1; return true; }
+	}
+	return false;
+}
+
+/// Skill 27: confere alcance e ponto de acerto até `pOver` e envia.
+/// @note Extraído de `TMFieldScene::AutoSkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::AutoSkillUse_Skill27(unsigned int& dwServerTime, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue)
+{
+	if (cSkillIndex == 27)
+	{
+		int nMX = (int)m_pMyHuman->m_vecPosition.x;
+		int nMY = (int)m_pMyHuman->m_vecPosition.y;
+		if (m_stMoveStop.NextX)
+		{
+			nMX = m_stMoveStop.NextX;
+			nMY = m_stMoveStop.NextY;
+		}
+
+		int nTX = (int)pOver->m_vecPosition.x;
+		int nTY = (int)pOver->m_vecPosition.y;
+		int nDistance = BASE_GetDistance(nMX, nMY, nTX, nTY);
+		int nMobRange = nSpecForce + g_pSpell[(unsigned char)cSkillIndex].Range;
+		int nDX = nTX;
+		int nDY = nTY;
+
+		BASE_GetHitPosition(nMX, nMY, &nDX, &nDY, (char*)m_HeightMapData, 8);
+		if (nDistance > nMobRange || nDX != nTX || nDY != nTY)
+			{ nReturnValue = 1; return true; }
+
+		int bMyValue = g_pAttribute[nMY / 4][nMX / 4];
+		int bNodeValue = g_pAttribute[nTY / 4][nTX / 4];
+		if (!(bMyValue & 0x40) && bNodeValue & 0x40)
+			{ nReturnValue = 1; return true; }
+
+		MSG_Attack Msg{};
+		Msg.Header.Type = MSG_Attack_Multi_Opcode;
+		Msg.Header.ID = m_pMyHuman->m_dwID;
+		Msg.AttackerID = m_pMyHuman->m_dwID;
+		Msg.PosX = (int)m_pMyHuman->m_vecPosition.x;
+		Msg.PosY = (int)m_pMyHuman->m_vecPosition.y;
+		Msg.CurrentMp = -1;
+		Msg.SkillIndex = (unsigned char)cSkillIndex;
+		Msg.SkillParm = 0;
+		Msg.Motion = -1;
+		Msg.Dam[0].TargetID = pOver->m_dwID;
+		Msg.Dam[0].Damage = -1;
+		Msg.TargetX = (int)m_pMyHuman->m_vecPosition.x;
+		Msg.TargetY = (int)m_pMyHuman->m_vecPosition.y;
+		if (m_stMoveStop.NextX)
+		{
+			Msg.PosX = m_stMoveStop.NextX;
+			Msg.TargetX = Msg.PosX;
+			Msg.PosY = m_stMoveStop.NextY;
+			Msg.TargetY = Msg.PosY;
+		}
+
+		SendOneMessage((char*)&Msg, sizeof(Msg));
 
 		MSG_Attack stAttackLocal{};
 		memcpy(&stAttackLocal, &stAttack, sizeof(MSG_Attack));

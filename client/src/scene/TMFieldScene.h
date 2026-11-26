@@ -360,6 +360,7 @@ private:
 	void AutoSkillUse_AreaAddTarget(TMHuman*& pOver, char& cSkillIndex, MSG_Attack& stAttack, int& nTargetIndex, TMHuman*& pNode, int& x2, int& y2, int& nDistance, int& nTX, int& nTY, int& nGridDistance);
 	bool AutoSkillUse_SendAttack(unsigned int& dwServerTime, int& nSpecForce, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue);
 	bool AutoSkillUse_Skill29Party(unsigned int& dwServerTime, int& nSpecForce, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue);
+	bool AutoSkillUse_Skill27(unsigned int& dwServerTime, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue);
 	bool AutoSkillUse_PKCheck(TMHuman*& pOver, char& cSkillIndex, int& nReturnValue);
 	/// @}
 
