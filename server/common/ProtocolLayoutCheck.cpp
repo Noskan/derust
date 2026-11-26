@@ -60,6 +60,16 @@ W2_FIELD(STRUCT_SCORE, AttackRun, 13, 1);
 W2_FIELD(STRUCT_SCORE, MaxHp, 16, 4);
 W2_FIELD(STRUCT_SCORE, Special, 40, 8);
 
+// Skill no layout do SkillData.bin do cliente (registros de 96 bytes). O cliente tem 248 skills e o
+// servidor 103, então o arquivo inteiro ainda não é o mesmo.
+static_assert(sizeof(STRUCT_SPELL) == 96, "STRUCT_SPELL deve ter 96 bytes (cliente).");
+W2_FIELD(STRUCT_SPELL, AffectTime, 44, 4);
+W2_FIELD(STRUCT_SPELL, Act1, 48, 8);
+W2_FIELD(STRUCT_SPELL, Act2, 56, 8);
+W2_FIELD(STRUCT_SPELL, InstanceAttribute, 64, 4);
+W2_FIELD(STRUCT_SPELL, Passive, 88, 4);
+W2_FIELD(STRUCT_SPELL, ForceDamage, 92, 4);
+
 // Affect como o cliente o lê em _MSG_SendAffect e no login: Level no byte 1, Value (2 bytes) no 2.
 static_assert(sizeof(STRUCT_AFFECT) == 8, "STRUCT_AFFECT deve ter 8 bytes (cliente).");
 W2_FIELD(STRUCT_AFFECT, Type, 0, 1);

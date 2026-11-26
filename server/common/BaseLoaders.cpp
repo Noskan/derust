@@ -68,7 +68,7 @@ void BASE_WriteSkillBin()
 		if(fpCSum != NULL)
 		{
 			fprintf(fpCSum, "#define SKILL_CHECKSUM %d", sum);
-			fclose(fp);
+			fclose(fpCSum);	// antes fclose(fp) de novo, e o fpCSum ficava aberto
 		}
 	}
 
@@ -1092,12 +1092,12 @@ void BASE_InitializeSkill()
 		memset(&temp, 0, sizeof(temp));
 
         int Index = -1;
-        char skilldata[256];
+        char act1[256] = "", act2[256] = "";
 
 		sscanf(str, "%d %d %d %d %d %d %d %d %d %d %d %d %d %s %s %d %d %d %d %d %d %d", 
 								&Index,				&temp.SkillPoint,	&temp.TargetType,	&temp.ManaSpent,	&temp.Delay,
 								&temp.Range,		&temp.InstanceType,	&temp.InstanceValue,&temp.TickType,		&temp.TickValue,
-								&temp.AffectType,   &temp.AffectValue, &temp.AffectTime,    skilldata,			skilldata, &temp.InstanceAttribute,
+								&temp.AffectType,   &temp.AffectValue, &temp.AffectTime,    act1,				act2, &temp.InstanceAttribute,
 								&temp.TickAttribute,&temp.Aggressive,	&temp.MaxTarget,	&temp.bParty,		&temp.AffectResist,&temp.Passive);
 		
 		if(Index < 0 || Index >= MAX_SKILLINDEX)
@@ -1105,16 +1105,10 @@ void BASE_InitializeSkill()
 
 		temp.AffectTime = temp.AffectTime / 4;
 
-		temp.Act[0] = 0;
-		temp.Act[1] = 0;
-		temp.Act[2] = 0;
-		temp.Act[3] = 0;
-		temp.Act[4] = 0;
-		temp.Act[5] = 0;
-		temp.Act[6] = 0;
-		temp.Act[7] = 0;
-
-		sscanf(skilldata, "%hhd.%hhd.%hhd.%hhd.%hhd.%hhd", &temp.Act[0], &temp.Act[1], &temp.Act[2], &temp.Act[3], &temp.Act[4], &temp.Act[5]);
+		// As duas colunas de movimentos ("1.2.3.4.5.6"), como Act1 e Act2 do cliente. Antes as duas iam
+		// para o mesmo buffer e só a segunda ficava. O memset acima zera o resto.
+		sscanf(act1, "%hhu.%hhu.%hhu.%hhu.%hhu.%hhu", &temp.Act1[0], &temp.Act1[1], &temp.Act1[2], &temp.Act1[3], &temp.Act1[4], &temp.Act1[5]);
+		sscanf(act2, "%hhu.%hhu.%hhu.%hhu.%hhu.%hhu", &temp.Act2[0], &temp.Act2[1], &temp.Act2[2], &temp.Act2[3], &temp.Act2[4], &temp.Act2[5]);
 
 		g_pSpell[Index] = temp;
 	 }

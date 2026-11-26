@@ -872,6 +872,7 @@ struct STRUCT_ACCOUNTFILE
 	char TempKey[52];
 };
 
+/// @brief Dados de uma skill (96 bytes, layout do cliente). O servidor carrega do SkillData.csv.
 struct STRUCT_SPELL
 {
 	int	SkillPoint;
@@ -886,7 +887,8 @@ struct STRUCT_SPELL
 	int	AffectType;
 	int	AffectValue;
 	int	AffectTime;
-	unsigned char Act[8];
+	unsigned char Act1[8];	// Movimentos da skill (cliente: Act1 para um tipo de malha, Act2 para o outro)
+	unsigned char Act2[8];
 	int	InstanceAttribute;
 	int	TickAttribute;
 	int	Aggressive;
@@ -894,6 +896,7 @@ struct STRUCT_SPELL
 	int	bParty;
 	int	AffectResist;
 	int	Passive;
+	int	ForceDamage;	// Do cliente; o SkillData.csv do servidor não tem a coluna e fica 0
 };
 
 struct STRUCT_ITEMLIST

@@ -266,14 +266,7 @@ void FillTables()
 		s.AffectValue = r.Range(0, 500);
 		s.AffectTime = r.Range(0, 600);
 		for (int a = 0; a < 8; ++a)
-		{
-			unsigned char act = (unsigned char)r.Range(0, 30);
-#if defined(DIV_CLIENT)
-			s.Act1[a] = act;
-#else
-			s.Act[a] = act;
-#endif
-		}
+			s.Act1[a] = (unsigned char)r.Range(0, 30);
 		s.InstanceAttribute = r.Range(0, 5);
 		s.TickAttribute = r.Range(0, 5);
 		s.Aggressive = r.Range(0, 1);

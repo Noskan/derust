@@ -267,7 +267,7 @@ void FillTables()
 		s.AffectValue = r.Range(0, 300);
 		s.AffectTime = r.Range(0, 300);
 		for (int a = 0; a < 8; ++a)
-			s.Act[a] = (unsigned char)r.Range(0, 30);
+			s.Act1[a] = (unsigned char)r.Range(0, 30);
 		s.InstanceAttribute = r.Range(0, 4);
 		s.TickAttribute = r.Range(0, 4);
 		s.Aggressive = r.Range(0, 1);
