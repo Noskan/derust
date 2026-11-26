@@ -1,16 +1,21 @@
 cmake_minimum_required(VERSION 3.24)
 
+set(_tm_directx_include_dir "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Directx/Include")
+set(_tm_directx_lib_dir "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Directx/Lib")
+file(TO_NATIVE_PATH "${_tm_directx_include_dir}" _tm_directx_include_native)
+file(TO_NATIVE_PATH "${_tm_directx_lib_dir}" _tm_directx_lib_native)
+
+set(_tm_directx_props "${CMAKE_CURRENT_BINARY_DIR}/tm_directx.props")
+file(WRITE "${_tm_directx_props}" "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<Project xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">
+  <PropertyGroup>
+    <IncludePath>$(IncludePath);${_tm_directx_include_native}</IncludePath>
+    <LibraryPath>$(LibraryPath);${_tm_directx_lib_native}</LibraryPath>
+  </PropertyGroup>
+</Project>
+")
+
 add_library(tm_directx INTERFACE)
-
-target_include_directories(tm_directx
-  INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Directx/Include
-)
-
-target_link_directories(tm_directx
-  INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/Directx/Lib
-)
 
 target_link_libraries(tm_directx
   INTERFACE
@@ -132,6 +137,10 @@ add_executable(TMProject WIN32
   Projects/TMProject/TMVideoWnd.cpp
   Projects/TMProject/TreeNode.cpp
   Projects/TMProject/TMProject.rc
+)
+
+set_target_properties(TMProject PROPERTIES
+  VS_USER_PROPS "${_tm_directx_props}"
 )
 
 target_include_directories(TMProject
