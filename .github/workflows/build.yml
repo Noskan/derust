@@ -85,7 +85,7 @@ jobs:
       - name: Build targets (${{ matrix.config }})
         shell: pwsh
         run: |
-          $targets = @("w2pp_common", "DBSrv", "TMSrv", "ClientPatch_v7662", "TMProject", "w2pp_common_tests", "w2pp_characterization_tests")
+          $targets = @("w2pp_common", "DBSrv", "TMSrv", "ClientPatch_v7662", "TMProject", "w2pp_common_tests", "w2pp_characterization_tests", "tmproject_characterization_tests")
           $failed = @()
           foreach ($t in $targets) {
             Write-Host "=== Building $t (${{ matrix.config }}) ==="

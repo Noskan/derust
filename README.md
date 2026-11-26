@@ -51,6 +51,7 @@ python3 tools/mingw_check.py --update-warning-baseline   # após remover ou just
 Testes (CTest no MSVC; no wine pelo `mingw_check`):
 - [`w2pp_common_tests`](tests/w2pp_common_tests.cpp): casos unitários e travas de ABI.
 - [`w2pp_characterization_tests`](tests/w2pp_characterization_tests.cpp): hashes de referência de ~40 funções `BASE_*` com dados sintéticos, sem arquivos do jogo. Os hashes foram gerados com o código da tag `pre-modularization` e conferem com o atual. Após uma mudança **intencional** de regra, regrave com `w2pp_characterization_tests --print`.
+- [`tmproject_characterization_tests`](tests/tmproject_characterization_tests.cpp): o mesmo para ~55 funções `BASE_*` do cliente (`client/src/common`). Regrave com `tmproject_characterization_tests --print`.
 
 Bugs latentes do código legado encontrados por essas ferramentas, mantidos por paridade: [`docs/BUGS_LATENTES.md`](docs/BUGS_LATENTES.md).
 

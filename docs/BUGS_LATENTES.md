@@ -1,7 +1,8 @@
 # Bugs latentes conhecidos
 
 Comportamentos do código legado encontrados pelos testes de caracterização
-([`tests/w2pp_characterization_tests.cpp`](../tests/w2pp_characterization_tests.cpp)) e pela
+([`tests/w2pp_characterization_tests.cpp`](../tests/w2pp_characterization_tests.cpp) e
+[`tests/tmproject_characterization_tests.cpp`](../tests/tmproject_characterization_tests.cpp)) e pela
 checagem de avisos do GCC ([`tools/mingw_check.py`](../tools/mingw_check.py)).
 
 A modularização mantém paridade de comportamento: todos já existiam na tag `pre-modularization`.
@@ -15,6 +16,23 @@ explícita, num commit próprio, com um teste que mostra o defeito. Os corrigido
 | `server/common/BaseItem.cpp:845`, `BASE_GetGrowthRate` | Lê `g_pSancRate[2][cEffect / 10]`, mas a tabela tem 12 colunas | Montaria (2360..2389) com `stEffect[1].cEffect` ≥ 120 |
 | `server/common/BaseItem.cpp:1128` e `:1196`, `BASE_CanCarry`/`BASE_CanCargo` | Lê `g_pItemGrid[grid]` (8 entradas) com `grid = EF_GRID` do item, sem validar | Item com `EF_GRID` ≥ 8 (dado de item corrompido ou adulterado) |
 | `server/common/BaseCombat.cpp:1753`, `BASE_GetCurrentScore` | `mount <= 2390` aceita 2390, e `g_pMountBonus[mount - 2360]` tem 30 linhas | Item 2390 no slot de montaria |
+
+No cliente (`client/src/common`, encontrados ao escrever `tests/tmproject_characterization_tests.cpp`):
+
+| Onde | O que acontece | Quando dispara |
+|---|---|---|
+| `client/src/common/BaseItem.cpp`, `BASE_GetItemAbility` | A guarda é `idx > MAX_ITEMLIST`, então `sIndex == 6500` lê `g_pItemList[6500]`, uma posição além do fim (as outras funções usam `>= 6500`) | Item com índice 6500 |
+| `client/src/common/BaseItem.cpp`, `BASE_CanCargo` | Lê `g_pItemGrid[grid]` (8 entradas) com `grid = EF_GRID` sem validar, como no servidor | Item com `EF_GRID` ≥ 8 |
+| `client/src/common/BaseItem.cpp`, `BASE_CanTrade` | `pos = (unsigned char)MyTrade[i]` e depois `if (pos != -1)`: a comparação é sempre verdadeira, e uma entrada -1 (255) limpa `Dest[255]`, fora do inventário de 64 itens | Hoje não dispara: a função não tem chamadores no cliente |
+| `client/src/common/BaseWorld.cpp`, `BASE_GetAttr` | `g_pAttribute[nY / 4 % 1024][nX / 4 % 1024]`: com coordenada negativa o resto é negativo | Coordenada negativa |
+| `client/src/common/BaseWorld.cpp`, `BASE_IsInLowZone` | Fora do mapa chama `MessageBox`/`PostMessage` com `g_pApp->m_hWnd` e fecha o cliente | Coordenada fora de 0..4095 |
+
+Outros comportamentos do cliente que o teste fixa como estão (não leem fora dos limites):
+
+- **`BASE_CanCargo`**: `SourGrid` nunca é preenchida, então a função sempre devolve 1. A grade do baú é gravada com `CargoGrid[ty][9 * yy + tx + xx]`, deslocada em relação à linha.
+- **`BASE_CanTrade`**: `OpponentTrade` não é usado (copia de uma lista local vazia).
+- **`BASE_ClearItem`**: `memset(item, 0, sizeof(item))` zera só o tamanho do ponteiro (4 bytes em Win32). O item de 8 bytes fica com `stEffect[1]` e `stEffect[2]` intactos.
+- **`BASE_GetAttribute`**: a guarda confere `x <= 4096` duas vezes e nunca `y`. A máscara `& 1023` mantém o índice dentro da tabela.
 
 O GCC (`-Warray-bounds`) aponta ainda, no cliente:
 
