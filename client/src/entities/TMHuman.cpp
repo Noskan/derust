@@ -442,159 +442,7 @@ int TMHuman::InitObject()
 
     SAFE_DELETE(m_pSkinMesh);
 
-    if (!nCos && 
-              (m_nSkinMeshType == 20
-            || m_nSkinMeshType == 39
-            || m_nSkinMeshType == 21
-            || m_nSkinMeshType == 22
-            || m_nSkinMeshType == 23
-            || m_nSkinMeshType == 24
-            || m_nSkinMeshType == 40
-            || m_nSkinMeshType == 3
-            || m_nSkinMeshType == 4
-            || m_nSkinMeshType == 25
-            || m_nSkinMeshType == 28
-            || m_nSkinMeshType == 29
-            || m_nSkinMeshType == 2
-            || m_nSkinMeshType == 6
-            || m_nSkinMeshType == 7
-            || m_nSkinMeshType == 8
-            || m_nSkinMeshType == 30
-            || m_nSkinMeshType == 31
-            || m_nSkinMeshType == 33
-            || m_nSkinMeshType == 36
-            || m_nSkinMeshType == 12
-            || m_nSkinMeshType == 43
-            || m_nSkinMeshType == 10
-            || m_nSkinMeshType == 5
-            || m_nSkinMeshType == 45
-            || m_nSkinMeshType == 46
-            || m_nSkinMeshType == 47
-            || m_nSkinMeshType == 53
-            || m_nSkinMeshType == 54
-            || m_nSkinMeshType == 55
-            || m_nSkinMeshType == 56
-            || m_nSkinMeshType == 57))
-    {
-        m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
-        m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
-        m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
-        m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
-        m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
-        if (m_nSkinMeshType == 45)
-        {
-            m_stSancInfo.Legend7 = 0;
-            m_stSancInfo.Legend6 = 0;
-            m_stSancInfo.Legend5 = 0;
-            m_stSancInfo.Legend4 = 0;
-            m_stSancInfo.Legend3 = 0;
-            m_stSancInfo.Legend2 = 0;
-            m_stSancInfo.Legend1 = 0;
-            m_stSancInfo.Legend0 = 0;
-            m_stSancInfo.Sanc7 = 0;
-            m_stSancInfo.Sanc6 = 0;
-            m_stSancInfo.Sanc5 = 0;
-            m_stSancInfo.Sanc4 = 0;
-            m_stSancInfo.Sanc3 = 0;
-            m_stSancInfo.Sanc2 = 0;
-            m_stSancInfo.Sanc1 = 0;
-            m_stSancInfo.Sanc0 = 0;
-            m_stSancInfo.Legend2 = 2;
-            m_stSancInfo.Sanc2 = 8;
-        }
-        if (m_nSkinMeshType == 46)
-        {
-            m_stSancInfo.Legend7 = 0;
-            m_stSancInfo.Legend6 = 0;
-            m_stSancInfo.Legend5 = 0;
-            m_stSancInfo.Legend4 = 0;
-            m_stSancInfo.Legend3 = 0;
-            m_stSancInfo.Legend2 = 0;
-            m_stSancInfo.Legend1 = 0;
-            m_stSancInfo.Legend0 = 0;
-            m_stSancInfo.Sanc7 = 0;
-            m_stSancInfo.Sanc6 = 0;
-            m_stSancInfo.Sanc5 = 0;
-            m_stSancInfo.Sanc4 = 0;
-            m_stSancInfo.Sanc3 = 0;
-            m_stSancInfo.Sanc2 = 0;
-            m_stSancInfo.Sanc1 = 0;
-            m_stSancInfo.Sanc0 = 0;
-            m_stSancInfo.Legend2 = 2;
-            m_stSancInfo.Sanc2 = 13;
-        }
-        if (m_nSkinMeshType == 53)
-        {
-            m_stSancInfo.Legend7 = 0;
-            m_stSancInfo.Legend6 = 0;
-            m_stSancInfo.Legend5 = 0;
-            m_stSancInfo.Legend4 = 0;
-            m_stSancInfo.Legend3 = 0;
-            m_stSancInfo.Legend2 = 0;
-            m_stSancInfo.Legend1 = 0;
-            m_stSancInfo.Legend0 = 0;
-            m_stSancInfo.Sanc7 = 0;
-            m_stSancInfo.Sanc6 = 0;
-            m_stSancInfo.Sanc5 = 0;
-            m_stSancInfo.Sanc4 = 0;
-            m_stSancInfo.Sanc3 = 0;
-            m_stSancInfo.Sanc2 = 0;
-            m_stSancInfo.Sanc1 = 0;
-            m_stSancInfo.Sanc0 = 0;
-            m_stSancInfo.Sanc0 = 13;
-            m_stSancInfo.Sanc2 = 13;
-            m_stSancInfo.Sanc1 = 13;
-            m_fScale = 2.0f;
-        }
-        if (m_nSkinMeshType == 56 || m_nSkinMeshType == 57)
-        {
-            m_stSancInfo.Legend7 = 0;
-            m_stSancInfo.Legend6 = 0;
-            m_stSancInfo.Legend5 = 0;
-            m_stSancInfo.Legend4 = 0;
-            m_stSancInfo.Legend3 = 0;
-            m_stSancInfo.Legend2 = 0;
-            m_stSancInfo.Legend1 = 0;
-            m_stSancInfo.Legend0 = 0;
-            m_stSancInfo.Sanc7 = 0;
-            m_stSancInfo.Sanc6 = 0;
-            m_stSancInfo.Sanc5 = 0;
-            m_stSancInfo.Sanc4 = 0;
-            m_stSancInfo.Sanc3 = 0;
-            m_stSancInfo.Sanc2 = 0;
-            m_stSancInfo.Sanc1 = 0;
-            m_stSancInfo.Sanc0 = 0;
-            m_stSancInfo.Sanc4 = 13;
-            m_stSancInfo.Sanc3 = 13;
-            m_stSancInfo.Sanc2 = 13;
-            m_stSancInfo.Sanc1 = 13;
-            m_stSancInfo.Sanc0 = 13;
-        }
-        if (m_nSkinMeshType == 55)
-        {
-            m_stSancInfo.Legend7 = 0;
-            m_stSancInfo.Legend6 = 0;
-            m_stSancInfo.Legend5 = 0;
-            m_stSancInfo.Legend4 = 0;
-            m_stSancInfo.Legend3 = 0;
-            m_stSancInfo.Legend2 = 0;
-            m_stSancInfo.Legend1 = 0;
-            m_stSancInfo.Legend0 = 0;
-            m_stSancInfo.Sanc7 = 0;
-            m_stSancInfo.Sanc6 = 0;
-            m_stSancInfo.Sanc5 = 0;
-            m_stSancInfo.Sanc4 = 0;
-            m_stSancInfo.Sanc3 = 0;
-            m_stSancInfo.Sanc2 = 0;
-            m_stSancInfo.Sanc1 = 0;
-            m_stSancInfo.Sanc0 = 0;
-            m_stSancInfo.Sanc1 = 13;
-            m_stSancInfo.Sanc0 = 13;
-
-            TMHuman::m_vecPickSize[55].y = 0.449f;
-            TMHuman::m_vecPickSize[55].x = 0.449f;
-        }
-    }
+    InitObject_SingleMeshLook(nCos);
 
     if (m_nClass == 40)
     {
@@ -1441,6 +1289,165 @@ void TMHuman::InitObject_CostumeLook(int& nCos)
         }
         else
             memset(&m_stSancInfo, 0, sizeof(m_stSancInfo));
+    }
+}
+
+/// Malhas de peça única (tipos 20, 39, 21..24, 12, 43, ...): elmo e refinação seguem o rosto.
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_SingleMeshLook(int& nCos)
+{
+    if (!nCos && 
+              (m_nSkinMeshType == 20
+            || m_nSkinMeshType == 39
+            || m_nSkinMeshType == 21
+            || m_nSkinMeshType == 22
+            || m_nSkinMeshType == 23
+            || m_nSkinMeshType == 24
+            || m_nSkinMeshType == 40
+            || m_nSkinMeshType == 3
+            || m_nSkinMeshType == 4
+            || m_nSkinMeshType == 25
+            || m_nSkinMeshType == 28
+            || m_nSkinMeshType == 29
+            || m_nSkinMeshType == 2
+            || m_nSkinMeshType == 6
+            || m_nSkinMeshType == 7
+            || m_nSkinMeshType == 8
+            || m_nSkinMeshType == 30
+            || m_nSkinMeshType == 31
+            || m_nSkinMeshType == 33
+            || m_nSkinMeshType == 36
+            || m_nSkinMeshType == 12
+            || m_nSkinMeshType == 43
+            || m_nSkinMeshType == 10
+            || m_nSkinMeshType == 5
+            || m_nSkinMeshType == 45
+            || m_nSkinMeshType == 46
+            || m_nSkinMeshType == 47
+            || m_nSkinMeshType == 53
+            || m_nSkinMeshType == 54
+            || m_nSkinMeshType == 55
+            || m_nSkinMeshType == 56
+            || m_nSkinMeshType == 57))
+    {
+        m_stLookInfo.HelmMesh = m_stLookInfo.FaceMesh;
+        m_stLookInfo.HelmSkin = m_stLookInfo.FaceSkin;
+        m_stSancInfo.Sanc1 = m_stSancInfo.Sanc0;
+        m_stSancInfo.Legend1 = m_stSancInfo.Legend0;
+        m_stColorInfo.Sanc1 = m_stColorInfo.Sanc0;
+        if (m_nSkinMeshType == 45)
+        {
+            m_stSancInfo.Legend7 = 0;
+            m_stSancInfo.Legend6 = 0;
+            m_stSancInfo.Legend5 = 0;
+            m_stSancInfo.Legend4 = 0;
+            m_stSancInfo.Legend3 = 0;
+            m_stSancInfo.Legend2 = 0;
+            m_stSancInfo.Legend1 = 0;
+            m_stSancInfo.Legend0 = 0;
+            m_stSancInfo.Sanc7 = 0;
+            m_stSancInfo.Sanc6 = 0;
+            m_stSancInfo.Sanc5 = 0;
+            m_stSancInfo.Sanc4 = 0;
+            m_stSancInfo.Sanc3 = 0;
+            m_stSancInfo.Sanc2 = 0;
+            m_stSancInfo.Sanc1 = 0;
+            m_stSancInfo.Sanc0 = 0;
+            m_stSancInfo.Legend2 = 2;
+            m_stSancInfo.Sanc2 = 8;
+        }
+        if (m_nSkinMeshType == 46)
+        {
+            m_stSancInfo.Legend7 = 0;
+            m_stSancInfo.Legend6 = 0;
+            m_stSancInfo.Legend5 = 0;
+            m_stSancInfo.Legend4 = 0;
+            m_stSancInfo.Legend3 = 0;
+            m_stSancInfo.Legend2 = 0;
+            m_stSancInfo.Legend1 = 0;
+            m_stSancInfo.Legend0 = 0;
+            m_stSancInfo.Sanc7 = 0;
+            m_stSancInfo.Sanc6 = 0;
+            m_stSancInfo.Sanc5 = 0;
+            m_stSancInfo.Sanc4 = 0;
+            m_stSancInfo.Sanc3 = 0;
+            m_stSancInfo.Sanc2 = 0;
+            m_stSancInfo.Sanc1 = 0;
+            m_stSancInfo.Sanc0 = 0;
+            m_stSancInfo.Legend2 = 2;
+            m_stSancInfo.Sanc2 = 13;
+        }
+        if (m_nSkinMeshType == 53)
+        {
+            m_stSancInfo.Legend7 = 0;
+            m_stSancInfo.Legend6 = 0;
+            m_stSancInfo.Legend5 = 0;
+            m_stSancInfo.Legend4 = 0;
+            m_stSancInfo.Legend3 = 0;
+            m_stSancInfo.Legend2 = 0;
+            m_stSancInfo.Legend1 = 0;
+            m_stSancInfo.Legend0 = 0;
+            m_stSancInfo.Sanc7 = 0;
+            m_stSancInfo.Sanc6 = 0;
+            m_stSancInfo.Sanc5 = 0;
+            m_stSancInfo.Sanc4 = 0;
+            m_stSancInfo.Sanc3 = 0;
+            m_stSancInfo.Sanc2 = 0;
+            m_stSancInfo.Sanc1 = 0;
+            m_stSancInfo.Sanc0 = 0;
+            m_stSancInfo.Sanc0 = 13;
+            m_stSancInfo.Sanc2 = 13;
+            m_stSancInfo.Sanc1 = 13;
+            m_fScale = 2.0f;
+        }
+        if (m_nSkinMeshType == 56 || m_nSkinMeshType == 57)
+        {
+            m_stSancInfo.Legend7 = 0;
+            m_stSancInfo.Legend6 = 0;
+            m_stSancInfo.Legend5 = 0;
+            m_stSancInfo.Legend4 = 0;
+            m_stSancInfo.Legend3 = 0;
+            m_stSancInfo.Legend2 = 0;
+            m_stSancInfo.Legend1 = 0;
+            m_stSancInfo.Legend0 = 0;
+            m_stSancInfo.Sanc7 = 0;
+            m_stSancInfo.Sanc6 = 0;
+            m_stSancInfo.Sanc5 = 0;
+            m_stSancInfo.Sanc4 = 0;
+            m_stSancInfo.Sanc3 = 0;
+            m_stSancInfo.Sanc2 = 0;
+            m_stSancInfo.Sanc1 = 0;
+            m_stSancInfo.Sanc0 = 0;
+            m_stSancInfo.Sanc4 = 13;
+            m_stSancInfo.Sanc3 = 13;
+            m_stSancInfo.Sanc2 = 13;
+            m_stSancInfo.Sanc1 = 13;
+            m_stSancInfo.Sanc0 = 13;
+        }
+        if (m_nSkinMeshType == 55)
+        {
+            m_stSancInfo.Legend7 = 0;
+            m_stSancInfo.Legend6 = 0;
+            m_stSancInfo.Legend5 = 0;
+            m_stSancInfo.Legend4 = 0;
+            m_stSancInfo.Legend3 = 0;
+            m_stSancInfo.Legend2 = 0;
+            m_stSancInfo.Legend1 = 0;
+            m_stSancInfo.Legend0 = 0;
+            m_stSancInfo.Sanc7 = 0;
+            m_stSancInfo.Sanc6 = 0;
+            m_stSancInfo.Sanc5 = 0;
+            m_stSancInfo.Sanc4 = 0;
+            m_stSancInfo.Sanc3 = 0;
+            m_stSancInfo.Sanc2 = 0;
+            m_stSancInfo.Sanc1 = 0;
+            m_stSancInfo.Sanc0 = 0;
+            m_stSancInfo.Sanc1 = 13;
+            m_stSancInfo.Sanc0 = 13;
+
+            TMHuman::m_vecPickSize[55].y = 0.449f;
+            TMHuman::m_vecPickSize[55].x = 0.449f;
+        }
     }
 }
 
