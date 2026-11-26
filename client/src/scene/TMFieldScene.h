@@ -21,6 +21,9 @@ class TMEffectBillBoard2;
 class TMRain;
 class TMSnow;
 
+/// @brief Cena principal de jogo em campo (HUD, combate, entrada, pacotes e mundo).
+/// @details Implementacao dividida por coesao em TMFieldScene.cpp, TMFieldScene_UI.cpp,
+///          TMFieldScene_Input.cpp, TMFieldScene_Combat.cpp e TMFieldScene_Packets.cpp.
 class TMFieldScene : public TMScene
 {
 public:

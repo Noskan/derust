@@ -101,6 +101,10 @@ set(TMPROJECT_SOURCES
   src/scene/ObjectManager.cpp
   src/scene/TMDemoScene.cpp
   src/scene/TMFieldScene.cpp
+  src/scene/TMFieldScene_Combat.cpp
+  src/scene/TMFieldScene_Input.cpp
+  src/scene/TMFieldScene_Packets.cpp
+  src/scene/TMFieldScene_UI.cpp
   src/scene/TMObject.cpp
   src/scene/TMObjectContainer.cpp
   src/scene/TMScene.cpp
