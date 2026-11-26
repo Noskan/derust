@@ -467,46 +467,7 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 			m_dwChatTime = dwServerTime;
 		}
 	}
-	if (m_pRankTimeText && m_bRankTimeOn)
-	{
-		if (m_pGround->m_vecOffsetIndex.x == 1 && m_pGround->m_vecOffsetIndex.y == 31
-			|| m_pGround->m_vecOffsetIndex.x == 6 && m_pGround->m_vecOffsetIndex.y == 28
-			|| m_pGround->m_vecOffsetIndex.x == 9 && m_pGround->m_vecOffsetIndex.y == 28
-			|| m_pGround->m_vecOffsetIndex.x == 8 && m_pGround->m_vecOffsetIndex.y == 27
-			|| m_pGround->m_vecOffsetIndex.x == 10 && m_pGround->m_vecOffsetIndex.y == 27
-			|| m_pGround->m_vecOffsetIndex.x == 10 && m_pGround->m_vecOffsetIndex.y == 11
-			|| m_pGround->m_vecOffsetIndex.x == 13 && m_pGround->m_vecOffsetIndex.y == 31
-			|| m_pGround->m_vecOffsetIndex.x == 14 && m_pGround->m_vecOffsetIndex.y == 30
-			|| m_pGround->m_vecOffsetIndex.x == 15 && m_pGround->m_vecOffsetIndex.y == 31
-			|| m_pGround->m_vecOffsetIndex.x == 8 && m_pGround->m_vecOffsetIndex.y == 2
-			|| m_pGround->m_vecOffsetIndex.x == 9 && m_pGround->m_vecOffsetIndex.y == 1
-			|| m_pGround->m_vecOffsetIndex.x == 10 && m_pGround->m_vecOffsetIndex.y == 2
-			|| m_pGround->m_vecOffsetIndex.x == 13 && m_pGround->m_vecOffsetIndex.y == 28
-			|| m_pGround->m_vecOffsetIndex.x == 14 && m_pGround->m_vecOffsetIndex.y == 28
-			|| m_pGround->m_vecOffsetIndex.x == 1 && m_pGround->m_vecOffsetIndex.y == 1)
-		{
-			unsigned int dwElapsedRankTime = dwServerTime - m_dwStartRankTime;
-			int nElapsedTime = dwElapsedRankTime / 1000;
-			int nRemainTime = m_nLastTime - dwElapsedRankTime / 1000;
-			if (nRemainTime > 0)
-			{
-				char szTime[128]{};
-				int nMinute = nRemainTime / 60;
-				int nSec = nRemainTime % 60;
-				sprintf(szTime, "%02d : %02d", nRemainTime / 60, nRemainTime % 60);
-				m_pRankTimeText->SetText(szTime, 0);
-				if (nMinute < 100 && nSec < 100)
-					m_pRankTimeText->SetVisible(1);
-			}
-			else
-				m_pRankTimeText->SetVisible(0);
-		}
-		else
-		{
-			m_pRankTimeText->SetVisible(0);
-			m_bRankTimeOn = 0;
-		}
-	}
+	FrameMove_RankTime(dwServerTime);
 	if (m_cAutoAttack == 1 && m_pTargetHuman && !m_pTargetHuman->m_cDie && dwServerTime - m_dwLastAutoAttackTime > 200)
 	{
 		if (m_pMyHuman->m_usGuild != m_pTargetHuman->m_usGuild && g_pObjectManager->m_usAllyGuild != m_pTargetHuman->m_usGuild ||
@@ -1619,6 +1580,52 @@ for (size_t nShort = 0; nShort < 20; ++nShort)
 					pItem2->m_fTimer = fTime;
 			}
 		}
+	}
+}
+}
+
+/// Atualiza o texto do tempo de ranking (`m_pRankTimeText`).
+/// @note Extraído de `TMFieldScene::FrameMove` (Fase 3); locais da função passadas por referência.
+void TMFieldScene::FrameMove_RankTime(unsigned int& dwServerTime)
+{
+if (m_pRankTimeText && m_bRankTimeOn)
+{
+	if (m_pGround->m_vecOffsetIndex.x == 1 && m_pGround->m_vecOffsetIndex.y == 31
+		|| m_pGround->m_vecOffsetIndex.x == 6 && m_pGround->m_vecOffsetIndex.y == 28
+		|| m_pGround->m_vecOffsetIndex.x == 9 && m_pGround->m_vecOffsetIndex.y == 28
+		|| m_pGround->m_vecOffsetIndex.x == 8 && m_pGround->m_vecOffsetIndex.y == 27
+		|| m_pGround->m_vecOffsetIndex.x == 10 && m_pGround->m_vecOffsetIndex.y == 27
+		|| m_pGround->m_vecOffsetIndex.x == 10 && m_pGround->m_vecOffsetIndex.y == 11
+		|| m_pGround->m_vecOffsetIndex.x == 13 && m_pGround->m_vecOffsetIndex.y == 31
+		|| m_pGround->m_vecOffsetIndex.x == 14 && m_pGround->m_vecOffsetIndex.y == 30
+		|| m_pGround->m_vecOffsetIndex.x == 15 && m_pGround->m_vecOffsetIndex.y == 31
+		|| m_pGround->m_vecOffsetIndex.x == 8 && m_pGround->m_vecOffsetIndex.y == 2
+		|| m_pGround->m_vecOffsetIndex.x == 9 && m_pGround->m_vecOffsetIndex.y == 1
+		|| m_pGround->m_vecOffsetIndex.x == 10 && m_pGround->m_vecOffsetIndex.y == 2
+		|| m_pGround->m_vecOffsetIndex.x == 13 && m_pGround->m_vecOffsetIndex.y == 28
+		|| m_pGround->m_vecOffsetIndex.x == 14 && m_pGround->m_vecOffsetIndex.y == 28
+		|| m_pGround->m_vecOffsetIndex.x == 1 && m_pGround->m_vecOffsetIndex.y == 1)
+	{
+		unsigned int dwElapsedRankTime = dwServerTime - m_dwStartRankTime;
+		int nElapsedTime = dwElapsedRankTime / 1000;
+		int nRemainTime = m_nLastTime - dwElapsedRankTime / 1000;
+		if (nRemainTime > 0)
+		{
+			char szTime[128]{};
+			int nMinute = nRemainTime / 60;
+			int nSec = nRemainTime % 60;
+			sprintf(szTime, "%02d : %02d", nRemainTime / 60, nRemainTime % 60);
+			m_pRankTimeText->SetText(szTime, 0);
+			if (nMinute < 100 && nSec < 100)
+				m_pRankTimeText->SetVisible(1);
+		}
+		else
+			m_pRankTimeText->SetVisible(0);
+	}
+	else
+	{
+		m_pRankTimeText->SetVisible(0);
+		m_bRankTimeOn = 0;
 	}
 }
 }

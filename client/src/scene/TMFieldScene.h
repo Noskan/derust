@@ -355,6 +355,7 @@ private:
 	void FrameMove_SendMoveStop(unsigned int& dwServerTime);
 	void FrameMove_WeatherSound(unsigned int& dwServerTime, CSoundManager*& pSoundManager);
 	void FrameMove_ShortSkillBelts(unsigned int& dwServerTime, SGridControl*& pGridSkillBelt2, SGridControl*& pGridSkillBelt3, int& nSkill2, int& nSkill3);
+	void FrameMove_RankTime(unsigned int& dwServerTime);
 	/// @}
 
 public:
