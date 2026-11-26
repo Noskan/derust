@@ -146,25 +146,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 	if (idwControlID == B_MONEY)
 		return OnControl_Money(idwControlID, idwEvent);
 	if (idwControlID == B_CARGO_MONEY)
-	{
-		if (m_pMyHuman->m_cDie == 1)
-			return 1;
-
-		if (!m_pAutoTrade || m_pAutoTrade->IsVisible() != 1)
-		{
-			auto pText = static_cast<SText*>(m_pControlContainer->FindControl(T_INPUT_GOLD));
-
-			if (m_pCargoPanel->IsVisible() == 1)
-			{
-				m_nCoinMsgType = 2;
-				pText->SetText(g_pMessageStringTable[138], 0);
-				m_pControlContainer->SetFocusedControl(m_pControlContainer->FindControl(E_INPUT_GOLD));
-				m_pInputGoldPanel->SetVisible(1);
-				m_pChatSelectPanel->SetVisible(0);
-			}
-		}
-		return 1;
-	}
+		return OnControl_CargoMoney(idwControlID, idwEvent);
 	if (idwControlID == B_IG_OK)
 		return OnControl_InputOk(idwControlID, idwEvent);
 	if (idwControlID == E_INPUT_GOLD)

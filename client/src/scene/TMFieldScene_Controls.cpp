@@ -2158,3 +2158,26 @@ int TMFieldScene::OnControl_AutoTrade667(unsigned int idwControlID, unsigned int
 
 	return 1;
 }
+
+/// Botão de gold do baú (`B_CARGO_MONEY`).
+/// @return Valor devolvido por OnControlEvent para este controle.
+int TMFieldScene::OnControl_CargoMoney(unsigned int idwControlID, unsigned int idwEvent)
+{
+	if (m_pMyHuman->m_cDie == 1)
+		return 1;
+
+	if (!m_pAutoTrade || m_pAutoTrade->IsVisible() != 1)
+	{
+		auto pText = static_cast<SText*>(m_pControlContainer->FindControl(T_INPUT_GOLD));
+
+		if (m_pCargoPanel->IsVisible() == 1)
+		{
+			m_nCoinMsgType = 2;
+			pText->SetText(g_pMessageStringTable[138], 0);
+			m_pControlContainer->SetFocusedControl(m_pControlContainer->FindControl(E_INPUT_GOLD));
+			m_pInputGoldPanel->SetVisible(1);
+			m_pChatSelectPanel->SetVisible(0);
+		}
+	}
+	return 1;
+}
