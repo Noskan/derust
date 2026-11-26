@@ -70,6 +70,7 @@ public:
     void InitObject_Class39Look();
     void InitObject_Mantua(int& nCos);
     void InitObject_Class36Wings();
+    void InitObject_FlyEffects();
     int Render() final;
     int FrameMove(unsigned int dwServerTime) final;
     void InitPosition(float fX, float fY, float fZ) final;

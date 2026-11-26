@@ -579,39 +579,7 @@ int TMHuman::InitObject()
             m_pFly[i] = nullptr;
         }
     }
-    if (m_nClass == 21 && m_stLookInfo.FaceMesh == 10
-     || m_nClass == 28 && m_stLookInfo.FaceMesh == 2
-     || m_nClass == 25 && m_stLookInfo.FaceMesh == 3 && m_stLookInfo.FaceSkin == 8
-     || m_nClass == 25 && m_stLookInfo.FaceMesh == 12)
-    {
-        for (int l = 0; l < 4; ++l)
-        {
-            if (m_pFly[l])
-            {
-                g_pObjectManager->DeleteObject(m_pFly[l]);
-                m_pFly[l] = nullptr;
-            }
-
-            m_pFly[l] = new TMButterFly(6, 3, this);
-            if (m_pFly[l])
-            {
-                m_pFly[l]->InitObject();
-                m_pFly[l]->InitAngle(0.0f,
-                    (float)((float)l * 3.1415927f) / 6.0f,
-                    0.0f);
-                m_pFly[l]->InitPosition(
-                    (float)((float)l * 0.2f) + m_vecPosition.x,
-                    (float)(m_fHeight + 1.5f) + (float)((float)l * 0.2f),
-                    (float)((float)l * 0.2f) + m_vecPosition.y);
-
-                m_pFly[l]->m_fParticleH = m_pFly[l]->m_fParticleH * 0.5f;
-                m_pFly[l]->m_fParticleV = m_pFly[l]->m_fParticleV * 0.5f;
-                m_pFly[l]->m_fCircleSpeed = (float)l + 8.0f;
-
-                g_pCurrentScene->m_pEffectContainer->AddChild(m_pFly[l]);
-            }
-        }
-    }
+    InitObject_FlyEffects();
 
     if (m_nClass == 34 || m_nClass == 23 || m_nClass == 21 && m_stLookInfo.FaceMesh == 10)
     {
@@ -1474,6 +1442,45 @@ void TMHuman::InitObject_Class36Wings()
                     m_pEyeFire[k]->m_bFrameMove = 0;
                     g_pCurrentScene->m_pEffectContainer->AddChild(m_pEyeFire[k]);
                 }
+            }
+        }
+    }
+}
+
+/// Classes 21, 28 e 25 com certos rostos: recria os efeitos de voo (`m_pFly`).
+/// @note Extraído de `TMHuman::InitObject` (Fase 3); locais passadas por referência.
+void TMHuman::InitObject_FlyEffects()
+{
+    if (m_nClass == 21 && m_stLookInfo.FaceMesh == 10
+     || m_nClass == 28 && m_stLookInfo.FaceMesh == 2
+     || m_nClass == 25 && m_stLookInfo.FaceMesh == 3 && m_stLookInfo.FaceSkin == 8
+     || m_nClass == 25 && m_stLookInfo.FaceMesh == 12)
+    {
+        for (int l = 0; l < 4; ++l)
+        {
+            if (m_pFly[l])
+            {
+                g_pObjectManager->DeleteObject(m_pFly[l]);
+                m_pFly[l] = nullptr;
+            }
+
+            m_pFly[l] = new TMButterFly(6, 3, this);
+            if (m_pFly[l])
+            {
+                m_pFly[l]->InitObject();
+                m_pFly[l]->InitAngle(0.0f,
+                    (float)((float)l * 3.1415927f) / 6.0f,
+                    0.0f);
+                m_pFly[l]->InitPosition(
+                    (float)((float)l * 0.2f) + m_vecPosition.x,
+                    (float)(m_fHeight + 1.5f) + (float)((float)l * 0.2f),
+                    (float)((float)l * 0.2f) + m_vecPosition.y);
+
+                m_pFly[l]->m_fParticleH = m_pFly[l]->m_fParticleH * 0.5f;
+                m_pFly[l]->m_fParticleV = m_pFly[l]->m_fParticleV * 0.5f;
+                m_pFly[l]->m_fCircleSpeed = (float)l + 8.0f;
+
+                g_pCurrentScene->m_pEffectContainer->AddChild(m_pFly[l]);
             }
         }
     }
