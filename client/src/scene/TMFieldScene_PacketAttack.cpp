@@ -595,47 +595,7 @@ if (pAttacker)
 			bool bMyAttack = false;
 			pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
 
-			for (int i = 0; i < 13; i++)
-			{
-				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-				if (pMultiTarget)
-				{
-					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-						pMultiTarget->m_fHeight - 5.0f,
-						pMultiTarget->m_vecPosition.y);
-					vecTarget = vecStart;
-					vecStart.y = 1.0f;
-
-					auto pJudgement = new TMSkillJudgement(vecStart, 2, 0.1f);
-
-					m_pEffectContainer->AddChild(pJudgement);
-
-					TMVector3 vec{};
-					for (int j = 0; j < 4; j++)
-					{
-						vec = TMVector3(((float)(2 * (j % 2)) + vecTarget.x) - 1.0f,
-							vecTarget.y,
-							((float)(2 * (j / 2)) + vecTarget.z) - 1.0f);
-
-						auto pFreeze = new TMSkillFreezeBlade(
-							vec, 1, 0, 0
-						);
-
-						m_pEffectContainer->AddChild(pFreeze);
-					}
-
-					TMVector3 vecDest{ pMultiTarget->m_vecPosition.x,
-							  pMultiTarget->m_fHeight + 0.5f,
-							  pMultiTarget->m_vecPosition.y };
-
-					vecStart = TMVector3(vecDest.x + 3.0f, vecDest.y + 5.0f, vecDest.z - 3.0f);
-
-					auto pArrow = new TMArrow(vecStart, vecDest, 0, 10001, 0, 0, 0);
-					pArrow->m_nColor = 0xFFFFFF00;
-
-					m_pEffectContainer->AddChild(pArrow);
-				}
-			}
+			PacketAttack_Skill114Targets(pAttack, vecTarget, vecStart);
 		}
 		else if (pAttack->SkillIndex == 115)
 		{
@@ -1452,6 +1412,53 @@ void TMFieldScene::PacketAttack_Class56Sparks(MSG_Attack*& pAttack, TMHuman*& pA
 
 			pEffectSpark->m_fRange = 0.4f;
 			m_pEffectContainer->AddChild(pEffectSpark);
+		}
+	}
+}
+
+/// Skill 114: flechas, lâminas de gelo e julgamento (`TMSkillJudgement`) em cada alvo.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill114Targets(MSG_Attack*& pAttack, TMVector3& vecTarget, TMVector3& vecStart)
+{
+	for (int i = 0; i < 13; i++)
+	{
+		auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+		if (pMultiTarget)
+		{
+			vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+				pMultiTarget->m_fHeight - 5.0f,
+				pMultiTarget->m_vecPosition.y);
+			vecTarget = vecStart;
+			vecStart.y = 1.0f;
+
+			auto pJudgement = new TMSkillJudgement(vecStart, 2, 0.1f);
+
+			m_pEffectContainer->AddChild(pJudgement);
+
+			TMVector3 vec{};
+			for (int j = 0; j < 4; j++)
+			{
+				vec = TMVector3(((float)(2 * (j % 2)) + vecTarget.x) - 1.0f,
+					vecTarget.y,
+					((float)(2 * (j / 2)) + vecTarget.z) - 1.0f);
+
+				auto pFreeze = new TMSkillFreezeBlade(
+					vec, 1, 0, 0
+				);
+
+				m_pEffectContainer->AddChild(pFreeze);
+			}
+
+			TMVector3 vecDest{ pMultiTarget->m_vecPosition.x,
+					  pMultiTarget->m_fHeight + 0.5f,
+					  pMultiTarget->m_vecPosition.y };
+
+			vecStart = TMVector3(vecDest.x + 3.0f, vecDest.y + 5.0f, vecDest.z - 3.0f);
+
+			auto pArrow = new TMArrow(vecStart, vecDest, 0, 10001, 0, 0, 0);
+			pArrow->m_nColor = 0xFFFFFF00;
+
+			m_pEffectContainer->AddChild(pArrow);
 		}
 	}
 }

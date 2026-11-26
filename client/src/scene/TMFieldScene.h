@@ -384,6 +384,7 @@ private:
 	bool PacketAttack_Skill110Knockback(bool& bMyAttack, int& nDistance, unsigned int& Now, unsigned int& dwKhepraDelay, int& nReturnValue);
 	void PacketAttack_Skill111FreezeBlades(MSG_Attack*& pAttack, TMVector3& vecTarget, TMVector3& vecTarget2, TMVector3& vecD);
 	void PacketAttack_Class56Sparks(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMVector3& vecStart, TMVector3& vecTarget);
+	void PacketAttack_Skill114Targets(MSG_Attack*& pAttack, TMVector3& vecTarget, TMVector3& vecStart);
 	bool PacketAttack_ApplyTargets(MSG_Attack*& pAttack, TMHuman*& pAttacker, bool& bomb, TMVector2& vecAttackerPos, int& nClass, TMVector3& vecStart, TMVector3& vecTarget, unsigned int& dwDelay, int& nReturnValue);
 	/// @}
 
