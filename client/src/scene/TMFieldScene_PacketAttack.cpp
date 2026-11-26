@@ -510,31 +510,7 @@ if (pAttacker)
 			bool bMyAttack = false;
 			PacketAttack_Skill110Meteors(pAttack, vecTarget, vecStart, bMyAttack);
 
-			if (pAttacker->m_dwEarthQuakeTime + 1700 < g_pTimerManager->GetServerTime())
-			{
-				pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime() - 1000;
-
-				for (int i = -3; i < 3; i++)
-				{
-					for (int j = -3; i < 3; i++)
-					{
-						auto pBill = new TMEffectBillBoard(193, 4000, 2.0f, 2.0f, 2.0f, 0.001f, 1, 80);
-
-						pBill->m_bStickGround = i % 2;
-						pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x, pAttacker->m_fHeight, ((float)j * 2.0f) + pAttacker->m_vecPosition.y);
-						pBill->SetColor(0xFF777799);
-
-						m_pEffectContainer->AddChild(pBill);
-					}
-				}
-
-				auto pGround = m_pGround;
-				if (pGround)
-				{
-					pGround->m_dwEffStart = g_pTimerManager->GetServerTime();
-					pGround->m_vecEffset = pAttacker->m_vecPosition;
-				}
-			}
+			PacketAttack_Skill110Quake(pAttacker);
 
 			int nDistance = BASE_GetDistance((int)pAttacker->m_vecPosition.x, (int)pAttacker->m_vecPosition.y, 
 				(int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
@@ -1421,6 +1397,37 @@ void TMFieldScene::PacketAttack_Skill110Meteors(MSG_Attack*& pAttack, TMVector3&
 			pMeteor->m_dwStartTime += rand() % 1000;
 
 			m_pEffectContainer->AddChild(pMeteor);
+		}
+	}
+}
+
+/// Skill 110: tremor e partículas no atacante, no máximo a cada 1,7 s.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill110Quake(TMHuman*& pAttacker)
+{
+	if (pAttacker->m_dwEarthQuakeTime + 1700 < g_pTimerManager->GetServerTime())
+	{
+		pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime() - 1000;
+
+		for (int i = -3; i < 3; i++)
+		{
+			for (int j = -3; i < 3; i++)
+			{
+				auto pBill = new TMEffectBillBoard(193, 4000, 2.0f, 2.0f, 2.0f, 0.001f, 1, 80);
+
+				pBill->m_bStickGround = i % 2;
+				pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x, pAttacker->m_fHeight, ((float)j * 2.0f) + pAttacker->m_vecPosition.y);
+				pBill->SetColor(0xFF777799);
+
+				m_pEffectContainer->AddChild(pBill);
+			}
+		}
+
+		auto pGround = m_pGround;
+		if (pGround)
+		{
+			pGround->m_dwEffStart = g_pTimerManager->GetServerTime();
+			pGround->m_vecEffset = pAttacker->m_vecPosition;
 		}
 	}
 }
