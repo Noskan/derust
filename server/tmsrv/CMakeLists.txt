@@ -21,11 +21,16 @@ set(TMSRV_SOURCES
   net/ProcessDBMessage.h
   net/SendFunc.cpp
   net/SendFunc.h
+  systems/AffectSystem.cpp
   systems/CCastleZakum.cpp
   systems/CCastleZakum.h
   systems/CWarTower.cpp
   systems/CWarTower.h
+  systems/ItemSpawnSystem.cpp
   systems/MobKilled.cpp
+  systems/MobSpawnSystem.cpp
+  systems/MountSystem.cpp
+  systems/WorldEventSystem.cpp
   systems/imple.cpp
   handlers/account/_MSG_AccountLogin.cpp
   handlers/account/_MSG_AccountSecure.cpp

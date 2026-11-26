@@ -50,6 +50,7 @@ extern int BrState;
 
 extern unsigned short g_pGuildWar[65536];
 extern unsigned short g_pGuildAlly[65536];
+extern STRUCT_GUILDINFO GuildInfo[65536];
 
 extern unsigned short pMobGrid  [MAX_GRIDY][MAX_GRIDX];
 extern unsigned short pItemGrid [MAX_GRIDY][MAX_GRIDX];
@@ -64,6 +65,8 @@ extern CNPCGenerator mNPCGen;
 extern CUser pUser[MAX_USER];
 extern STRUCT_BLOCKMAC pMac[MAX_MAC];
 
+/// @name Funções principais do núcleo e sistemas de jogo do TMSrv
+/// @{
 // Funcs
 
 void  ClearCrown(int conn);
@@ -191,6 +194,10 @@ void ProcessImple(int conn, int level, char * str);
 
 
 
+/// @}
+
+/// @name Estado global compartilhado entre Server.cpp e os sistemas em systems/
+/// @{
 //Externs
 
 extern  int FREEEXP;
@@ -216,6 +223,7 @@ extern int	   BillServerPort;
 extern HWND  hWndMain;
 extern HMENU hMainMenu;
 extern HFONT hFont;
+extern HDC hDC;
 
 extern FILE *fLogFile;
 extern FILE *fChatLogFile;
@@ -305,6 +313,7 @@ extern int pChallangerMoney[6];
 
 extern unsigned short g_pGuildWar[65536];
 extern unsigned short g_pGuildAlly[65536];
+extern STRUCT_GUILDINFO GuildInfo[65536];
 
 extern unsigned short pMobGrid[MAX_GRIDY][MAX_GRIDX];
 extern unsigned short pItemGrid[MAX_GRIDY][MAX_GRIDX];
@@ -334,10 +343,13 @@ extern int GuildImpostoID[MAX_GUILDZONE];
 extern int BrState;
 extern int BrMod;
 extern int BrGrid;
+extern int BRHour;
 extern int CastleState;
+extern int ColoState;
 extern int Colo150Limit;
 extern int KefraLive;
 extern char KefraKiller[32];
+extern int GuildNameInitialized;
 
 extern int g_dLevel;
 extern int g_dLevel1;
@@ -411,8 +423,6 @@ extern int GTorreGuild;
 extern int RvRBluePoint;
 extern int RvRRedPoint;
 
-/////////////////////////////////////
-//Externs
-
 extern STRUCT_GUILDZONE g_pGuildZone[MAX_GUILDZONE];
+/// @}
 #endif
