@@ -1,8 +1,11 @@
 add_library(w2pp_common STATIC
   Basedef.cpp
+  BaseItem.cpp
+  BaseCombat.cpp
   CPSock.cpp
   ProtocolLayoutCheck.cpp
   Basedef.h
+  BasedefInternal.h
   CPSock.h
   ItemEffect.h
 )

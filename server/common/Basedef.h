@@ -395,6 +395,7 @@
 
 #pragma region Structures
 
+/// @brief Estrutura binária de um item (8 bytes: índice + 3 pares efeito/valor).
 struct STRUCT_ITEM
 {
 	short sIndex;
@@ -411,6 +412,7 @@ struct STRUCT_ITEM
 	}stEffect[3];
 };
 
+/// @brief Atributos de combate, defesa, HP/MP, pontos base e maestrias de um mob/personagem (48 bytes).
 struct STRUCT_SCORE
 {
 	int Level;	 // The mob's level
@@ -435,6 +437,7 @@ struct STRUCT_SCORE
 	short  Special[4]; // The mob's special points, affects it's skill tiers
 };
 
+/// @brief Estrutura principal do personagem/NPC em memória e persistência (816 bytes no servidor).
 struct STRUCT_MOB
 {
 	char		   MobName[NAME_LENGTH];	  // The name of the mob
@@ -480,6 +483,7 @@ struct STRUCT_MOB
 
 };
 
+/// @brief Dados extras de evolução (Arch/Celestial/SubCelestial), quests e contadores temporais (536 bytes em Win32).
 struct STRUCT_MOBEXTRA
 {
 	short ClassMaster;
@@ -837,6 +841,7 @@ struct STRUCT_RANKING
 
 #pragma region File Structures
 
+/// @brief Registro completo de conta serializado em arquivo pelo DBSrv (7800 bytes em Win32).
 struct STRUCT_ACCOUNTFILE
 {
 	STRUCT_ACCOUNTINFO Info; // 0 - 216
@@ -940,17 +945,20 @@ const int FLAG_NP2DB				= 0x2000;
 
 const int FLAG_NEW					= 0x4000;
 
+/// @brief Cabeçalho padrão de 12 bytes de todos os pacotes de rede do protocolo WYD.
 struct		 MSG_STANDARD
 {
 	_MSG;
 };
 
+/// @brief Pacote genérico com 1 parâmetro inteiro.
 struct		 MSG_STANDARDPARM
 {
 	_MSG;
 	int Parm;
 };
 
+/// @brief Pacote genérico com 2 parâmetros inteiros.
 struct		 MSG_STANDARDPARM2
 {
 	_MSG;
@@ -958,6 +966,7 @@ struct		 MSG_STANDARDPARM2
 	int Parm2;
 };
 
+/// @brief Pacote genérico com 2 parâmetros short.
 struct		 MSG_STANDARDSHORTPARM2	
 {
 	_MSG;
@@ -965,6 +974,7 @@ struct		 MSG_STANDARDSHORTPARM2
 	short Parm2;
 };
 
+/// @brief Pacote genérico com 3 parâmetros inteiros.
 struct		 MSG_STANDARDPARM3
 {
 	_MSG;
@@ -2328,12 +2338,15 @@ const short _MSG_NPAppeal					= (16 | FLAG_DB2GAME | FLAG_GAME2DB | FLAG_DB2NP);
 
 #pragma region Basedef functions prototypes
 
+/// @name Validação e utilitários de atributos/combate (BaseCombat.cpp) e itens (BaseItem.cpp)
+/// @{
 int  BASE_NeedLog(STRUCT_ITEM *item, int money);
 int  BASE_GetBonusSkillPoint(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra);
 int  BASE_GetBonusScorePoint(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra);
 int  BASE_GetHpMp(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra);
 int  BASE_GetSpeed(STRUCT_SCORE *score);
 int  BASE_GetDamage(int dam, int ac, int combat);
+/// @}
 void BASE_GetLanguage(char *str, int idx);
 void BASE_GetLanguage(char *str, int idx, char *parm1);
 void BASE_GetLanguage(char *str, int idx, char *parm1, char *parm2);

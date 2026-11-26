@@ -1,181 +1,159 @@
 #ifndef  _ITEMEFFECT_H_
 #define  _ITEMEFFECT_H_			  1
 
-//#define EF_NONE     			  0	// * EFFECT Type이 0 이면 이펙트가 없다.  ITEM에서 Score[0]의 값을 더할수 없다.
-// Score 시작
-#define EF_LEVEL     			  1	// 레벨 * Score[1] - Score[15] Bonus Score값을 그대로 더해 버린다.
-#define EF_DAMAGE                 2 // 증뎀
-#define EF_AC       			  3	// 방어
-#define EF_HP        			  4	// 피증  HP,MP,공격속도,이동속도,각종 MAX등등
-#define EF_MP       			  5	// 마증
-#define EF_EXP      			  6	// 경험
-#define EF_STR      		      7	// 힘
-#define EF_INT      		      8	// 정신 
-#define EF_DEX       		      9	// 민첩
-#define EF_CON      		     10	// 체격
-#define EF_SPECIAL1    		     11	// 무마
-#define EF_SPECIAL2    			 12	// 특1
-#define EF_SPECIAL3    			 13	// 특2
-#define EF_SPECIAL4    			 14	// 특3
-// Score 끝.
-#define EF_SCORE14     			 15	// 
-#define EF_SCORE15     			 16	// 
-////////////////      REQUIREMENT        //////////////////////////////////////////
-#define EF_POS                   17  // 위치 입을수 있는 장소 bit값         - 디폴트 NOWHERE (0비트 가 EQUIP 0)
-#define EF_CLASS                 18  // 직업 입을수 있는 (성별)클래스 bit값 - 디폴트 YES
-#define EF_R1SIDC                19  // 한손 1핸드 또는 갑옷의 입을수 있는 STR INT DEC CON         - 디폴트 0
-#define EF_R2SIDC                20  // 두손 2핸드          의 입을수 있는 STR INT DEC CON         - 디폴트 불가
-////////////////   BONUS  ////////////////////////////////
-#define EF_WTYPE         	     21	 // 무류 무기분류 (애니메이션) 
-                                     //  1:소검(클럽)
-                                     //  2:중검(메이스)    
-                                     //  3:대검               
+/// @file ItemEffect.h
+/// @brief Constantes de efeitos (EF_*) usadas pelo cliente TMProject para leitura de ItemList e exibi챌찾o de tooltips.
 
-                                     // 11:소도끼         
-                                     // 12:중도끼             
-                                     // 13:대도끼             
+//#define EF_NONE     			  0	// Efeito 0 indica aus챗ncia de efeito; n찾o soma valor em Score[0].
+// Atributos de Score (1..14)
+#define EF_LEVEL     			  1	// N챠vel base do item/mob (soma ao Score[1..15]).
+#define EF_DAMAGE                 2 // Dano f챠sico adicional
+#define EF_AC       			  3	// Defesa f챠sica (AC)
+#define EF_HP        			  4	// B척nus de HP m찼ximo
+#define EF_MP       			  5	// B척nus de MP m찼ximo
+#define EF_EXP      			  6	// Experi챗ncia concedida / b척nus de EXP
+#define EF_STR      		      7	// For챌a (STR)
+#define EF_INT      		      8	// Intelig챗ncia (INT)
+#define EF_DEX       		      9	// Destreza (DEX)
+#define EF_CON      		     10	// Constitui챌찾o (CON)
+#define EF_SPECIAL1    		     11	// Linhagem/Maestria 1
+#define EF_SPECIAL2    			 12	// Linhagem/Maestria 2
+#define EF_SPECIAL3    			 13	// Linhagem/Maestria 3
+#define EF_SPECIAL4    			 14	// Linhagem/Maestria 4
+// Fim do bloco Score
+#define EF_SCORE14     			 15	// Slot reservado de Score 14
+#define EF_SCORE15     			 16	// Slot reservado de Score 15
 
-                                     // 21:소창               
-                                     // 22:중창               
-                                     // 23:대창               
+////////////////      REQUISITOS         //////////////////////////////////////////
+#define EF_POS                   17  // Bitmask de slots onde o item pode ser equipado (padr찾o 0 = n찾o equip찼vel)
+#define EF_CLASS                 18  // Bitmask de classes permitidas (padr찾o = todas)
+#define EF_R1SIDC                19  // Requisito combinado STR/INT/DEX/CON para armas de 1 m찾o ou armaduras
+#define EF_R2SIDC                20  // Requisito combinado STR/INT/DEX/CON para armas de 2 m찾os
 
-                                     // 31:소지팡이            
-                                     // 32:중지팡이           
-                                     // 33:대지팡이           
-
-                                     // 41:소클로
-
-                                     // 51:소방패
-
-                                     // 61:소클럽
-                                     // 62:중클럽
-                                     // 63:대클럽 
-
-                                     // 101:활
-                                     // 102:다트 
-                                     // 103:토마호크
-                                     // 104:재블린   
+////////////////   B횚NUS E TIPOS DE ARMA  ////////////////////////////////
+#define EF_WTYPE         	     21	 // Categoria/anima챌찾o da arma:
+                                     //   1: Espada curta (1 m찾o)   |   2: Espada m챕dia            |   3: Espada grande (2 m찾os)
+                                     //  11: Machado pequeno        |  12: Machado m챕dio           |  13: Machado grande
+                                     //  21: Lan챌a pequena          |  22: Lan챌a m챕dia             |  23: Lan챌a grande
+                                     //  31: Cajado pequeno         |  32: Cajado m챕dio            |  33: Cajado grande
+                                     //  41: Garra (Foema/BM)       |  51: Escudo
+                                     //  61: Clava pequena          |  62: Clava m챕dia             |  63: Clava grande
+                                     // 101: Arco                   | 102: Dardo / Besta           | 103: Tomahawk / Chakram   | 104: Azagaia
 ////////////////////////////////////////////////////////////////////////////
-#define EF_REQ_STR               22  // 힘제 
-#define EF_REQ_INT               23  // 정제
-#define EF_REQ_DEX               24  // 민제
-#define EF_REQ_CON               25  // 콘제
-/////////////////////////////////////////////////////////////////////////
-// * 주 요구치이나, 아이템은 기본 SIDC에 추가되는 값이다.
-/////////////////////////////////////////////////////////////////////////
+#define EF_REQ_STR               22  // Requisito m챠nimo de For챌a (adicional ao base SIDC)
+#define EF_REQ_INT               23  // Requisito m챠nimo de Intelig챗ncia
+#define EF_REQ_DEX               24  // Requisito m챠nimo de Destreza
+#define EF_REQ_CON               25  // Requisito m챠nimo de Constitui챌찾o
 
+#define EF_ATTSPEED  	       	 26	 // Velocidade de ataque
+#define EF_RANGE                 27  // Alcance de ataque (aplica-se o maior entre os equipados)
+#define EF_CITIZEN				 28	 // Cidadania / reino exigido
+#define EF_RUNSPEED              29  // Velocidade de movimento
+#define EF_SPELL    	    	 30	 // Magia/buff ativado ao usar ou equipar o item
+#define EF_DURATION              31  // Dura챌찾o (consum챠veis) ou par창metro 1 do efeito
+#define EF_PARM2     			 32	 // Par창metro 2 do efeito do item
+#define EF_GRID                  33  // Formato/ocupa챌찾o na grade do invent찼rio (챠ndice em g_pItemGrid)
+#define EF_GROUND                34  // Tamanho ocupado no mapa (port천es/objetos)
+#define EF_CLAN                  35  // Cl찾 / fac챌찾o associada ao item
+#define EF_HWORDCOIN             36  // Palavra alta do valor em ouro (itens de moeda)
+#define EF_LWORDCOIN             37  // Palavra baixa do valor em ouro
+#define EF_VOLATILE              38  // Tipo de consumo: 0=equipamento, 1=po챌찾o, 2=ouro, 3=chave, 4..6=b챗n챌찾os, 7=n챠vel+1
+#define EF_KEYID                 39  // Identificador da chave/porta vinculada
+#define EF_PARRY                 40  // B척nus de esquiva / parry
+#define EF_HITRATE               41  // B척nus de taxa de acerto
+#define EF_CRITICAL              42  // Chance de acerto cr챠tico
+#define EF_SANC                  43  // Grau de refina챌찾o (+0..+15, codificado com tintura acima de +9)
+#define EF_SAVEMANA              44  // Redu챌찾o percentual de custo de mana (1 -> 99%)
+#define EF_HPADD                 45  // B척nus percentual de HP m찼ximo (1 -> 101%)
+#define EF_MPADD                 46  // B척nus percentual de MP m찼ximo (1 -> 101%)
+#define EF_REGENHP               47  // Regenera챌찾o adicional de HP
+#define EF_REGENMP               48  // Regenera챌찾o adicional de MP
+#define EF_RESIST1               49  // Resist챗ncia a Fogo
+#define EF_RESIST2               50  // Resist챗ncia a Gelo
+#define EF_RESIST3               51  // Resist챗ncia a Sagrado
+#define EF_RESIST4               52  // Resist챗ncia a Trov찾o
+#define EF_ACADD                 53  // B척nus adicional de defesa (AC)
+#define EF_RESISTALL             54  // B척nus em todas as resist챗ncias elementais
+#define EF_BONUS                 55  // B척nus gen챕rico
+#define EF_HWORDGUILD            56  // Guilda (poder de ataque PvP)
+#define EF_LWORDGUILD            57  // Guilda (poder de defesa PvP)
+#define EF_QUEST                 58  // Bitmask/ID de quest vinculada (em geral usado com EF_VOLATILE)
+#define EF_UNIQUE                59  // Identificador de classe 첬nica do item
+#define EF_MAGIC                 60  // Amplifica챌찾o de dano m찼gico (1 -> +1%)
+#define EF_AMOUNT                61  // Quantidade empilhada
+#define EF_HWORDINDEX            62  // Palavra alta de 챠ndice auxiliar
+#define EF_LWORDINDEX            63  // Palavra baixa de 챠ndice auxiliar
+#define EF_INIT1                 64  // Efeito inicial 1
+#define EF_INIT2                 65  // Efeito inicial 2
+#define EF_INIT3                 66  // Efeito inicial 3
+#define EF_DAMAGEADD             67  // Adicional direto de dano f챠sico (usado em b척nus base/첬nico)
+#define EF_MAGICADD              68  // Adicional direto de ataque m찼gico
+                                     // Os efeitos abaixo (69..72) t챗m prioridade na exibi챌찾o de itens 첬nicos sobre os equivalentes base:
+#define EF_HPADD2                69  // B척nus de HP exibido no bloco base do item 첬nico
+#define EF_MPADD2                70  // B척nus de MP exibido no bloco base do item 첬nico
+#define EF_CRITICAL2             71  // Cr챠tico adicional (op챌찾o 첬nica)
+#define EF_ACADD2                72  // Defesa adicional (op챌찾o 첬nica)
+#define EF_DAMAGE2               73  // Dano adicional secund찼rio
+#define EF_SPECIALALL            74  // B척nus em todas as maestrias (exceto a primeira)
 
-#define EF_ATTSPEED  	       	 26	 // 공속 공격속도
-#define EF_RANGE                 27  // 사정 사정거리. 전체중 최대값이 적용됨.
-#define EF_CITIZEN				 28	 // 시민
-#define EF_RUNSPEED              29  // 런닝 달리기속도.
-#define EF_SPELL    	    	 30	 // 스펠 Item을 먹거나 입었을때 걸리는 마법
-#define EF_DURATION              31  // 지속 Item 파라메타1 - 먹을때 효력이 발생하는 시간, 입는아이템은 항상 
-#define EF_PARM2     			 32	 // 파람 Item 파라메타2
-#define EF_GRID                  33  // 크기 Carry를 차지하는 아이템그리드
-#define EF_GROUND                34  // 땅칸 성문등에서 땅을 차지하는 크기
-#define EF_CLAN                  35  // 종족
-#define EF_HWORDCOIN             36  // 대돈 
-#define EF_LWORDCOIN             37  // 소돈 
-#define EF_VOLATILE              38  // 소모 먹으면 바로 사라지는 아이템.  0:일반장구  1:물약계통  2:돈계통   3:열쇠 4:축1  5:축2  6:축3
-                                     //                               6:스펠+15   7:레벨+1
-#define EF_KEYID                 39  // 키번
-#define EF_PARRY                 40  // 회피 회피율 보나스
-#define EF_HITRATE               41  // 밍중 명중률 보나스
-#define EF_CRITICAL              42  // 크리 크리티컬
-#define EF_SANC                  43  // 제련 Sanctuary 주로 보나스 포인트에 편성되며 
-#define EF_SAVEMANA              44  // 마절 1 -> 99%
-#define EF_HPADD                 45  // 피뻥 1 -> 101%   MAX_MP 
-#define EF_MPADD                 46  // 마뻥 1 -> 101%   MAX_MP
-#define EF_REGENHP               47  // 피회
-#define EF_REGENMP               48  // 마회
-#define EF_RESIST1               49  // 불저
-#define EF_RESIST2               50  // 얼저
-#define EF_RESIST3               51  // 신저
-#define EF_RESIST4               52  // 번저
-#define EF_ACADD                 53  // 방증
-#define EF_RESISTALL             54  // 올저
-#define EF_BONUS                 55  // 보나
-#define EF_HWORDGUILD            56  // 길드 ( PvP 공격력)
-#define EF_LWORDGUILD            57  // 길드 ( PvP 방어력)
-#define EF_QUEST                 58  // 임무 반드시 1부터 시작, 대부분 Volatile과 함게 세팅될 것 임.
-#define EF_UNIQUE                59  // 고유
-#define EF_MAGIC                 60  // 마공 1 -> 1% 증폭 
-#define EF_AMOUNT                61  // 갯수
-#define EF_HWORDINDEX            62  // 번호
-#define EF_LWORDINDEX            63  // 번호
-#define EF_INIT1                 64  // 초기
-#define EF_INIT2                 65  // 초기
-#define EF_INIT3                 66  // 초기
-#define EF_DAMAGEADD             67  // 댐뽀
-#define EF_MAGICADD              68  // 마뽀
-                                     // 다음 2들은 별로도 쿼리를 던지지 않고 베이스를 쿼리를 던지면 유닉 옵에서 자동 체킹하는 부분.   
-                                     // 클라이언트 표기시는 이것을 먼저 던저서 이것이 나오면 베이스는 던지지 않는다.
-#define EF_HPADD2                69  // 피2   피뻥과 같으나 기본 옵에 포함되어 표시된다.
-#define EF_MPADD2                70  // 피2   피뻥과 같으나 기본 옵에 포함되어 표시된다.
-#define EF_CRITICAL2             71  // 크리 크리티컬
-#define EF_ACADD2                72  // 방증
-#define EF_DAMAGE2               73  // 
-#define EF_SPECIALALL            74  // 마스터리 무마제외 증가 
+#define	EF_CURKILL				 75  // N찾o utilizado
+#define EF_LTOTKILL				 76  // N찾o utilizado
+#define EF_HTOTKILL				 77  // N찾o utilizado
+#define EF_INCUBATE				 78  // Limiar de incuba챌찾o do ovo de montaria
 
-#define	EF_CURKILL				 75  // not used
-#define EF_LTOTKILL				 76  // not used
-#define EF_HTOTKILL				 77  // not used
-#define EF_INCUBATE				 78  // 부화임계치
+// Atributos espec챠ficos de montarias e crias (slots 79..83)
+#define EF_MOUNTLIFE			 79  // Vitalidade restante da montaria
+#define EF_MOUNTHP				 80  // HP atual da montaria
+#define EF_MOUNTSANC			 81  // N챠vel/crescimento da montaria
+#define EF_MOUNTFEED			 82  // N챠vel de saciedade da montaria
+#define EF_MOUNTKILL			 83  // Contador auxiliar / abates da montaria
 
+#define EF_INCUDELAY             84  // Tempo restante de incuba챌찾o
+#define EF_SUBGUILD				 85	// Subguilda (0 = guilda principal; 1..3 = subguildas)
+#define EF_PREVBONUS			 86	// B척nus de n챠vel do personagem anterior
 
-#define EF_MOUNTLIFE			 79  // 말 총 생명 
-#define EF_MOUNTHP				 80  // 말 현 피
-#define EF_MOUNTSANC			 81  // 말 성장도
-#define EF_MOUNTFEED			 82  // 말 배부름 정도	
-#define EF_MOUNTKILL			 83  // 말이 죽인 몬스터 갯수?
+#define EF_REFLEVEL              87 // N챠vel de refer챗ncia para chance de refina챌찾o
+#define EF_GAMEROOM	             88 // Restri챌찾o de sala / lan house
 
-#define EF_INCUDELAY             84
-#define EF_SUBGUILD				 85	// SUB길드, 0이면 최대길드 1,2,3까지 있다
-#define EF_PREVBONUS			 86	// 이전캐랙터 레벨보너스 
+#define EF_ABSDAM                89 // Dano absoluto (ignora defesa)
+#define EF_ABSAC                 90 // Defesa absoluta
 
-#define EF_REFLEVEL              87 // 제련 확률이 적용되는 level
-#define EF_GAMEROOM	             88
+#define EF_GRADE0				 100 // Grau 0
+#define EF_GRADE1				 101 // Grau 1
+#define EF_GRADE2				 102 // Grau 2
+#define EF_GRADE3				 103 // Grau 3
+#define EF_GRADE4				 104 // Grau 4
+#define EF_GRADE5				 105 // Grau 5
 
-#define EF_ABSDAM                89 // 절대 데미지, 방어력 무시
-#define EF_ABSAC                 90 // 절대 방어력 
+#define EF_DATE                  106 // Dia (validade/expira챌찾o)
+#define EF_HOUR                  107 // Hora (validade/expira챌찾o)
+#define EF_MIN                   108 // Minuto (validade/expira챌찾o)
+#define EF_YEAR                  109 // Ano (validade/expira챌찾o)
+#define EF_MONTH                 110 // M챗s (validade/expira챌찾o)
+#define EF_NOTRADE               111 // Item inegoci찼vel / preso ao personagem
+#define EF_TRANS				 112 // Transforma챌찾o/evolu챌찾o permitida (0:Todos, 1:Trans, 2:Normal, 3:Evolu챠do)
 
-#define EF_GRADE0				 100 // 0급
-#define EF_GRADE1				 101 // 1급
-#define EF_GRADE2				 102 // 2급
-#define EF_GRADE3				 103 // 3급
-#define EF_GRADE4				 104 // 4급
-#define EF_GRADE5				 105 // 5급
+#define EF_FAME					 113 // Fama exigida ou concedida
 
-#define EF_DATE                  106 // 날짜
-#define EF_HOUR                  107 // 시간
-#define EF_MIN                   108 // 분
-#define EF_YEAR                  109 // 연도
-#define EF_MONTH                 110 // 월
-#define EF_NOTRADE               111 // 거래불가
-#define EF_TRANS				 112 // 전신 아이템 (0:전체)(1:전신)(2:일반)(3:전직) 
+#define EF_STARTCOL              115 // In챠cio da faixa de efeitos de tintura/cor
+#define EF_COLOR0                116 // Cor 0
+#define EF_COLOR1                117 // Cor 1
+#define EF_COLOR2                118 // Cor 2
+#define EF_COLOR3                119 // Cor 3
+#define EF_COLOR4                120 // Cor 4
+#define EF_COLOR5                121 // Cor 5
+#define EF_COLOR6                122 // Cor 6
+#define EF_COLOR7                123 // Cor 7
+#define EF_COLOR8                124 // Cor 8
+#define EF_COLOR9                125 // Cor 9
+#define EF_MAXCOL                126 // Fim da faixa de cores
 
-#define EF_FAME					 113
-
-#define EF_STARTCOL              115
-#define EF_COLOR0                116
-#define EF_COLOR1                117
-#define EF_COLOR2                118
-#define EF_COLOR3                119
-#define EF_COLOR4                120
-#define EF_COLOR5                121
-#define EF_COLOR6                122
-#define EF_COLOR7                123
-#define EF_COLOR8                124
-#define EF_COLOR9                125
-#define EF_MAXCOL                126
-
-#define EF_STARTCOS				 130	//아이템 코스튬 시작
-#define EF_T_COS				 131	//사용하는 코드 없음
-#define EF_F_COS				 140	//사용하는 코드 없음
-#define EF_B_COS				 150	//사용하는 코드 없음
-#define EF_H_COS				 160	//사용하는 코드 없음
-#define EF_MAXCOS				 170
+#define EF_STARTCOS				 130	// In챠cio da faixa de trajes/costumes
+#define EF_T_COS				 131	// C처digo de traje n찾o utilizado
+#define EF_F_COS				 140	// C처digo de traje n찾o utilizado
+#define EF_B_COS				 150	// C처digo de traje n찾o utilizado
+#define EF_H_COS				 160	// C처digo de traje n찾o utilizado
+#define EF_MAXCOS				 170	// Fim da faixa de trajes
 
 
 #endif  _ITEMEFFECT_H_
