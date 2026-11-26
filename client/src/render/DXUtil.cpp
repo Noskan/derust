@@ -933,8 +933,9 @@ CArrayList::CArrayList(ArrayListType Type, UINT BytesPerEntry)
 //-----------------------------------------------------------------------------
 CArrayList::~CArrayList(void)
 {
+	// m_pData é alocado como BYTE[] (ver Add); delete[] de void* é comportamento indefinido.
 	if (m_pData != NULL)
-		delete[] m_pData;
+		delete[] static_cast<BYTE*>(m_pData);
 }
 
 
@@ -962,7 +963,7 @@ HRESULT CArrayList::Add(void* pEntry)
 		if (m_pData != NULL)
 		{
 			CopyMemory(pDataNew, m_pData, m_NumEntries * m_BytesPerEntry);
-			delete[] m_pData;
+			delete[] static_cast<BYTE*>(m_pData);
 		}
 		m_pData = pDataNew;
 		m_NumEntriesAllocated = NumEntriesAllocatedNew;

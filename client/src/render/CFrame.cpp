@@ -293,7 +293,6 @@ void CFrame::UpdateFrames(D3DXMATRIX* matCur)
 			{
 				D3DXVECTOR4 vecOut1;
 				D3DXVECTOR4 vecOut2;
-				D3DXVECTOR4 vecOut3;
 				D3DXVECTOR3 vecIn1(0.05f, 0.37f, 0.1f);
 				D3DXVECTOR3 vecIn2(0.05f, 0.37f, -0.1f);
 
@@ -308,9 +307,9 @@ void CFrame::UpdateFrames(D3DXMATRIX* matCur)
 				m_pParentSkin->m_pOwner->m_vecTempPos[9].y = vecOut2.y;
 				m_pParentSkin->m_pOwner->m_vecTempPos[9].z = vecOut2.z;
 
-				m_pParentSkin->m_pOwner->m_vecTempPos[10].x = vecOut3.x;
-				m_pParentSkin->m_pOwner->m_vecTempPos[10].y = vecOut3.y;
-				m_pParentSkin->m_pOwner->m_vecTempPos[10].z = vecOut3.z;
+				// A decompilação gravava em m_vecTempPos[10] um vecOut3 nunca calculado (lixo da
+				// pilha). O ramo dos ossos 0/1 calcula esse ponto; aqui não há a origem, e os leitores
+				// de [10] são efeitos de traje humanos (ossos 0/1), então [10] não é gravado.
 			}
 			else if (m_dwID == 9)
 				nIndex = 1;
