@@ -53,8 +53,10 @@ struct stEffectEvent
 };
 
 /// @brief Entidade de personagem jogavel, NPC ou monstro no mundo 3D.
-/// @details Implementacao dividida por coesao em TMHuman.cpp, TMHuman_Packets.cpp,
-///          TMHuman_Animation.cpp, TMHuman_Effects.cpp e TMHuman_Combat.cpp.
+/// @details Implementação dividida por coesão (Fase 2, Ondas 1 e 4): `TMHuman.cpp` (ciclo de vida,
+///          `InitObject`, posição, atributos), `TMHuman_FrameMove.cpp` (`FrameMove`, `DelayDelete`),
+///          `TMHuman_Render.cpp` (`Render`, picking e rótulos), `TMHuman_Packets.cpp`,
+///          `TMHuman_Animation.cpp`, `TMHuman_Effects.cpp` e `TMHuman_Combat.cpp`.
 class TMHuman : public TMObject
 {
 public:

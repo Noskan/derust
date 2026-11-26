@@ -79,6 +79,8 @@ set(TMPROJECT_SOURCES
   src/entities/TMFlail.cpp
   src/entities/TMFloat.cpp
   src/entities/TMHuman.cpp
+  src/entities/TMHuman_FrameMove.cpp
+  src/entities/TMHuman_Render.cpp
   src/entities/TMHuman_Animation.cpp
   src/entities/TMHuman_Combat.cpp
   src/entities/TMHuman_Effects.cpp
@@ -111,10 +113,19 @@ set(TMPROJECT_SOURCES
   src/scene/ObjectManager.cpp
   src/scene/TMDemoScene.cpp
   src/scene/TMFieldScene.cpp
+  src/scene/TMFieldScene_FrameMove.cpp
+  src/scene/TMFieldScene_Init.cpp
   src/scene/TMFieldScene_Combat.cpp
+  src/scene/TMFieldScene_AutoSkill.cpp
+  src/scene/TMFieldScene_Items.cpp
   src/scene/TMFieldScene_Input.cpp
   src/scene/TMFieldScene_Packets.cpp
+  src/scene/TMFieldScene_PacketAttack.cpp
+  src/scene/TMFieldScene_PacketItems.cpp
   src/scene/TMFieldScene_UI.cpp
+  src/scene/TMFieldScene_HUD.cpp
+  src/scene/TMFieldScene_MsgBox.cpp
+  src/scene/TMFieldScene_Panels.cpp
   src/scene/TMObject.cpp
   src/scene/TMObjectContainer.cpp
   src/scene/TMScene.cpp

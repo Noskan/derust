@@ -22,8 +22,18 @@ class TMRain;
 class TMSnow;
 
 /// @brief Cena principal de jogo em campo (HUD, combate, entrada, pacotes e mundo).
-/// @details Implementacao dividida por coesao em TMFieldScene.cpp, TMFieldScene_UI.cpp,
-///          TMFieldScene_Input.cpp, TMFieldScene_Combat.cpp e TMFieldScene_Packets.cpp.
+/// @details Implementação dividida por coesão (Fase 2, Ondas 1 e 4):
+/// - Núcleo: `TMFieldScene.cpp` (gates, clima, voo, afetos, caça automática),
+///   `TMFieldScene_Init.cpp` (construtor/destrutor, `InitializeScene`) e
+///   `TMFieldScene_FrameMove.cpp` (`FrameMove`, `TimeDelay`).
+/// - UI: `TMFieldScene_UI.cpp` (`OnControlEvent`), `TMFieldScene_Panels.cpp` (`SetVisible*`),
+///   `TMFieldScene_HUD.cpp` (`UpdateScoreUI`, chat, câmera) e `TMFieldScene_MsgBox.cpp`
+///   (`OnMsgBoxEvent`, `Guildmark_*`).
+/// - Entrada: `TMFieldScene_Input.cpp`.
+/// - Combate: `TMFieldScene_Combat.cpp` (`SkillUse`, `MobAttack`, movimento),
+///   `TMFieldScene_AutoSkill.cpp` (`AutoSkillUse`) e `TMFieldScene_Items.cpp` (uso de itens/poções).
+/// - Rede: `TMFieldScene_Packets.cpp` (`OnPacketEvent`, mobs, chat, party),
+///   `TMFieldScene_PacketAttack.cpp` (`OnPacketAttack`) e `TMFieldScene_PacketItems.cpp` (itens e lojas).
 class TMFieldScene : public TMScene
 {
 public:
