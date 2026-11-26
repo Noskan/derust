@@ -279,6 +279,7 @@ private:
 	int OnControl_InputOk(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_ChatSelect(unsigned int idwControlID, unsigned int idwEvent);
 	int OnControl_CCModeDialog(unsigned int idwControlID, unsigned int idwEvent);
+	int OnControl_QuestButton1(unsigned int idwControlID, unsigned int idwEvent);
 	/// @}
 
 public:
