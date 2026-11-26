@@ -351,6 +351,11 @@ private:
 	void SendAreaAttack(TMHuman*& pTarget, TMHuman*& pOver, char& cSkillIndex, int& nDX, int& nDY, MSG_Attack& stAttack, int& nTargetIndex);
 	/// @}
 
+	/// @name Etapas com retorno antecipado extraídas de AutoSkillUse (Fase 3)
+	/// @{
+	bool AutoSkillUse_CastSelfOrArea(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& TarType, int& nReturnValue);
+	/// @}
+
 	/// @name Etapas com retorno antecipado extraídas de SkillUse (Fase 3)
 	/// @{
 	bool SkillUse_CastleWarCheck(unsigned int& dwServerTime, TMHuman*& pOver, char& cSkillIndex, int& nReturnValue);
