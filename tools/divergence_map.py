@@ -78,6 +78,13 @@ RULE_NOTES = {
     "BASE_GetDoubleCritical": "STRUCT_MOB preenchida campo a campo pelo nome",
 }
 
+# Pacotes que seguem na tabela mas já foram conferidos à mão: por que ficam como estão.
+PACKET_NOTES = {
+    0x10A: "o cliente só lê `MSG_CNFRemoveServerLogin` já em campo, depois da troca de servidor (0x52A), que o servidor não implementa; na tela de login lê `MSG_CNFAccountLogin`, que bate",
+    0x3B4: "o cliente lê só `Parm1`, que o servidor envia",
+    0x363: "bug do cliente: na loja (0x363) ele lê a cidadania pelo layout de `MSG_CreateMob`, no byte 228, que é `Desc[0]`; o servidor envia `Desc` ali, como o cliente exige, e a cidadania em 252",
+}
+
 
 def strip_comments(t):
     t = re.sub(r"/\*.*?\*/", lambda m: "\n" * m.group(0).count("\n"), t, flags=re.S)
@@ -511,6 +518,11 @@ def write_report(out_path, L, rules, bodies, usage, only):
             cell = f" {extra(p)} |" if extra else ""
             w(f"| `0x{p['v']:X}` | {p['dir']} | {snd} | {rcv} | {'<br>'.join(f'`{x}`' for x in where)} |{cell}")
         w("")
+        notes = sorted({p["v"] for p in rows if p["v"] in PACKET_NOTES})
+        for v in notes:
+            w(f"- `0x{v:X}`: {PACKET_NOTES[v]}.")
+        if notes:
+            w("")
 
     def mis_cell(p):
         parts = []

@@ -7,8 +7,8 @@ servidor teria de mudar para falar com este cliente, ou uma decisão a tomar.
 
 ## Resumo
 
-- **Pacotes**, casados pelo valor do opcode e pela struct que cada lado envia ou lê (uma "direção" é um opcode num sentido): **6 direções em que quem lê espera mais bytes do que o outro lado envia** e **24 em que os campos lidos não estão nos offsets enviados**. Outras 16 batem em offsets mas trocam nomes de campos, e 63 batem por inteiro. Em 39, o cliente envia ou espera um pacote que o servidor não lê ou não envia; em 47, é o servidor que envia ou lê algo que o cliente não usa (fora 53 do tráfego com o DBSrv).
-- **Structs de jogo e de arquivo** de mesmo nome: 13, das quais 11 diferem. `STRUCT_MOB` tem 1024 bytes no servidor e 1024 no cliente, e vai dentro dos pacotes de login.
+- **Pacotes**, casados pelo valor do opcode e pela struct que cada lado envia ou lê (uma "direção" é um opcode num sentido): **2 direções em que quem lê espera mais bytes do que o outro lado envia** e **1 em que os campos lidos não estão nos offsets enviados**. Outras 16 batem em offsets mas trocam nomes de campos, e 90 batem por inteiro. Em 39, o cliente envia ou espera um pacote que o servidor não lê ou não envia; em 47, é o servidor que envia ou lê algo que o cliente não usa (fora 53 do tráfego com o DBSrv).
+- **Structs de jogo e de arquivo** de mesmo nome: 13, das quais 10 diferem. `STRUCT_MOB` tem 1024 bytes no servidor e 1024 no cliente, e vai dentro dos pacotes de login.
 - **Regras `BASE_*`** comparadas com as mesmas entradas: 30. **22 divergem** em ao menos uma entrada; 8 concordam em todas.
 - **Só de um lado**: 49 funções `BASE_*` só no servidor e 29 só no cliente.
 
@@ -42,11 +42,10 @@ espera mais bytes do que chegam: ou o pacote é recusado, ou os campos do fim sa
 | Opcode | Direção | Envia | Lê | Onde |
 |---|---|---|---|---|
 | `0x10A` | servidor → cliente | `MSG_DBCNFAccountLogin` (1928) | `MSG_CNFAccountLogin` (1928), `MSG_CNFRemoveServerLogin` (3624) | `server/tmsrv/net/ProcessDBMessage.cpp:398`<br>`client/src/scene/TMFieldScene_Packets.cpp:97` |
-| `0x333` | servidor → cliente | `MSG_MessageChat` (108) | `MSG_MessageChat` (140) | `server/tmsrv/net/SendFunc.cpp:1652`<br>`client/src/entities/TMHuman_Packets.cpp:122` |
-| `0x334` | servidor → cliente | `MSG_MessageWhisper` (128) | `MSG_MessageWhisper` (160) | `server/tmsrv/net/ProcessClientMessage.cpp:164 (eco)`<br>`client/src/entities/TMHuman_Packets.cpp:131` |
-| `0x37F` | cliente → servidor | `MSG_REQParty` (44) | `MSG_SendReqParty` (48) | `client/src/scene/TMFieldScene_Controls.cpp:1595`<br>`server/tmsrv/net/ProcessClientMessage.cpp:152` |
 | `0x3B4` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM2` (20) | `server/tmsrv/handlers/items/UseItem_Quests.cpp:881`<br>`client/src/scene/TMSelectCharScene.cpp:1349` |
-| `0xD1D` | servidor → cliente | `MSG_MagicTrumpet` (108) | `MSG_MessageWhisper` (160) | `server/tmsrv/handlers/social/_MSG_MessageWhisper.cpp:130`<br>`client/src/scene/TMScene_Packets.cpp:432` |
+
+- `0x10A`: o cliente só lê `MSG_CNFRemoveServerLogin` já em campo, depois da troca de servidor (0x52A), que o servidor não implementa; na tela de login lê `MSG_CNFAccountLogin`, que bate.
+- `0x3B4`: o cliente lê só `Parm1`, que o servidor envia.
 
 ## Pacotes com campos em outros offsets
 
@@ -56,30 +55,9 @@ da struct de quem lê.
 
 | Opcode | Direção | Envia | Lê | Onde | Campos |
 |---|---|---|---|---|---|
-| `0x114` | servidor → cliente | `MSG_CNFClientCharacterLogin` (1712) | `MSG_CNFCharacterLogin` (1712) | `server/tmsrv/net/ProcessDBMessage.cpp:788`<br>`client/src/scene/TMFieldScene_Packets.cpp:99` | `MSG_CNFCharacterLogin`: `Ext1`, `Ext2` |
-| `0x16F` | servidor → cliente | `MSG_DecayItem` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/handlers/items/_MSG_GetItem.cpp:114`<br>`client/src/scene/TMFieldScene_Packets.cpp:117` | `MSG_STANDARDPARM`: `Parm` |
-| `0x18A` | servidor → cliente | `MSG_SetHpDam` (20) | `MSG_SetHpDam` (20) | `server/tmsrv/systems/AffectSystem.cpp:1096`<br>`client/src/entities/TMHuman_Packets.cpp:119` | `MSG_SetHpDam`: `Dam` |
-| `0x26E` | servidor → cliente | `MSG_CreateItem` (32) | `MSG_CreateItem` (32) | `server/tmsrv/core/ProcessSecMinTimer.cpp:821`<br>`client/src/scene/TMFieldScene_Packets.cpp:109` | `MSG_CreateItem`: `Owner` |
-| `0x27B` | cliente → servidor | `MSG_REQShopList` (16) | `MSG_REQShopList` (16) | `client/src/scene/TMFieldScene_Input.cpp:2231`<br>`server/tmsrv/net/ProcessClientMessage.cpp:136` | `MSG_REQShopList`: `Unk` |
-| `0x333` | cliente → servidor | `MSG_MessageChat` (140) | `MSG_MessageChat` (108) | `client/src/scene/TMFieldScene_Controls.cpp:2557`<br>`server/tmsrv/net/ProcessClientMessage.cpp:92` | `MSG_MessageChat`: `String` |
-| `0x334` | cliente → servidor | `MSG_MessageWhisper` (160) | `MSG_MessageWhisper` (128) | `client/src/entities/TMHuman_Packets.cpp:1141`<br>`server/tmsrv/net/ProcessClientMessage.cpp:164` | `MSG_MessageWhisper`: `String` |
-| `0x336` | servidor → cliente | `MSG_UpdateScore` (152) | `MSG_UpdateScore` (152) | `server/tmsrv/net/SendFunc.cpp:1141`<br>`client/src/entities/TMHuman_Packets.cpp:113` | `MSG_UpdateScore`: `Magic`, `Rsv`, `LearnedSkill` |
-| `0x363` | servidor → cliente | `MSG_CreateMobTrade` (252) | `MSG_CreateMob` (232) | `server/tmsrv/net/GetFunc.cpp:1074`<br>`client/src/scene/TMFieldScene_Packets.cpp:70` | `MSG_CreateMob`: `Server` |
-| `0x364` | servidor → cliente | `MSG_CreateMob` (232) | `MSG_CreateMob` (232) | `server/tmsrv/net/GetFunc.cpp:951`<br>`client/src/scene/TMFieldScene_Packets.cpp:69` | `MSG_CreateMob`: `Server` |
-| `0x367` | cliente → servidor | `MSG_Attack` (168) | `MSG_Attack` (168) | `client/src/scene/TMFieldScene_AutoSkill.cpp:1076`<br>`server/tmsrv/net/ProcessClientMessage.cpp:192` | `MSG_Attack`: `Unk_2`, `Rsv`, `ReqMp` |
-| `0x374` | servidor → cliente | `MSG_UpdateItem` (20) | `MSG_UpdateItem` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:180 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:115` | `MSG_UpdateItem`: `State`, `Height`, `dummy` |
-| `0x374` | cliente → servidor | `MSG_UpdateItem` (20) | `MSG_UpdateItem` (20) | `client/src/scene/TMFieldScene_Items.cpp:185`<br>`server/tmsrv/net/ProcessClientMessage.cpp:180` | `MSG_UpdateItem`: `State` |
-| `0x376` | servidor → cliente | `MSG_TradingItem` (20) | `MSG_SwapItem` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:160 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:179` | `MSG_SwapItem`: `TargetID` |
-| `0x376` | cliente → servidor | `MSG_SwapItem` (20) | `MSG_TradingItem` (20) | `client/src/ui/SGrid.cpp:464`<br>`server/tmsrv/net/ProcessClientMessage.cpp:160` | `MSG_TradingItem`: `WarpID` |
-| `0x378` | servidor → cliente | `MSG_SetShortSkill` (32) | `MSG_SetShortSkill` (32) | `server/tmsrv/handlers/items/UseItem_Quests.cpp:962`<br>`client/src/scene/TMFieldScene_Packets.cpp:144` | `MSG_SetShortSkill`: `Skill` |
-| `0x378` | cliente → servidor | `MSG_SetShortSkill` (32) | `MSG_SetShortSkill` (32) | `client/src/entities/TMHuman_Packets.cpp:1838`<br>`server/tmsrv/net/ProcessClientMessage.cpp:188` | `MSG_SetShortSkill`: `Skill1`, `Skill2` |
-| `0x37D` | servidor → cliente | `MSG_CNFAddParty` (40) | `MSG_AddParty` (40) | `server/tmsrv/net/SendFunc.cpp:1487`<br>`client/src/scene/TMFieldScene_Packets.cpp:132` | `MSG_AddParty`: `Party` |
-| `0x37E` | servidor → cliente | `MSG_RemoveParty` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/SendFunc.cpp:1524`<br>`client/src/scene/TMFieldScene_Packets.cpp:135` | `MSG_STANDARDPARM`: `Parm` |
-| `0x37F` | servidor → cliente | `MSG_SendReqParty` (48) | `MSG_REQParty` (44) | `server/tmsrv/net/SendFunc.cpp:1453`<br>`client/src/scene/TMFieldScene_Packets.cpp:129` | `MSG_REQParty`: `Leader` |
-| `0x39D` | cliente → servidor | `MSG_Attack` (168), `MSG_AttackOne` (72) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1893`<br>`server/tmsrv/net/ProcessClientMessage.cpp:193` | `MSG_Attack`: `Unk_2`, `Rsv`, `ReqMp` |
-| `0x39E` | cliente → servidor | `MSG_Attack` (168) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1985`<br>`server/tmsrv/net/ProcessClientMessage.cpp:194` | `MSG_Attack`: `Unk_2`, `Rsv`, `ReqMp` |
-| `0xFDE` | servidor → cliente | `MSG_AccountSecure` (32), `MSG_STANDARD` (12) | `MSG_CHARPASSWORD` (32) | `server/tmsrv/net/ProcessClientMessage.cpp:88 (eco)`<br>`client/src/scene/TMSelectCharScene.cpp:1370` | `MSG_CHARPASSWORD`: `ItemPassWord` |
-| `0xFDE` | cliente → servidor | `MSG_CHARPASSWORD` (32) | `MSG_AccountSecure` (32), `MSG_STANDARD` (12) | `client/src/scene/TMSelectCharScene.cpp:415`<br>`server/tmsrv/net/ProcessClientMessage.cpp:88` | `MSG_AccountSecure`: `NumericToken`, `Unknown`, `Pad` |
+| `0x363` | servidor → cliente | `MSG_CreateMobTrade` (256) | `MSG_CreateMob` (232) | `server/tmsrv/net/GetFunc.cpp:1074`<br>`client/src/scene/TMFieldScene_Packets.cpp:70` | `MSG_CreateMob`: `Server` |
+
+- `0x363`: bug do cliente: na loja (0x363) ele lê a cidadania pelo layout de `MSG_CreateMob`, no byte 228, que é `Desc[0]`; o servidor envia `Desc` ali, como o cliente exige, e a cidadania em 252.
 
 <details><summary>Pacotes com os mesmos offsets e campos renomeados</summary>
 
@@ -90,20 +68,20 @@ Mesma struct dos dois lados e mesmos offsets, mas com campos de outro nome. Em g
 |---|---|---|---|---|---|
 | `0x110` | servidor → cliente | `MSG_CNFNewCharacter` (856) | `MSG_CNFNewCharacter` (856) | `server/tmsrv/net/ProcessDBMessage.cpp:583`<br>`client/src/scene/TMSelectCharScene.cpp:1400` | `sel` → `SelChar` |
 | `0x112` | servidor → cliente | `MSG_CNFDeleteCharacter` (856) | `MSG_CNFDeleteCharacter` (856) | `server/tmsrv/net/ProcessDBMessage.cpp:599`<br>`client/src/scene/TMSelectCharScene.cpp:1416` | `sel` → `SelChar` |
-| `0x182` | servidor → cliente | `MSG_SendItem` (24) | `MSG_SendItem` (24) | `server/tmsrv/net/SendFunc.cpp:1069`<br>`client/src/entities/TMHuman_Packets.cpp:104` | `invType` → `DestType`; `Slot` → `DestPos`; `item` → `Item` |
+| `0x182` | servidor → cliente | `MSG_SendItem` (24) | `MSG_SendItem` (24) | `server/tmsrv/net/SendFunc.cpp:1068`<br>`client/src/entities/TMHuman_Packets.cpp:104` | `invType` → `DestType`; `Slot` → `DestPos`; `item` → `Item` |
 | `0x20D` | cliente → servidor | `MSG_AccountLogin` (120) | `MSG_AccountLogin` (120) | `client/src/scene/TMFieldScene_Packets.cpp:1238`<br>`server/tmsrv/net/ProcessClientMessage.cpp:68` | `AccountPassword` → `AccountPass`; `Zero` → `TID`; `ClientVersion` → `Version`; `DBNeedSave` → `Force`; `AdapterName` → `Mac` |
-| `0x337` | servidor → cliente | `MSG_UpdateEtc` (48) | `MSG_UpdateEtc` (48) | `server/tmsrv/net/SendFunc.cpp:1210`<br>`client/src/entities/TMHuman_Packets.cpp:134` | `Hold` → `FakeExp`; `Learn` → `LearnedSkill`; `Magic` só no servidor (38+2) |
+| `0x27B` | cliente → servidor | `MSG_REQShopList` (16) | `MSG_REQShopList` (16) | `client/src/scene/TMFieldScene_Input.cpp:2231`<br>`server/tmsrv/net/ProcessClientMessage.cpp:136` | `Target` → `TargetID` |
+| `0x336` | servidor → cliente | `MSG_UpdateScore` (152) | `MSG_UpdateScore` (152) | `server/tmsrv/net/SendFunc.cpp:1140`<br>`client/src/entities/TMHuman_Packets.cpp:113` | `RegenHP` só no servidor (134+1); `RegenMP` só no servidor (135+1); `CurrHp` → `ReqHp`; `CurrMp` → `ReqMp` |
+| `0x337` | servidor → cliente | `MSG_UpdateEtc` (48) | `MSG_UpdateEtc` (48) | `server/tmsrv/net/SendFunc.cpp:1204`<br>`client/src/entities/TMHuman_Packets.cpp:134` | `Hold` → `FakeExp`; `Learn` → `LearnedSkill`; `Magic` só no servidor (38+2) |
 | `0x338` | servidor → cliente | `MSG_CNFMobKill` (32) | `MSG_CNFMobKill` (32) | `server/tmsrv/systems/MobKilled.cpp:157`<br>`client/src/scene/TMFieldScene_Packets.cpp:126` | `Hold` → `FakeExp` |
-| `0x367` | servidor → cliente | `MSG_Attack` (168) | `MSG_Attack` (168) | `server/tmsrv/net/GetFunc.cpp:1584`<br>`client/src/scene/TMFieldScene_Packets.cpp:191` | `Unk_1` → `FakeExp`; `CurrentHp` só no servidor (16+4); `Unk_2` só no servidor (20+4); `unk0` só no servidor (32+2); `SkillParm` 47+1 → 49+1; `FlagLocal` 49+1 → 47+1; `Rsv` 50+2 → 32+2; `ReqMp` 58+2 → 16+4 |
+| `0x364` | servidor → cliente | `MSG_CreateMob` (232) | `MSG_CreateMob` (232) | `server/tmsrv/net/GetFunc.cpp:951`<br>`client/src/scene/TMFieldScene_Packets.cpp:69` | `GuildMemberType` → `GuildLevel`; `Unknow` só no servidor (133+3); `AnctCode` → `Equip2`; `Tab` → `Nick` |
 | `0x36A` | servidor → cliente | `MSG_Motion` (20) | `MSG_Motion` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:102 (eco)`<br>`client/src/entities/TMHuman_Packets.cpp:98` | `NotUsed` → `Direction` |
 | `0x36A` | cliente → servidor | `MSG_Motion` (20) | `MSG_Motion` (20) | `client/src/scene/TMFieldScene_Input.cpp:2073`<br>`server/tmsrv/net/ProcessClientMessage.cpp:102` | `NotUsed` → `Direction` |
-| `0x36B` | servidor → cliente | `MSG_UpdateEquip` (60) | `MSG_UpdateEquip` (60) | `server/tmsrv/net/SendFunc.cpp:1089`<br>`client/src/entities/TMHuman_Packets.cpp:107` | `Equip` → `sEquip`; `AnctCode` → `Equip2` |
+| `0x36B` | servidor → cliente | `MSG_UpdateEquip` (60) | `MSG_UpdateEquip` (60) | `server/tmsrv/net/SendFunc.cpp:1088`<br>`client/src/entities/TMHuman_Packets.cpp:107` | `Equip` → `sEquip`; `AnctCode` → `Equip2` |
 | `0x373` | cliente → servidor | `MSG_UseItem` (36) | `MSG_UseItem` (36) | `client/src/scene/TMFieldScene_Input.cpp:1371`<br>`server/tmsrv/net/ProcessClientMessage.cpp:210` | `WarpID` → `ItemID` |
 | `0x379` | cliente → servidor | `MSG_Buy` (24) | `MSG_Buy` (24) | `client/src/ui/SGrid_Trade.cpp:82`<br>`server/tmsrv/net/ProcessClientMessage.cpp:226` | `TargetInvenPos` → `TargetCarryPos`; `MyInvenPos` → `MyCarryPos` |
 | `0x383` | servidor → cliente | `MSG_Trade` (156) | `MSG_Trade` (156) | `server/tmsrv/net/ProcessClientMessage.cpp:234 (eco)`<br>`client/src/entities/TMHuman_Packets.cpp:143` | `InvenPos` → `CarryPos` |
 | `0x383` | cliente → servidor | `MSG_Trade` (156) | `MSG_Trade` (156) | `client/src/scene/TMFieldScene_Controls.cpp:3066`<br>`server/tmsrv/net/ProcessClientMessage.cpp:234` | `InvenPos` → `CarryPos` |
-| `0x39D` | servidor → cliente | `MSG_Attack` (168), `MSG_AttackOne` (68) | `MSG_Attack` (168) | `server/tmsrv/net/GetFunc.cpp:1299`<br>`client/src/scene/TMFieldScene_Packets.cpp:192` | `Unk_1` → `FakeExp`; `CurrentHp` só no servidor (16+4); `Unk_2` só no servidor (20+4); `unk0` só no servidor (32+2); `SkillParm` 47+1 → 49+1; `FlagLocal` 49+1 → 47+1; `Rsv` 50+2 → 32+2; `ReqMp` 58+2 → 16+4 |
-| `0x39E` | servidor → cliente | `MSG_Attack` (168) | `MSG_Attack` (168) | `server/tmsrv/net/ProcessClientMessage.cpp:194 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:193` | `Unk_1` → `FakeExp`; `CurrentHp` só no servidor (16+4); `Unk_2` só no servidor (20+4); `unk0` só no servidor (32+2); `SkillParm` 47+1 → 49+1; `FlagLocal` 49+1 → 47+1; `Rsv` 50+2 → 32+2; `ReqMp` 58+2 → 16+4 |
 
 </details>
 
@@ -164,14 +142,17 @@ Quem lê cabe no que foi enviado e todos os campos que ele lê estão nos mesmos
 
 | Opcode | Direção | Envia | Lê | Onde |
 |---|---|---|---|---|
+| `0x114` | servidor → cliente | `MSG_CNFClientCharacterLogin` (1712) | `MSG_CNFCharacterLogin` (1712) | `server/tmsrv/net/ProcessDBMessage.cpp:788`<br>`client/src/scene/TMFieldScene_Packets.cpp:99` |
 | `0x116` | servidor → cliente | `MSG_STANDARD` (12) | `MSG_STANDARD` (12) | `server/tmsrv/core/Server.cpp:1077`<br>`client/src/scene/TMFieldScene_Packets.cpp:93` |
 | `0x165` | servidor → cliente | `MSG_RemoveMob` (16) | `MSG_RemoveMob` (16) | `server/tmsrv/net/SendFunc.cpp:499`<br>`client/src/entities/TMHuman_Packets.cpp:101` |
-| `0x171` | servidor → cliente | `MSG_CNFGetItem` (28) | `MSG_CNFGetItem` (28) | `server/tmsrv/handlers/items/_MSG_GetItem.cpp:237`<br>`client/src/scene/TMFieldScene_Packets.cpp:113` |
+| `0x16F` | servidor → cliente | `MSG_DecayItem` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/handlers/items/_MSG_GetItem.cpp:113`<br>`client/src/scene/TMFieldScene_Packets.cpp:117` |
+| `0x171` | servidor → cliente | `MSG_CNFGetItem` (28) | `MSG_CNFGetItem` (28) | `server/tmsrv/handlers/items/_MSG_GetItem.cpp:233`<br>`client/src/scene/TMFieldScene_Packets.cpp:113` |
 | `0x175` | servidor → cliente | `MSG_CNFDropItem` (28) | `MSG_CNFDropItem` (28) | `server/tmsrv/handlers/items/_MSG_DropItem.cpp:130`<br>`client/src/scene/TMFieldScene_Packets.cpp:111` |
-| `0x17C` | servidor → cliente | `MSG_ShopList` (236) | `MSG_ShopList` (236) | `server/tmsrv/net/SendFunc.cpp:1383`<br>`client/src/scene/TMFieldScene_Packets.cpp:181` |
-| `0x181` | servidor → cliente | `MSG_SetHpMp` (28) | `MSG_SetHpMp` (28) | `server/tmsrv/net/SendFunc.cpp:1604`<br>`client/src/entities/TMHuman_Packets.cpp:116` |
-| `0x185` | servidor → cliente | `MSG_UpdateCarry` (528) | `MSG_Carry` (528) | `server/tmsrv/net/SendFunc.cpp:1550`<br>`client/src/entities/TMHuman_Packets.cpp:149` |
-| `0x18B` | servidor → cliente | `MSG_UpdateWeather` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/SendFunc.cpp:1566`<br>`client/src/scene/TMFieldScene_Packets.cpp:107` |
+| `0x17C` | servidor → cliente | `MSG_ShopList` (236) | `MSG_ShopList` (236) | `server/tmsrv/net/SendFunc.cpp:1377`<br>`client/src/scene/TMFieldScene_Packets.cpp:181` |
+| `0x181` | servidor → cliente | `MSG_SetHpMp` (28) | `MSG_SetHpMp` (28) | `server/tmsrv/net/SendFunc.cpp:1596`<br>`client/src/entities/TMHuman_Packets.cpp:116` |
+| `0x185` | servidor → cliente | `MSG_UpdateCarry` (528) | `MSG_Carry` (528) | `server/tmsrv/net/SendFunc.cpp:1542`<br>`client/src/entities/TMHuman_Packets.cpp:149` |
+| `0x18A` | servidor → cliente | `MSG_SetHpDam` (20) | `MSG_SetHpDam` (20) | `server/tmsrv/systems/AffectSystem.cpp:1096`<br>`client/src/entities/TMHuman_Packets.cpp:119` |
+| `0x18B` | servidor → cliente | `MSG_UpdateWeather` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/SendFunc.cpp:1558`<br>`client/src/scene/TMFieldScene_Packets.cpp:107` |
 | `0x18D` | servidor → cliente | `MSG_STANDARD` (12) | `MSG_STANDARD` (12) | `server/tmsrv/handlers/social/_MSG_Challange.cpp:116`<br>`client/src/scene/TMFieldScene_Packets.cpp:141` |
 | `0x193` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/handlers/world/Quest_Kingdom.cpp:567`<br>`client/src/entities/TMHuman_Packets.cpp:155` |
 | `0x196` | servidor → cliente | `MSG_STANDARD` (12) | `MSG_STANDARD` (12) | `server/tmsrv/handlers/items/_MSG_Buy.cpp:62`<br>`client/src/scene/TMFieldScene_Packets.cpp:189` |
@@ -179,6 +160,7 @@ Quem lê cabe no que foi enviado e todos os campos que ele lê estão nos mesmos
 | `0x211` | cliente → servidor | `MSG_DeleteCharacter` (48) | `MSG_DeleteCharacter` (48) | `client/src/scene/TMSelectCharScene.cpp:716`<br>`server/tmsrv/net/ProcessClientMessage.cpp:80` |
 | `0x213` | cliente → servidor | `MSG_CharacterLogin` (36) | `MSG_CharacterLogin` (36) | `client/src/scene/TMSelectCharScene.cpp:511`<br>`server/tmsrv/net/ProcessClientMessage.cpp:72` |
 | `0x215` | cliente → servidor | `MSG_STANDARD` (12) | `MSG_STANDARD` (12) | `client/src/scene/TMFieldScene_FrameMove.cpp:1725`<br>`server/tmsrv/net/ProcessClientMessage.cpp:76` |
+| `0x26E` | servidor → cliente | `MSG_CreateItem` (32) | `MSG_CreateItem` (32) | `server/tmsrv/core/ProcessSecMinTimer.cpp:822`<br>`client/src/scene/TMFieldScene_Packets.cpp:109` |
 | `0x270` | cliente → servidor | `MSG_GetItem` (28) | `MSG_GetItem` (28) | `client/src/entities/TMHuman_Combat.cpp:498`<br>`server/tmsrv/net/ProcessClientMessage.cpp:202` |
 | `0x272` | cliente → servidor | `MSG_DropItem` (32) | `MSG_DropItem` (32) | `client/src/scene/TMFieldScene_Items.cpp:77`<br>`server/tmsrv/net/ProcessClientMessage.cpp:198` |
 | `0x277` | cliente → servidor | `MSG_ApplyBonus` (20) | `MSG_ApplyBonus` (20) | `client/src/scene/TMFieldScene_Controls.cpp:1807`<br>`server/tmsrv/net/ProcessClientMessage.cpp:214` |
@@ -186,33 +168,53 @@ Quem lê cabe no que foi enviado e todos os campos que ele lê estão nos mesmos
 | `0x28B` | cliente → servidor | `MSG_STANDARDPARM2` (20) | `MSG_STANDARDPARM2` (20) | `client/src/scene/TMFieldScene_Input.cpp:2217`<br>`server/tmsrv/net/ProcessClientMessage.cpp:184` |
 | `0x28E` | cliente → servidor | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/scene/TMFieldScene_Input.cpp:1074`<br>`server/tmsrv/net/ProcessClientMessage.cpp:124` |
 | `0x291` | cliente → servidor | `MSG_STANDARDPARM` (16) | `MSG_STANDARD` (12) | `client/src/scene/TMFieldScene_FrameMove.cpp:1025`<br>`server/tmsrv/net/ProcessClientMessage.cpp:168` |
-| `0x292` | servidor → cliente | `MSG_SetHpMode` (20) | `MSG_SetHpMode` (20) | `server/tmsrv/net/SendFunc.cpp:1636`<br>`client/src/scene/TMFieldScene_Packets.cpp:138` |
+| `0x292` | servidor → cliente | `MSG_SetHpMode` (20) | `MSG_SetHpMode` (20) | `server/tmsrv/net/SendFunc.cpp:1628`<br>`client/src/scene/TMFieldScene_Packets.cpp:138` |
 | `0x2CD` | cliente → servidor | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/ui/SGrid_Tooltip.cpp:305`<br>`server/tmsrv/net/ProcessClientMessage.cpp:303` |
 | `0x2E4` | cliente → servidor | `MSG_STANDARDPARM2` (20) | `MSG_DeleteItem` (20) | `client/src/scene/TMFieldScene_MsgBox.cpp:404`<br>`server/tmsrv/net/ProcessClientMessage.cpp:271` |
 | `0x2E5` | cliente → servidor | `MSG_STANDARDPARM3` (24) | `MSG_SplitItem` (24) | `client/src/scene/TMFieldScene_Controls.cpp:1038`<br>`server/tmsrv/net/ProcessClientMessage.cpp:279` |
-| `0x339` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/SendFunc.cpp:1247`<br>`client/src/scene/TMFieldScene_Packets.cpp:105` |
+| `0x333` | servidor → cliente | `MSG_MessageChat` (140) | `MSG_MessageChat` (140) | `server/tmsrv/net/SendFunc.cpp:1644`<br>`client/src/entities/TMHuman_Packets.cpp:122` |
+| `0x333` | cliente → servidor | `MSG_MessageChat` (140) | `MSG_MessageChat` (140) | `client/src/scene/TMFieldScene_Controls.cpp:2557`<br>`server/tmsrv/net/ProcessClientMessage.cpp:92` |
+| `0x334` | servidor → cliente | `MSG_MessageWhisper` (160) | `MSG_MessageWhisper` (160) | `server/tmsrv/net/ProcessClientMessage.cpp:164 (eco)`<br>`client/src/entities/TMHuman_Packets.cpp:131` |
+| `0x334` | cliente → servidor | `MSG_MessageWhisper` (160) | `MSG_MessageWhisper` (160) | `client/src/entities/TMHuman_Packets.cpp:1141`<br>`server/tmsrv/net/ProcessClientMessage.cpp:164` |
+| `0x339` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/SendFunc.cpp:1241`<br>`client/src/scene/TMFieldScene_Packets.cpp:105` |
 | `0x366` | servidor → cliente | `MSG_Action` (52) | `MSG_STANDARD` (12) | `server/tmsrv/net/ProcessClientMessage.cpp:97 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:73` |
 | `0x366` | cliente → servidor | `MSG_Action` (52) | `MSG_Action` (52) | `client/src/entities/TMHuman_Combat.cpp:1294`<br>`server/tmsrv/net/ProcessClientMessage.cpp:97` |
+| `0x367` | servidor → cliente | `MSG_Attack` (168) | `MSG_Attack` (168) | `server/tmsrv/net/GetFunc.cpp:1584`<br>`client/src/scene/TMFieldScene_Packets.cpp:191` |
+| `0x367` | cliente → servidor | `MSG_Attack` (168) | `MSG_Attack` (168) | `client/src/scene/TMFieldScene_AutoSkill.cpp:1076`<br>`server/tmsrv/net/ProcessClientMessage.cpp:192` |
 | `0x368` | servidor → cliente | `MSG_Action` (52) | `MSG_Action` (52) | `server/tmsrv/handlers/combat/_MSG_Action.cpp:168`<br>`client/src/entities/TMHuman_Packets.cpp:74` |
 | `0x368` | cliente → servidor | `MSG_Action` (52) | `MSG_Action` (52) | `client/src/scene/TMFieldScene_Combat.cpp:1465`<br>`server/tmsrv/net/ProcessClientMessage.cpp:98` |
 | `0x369` | cliente → servidor | `MSG_REQMobByID` (16), `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/scene/TMFieldScene_PacketAttack.cpp:708`<br>`server/tmsrv/net/ProcessClientMessage.cpp:112` |
-| `0x36C` | servidor → cliente | `MSG_Action` (52) | `MSG_STANDARD` (12) | `server/tmsrv/net/GetFunc.cpp:1256`<br>`client/src/scene/TMFieldScene_Packets.cpp:72` |
+| `0x36C` | servidor → cliente | `MSG_Action` (52) | `MSG_STANDARD` (12) | `server/tmsrv/net/GetFunc.cpp:1257`<br>`client/src/scene/TMFieldScene_Packets.cpp:72` |
 | `0x36C` | cliente → servidor | `MSG_Action` (52) | `MSG_Action` (52) | `client/src/entities/TMHuman_Combat.cpp:1071`<br>`server/tmsrv/net/ProcessClientMessage.cpp:96` |
+| `0x374` | servidor → cliente | `MSG_UpdateItem` (20) | `MSG_UpdateItem` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:180 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:115` |
+| `0x374` | cliente → servidor | `MSG_UpdateItem` (20) | `MSG_UpdateItem` (20) | `client/src/scene/TMFieldScene_Items.cpp:185`<br>`server/tmsrv/net/ProcessClientMessage.cpp:180` |
+| `0x376` | servidor → cliente | `MSG_TradingItem` (20) | `MSG_SwapItem` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:160 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:179` |
+| `0x376` | cliente → servidor | `MSG_SwapItem` (20) | `MSG_TradingItem` (20) | `client/src/ui/SGrid.cpp:464`<br>`server/tmsrv/net/ProcessClientMessage.cpp:160` |
+| `0x378` | servidor → cliente | `MSG_SetShortSkill` (32) | `MSG_SetShortSkill` (32) | `server/tmsrv/handlers/items/UseItem_Quests.cpp:962`<br>`client/src/scene/TMFieldScene_Packets.cpp:144` |
+| `0x378` | cliente → servidor | `MSG_SetShortSkill` (32) | `MSG_SetShortSkill` (32) | `client/src/entities/TMHuman_Packets.cpp:1838`<br>`server/tmsrv/net/ProcessClientMessage.cpp:188` |
 | `0x379` | servidor → cliente | `MSG_Buy` (24) | `MSG_STANDARD` (12) | `server/tmsrv/net/ProcessClientMessage.cpp:226 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:123` |
 | `0x37A` | servidor → cliente | `MSG_Sell` (20) | `MSG_Sell` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:230 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:183` |
 | `0x37A` | cliente → servidor | `MSG_Sell` (20) | `MSG_Sell` (20) | `client/src/scene/TMFieldScene_MsgBox.cpp:435`<br>`server/tmsrv/net/ProcessClientMessage.cpp:230` |
+| `0x37D` | servidor → cliente | `MSG_CNFAddParty` (40) | `MSG_AddParty` (40) | `server/tmsrv/net/SendFunc.cpp:1481`<br>`client/src/scene/TMFieldScene_Packets.cpp:132` |
+| `0x37E` | servidor → cliente | `MSG_RemoveParty` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/SendFunc.cpp:1517`<br>`client/src/scene/TMFieldScene_Packets.cpp:135` |
 | `0x37E` | cliente → servidor | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/scene/TMFieldScene_Controls.cpp:3042`<br>`server/tmsrv/net/ProcessClientMessage.cpp:148` |
+| `0x37F` | servidor → cliente | `MSG_SendReqParty` (44) | `MSG_REQParty` (44) | `server/tmsrv/net/SendFunc.cpp:1447`<br>`client/src/scene/TMFieldScene_Packets.cpp:129` |
+| `0x37F` | cliente → servidor | `MSG_REQParty` (44) | `MSG_SendReqParty` (44) | `client/src/scene/TMFieldScene_Controls.cpp:1595`<br>`server/tmsrv/net/ProcessClientMessage.cpp:152` |
 | `0x384` | cliente → servidor | `MSG_STANDARD` (12) | `MSG_STANDARD` (12) | `client/src/scene/TMFieldScene_Panels.cpp:1361`<br>`server/tmsrv/net/ProcessClientMessage.cpp:206` |
 | `0x386` | servidor → cliente | `MSG_STANDARD` (12) | `MSG_STANDARD` (12) | `server/tmsrv/handlers/trade/_MSG_Trade.cpp:242`<br>`client/src/entities/TMHuman_Packets.cpp:152` |
 | `0x387` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/ProcessClientMessage.cpp:144 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:187` |
 | `0x387` | cliente → servidor | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/scene/TMFieldScene_Controls.cpp:783`<br>`server/tmsrv/net/ProcessClientMessage.cpp:144` |
 | `0x388` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/ProcessClientMessage.cpp:140 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:185` |
 | `0x388` | cliente → servidor | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/scene/TMFieldScene_Controls.cpp:793`<br>`server/tmsrv/net/ProcessClientMessage.cpp:140` |
-| `0x397` | servidor → cliente | `MSG_SendAutoTrade` (196) | `MSG_AutoTrade` (196) | `server/tmsrv/net/SendFunc.cpp:553`<br>`client/src/scene/TMFieldScene_Packets.cpp:177` |
+| `0x397` | servidor → cliente | `MSG_SendAutoTrade` (196) | `MSG_AutoTrade` (196) | `server/tmsrv/net/SendFunc.cpp:552`<br>`client/src/scene/TMFieldScene_Packets.cpp:177` |
 | `0x398` | cliente → servidor | `MSG_ReqBuy` (36) | `MSG_ReqBuy` (36) | `client/src/scene/TMFieldScene_Items.cpp:127`<br>`server/tmsrv/net/ProcessClientMessage.cpp:222` |
 | `0x399` | cliente → servidor | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/scene/TMFieldScene_HUD.cpp:1125`<br>`server/tmsrv/net/ProcessClientMessage.cpp:172` |
 | `0x39A` | cliente → servidor | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `client/src/scene/TMFieldScene_Input.cpp:933`<br>`server/tmsrv/net/ProcessClientMessage.cpp:176` |
 | `0x39B` | servidor → cliente | `MSG_STANDARDPARM2` (20) | `MSG_STANDARDPARM2` (20) | `server/tmsrv/handlers/trade/_MSG_ReqBuy.cpp:185`<br>`client/src/scene/TMFieldScene_Packets.cpp:103` |
+| `0x39D` | servidor → cliente | `MSG_Attack` (168), `MSG_AttackOne` (72) | `MSG_Attack` (168) | `server/tmsrv/net/GetFunc.cpp:1300`<br>`client/src/scene/TMFieldScene_Packets.cpp:192` |
+| `0x39D` | cliente → servidor | `MSG_Attack` (168), `MSG_AttackOne` (72) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1893`<br>`server/tmsrv/net/ProcessClientMessage.cpp:193` |
+| `0x39E` | servidor → cliente | `MSG_Attack` (168) | `MSG_Attack` (168) | `server/tmsrv/net/ProcessClientMessage.cpp:194 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:193` |
+| `0x39E` | cliente → servidor | `MSG_Attack` (168) | `MSG_Attack` (168) | `client/src/entities/TMHuman_Combat.cpp:1985`<br>`server/tmsrv/net/ProcessClientMessage.cpp:194` |
 | `0x39F` | servidor → cliente | `MSG_STANDARDPARM2` (20) | `MSG_STANDARDPARM2` (20) | `server/tmsrv/net/ProcessClientMessage.cpp:242 (eco)`<br>`client/src/entities/TMHuman_Packets.cpp:158` |
 | `0x39F` | cliente → servidor | `MSG_STANDARDPARM2` (20) | `MSG_STANDARDPARM2` (20) | `client/src/scene/TMFieldScene_Controls.cpp:1747`<br>`server/tmsrv/net/ProcessClientMessage.cpp:242` |
 | `0x3A1` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/core/ProcessSecMinTimer.cpp:450`<br>`client/src/scene/TMFieldScene_Packets.cpp:156` |
@@ -220,13 +222,16 @@ Quem lê cabe no que foi enviado e todos os campos que ele lê estão nos mesmos
 | `0x3A3` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/handlers/items/UseItem_Scrolls.cpp:230`<br>`client/src/scene/TMFieldScene_Packets.cpp:91` |
 | `0x3A4` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/handlers/social/_MSG_MessageChat.cpp:45`<br>`client/src/scene/TMFieldScene_Packets.cpp:165` |
 | `0x3A7` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARD` (12) | `server/tmsrv/handlers/combine/_MSG_CombineItem.cpp:109`<br>`client/src/scene/TMFieldScene_Packets.cpp:150` |
-| `0x3A8` | servidor → cliente | `MSG_STANDARDPARM3` (24) | `MSG_STANDARDPARM3` (24) | `server/tmsrv/net/SendFunc.cpp:1435`<br>`client/src/scene/TMFieldScene_Packets.cpp:162` |
+| `0x3A8` | servidor → cliente | `MSG_STANDARDPARM3` (24) | `MSG_STANDARDPARM3` (24) | `server/tmsrv/net/SendFunc.cpp:1429`<br>`client/src/scene/TMFieldScene_Packets.cpp:162` |
 | `0x3AB` | cliente → servidor | `MSG_CNFParty2` (32) | `MSG_AcceptParty` (32) | `client/src/scene/TMFieldScene_Controls.cpp:1965`<br>`server/tmsrv/net/ProcessClientMessage.cpp:156` |
 | `0x3AC` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/net/ProcessDBMessage.cpp:1011`<br>`client/src/scene/TMFieldScene_Packets.cpp:153` |
 | `0x3AD` | servidor → cliente | `MSG_STANDARDPARM` (16) | `MSG_STANDARDPARM` (16) | `server/tmsrv/systems/AffectSystem.cpp:73`<br>`client/src/entities/TMHuman_Packets.cpp:161` |
-| `0x3B9` | servidor → cliente | `MSG_SendAffect` (268) | `MSG_UpdateAffect` (268) | `server/tmsrv/net/SendFunc.cpp:1778`<br>`client/src/entities/TMHuman_Packets.cpp:110` |
+| `0x3B9` | servidor → cliente | `MSG_SendAffect` (268) | `MSG_UpdateAffect` (268) | `server/tmsrv/net/SendFunc.cpp:1770`<br>`client/src/entities/TMHuman_Packets.cpp:110` |
 | `0x3D5` | cliente → servidor | `MSG_STANDARDPARM2` (20) | `MSG_STANDARDPARM2` (20) | `client/src/scene/TMFieldScene_Controls.cpp:1685`<br>`server/tmsrv/net/ProcessClientMessage.cpp:275` |
 | `0x52A` | servidor → cliente | `MSG_DBCNFServerChange` (80) | `MSG_CNFRemoveServer` (80) | `server/tmsrv/net/ProcessDBMessage.cpp:1318 (eco)`<br>`client/src/scene/TMFieldScene_Packets.cpp:95` |
+| `0xD1D` | servidor → cliente | `MSG_MagicTrumpet` (160) | `MSG_MessageWhisper` (160) | `server/tmsrv/handlers/social/_MSG_MessageWhisper.cpp:132`<br>`client/src/scene/TMScene_Packets.cpp:432` |
+| `0xFDE` | servidor → cliente | `MSG_AccountSecure` (32), `MSG_STANDARD` (12) | `MSG_CHARPASSWORD` (32) | `server/tmsrv/net/ProcessClientMessage.cpp:88 (eco)`<br>`client/src/scene/TMSelectCharScene.cpp:1370` |
+| `0xFDE` | cliente → servidor | `MSG_CHARPASSWORD` (32) | `MSG_AccountSecure` (32), `MSG_STANDARD` (12) | `client/src/scene/TMSelectCharScene.cpp:415`<br>`server/tmsrv/net/ProcessClientMessage.cpp:88` |
 
 
 </details>
@@ -242,7 +247,6 @@ arquivos que as gravam (contas, `.bin`). `A → B` é um campo que mudou de nome
 | `STRUCT_ACCOUNTFILE` | 8640 | 8000 | `Info` só no servidor (0+220); `Char` 224+4096 → 216+4096; `Cargo` 4320+1024 → 4312+1024; `Coin` 5344+4 → 5336+4; `ShortSkill` 5348+64 → 5340+64; `affect` só no servidor (5412+1024); `mobExtra` só no servidor (6440+2144); `Donate` só no servidor (8584+4); `TempKey` só no servidor (8588+52); `Account` só no cliente (0+212); `Ext1` só no cliente (5404+1152); `Ext2` só no cliente (6560+1440) |
 | `STRUCT_AFFECT` | 8 | 8 | `Value` 1+1 → 2+2; `Level` 2+2 → 1+1 |
 | `STRUCT_BEASTBONUS` | 68 | 68 | `Unk` → `Int_Damage`; `Unk2` → `Spe_Damage`; `Unk3` → `Int_Ac`; `Unk4` → `Spe_Ac`; `Unk5` → `Int_Hp`; `Unk6` → `Spe_Hp`; `Unk7` → `Int_Run`; `Unk8` → `Spe_Run`; `Unk9` → `Int_Attack`; `Unk10` → `Spe_Attack`; `Unk11` → `Int_Critical`; `Unk12` → `Spe_Critical`; `Unk13` → `Int_Resist`; `Unk14` → `Spe_Regist`; `Unk15` → `Int_Delay`; `Unk16` → `Spe_Delay`; `Unk17` → `SancLevel` |
-| `STRUCT_DAM` | 8 | 8 | `TargetID` 0+4 → 0+2 |
 | `STRUCT_GUILDZONE` | 84 | 84 | `GuildSpawnX` → `GuildStartX`; `GuildSpawnY` → `GuildStartY`; `CitySpawnX` só no servidor (16+4); `CitySpawnY` só no servidor (20+4); `CityLimitX1` → `vx1`; `CityLimitY1` → `vy1`; `CityLimitX2` → `vx2`; `CityLimitY2` → `vy2`; `WarAreaX1` → `ax1`; `WarAreaY1` → `ay1`; `WarAreaX2` → `ax2`; `WarAreaY2` → `ay2`; `ChargeWarSpawnX` → `hx`; `ChargeWarSpawnY` → `hy`; `ChallangeWarSpawnX` → `gx`; `ChallangeWarSpawnY` → `gy`; `CityTax` → `Tax`; `Clan` → `ChargeClan`; `Victory` → `ChargeCount`; `Start` só no cliente (16+8) |
 | `STRUCT_INITITEM` | 8 | 8 | `ItemIndex` → `sIndex` |
 | `STRUCT_ITEMLIST` | 140 | 140 | `IndexMesh` → `nIndexMesh`; `IndexTexture` → `nIndexTexture`; `IndexVisualEffect` → `nIndexVisualEffect`; `ReqLvl` → `nReqLvl`; `ReqStr` → `nReqStr`; `ReqInt` → `nReqInt`; `ReqDex` → `nReqDex`; `ReqCon` → `nReqCon`; `Price` → `nPrice`; `Extra` → `nExtra`; `Grade` → `nGrade` |
@@ -251,7 +255,7 @@ arquivos que as gravam (contas, `.bin`). `A → B` é um campo que mudou de nome
 | `STRUCT_SELCHAR` | 840 | 840 | `SPX` → `HomeTownX`; `SPY` → `HomeTownY`; `Name` → `MobName` |
 | `STRUCT_SPELL` | 84 | 96 | `Act` → `Act1`; `InstanceAttribute` 56+4 → 64+4; `TickAttribute` 60+4 → 68+4; `Aggressive` 64+4 → 72+4; `MaxTarget` 68+4 → 76+4; `bParty` 72+4 → 80+4; `AffectResist` 76+4 → 84+4; `Passive` 80+4 → 88+4; `Act2` só no cliente (56+8); `ForceDamage` só no cliente (92+4) |
 
-Idênticas (mesmo tamanho, mesmos campos nos mesmos offsets): `STRUCT_ITEM`, `STRUCT_TREASURE`.
+Idênticas (mesmo tamanho, mesmos campos nos mesmos offsets): `STRUCT_DAM`, `STRUCT_ITEM`, `STRUCT_TREASURE`.
 
 ## Regras `BASE_*`
 
