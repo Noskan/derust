@@ -422,39 +422,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 87) // Escudo Dourado
 		{
-			if (!g_bHideEffect)
-			{
-				for (int i = 0; i < 10; i++)
-				{
-					int nRand = rand() % 5;
-
-					auto pBill = new TMEffectBillBoard(
-						56,
-						150 * i + 1000,
-						((float)(i % 2) * 0.1f) + 0.2f,
-						((float)(i % 2) * 0.1f) + 0.2f,
-						((float)(i % 2) * 0.1f) + 0.2f,
-						0.0f,
-						1,
-						80);
-
-					if (pBill)
-					{
-						pBill->m_fParticleH = (float)((float)(i % 3) * 0.15f) + 1.1f;
-						pBill->m_fParticleV = -2.0f;
-						pBill->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-						pBill->m_nParticleType = 3;
-
-						pBill->m_vecStartPos = TMVector3((pAttacker->m_vecPosition.x + 0.5f) + ((float)(nRand - 3) * 0.1f),
-							((pAttacker->m_fHeight + 0.5f) + ((float)(nRand - 3) * 0.1f)) + 2.0f,
-							(pAttacker->m_vecPosition.y + 0.5f) + ((float)(nRand - 3) * 0.1f));
-
-						pBill->SetColor(0xFF4444FF);
-
-						m_pEffectContainer->AddChild(pBill);
-					}
-				}
-			}
+			PacketAttack_Skill87BillBoards(pAttacker);
 		}
 		else if (pAttack->SkillIndex == 86) // Explosão Etérea
 		{
@@ -1394,6 +1362,45 @@ void TMFieldScene::PacketAttack_Skill52Effect(MSG_Attack*& pAttack, TMHuman*& pA
 
 		if (m_pEffectContainer && pFreeze)
 			m_pEffectContainer->AddChild(pFreeze);
+	}
+}
+
+/// Skill 87: dez partículas (`TMEffectBillBoard`) em volta do atacante.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill87BillBoards(TMHuman*& pAttacker)
+{
+	if (!g_bHideEffect)
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			int nRand = rand() % 5;
+
+			auto pBill = new TMEffectBillBoard(
+				56,
+				150 * i + 1000,
+				((float)(i % 2) * 0.1f) + 0.2f,
+				((float)(i % 2) * 0.1f) + 0.2f,
+				((float)(i % 2) * 0.1f) + 0.2f,
+				0.0f,
+				1,
+				80);
+
+			if (pBill)
+			{
+				pBill->m_fParticleH = (float)((float)(i % 3) * 0.15f) + 1.1f;
+				pBill->m_fParticleV = -2.0f;
+				pBill->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+				pBill->m_nParticleType = 3;
+
+				pBill->m_vecStartPos = TMVector3((pAttacker->m_vecPosition.x + 0.5f) + ((float)(nRand - 3) * 0.1f),
+					((pAttacker->m_fHeight + 0.5f) + ((float)(nRand - 3) * 0.1f)) + 2.0f,
+					(pAttacker->m_vecPosition.y + 0.5f) + ((float)(nRand - 3) * 0.1f));
+
+				pBill->SetColor(0xFF4444FF);
+
+				m_pEffectContainer->AddChild(pBill);
+			}
+		}
 	}
 }
 
