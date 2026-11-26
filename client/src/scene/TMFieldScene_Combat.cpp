@@ -1546,6 +1546,7 @@ int TMFieldScene::SkillUse(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwServe
 
 /// Monta e envia o ataque em área das skills 12, 16 e 28 (alvos ao redor de `nDX`/`nDY`).
 /// @note Extraído de `TMFieldScene::SkillUse` (Fase 3); locais da função passadas por referência.
+///       `AutoSkillUse` tinha uma cópia idêntica do bloco e também chama este método.
 void TMFieldScene::SendAreaAttack(TMHuman*& pTarget, TMHuman*& pOver, char& cSkillIndex, int& nDX, int& nDY, MSG_Attack& stAttack, int& nTargetIndex)
 {
 if (cSkillIndex == 16 || cSkillIndex == 12 || cSkillIndex == 28)
