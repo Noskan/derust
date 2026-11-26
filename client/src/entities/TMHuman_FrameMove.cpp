@@ -312,90 +312,10 @@ int TMHuman::FrameMove(unsigned int dwServerTime)
         vecNext.y = m_vecRouteBuffer[nRouteIndex + 1].y;
     }
 
-    if (vecNow.x == vecNext.x && vecNow.y == vecNext.y)
     {
-        if (m_stScore.Hp > 0 && (m_eMotion == ECHAR_MOTION::ECMOTION_WALK || m_eMotion == ECHAR_MOTION::ECMOTION_RUN))
-        {
-            SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
-
-            if (m_fMaxSpeed <= 10.0f)
-            {
-                for (int l = nRouteIndex + 1; l < 48; ++l)
-                    m_vecRouteBuffer[l] = m_vecRouteBuffer[nRouteIndex];
-            }
-            else
-            {
-                for (int nIndex = 0; nIndex < 48; ++nIndex)
-                    m_vecRouteBuffer[nIndex] = m_vecRouteBuffer[nRouteIndex];
-            }
-
-            m_cOnlyMove = 0;
-            SetSpeed(0);
-
-            TMFieldScene* pFScene = (TMFieldScene*)g_pCurrentScene;
-            if (g_pCurrentScene->m_pMyHuman == this && m_pMoveTargetHuman)
-            {
-                if (g_pCurrentScene->m_eSceneType == ESCENE_TYPE::ESCENE_FIELD)
-                {
-                    if (pFScene->m_cAutoAttack == 1)
-                        pFScene->m_pTargetHuman = m_pMoveTargetHuman;
-                }
-                MoveAttack(m_pMoveTargetHuman);
-                m_pMoveTargetHuman = 0;
-                return 1;
-            }
-            if (g_pCurrentScene->m_pMyHuman == this && m_pMoveSkillTargetHuman)
-            {
-                if (g_pCurrentScene->m_eSceneType == ESCENE_TYPE::ESCENE_FIELD)
-                {
-                    pFScene->SkillUse((int)m_pMoveSkillTargetHuman->m_vecPosition.x, (int)m_pMoveSkillTargetHuman->m_vecPosition.y,
-                        pScene->GroundGetPickPos(), dwServerTime, 1, m_pMoveSkillTargetHuman);
-                }
-                m_pMoveSkillTargetHuman = 0;
-                return 1;
-            }
-        }
-        else if (m_stScore.Hp <= 0 && m_eMotion != ECHAR_MOTION::ECMOTION_DIE && m_nWillDie == 4)
-            SetAnimation(ECHAR_MOTION::ECMOTION_DEAD, 1);
-
-        else if (m_stScore.Hp <= 0 && m_eMotion != ECHAR_MOTION::ECMOTION_DIE && m_eMotion != ECHAR_MOTION::ECMOTION_DEAD
-            && m_nWillDie == 1)
-        {
-            SetAnimation(ECHAR_MOTION::ECMOTION_DEAD, 0);
-        }
-        else if (m_eMotion == ECHAR_MOTION::ECMOTION_STAND01 || m_eMotion == ECHAR_MOTION::ECMOTION_STAND02)
-        {
-            if (m_cOnlyMove == 1 && m_bSliding == 1)
-            {               
-                if (m_fMaxSpeed > 6.0f)
-                {
-                    for (int k = 0; k < 48; ++k)
-                        m_vecRouteBuffer[k] = m_vecRouteBuffer[nRouteIndex];
-                }
-            }
-
-            m_pMoveTargetHuman = 0;
-            m_pMoveSkillTargetHuman = 0;
-            if (m_cOnlyMove == 1)
-                SetSpeed(0);
-
-            m_cOnlyMove = 0;
-            m_bSliding = 0;
-        }
-    }
-    else if ((m_eMotion != ECHAR_MOTION::ECMOTION_WALK || m_eMotion != ECHAR_MOTION::ECMOTION_RUN || ((int)m_eMotion < 4 && (int)m_eMotion > 9))
-        && !m_bSliding)
-    {
-        int nWalk = 2;
-        if (m_nSkinMeshType == 31 && m_fScale > 0.69999999f || m_cMount == 1 && m_nMountSkinMeshType == 31 && m_fMountScale > 0.69999999f)
-            nWalk = 3;
-        if (m_nMountSkinMeshType == 40 || m_nMountSkinMeshType == 20 || m_nMountSkinMeshType == 39)
-            nWalk = 3;
-
-        if ((float)nWalk < m_fMaxSpeed)
-            SetAnimation(ECHAR_MOTION::ECMOTION_RUN, 1);
-        else
-            SetAnimation(ECHAR_MOTION::ECMOTION_WALK, 1);
+        int nReturnValue = 0;
+        if (FrameMove_RouteArrival(dwServerTime, pScene, nRouteIndex, vecNow, vecNext, nReturnValue))
+            return nReturnValue;
     }
 
     if ((m_eMotion == ECHAR_MOTION::ECMOTION_NONE || m_eMotion == ECHAR_MOTION::ECMOTION_STAND01 || m_eMotion == ECHAR_MOTION::ECMOTION_STAND02) 
@@ -1025,6 +945,99 @@ void TMHuman::FrameMove_RouteHeight(TMScene*& pScene, float& fDieHeight, int& nR
                 m_fWantHeight = m_fWantHeight + 1.1f;
         }
     }
+}
+
+/// Chegada ao ponto da rota: para a animação de andar e avança ou encerra a rota.
+/// @note Extraído de `TMHuman::FrameMove` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMHuman::FrameMove_RouteArrival(unsigned int& dwServerTime, TMScene*& pScene, int& nRouteIndex, TMVector2& vecNow, TMVector2& vecNext, int& nReturnValue)
+{
+    if (vecNow.x == vecNext.x && vecNow.y == vecNext.y)
+    {
+        if (m_stScore.Hp > 0 && (m_eMotion == ECHAR_MOTION::ECMOTION_WALK || m_eMotion == ECHAR_MOTION::ECMOTION_RUN))
+        {
+            SetAnimation(ECHAR_MOTION::ECMOTION_STAND02, 1);
+
+            if (m_fMaxSpeed <= 10.0f)
+            {
+                for (int l = nRouteIndex + 1; l < 48; ++l)
+                    m_vecRouteBuffer[l] = m_vecRouteBuffer[nRouteIndex];
+            }
+            else
+            {
+                for (int nIndex = 0; nIndex < 48; ++nIndex)
+                    m_vecRouteBuffer[nIndex] = m_vecRouteBuffer[nRouteIndex];
+            }
+
+            m_cOnlyMove = 0;
+            SetSpeed(0);
+
+            TMFieldScene* pFScene = (TMFieldScene*)g_pCurrentScene;
+            if (g_pCurrentScene->m_pMyHuman == this && m_pMoveTargetHuman)
+            {
+                if (g_pCurrentScene->m_eSceneType == ESCENE_TYPE::ESCENE_FIELD)
+                {
+                    if (pFScene->m_cAutoAttack == 1)
+                        pFScene->m_pTargetHuman = m_pMoveTargetHuman;
+                }
+                MoveAttack(m_pMoveTargetHuman);
+                m_pMoveTargetHuman = 0;
+                { nReturnValue = 1; return true; }
+            }
+            if (g_pCurrentScene->m_pMyHuman == this && m_pMoveSkillTargetHuman)
+            {
+                if (g_pCurrentScene->m_eSceneType == ESCENE_TYPE::ESCENE_FIELD)
+                {
+                    pFScene->SkillUse((int)m_pMoveSkillTargetHuman->m_vecPosition.x, (int)m_pMoveSkillTargetHuman->m_vecPosition.y,
+                        pScene->GroundGetPickPos(), dwServerTime, 1, m_pMoveSkillTargetHuman);
+                }
+                m_pMoveSkillTargetHuman = 0;
+                { nReturnValue = 1; return true; }
+            }
+        }
+        else if (m_stScore.Hp <= 0 && m_eMotion != ECHAR_MOTION::ECMOTION_DIE && m_nWillDie == 4)
+            SetAnimation(ECHAR_MOTION::ECMOTION_DEAD, 1);
+
+        else if (m_stScore.Hp <= 0 && m_eMotion != ECHAR_MOTION::ECMOTION_DIE && m_eMotion != ECHAR_MOTION::ECMOTION_DEAD
+            && m_nWillDie == 1)
+        {
+            SetAnimation(ECHAR_MOTION::ECMOTION_DEAD, 0);
+        }
+        else if (m_eMotion == ECHAR_MOTION::ECMOTION_STAND01 || m_eMotion == ECHAR_MOTION::ECMOTION_STAND02)
+        {
+            if (m_cOnlyMove == 1 && m_bSliding == 1)
+            {               
+                if (m_fMaxSpeed > 6.0f)
+                {
+                    for (int k = 0; k < 48; ++k)
+                        m_vecRouteBuffer[k] = m_vecRouteBuffer[nRouteIndex];
+                }
+            }
+
+            m_pMoveTargetHuman = 0;
+            m_pMoveSkillTargetHuman = 0;
+            if (m_cOnlyMove == 1)
+                SetSpeed(0);
+
+            m_cOnlyMove = 0;
+            m_bSliding = 0;
+        }
+    }
+    else if ((m_eMotion != ECHAR_MOTION::ECMOTION_WALK || m_eMotion != ECHAR_MOTION::ECMOTION_RUN || ((int)m_eMotion < 4 && (int)m_eMotion > 9))
+        && !m_bSliding)
+    {
+        int nWalk = 2;
+        if (m_nSkinMeshType == 31 && m_fScale > 0.69999999f || m_cMount == 1 && m_nMountSkinMeshType == 31 && m_fMountScale > 0.69999999f)
+            nWalk = 3;
+        if (m_nMountSkinMeshType == 40 || m_nMountSkinMeshType == 20 || m_nMountSkinMeshType == 39)
+            nWalk = 3;
+
+        if ((float)nWalk < m_fMaxSpeed)
+            SetAnimation(ECHAR_MOTION::ECMOTION_RUN, 1);
+        else
+            SetAnimation(ECHAR_MOTION::ECMOTION_WALK, 1);
+    }
+    return false;
 }
 
 void TMHuman::DelayDelete()
