@@ -19,9 +19,12 @@
 
 void Exec_MSG_CombineItemExtracao(int conn, char *pMsg)
 {
-	MSG_STANDARDPARM2 *m = (MSG_STANDARDPARM2*)pMsg;
+	// O cliente envia MSG_Sell com a posição do item em MyPos (short, offset 16). Antes o servidor lia
+	// MSG_STANDARDPARM2.Parm2, um int no mesmo offset, que só dava certo porque os 2 bytes de cima são
+	// o preenchimento da struct, zerado pelo cliente.
+	MSG_Sell *m = (MSG_Sell*)pMsg;
 
-	int ItemSlot = m->Parm2;
+	int ItemSlot = m->MyPos;
 
 	if (!BASE_CarryUsable(pMob[conn].MOB.Carry, ItemSlot))
 		return;
