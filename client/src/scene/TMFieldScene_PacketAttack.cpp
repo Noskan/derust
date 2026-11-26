@@ -627,48 +627,7 @@ if (pAttacker)
 
 			int ran = rand() % 10;
 
-			if (ran >= 6)
-			{
-				if (pAttacker->m_dwEarthQuakeTime + 4000 < g_pTimerManager->GetServerTime())
-				{
-					pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime() - 2000;
-
-					for (int i = -3; i < 3; i++)
-					{
-						for (int j = -3; j < 3; j++)
-						{
-							auto pBill = new TMEffectBillBoard(193,
-								4000,
-								2.0f,
-								2.0f,
-								2.0f,
-								0.001f,
-								1,
-								80);
-
-							pBill->m_bStickGround = i % 2;
-							pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x,
-								pAttacker->m_fHeight,
-								(float)((float)j * 2.0f) + pAttacker->m_vecPosition.y);
-							pBill->SetColor(0xFF777799);
-
-							m_pEffectContainer->AddChild(pBill);
-						}
-					}
-
-					auto pGround = m_pGround;
-					if (pGround)
-					{
-						pGround->m_dwEffStart = g_pTimerManager->GetServerTime();
-						pGround->m_vecOffset = pAttacker->m_vecPosition;
-					}
-
-					auto pCamera = g_pObjectManager->GetCamera();
-					pCamera->EarthQuake(11);
-					
-					GetSoundAndPlay(160, 0, 0);
-				}
-			}
+			PacketAttack_Skill115Quake(pAttacker, ran);
 		}
 		else if (pAttack->SkillIndex == 116)
 		{
@@ -1459,6 +1418,54 @@ void TMFieldScene::PacketAttack_Skill114Targets(MSG_Attack*& pAttack, TMVector3&
 			pArrow->m_nColor = 0xFFFFFF00;
 
 			m_pEffectContainer->AddChild(pArrow);
+		}
+	}
+}
+
+/// Skill 115 com `ran` >= 6: tremor de câmera, som e partículas, no máximo a cada 4 s.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill115Quake(TMHuman*& pAttacker, int& ran)
+{
+	if (ran >= 6)
+	{
+		if (pAttacker->m_dwEarthQuakeTime + 4000 < g_pTimerManager->GetServerTime())
+		{
+			pAttacker->m_dwEarthQuakeTime = g_pTimerManager->GetServerTime() - 2000;
+
+			for (int i = -3; i < 3; i++)
+			{
+				for (int j = -3; j < 3; j++)
+				{
+					auto pBill = new TMEffectBillBoard(193,
+						4000,
+						2.0f,
+						2.0f,
+						2.0f,
+						0.001f,
+						1,
+						80);
+
+					pBill->m_bStickGround = i % 2;
+					pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x,
+						pAttacker->m_fHeight,
+						(float)((float)j * 2.0f) + pAttacker->m_vecPosition.y);
+					pBill->SetColor(0xFF777799);
+
+					m_pEffectContainer->AddChild(pBill);
+				}
+			}
+
+			auto pGround = m_pGround;
+			if (pGround)
+			{
+				pGround->m_dwEffStart = g_pTimerManager->GetServerTime();
+				pGround->m_vecOffset = pAttacker->m_vecPosition;
+			}
+
+			auto pCamera = g_pObjectManager->GetCamera();
+			pCamera->EarthQuake(11);
+			
+			GetSoundAndPlay(160, 0, 0);
 		}
 	}
 }
