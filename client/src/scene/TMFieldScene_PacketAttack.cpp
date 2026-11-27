@@ -256,17 +256,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 34 && (unsigned char)pAttack->Motion == 254) // Relampago
 		{
-			if (pAttacker && pAttacker->m_pFamiliar)
-			{
-				auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
-				if (pEffect)
-				{
-					pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-					pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
-					pEffect->SetColor(0xFFAAEEFF);
-					m_pEffectContainer->AddChild(pEffect);
-				}
-			}
+			PacketAttack_Skill34FairyEffect(pAttacker);
 		}
 		else if (pAttack->SkillIndex == 32 && (unsigned char)pAttack->Motion == 254) // Renascimento
 		{
@@ -732,6 +722,23 @@ void TMFieldScene::PacketAttack_Skill45Effect(MSG_Attack*& pAttack, TMHuman*& pT
 		m_pEffectContainer->AddChild(pParticle);
 
 	GetSoundAndPlay(158, 0, 0);
+}
+
+/// Efeitos da skill 34 (Relâmpago) lançada pela fada (`Motion` 254).
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill34FairyEffect(TMHuman*& pAttacker)
+{
+	if (pAttacker && pAttacker->m_pFamiliar)
+	{
+		auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
+		if (pEffect)
+		{
+			pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+			pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
+			pEffect->SetColor(0xFFAAEEFF);
+			m_pEffectContainer->AddChild(pEffect);
+		}
+	}
 }
 
 /// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
