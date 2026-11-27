@@ -1,0 +1,15 @@
+# Avisos do g++ 14 (build Linux nativo) acompanhados por tools/linux_warning_check.py: <quantidade> <tipo> <arquivo>.
+# Regrave com: python3 tools/linux_warning_check.py --update-warning-baseline
+1 shadow server/common/BaseCombat.cpp
+1 shadow server/common/BaseLoaders.cpp
+12 shadow server/dbsrv/core/CReadFiles.cpp
+1 shadow server/dbsrv/core/Server.cpp
+2 shadow server/dbsrv/core/Server_Admin.cpp
+2 shadow server/dbsrv/core/Server_Config.cpp
+1 shadow server/dbsrv/persistence/CFileDB_AccountPackets.cpp
+1 shadow server/tmsrv/entities/CUser.cpp
+4 shadow server/tmsrv/handlers/combat/_MSG_Attack.cpp
+2 shadow server/tmsrv/net/GetFunc.cpp
+2 shadow server/tmsrv/systems/CCastleZakum.cpp
+1 shadow server/tmsrv/systems/MobKilled_Drops.cpp
+1 shadow server/tmsrv/systems/imple.cpp

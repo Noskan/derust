@@ -142,13 +142,16 @@ def compile_tu(src, work, shim_dir):
     return rel, r.returncode == 0, errs[:5], obj if want_obj or rel in LOGIN_CLIENT_SOURCES else None, warns
 
 
-def check_warnings(warns, update):
-    """Compara contagens de avisos por (tipo, arquivo) com a linha de base. Retorna 1 se piorou."""
+def check_warnings(warns, update, baseline=None, header=None):
+    """Compara contagens de avisos por (tipo, arquivo) com a linha de base. Retorna 1 se piorou.
+    `baseline` e `header` (duas linhas de comentário) servem para outra checagem usar a mesma
+    comparação (tools/linux_warning_check.py)."""
+    WARN_BASELINE = baseline or globals()["WARN_BASELINE"]
     counts = {}
     for path, _, flag, _ in warns:
         counts[(flag, path)] = counts.get((flag, path), 0) + 1
-    lines = [f"# Avisos do {CXX} {gcc_major()} acompanhados por tools/mingw_check.py: <quantidade> <tipo> <arquivo>.",
-             "# Regrave com: python3 tools/mingw_check.py --update-warning-baseline"]
+    lines = header or [f"# Avisos do {CXX} {gcc_major()} acompanhados por tools/mingw_check.py: <quantidade> <tipo> <arquivo>.",
+                       "# Regrave com: python3 tools/mingw_check.py --update-warning-baseline"]
     lines += [f"{n} {flag} {path}" for (flag, path), n in sorted(counts.items(), key=lambda kv: (kv[0][1], kv[0][0]))]
     if update:
         WARN_BASELINE.write_text("\n".join(lines) + "\n")
