@@ -67,6 +67,12 @@ decidir qual lado está certo: o cliente reconstruído pode ter trocado o checks
 (`sum`, hoje "Not being used") pelo rodapé lido. Essa decisão fica para quando houver um patch de
 cliente gerado a partir do servidor.
 
+Evidência posterior: o `ItemList.bin` e o `SkillData.bin` oficiais do WYD Global (patch 749)
+têm rodapé `0x4823` e `0x29`. São o segundo e o primeiro valor do `rand()` do MSVC com a semente
+padrão, o mesmo que o servidor grava. Então a ferramenta oficial também põe um `rand()` ali. Isso
+reforça que a checagem contra `0x1343B16` do cliente reconstruído não é a regra original, mas o
+Global é de uma versão mais nova que a do cliente-alvo, então a evidência não é conclusiva.
+
 ## Corrigidos
 
 | Onde | Defeito | Correção |
