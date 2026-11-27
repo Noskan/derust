@@ -49,6 +49,7 @@ set(TMSRV_SOURCES
   handlers/account/_MSG_CreateCharacter.cpp
   handlers/account/_MSG_DeleteCharacter.cpp
   handlers/account/_MSG_ReqTransper.cpp
+  handlers/account/_MSG_MessageLog.cpp
   handlers/account/_MSG_Restart.cpp
   handlers/combat/_MSG_Action.cpp
   handlers/combat/_MSG_ApplyBonus.cpp

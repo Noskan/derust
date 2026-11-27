@@ -77,6 +77,10 @@ W2_FIELD(STRUCT_AFFECT, Level, 1, 1);
 W2_FIELD(STRUCT_AFFECT, Value, 2, 2);
 W2_FIELD(STRUCT_AFFECT, Time, 4, 4);
 
+// Log de erro do cliente (MSG_MessageLog, 0x2BC).
+static_assert(sizeof(MSG_MessageLog) == 140, "MSG_MessageLog deve ter 140 bytes (cliente).");
+static_assert(_MSG_MessageLog == 0x2BC, "_MSG_MessageLog deve ser 0x2BC (cliente).");
+
 // Cápsula para o tooltip do cliente (MSG_CAPSULEINFO, 0xDC3).
 static_assert(sizeof(MSG_CNFCapsuleInfo) == 56, "MSG_CNFCapsuleInfo deve ter 56 bytes (cliente).");
 static_assert(_MSG_CNFCapsuleInfo == 0xDC3, "_MSG_CNFCapsuleInfo deve ser 0xDC3 (cliente).");

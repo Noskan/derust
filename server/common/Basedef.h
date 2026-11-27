@@ -1907,6 +1907,14 @@ const short _MSG_ItemSold					= (155 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME); // 
 
 const short _MSG_CombineItem				= (166 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 const short _MSG_CombineItemTiny			= (192 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
+/// @brief Log de erro crítico do cliente (0x2BC): falha ao carregar o mapa ou dado inválido de malha.
+const short _MSG_MessageLog				= (188 | FLAG_CLIENT2GAME);
+struct		 MSG_MessageLog
+{
+	_MSG;
+	char String[128];
+};
+
 const short _MSG_CombineItemLindy			= (195 | FLAG_CLIENT2GAME);
 const short _MSG_CombineItemShany			= (196 | FLAG_CLIENT2GAME);
 const short _MSG_CapsuleInfo				= (205 | FLAG_CLIENT2GAME);
