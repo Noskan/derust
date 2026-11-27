@@ -60,6 +60,7 @@ public:
 	int MouseLButtonDown(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwServerTime);
 	int MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int dwServerTime);
 	bool MobAttack_RejectTarget(TMHuman*& pOver, int& nReturnValue);
+	void MobAttack_WeaponSkill(STRUCT_MOB*& pMobData, MSG_Attack& stAttack);
 	int MobMove(D3DXVECTOR3 vec, unsigned int dwServerTime);
 	int MobMove2(TMVector2 vec, unsigned int dwServerTime);
 	void DropItem(unsigned int dwServerTime);
