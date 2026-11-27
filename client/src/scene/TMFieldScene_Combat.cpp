@@ -1959,58 +1959,10 @@ int TMFieldScene::MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int d
 						return 1;
 				}
 
-				if (m_pGround)
 				{
-					if (vec.y < -5000.0f && pOver)
-					{
-						vec.x = pOver->m_vecPosition.x;
-						vec.z = pOver->m_vecPosition.y;
-						vec.y = pOver->m_fHeight;
-					}
-
-					m_pMyHuman->SetSpeed(m_bMountDead);
-					if (vec.x == m_pMyHuman->m_vecPosition.x && vec.z == m_pMyHuman->m_vecPosition.y)
-						return 1;
-
-					m_pTargetItem = 0;
-					m_pMyHuman->m_pMoveTargetHuman = pOver;
-					m_dwLastSetTargetHuman = dwServerTime;
-					int nMoveSX = (int)m_pMyHuman->m_vecPosition.x;
-					int nMoveSY = (int)m_pMyHuman->m_vecPosition.y;
-
-					if (m_stMoveStop.NextX)
-					{
-						nMoveSX = m_stMoveStop.NextX;
-						nMoveSY = m_stMoveStop.NextY;
-					}
-					if (pOver)
-					{
-						int nTX = (int)pOver->m_vecPosition.x;
-						int nTY = (int)pOver->m_vecPosition.y;
-						int nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, nTX, nTY);
-						int PlusX = 1;
-						int PlusY = 1;
-						if (nMoveSX > nTX)
-							PlusX = -1;
-						if (nMoveSY > nTY)
-							PlusY = -1;
-
-						int nBreak = 0;
-						while (nMoveDistance2 > nMobAttackRange)
-						{
-							if (nBreak > 500)
-								return 1;
-							if (nMoveSX != nTX)
-								nMoveSX += PlusX;
-							if (nMoveSY != nTY)
-								nMoveSY += PlusY;
-							nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, nTX, nTY);
-							++nBreak;
-						}
-
-						m_vecMyNext.x = nMoveSX;
-						m_vecMyNext.y = nMoveSY;
-					}
+					int nReturnValue = 0;
+					if (MobAttack_ApproachTarget(vec, dwServerTime, pOver, nTX, nTY, nMobAttackRange, nReturnValue))
+						return nReturnValue;
 				}
 			}
 		}
@@ -2222,6 +2174,67 @@ void TMFieldScene::MobAttack_Class3Rule(TMHuman*& pOver, STRUCT_MOB*& pMobData, 
 			nSize = sizeof(MSG_AttackOne);
 		}
 	}
+}
+
+/// Leva o personagem até o alcance do ataque quando o alvo está longe.
+/// @note Extraído de `TMFieldScene::MobAttack` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::MobAttack_ApproachTarget(D3DXVECTOR3& vec, unsigned int& dwServerTime, TMHuman*& pOver, int& nTX, int& nTY, int& nMobAttackRange, int& nReturnValue)
+{
+	if (m_pGround)
+	{
+		if (vec.y < -5000.0f && pOver)
+		{
+			vec.x = pOver->m_vecPosition.x;
+			vec.z = pOver->m_vecPosition.y;
+			vec.y = pOver->m_fHeight;
+		}
+
+		m_pMyHuman->SetSpeed(m_bMountDead);
+		if (vec.x == m_pMyHuman->m_vecPosition.x && vec.z == m_pMyHuman->m_vecPosition.y)
+			{ nReturnValue = 1; return true; }
+
+		m_pTargetItem = 0;
+		m_pMyHuman->m_pMoveTargetHuman = pOver;
+		m_dwLastSetTargetHuman = dwServerTime;
+		int nMoveSX = (int)m_pMyHuman->m_vecPosition.x;
+		int nMoveSY = (int)m_pMyHuman->m_vecPosition.y;
+
+		if (m_stMoveStop.NextX)
+		{
+			nMoveSX = m_stMoveStop.NextX;
+			nMoveSY = m_stMoveStop.NextY;
+		}
+		if (pOver)
+		{
+			int nTX = (int)pOver->m_vecPosition.x;
+			int nTY = (int)pOver->m_vecPosition.y;
+			int nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, nTX, nTY);
+			int PlusX = 1;
+			int PlusY = 1;
+			if (nMoveSX > nTX)
+				PlusX = -1;
+			if (nMoveSY > nTY)
+				PlusY = -1;
+
+			int nBreak = 0;
+			while (nMoveDistance2 > nMobAttackRange)
+			{
+				if (nBreak > 500)
+					{ nReturnValue = 1; return true; }
+				if (nMoveSX != nTX)
+					nMoveSX += PlusX;
+				if (nMoveSY != nTY)
+					nMoveSY += PlusY;
+				nMoveDistance2 = BASE_GetDistance(nMoveSX, nMoveSY, nTX, nTY);
+				++nBreak;
+			}
+
+			m_vecMyNext.x = nMoveSX;
+			m_vecMyNext.y = nMoveSY;
+		}
+	}
+	return false;
 }
 
 int TMFieldScene::MobMove(D3DXVECTOR3 vec, unsigned int dwServerTime)
