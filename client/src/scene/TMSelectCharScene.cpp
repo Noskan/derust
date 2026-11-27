@@ -13,6 +13,7 @@
 #include "scene/TMObjectContainer.h"
 #include "core/TMLog.h"
 #include "skills/TMSkillJudgement.h"
+#include "core/TMAutoLogin.h"
 #include "effects/TMEffectSkinMesh.h"
 
 TMSelectCharScene::TMSelectCharScene() :
@@ -1564,11 +1565,49 @@ int TMSelectCharScene::OnPacketEvent(unsigned int dwCode, char* buf)
 	return 0;
 }
 
+void TMSelectCharScene::RunAutoLogin(unsigned int dwServerTime)
+{
+	static int s_nState = 0;
+	static unsigned int s_dwFirstTime = 0;
+
+	if (s_nState == 3)
+		return;
+
+	TMAutoLogin stAuto;
+	if (!TMAutoLogin_Read(&stAuto))
+		return;
+
+	if (s_nState == 0)
+	{
+		s_dwFirstTime = dwServerTime;
+		s_nState = 1;
+		return;
+	}
+
+	if (s_nState == 1 && dwServerTime - s_dwFirstTime >= 3000 && !g_AccountLock)
+	{
+		memset(keypass, 0, sizeof(keypass));
+		strncpy(keypass, stAuto.szNumericPW, sizeof(keypass) - 1);
+		LOG_WRITELOG("W2_AUTOLOGIN: senha numerica enviada\r\n");
+		OnControlEvent(66433, 0);
+		s_nState = 2;
+	}
+	else if (s_nState == 2 && g_AccountLock == 1)
+	{
+		g_pObjectManager->m_cCharacterSlot = static_cast<char>(stAuto.nSlot);
+		m_dwLastClickLoginBtnTime = 0;
+		LOG_WRITELOG("W2_AUTOLOGIN: entrando com a vaga %d\r\n", stAuto.nSlot);
+		OnControlEvent(4612, 0);
+		s_nState = 3;
+	}
+}
+
 int TMSelectCharScene::FrameMove(unsigned int dwServerTime)
 {
 	TMScene::FrameMove(dwServerTime);
 
 	dwServerTime = g_pTimerManager->GetServerTime();
+	RunAutoLogin(dwServerTime);
 	if (dwServerTime - m_dwLastClickLoginBtnTime > 3000 && m_pBtnLogin && !m_pBtnLogin->m_bEnable)
 	{
 		m_pBtnLogin->SetEnable(1);

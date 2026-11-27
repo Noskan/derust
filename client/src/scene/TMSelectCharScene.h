@@ -40,6 +40,9 @@ public:
 
 private:
 	void ReloadCharList(RELOAD_CHARLIST_TYPE type);
+	/// Atalho de desenvolvimento `W2_AUTOLOGIN` (core/TMAutoLogin.h): envia a senha numérica como o
+	/// OK do teclado virtual e, depois do eco do servidor, entra com a vaga dada como o botão 4612.
+	void RunAutoLogin(unsigned int dwServerTime);
 
 public:
 	char keybuf[10];

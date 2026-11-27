@@ -15,6 +15,7 @@
 #include "scene/TMObjectContainer.h"
 #include "core/NewApp.h"
 #include "common/Basedef.h"
+#include "core/TMAutoLogin.h"
 
 void SwapLauncher()
 {
@@ -872,6 +873,51 @@ int TMSelectServerScene::OnPacketEvent(unsigned int dwCode, char* buf)
 	return 0;
 }
 
+void TMSelectServerScene::RunAutoLogin(unsigned int dwServerTime)
+{
+	static int s_nState = 0;
+	static unsigned int s_dwFirstTime = 0;
+
+	if (s_nState == 2)
+		return;
+
+	TMAutoLogin stAuto;
+	if (!TMAutoLogin_Read(&stAuto) || !m_pLoginPanel || !m_pEditID || !m_pEditPW || !m_pNServerSelect)
+		return;
+
+	if (s_nState == 0)
+	{
+		s_dwFirstTime = dwServerTime;
+		s_nState = 1;
+		return;
+	}
+
+	if (dwServerTime - s_dwFirstTime < 3000)
+		return;
+
+	s_nState = 2;
+
+	// O mesmo estado que B_SERVER_SEL_OK deixa ao escolher o canal 1 do grupo 0.
+	g_pObjectManager->m_nServerGroupIndex = 0;
+	g_pObjectManager->m_nServerIndex = 1;
+	sprintf_s(g_pApp->m_szServerIP, "%s", stAuto.szIP);
+
+	m_pNServerSelect->SetVisible(0);
+	for (int i = 0; i < 3; ++i)
+		m_pLoginBtns[i]->SetVisible(1);
+
+	m_pLoginPanel->SetVisible(1);
+	m_cLogin = 1;
+	m_dwLoginTime = dwServerTime;
+
+	m_pEditID->SetText(stAuto.szID);
+	m_pEditPW->SetText(stAuto.szPW);
+
+	LastSendMsgTime = 0;
+	LOG_WRITELOG("W2_AUTOLOGIN: login de [%s] em [%s]\r\n", stAuto.szID, stAuto.szIP);
+	OnControlEvent(B_LOGIN_OK, 0);
+}
+
 int TMSelectServerScene::FrameMove(unsigned int dwServerTime)
 {
 	TMScene::FrameMove(dwServerTime);
@@ -896,6 +942,8 @@ int TMSelectServerScene::FrameMove(unsigned int dwServerTime)
 	{
 		SetAlphaServer(m_dwLoginTime, dwServerTime, 1000, 0);
 	}
+
+	RunAutoLogin(dwServerTime);
 
 	for (int nPerson = 0; nPerson < 50; ++nPerson)
 	{

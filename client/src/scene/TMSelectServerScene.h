@@ -34,6 +34,9 @@ public:
 private:
 	int FrameMoveGameGrade(unsigned int dwServerTime);
 	void GameGradeScene();
+	/// Atalho de desenvolvimento `W2_AUTOLOGIN` (core/TMAutoLogin.h): uma vez por processo, três
+	/// segundos depois da primeira chamada, conecta e envia o login como o botão `B_LOGIN_OK`.
+	void RunAutoLogin(unsigned int dwServerTime);
 
 public:
 	SPanel* m_GameGrade;
