@@ -347,23 +347,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 111)
 		{
-			TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-
-			auto pShade = new TMShade(70, 118, 1.0f);
-
-			pShade->SetColor(0xAA660000);
-			pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-			pShade->SetPosition(TMVector2(pAttacker->m_vecPosition.x, pAttacker->m_vecPosition.y));
-			pShade->m_dwLifeTime = 3200;
-			m_pEffectContainer->AddChild(pShade);
-
-			TMVector3 vecTarget{};
-			TMVector3 vecTarget2{};
-			TMVector3 vecD{};
-			TMVector3 vecPos2{};
-			D3DXVECTOR3 vecDNormal{};
-
-			PacketAttack_Skill111FreezeBlades(pAttack, vecTarget, vecTarget2, vecD);
+			PacketAttack_Skill111Effect(pAttack, pAttacker);
 		}
 		else if (pAttacker->m_nClass == 56 && !pAttacker->m_stLookInfo.FaceMesh)
 		{
@@ -788,6 +772,29 @@ void TMFieldScene::PacketAttack_Skill109Effect(TMHuman*& pAttacker, TMHuman*& pT
 
 		m_pEffectContainer->AddChild(pEffectSpark);
 	}
+}
+
+/// Efeitos da skill 111 no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill111Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker)
+{
+	TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+
+	auto pShade = new TMShade(70, 118, 1.0f);
+
+	pShade->SetColor(0xAA660000);
+	pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+	pShade->SetPosition(TMVector2(pAttacker->m_vecPosition.x, pAttacker->m_vecPosition.y));
+	pShade->m_dwLifeTime = 3200;
+	m_pEffectContainer->AddChild(pShade);
+
+	TMVector3 vecTarget{};
+	TMVector3 vecTarget2{};
+	TMVector3 vecD{};
+	TMVector3 vecPos2{};
+	D3DXVECTOR3 vecDNormal{};
+
+	PacketAttack_Skill111FreezeBlades(pAttack, vecTarget, vecTarget2, vecD);
 }
 
 /// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
