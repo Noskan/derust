@@ -373,35 +373,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 115)
 		{
-			TMVector3 vecTarget{};
-			TMVector3 vecStart{};
-			if (pAttacker->m_nClass != 73)
-				pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
-
-			for (int i = 0; i < 13; i++)
-			{
-				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-				if (pMultiTarget)
-				{
-					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-						pMultiTarget->m_fHeight - 5.0f,
-						pMultiTarget->m_vecPosition.y);
-
-					vecStart = vecTarget;
-					vecStart.y = 10.0f;
-
-					auto pMeteor = new TMSkillMeteorStorm(vecStart,
-						vecTarget,
-						3,
-						nullptr);
-
-					m_pEffectContainer->AddChild(pMeteor);
-				}
-			}
-
-			int ran = rand() % 10;
-
-			PacketAttack_Skill115Quake(pAttacker, ran);
+			PacketAttack_Skill115Effect(pAttack, pAttacker);
 		}
 		else if (pAttack->SkillIndex == 116)
 		{
@@ -802,6 +774,41 @@ void TMFieldScene::PacketAttack_Skill113Effect(MSG_Attack*& pAttack, TMHuman*& p
 			m_pEffectContainer->AddChild(pPoison);
 		}
 	}
+}
+
+/// Efeitos da skill 115 no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill115Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker)
+{
+	TMVector3 vecTarget{};
+	TMVector3 vecStart{};
+	if (pAttacker->m_nClass != 73)
+		pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
+
+	for (int i = 0; i < 13; i++)
+	{
+		auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+		if (pMultiTarget)
+		{
+			vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+				pMultiTarget->m_fHeight - 5.0f,
+				pMultiTarget->m_vecPosition.y);
+
+			vecStart = vecTarget;
+			vecStart.y = 10.0f;
+
+			auto pMeteor = new TMSkillMeteorStorm(vecStart,
+				vecTarget,
+				3,
+				nullptr);
+
+			m_pEffectContainer->AddChild(pMeteor);
+		}
+	}
+
+	int ran = rand() % 10;
+
+	PacketAttack_Skill115Quake(pAttacker, ran);
 }
 
 /// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
