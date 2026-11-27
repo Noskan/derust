@@ -62,6 +62,7 @@ public:
 	bool MobAttack_RejectTarget(TMHuman*& pOver, int& nReturnValue);
 	void MobAttack_WeaponSkill(STRUCT_MOB*& pMobData, MSG_Attack& stAttack);
 	void MobAttack_Class3Rule(TMHuman*& pOver, STRUCT_MOB*& pMobData, MSG_Attack& stAttack, int& nSize);
+	bool MobAttack_ApproachTarget(D3DXVECTOR3& vec, unsigned int& dwServerTime, TMHuman*& pOver, int& nTX, int& nTY, int& nMobAttackRange, int& nReturnValue);
 	int MobMove(D3DXVECTOR3 vec, unsigned int dwServerTime);
 	int MobMove2(TMVector2 vec, unsigned int dwServerTime);
 	void DropItem(unsigned int dwServerTime);
