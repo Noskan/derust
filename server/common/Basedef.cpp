@@ -1249,7 +1249,7 @@ void BASE_GetClientGuildName(int ServerGroup, unsigned short usGuild, char *szGu
 			else
 			{
 				strcat(szGuildName, "-");
-				memcpy(szGuildNum, (void*)(((int)&g_pGuildSub - 2) + 2 * Sub), 2);
+				memcpy(szGuildNum, (void*)((char*)&g_pGuildSub - 2 + 2 * Sub), 2);
 				strcat(&szGuildName[0], szGuildNum);
 			}
 		}
@@ -1295,7 +1295,7 @@ void BASE_GetClientGuildName(int ServerGroup, unsigned short usGuild, char *szGu
 
 	if(Sub >= 1 && Sub <= 3)
 	{
-		memcpy(&szGuildNum, (void*)(((int)&g_pGuildSub - 2) + 2 * Sub), 2);
+		memcpy(&szGuildNum, (void*)((char*)&g_pGuildSub - 2 + 2 * Sub), 2);
 		strcat(szGuildName, szGuildNum);
 	}
 }

@@ -1633,7 +1633,7 @@ void Combine(int conn, int item, int PrizeItem)
 	if (i >= 0 && i < MAX_CARRY)
 	{
 		*(int*)&pMob[conn].MOB.Carry[i] = *(int*)&Prize;
-		*(int*)((int)&pMob[conn].MOB.Carry[i] + 4) = *(int*)((int)&Prize + 4);
+		memcpy((char*)&pMob[conn].MOB.Carry[i] + 4, (char*)&Prize + 4, 4);	// bytes 4..7: stEffect[1] e stEffect[2]
 	}
 
 	else

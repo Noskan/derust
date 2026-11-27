@@ -1390,7 +1390,7 @@ void SendShopList(int conn, int MobIndex, int ShopType)
 
 
 		*(int*)&sm_sl.List[i] = *(int*)&pMob[MobIndex].MOB.Carry[invpos].sIndex;
-		*(int*)((int)&sm_sl.List[i] + 4) = *(int*)((int)&pMob[MobIndex].MOB.Carry[invpos] + 4);
+		memcpy((char*)&sm_sl.List[i] + 4, (char*)&pMob[MobIndex].MOB.Carry[invpos] + 4, 4);	// bytes 4..7: stEffect[1] e stEffect[2]
 	}
 
 	int posX = pMob[MobIndex].TargetX;

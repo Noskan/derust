@@ -329,7 +329,7 @@ void CReadFiles::ImportItem()
 		}
 
 		*(int*)&file.Cargo[Pos] = *(int*)&tempsour;
-		*(int*)((int)&file.Cargo[Pos] + 4) = *(int*)((int)&tempsour + 4);
+		memcpy((char*)&file.Cargo[Pos] + 4, (char*)&tempsour + 4, 4);	// bytes 4..7: stEffect[1] e stEffect[2]
 
 		int ret = cFileDB.DBWriteAccount(&file);
 

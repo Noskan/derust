@@ -1437,7 +1437,7 @@ void BASE_SortTradeItem(STRUCT_ITEM *Item, int Type)
 		Buffer[MaxBufferIndex] = -1;
 
 		*(int*)&ItemTemp[i] = *(int*)&Item[MaxBufferIndex];
-		*(int*)((int)&ItemTemp[i] + 4) = *(int*)((int)&Item[MaxBufferIndex] + 4);
+		memcpy((char*)&ItemTemp[i] + 4, (char*)&Item[MaxBufferIndex] + 4, 4);	// bytes 4..7: stEffect[1] e stEffect[2]
 	}
 
 	memcpy(Item, ItemTemp, sizeof(ItemTemp));
