@@ -214,9 +214,7 @@ int TMSelectServerScene::InitializeScene()
 
 	BASE_GetHttpRequest((char*)&g_pServerList, szUserCount, 1024);
 
-	sscanf_s(szUserCount, "%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n",
-		&nUserCount[0], &nUserCount[1], &nUserCount[2], &nUserCount[3], &nUserCount[4], &nUserCount[5],
-		&nUserCount[6], &nUserCount[7], &nUserCount[8], &nUserCount[9], &nUserCount[10]);
+	BASE_ParseUserCount(szUserCount, nUserCount, MAX_SERVERNUMBER, nullptr, nullptr);
 
 	m_cLogin = 0;
 
@@ -409,9 +407,7 @@ int TMSelectServerScene::OnControlEvent(unsigned int idwControlID, unsigned int 
 				memset(nUserCount2, -1, sizeof nUserCount2);
 				BASE_GetHttpRequest(g_pServerList[i][0], szUserCount, sizeof szUserCount);
 
-				sscanf_s(szUserCount, "%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n",
-					&nUserCount2[0], &nUserCount2[1], &nUserCount2[2], &nUserCount2[3], &nUserCount2[4], &nUserCount2[5],
-					&nUserCount2[6], &nUserCount2[7], &nUserCount2[8], &nUserCount2[9], &nUserCount2[10]);
+				BASE_ParseUserCount(szUserCount, nUserCount2, MAX_SERVERNUMBER, nullptr, nullptr);
 
 				// 
 				nUserCount[m_nDay[m_nAdmitGroup - i]] = nUserCount2[m_nDay[m_nAdmitGroup - i]];
@@ -421,9 +417,7 @@ int TMSelectServerScene::OnControlEvent(unsigned int idwControlID, unsigned int 
 		else
 		{
 			BASE_GetHttpRequest(g_pServerList[nIndexN][0], szUserCount, sizeof szUserCount);
-			sscanf_s(szUserCount, "%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n",
-				&nUserCount[0], &nUserCount[1], &nUserCount[2], &nUserCount[3], &nUserCount[4], &nUserCount[5],
-				&nUserCount[6], &nUserCount[7], &nUserCount[8], &nUserCount[9], &nAspGetweek, &nAspGetday);
+			BASE_ParseUserCount(szUserCount, nUserCount, MAX_SERVERNUMBER, &nAspGetweek, &nAspGetday);
 		}
 
 		_SYSTEMTIME time{};
@@ -581,7 +575,11 @@ int TMSelectServerScene::OnControlEvent(unsigned int idwControlID, unsigned int 
 	break;
 	case B_SERVER_SEL_OK:
 	{
-		int nServerGroupIndex = g_nServerCountList[nIndexN - m_pNServerGroupList->GetSelectedIndex() - 1] - 1;
+		// Mesmo mapeamento do clique na lista de grupos (L_SELECT_SERVERG): o item i da lista é a
+		// entrada nMaxGroupN - i - 1 do sn.bin. Com nIndexN no lugar de nMaxGroupN, escolher um grupo
+		// real lia g_nServerCountList[-1] e o Conectar recusava com "Selecione o canal e o servidor".
+		int nGroupListIndex = nMaxGroupN - m_pNServerGroupList->GetSelectedIndex() - 1;
+		int nServerGroupIndex = (nGroupListIndex >= 0 && nGroupListIndex < 11) ? g_nServerCountList[nGroupListIndex] - 1 : -1;
 		int nServerIndex = m_pNServerList->GetSelectedIndex() + 1;
 
 		SListBoxServerItem* pItem = static_cast<SListBoxServerItem*>(m_pNServerList->GetItem(nServerIndex - 1));

@@ -97,6 +97,11 @@ int CMesh::Render(int nBright)
         g_pDevice->SetRenderState(D3DRENDERSTATETYPE::D3DRS_ALPHATESTENABLE, 0);
 
         TMMesh* pMesh = g_pMeshManager->GetCommonMesh(nPartIndex, 0, 20_min);
+        // Malha que nao carregou (LoadMsa falha quando a textura nao esta na lista) fica sem buffers;
+        // sai pelo mesmo caminho das falhas do dispositivo em vez de travar no Lock abaixo.
+        if (!pMesh || !pMesh->m_pVB || !pMesh->m_pIB
+            || pMesh->m_nTextureIndex[0] < 0 || pMesh->m_nTextureIndex[0] >= MAX_MODEL_TEXTURE)
+            return 1;
         if (g_pDevice->m_pd3dDevice->SetStreamSource(0, pMesh->m_pVB, 0, pMesh->m_sizeVertex) < 0)
             return 1;
         if (g_pDevice->m_pd3dDevice->SetIndices(pMesh->m_pIB) < 0)
@@ -184,6 +189,11 @@ int CMesh::Render(int nBright)
     {
         g_pDevice->SetRenderState(D3DRENDERSTATETYPE::D3DRS_ALPHATESTENABLE, 0);
         TMMesh* pMesh = g_pMeshManager->GetCommonMesh(nPartIndex, 0, 20_min);
+        // Malha que nao carregou (LoadMsa falha quando a textura nao esta na lista) fica sem buffers;
+        // sai pelo mesmo caminho das falhas do dispositivo em vez de travar no Lock abaixo.
+        if (!pMesh || !pMesh->m_pVB || !pMesh->m_pIB
+            || pMesh->m_nTextureIndex[0] < 0 || pMesh->m_nTextureIndex[0] >= MAX_MODEL_TEXTURE)
+            return 1;
         if (g_pDevice->m_pd3dDevice->SetStreamSource(0, pMesh->m_pVB, 0, pMesh->m_sizeVertex) < 0)
             return 1;
         if (g_pDevice->m_pd3dDevice->SetIndices(pMesh->m_pIB) < 0)

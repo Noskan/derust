@@ -1,6 +1,6 @@
 # Avisos do i686-w64-mingw32-g++ 13 acompanhados por tools/mingw_check.py: <quantidade> <tipo> <arquivo>.
 # Regrave com: python3 tools/mingw_check.py --update-warning-baseline
-3 shadow client/src/audio/DirShow.cpp
+2 shadow client/src/audio/DirShow.cpp
 1 shadow client/src/common/BaseWorld.cpp
 1 shadow client/src/effects/TMEffectSpark.cpp
 1 shadow client/src/entities/TMButterFly.cpp

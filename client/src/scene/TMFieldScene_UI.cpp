@@ -805,9 +805,7 @@ if (idwControlID == B_SYS_SERVER)
 			memset(nUserCount2, -1, sizeof nUserCount2);
 			BASE_GetHttpRequest(g_pServerList[i][0], szUserCount, sizeof szUserCount);
 
-			sscanf_s(szUserCount, "%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n",
-				&nUserCount2[0], &nUserCount2[1], &nUserCount2[2], &nUserCount2[3], &nUserCount2[4], &nUserCount2[5],
-				&nUserCount2[6], &nUserCount2[7], &nUserCount2[8], &nUserCount2[9], &nUserCount2[10]);
+			BASE_ParseUserCount(szUserCount, nUserCount2, MAX_SERVERNUMBER, nullptr, nullptr);
 
 			// 
 			nUserCount[nDay[serverGroup- i]] = nUserCount2[nDay[serverGroup - i]];
@@ -817,9 +815,7 @@ if (idwControlID == B_SYS_SERVER)
 	else
 	{
 		BASE_GetHttpRequest(g_pServerList[currentServerGroupIndex][0], szUserCount, sizeof szUserCount);
-		sscanf_s(szUserCount, "%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n%d\\n",
-			&nUserCount[0], &nUserCount[1], &nUserCount[2], &nUserCount[3], &nUserCount[4], &nUserCount[5],
-			&nUserCount[6], &nUserCount[7], &nUserCount[8], &nUserCount[9]);
+		BASE_ParseUserCount(szUserCount, nUserCount, MAX_SERVERNUMBER, nullptr, nullptr);
 	}
 
 	m_pMessagePanel->SetVisible(0, 1);

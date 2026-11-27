@@ -2599,6 +2599,9 @@ void BASE_ReadItemPrice();
 void BASE_UnderBarToSpace(char* szStr);
 int BASE_InitializeServerList();
 int	BASE_GetHttpRequest(char* httpname, char* Request, int MaxBuffer);
+/// Lê a página de status dos canais: a linha k (contagem do canal k + 1) vai para pnUserCount[k + 1],
+/// depois a semana e o dia do castelo, se vierem. O que faltar fica -1. Devolve quantos números leu.
+int	BASE_ParseUserCount(const char* szPage, int* pnUserCount, int nMax, int* pnWeek, int* pnDay);
 int BASE_GetSum(char* p, int size);
 int BASE_GetSum2(char* p, int size);
 int BASE_GetWeekNumber();

@@ -797,14 +797,21 @@ void TMScene::CheckPKNonePK(int nServerIndex)
 
 void TMScene::LogMsgCriticalError(int Type, int ID, int nMesh, int X, int Y)
 {
+	// O erro de dados críticos pode vir antes de o personagem existir (o TMGround confere o
+	// cdata.bin quando o primeiro mapa carrega, durante a entrada no campo): sem m_pMyHuman o
+	// relatório vai com ID e posição zerados em vez de derrubar o cliente.
+	unsigned int dwMyID = m_pMyHuman ? m_pMyHuman->m_dwID : 0;
+	int nMyX = m_pMyHuman ? (int)m_pMyHuman->m_vecPosition.x : 0;
+	int nMyY = m_pMyHuman ? (int)m_pMyHuman->m_vecPosition.y : 0;
+
 	MSG_MessageLog stLog{};
-	stLog.Header.ID = m_pMyHuman->m_dwID;
+	stLog.Header.ID = dwMyID;
 	stLog.Header.Type = MSG_MessageLog_Opcode;
 
 	if(Type == 10)
 		sprintf(stLog.String, "00000000 , Load Tile Map Fail");
 	else
-		sprintf(stLog.String, "%08d , Critical Data Err Cl,%d,%d,%d,%d,%d, %d", ID,	nMesh, (int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y,
+		sprintf(stLog.String, "%08d , Critical Data Err Cl,%d,%d,%d,%d,%d, %d", ID,	nMesh, nMyX, nMyY,
 			X,
 			Y,
 			Type);

@@ -352,6 +352,44 @@ void BASE_UnderBarToSpace(char* szStr)
 	}
 }
 
+int BASE_ParseUserCount(const char* szPage, int* pnUserCount, int nMax, int* pnWeek, int* pnDay)
+{
+    for (int i = 0; i < nMax; ++i)
+        pnUserCount[i] = -1;
+    if (pnWeek)
+        *pnWeek = -1;
+    if (pnDay)
+        *pnDay = -1;
+
+    if (szPage == nullptr || nMax < 1)
+        return 0;
+
+    // A página do DBSrv (CReadFiles::UpdateConnection) traz uma linha por canal, a linha k para o
+    // canal k + 1, e opcionalmente a semana e o dia do castelo. As cenas indexam a contagem pelo
+    // número do canal (1 a MAX_SERVER), então a linha k vai para pnUserCount[k + 1].
+    const int nChannels = nMax - 1;
+    const char* szCursor = szPage;
+    int nRead = 0;
+    for (int k = 0; k < nChannels + 2; ++k)
+    {
+        char* szEnd = nullptr;
+        long nValue = strtol(szCursor, &szEnd, 10);
+        if (szEnd == szCursor)
+            break;
+
+        szCursor = szEnd;
+        if (k < nChannels)
+            pnUserCount[k + 1] = static_cast<int>(nValue);
+        else if (k == nChannels && pnWeek)
+            *pnWeek = static_cast<int>(nValue);
+        else if (k == nChannels + 1 && pnDay)
+            *pnDay = static_cast<int>(nValue);
+        ++nRead;
+    }
+
+    return nRead;
+}
+
 int BASE_GetHttpRequest(char* httpname, char* Request, int MaxBuffer)
 {   
     auto hSession = InternetOpen("MS", 0, 0, 0, 0);

@@ -519,6 +519,44 @@ int CheckOutOfDomainInputs()
 	return failures;
 }
 
+/// @brief Página de status dos canais (serv00.htm do DBSrv) lida por BASE_ParseUserCount.
+/// @details O sscanf_s anterior usava "%d\\n" (barra invertida literal no formato) e só lia o
+/// primeiro número. A linha k é a contagem do canal k + 1, depois vêm semana e dia do castelo.
+int CheckUserCountPage()
+{
+	int failures = 0;
+	auto check = [&](bool ok, const char* what) {
+		if (!ok)
+		{
+			std::printf("FALHA pagina de status: %s\n", what);
+			++failures;
+		}
+	};
+
+	int count[MAX_SERVERNUMBER];
+	int week = 0;
+	int day = 0;
+
+	const char* page = "12\n-1\n7\n-1\n-1\n-1\n-1\n-1\n-1\n3\n";
+	check(BASE_ParseUserCount(page, count, MAX_SERVERNUMBER, &week, &day) == MAX_SERVER, "conta os dez canais");
+	check(count[0] == -1, "posição 0 sem canal");
+	check(count[1] == 12 && count[2] == -1 && count[3] == 7 && count[10] == 3, "canal k + 1 na linha k");
+	check(week == -1 && day == -1, "sem semana e dia");
+
+	const char* full = "1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7\r\n8\r\n9\r\n10\r\n4\r\n2\r\n";
+	check(BASE_ParseUserCount(full, count, MAX_SERVERNUMBER, &week, &day) == MAX_SERVER + 2, "doze números com CRLF");
+	check(count[1] == 1 && count[10] == 10 && week == 4 && day == 2, "semana e dia depois dos canais");
+
+	check(BASE_ParseUserCount("2\n", count, MAX_SERVERNUMBER, nullptr, nullptr) == 1, "página curta");
+	check(count[1] == 2 && count[2] == -1 && count[10] == -1, "o que falta fica -1");
+
+	check(BASE_ParseUserCount("", count, MAX_SERVERNUMBER, &week, &day) == 0, "página vazia");
+	check(BASE_ParseUserCount("<html>", count, MAX_SERVERNUMBER, &week, &day) == 0 && count[1] == -1, "página de erro HTTP");
+	check(BASE_ParseUserCount(nullptr, count, MAX_SERVERNUMBER, nullptr, nullptr) == 0, "sem página");
+
+	return failures;
+}
+
 struct Case
 {
 	const char* name;
@@ -558,7 +596,7 @@ int main(int argc, char** argv)
 	bool print = argc > 1 && std::strcmp(argv[1], "--print") == 0;
 	FillTables();
 
-	int failures = print ? 0 : CheckOutOfDomainInputs();
+	int failures = print ? 0 : CheckOutOfDomainInputs() + CheckUserCountPage();
 	for (size_t i = 0; i < sizeof(kCases) / sizeof(kCases[0]); ++i)
 	{
 		uint64_t got = kCases[i].fn();

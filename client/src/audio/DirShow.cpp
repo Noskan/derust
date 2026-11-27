@@ -146,29 +146,22 @@ char DS_SOUND_CHANNEL::CleanGraph()
 	if (FAILED(graph_builder->EnumFilters(&pFilterEnum)))
 		return 0;
 
+	// Recolhe os filtros com Next ate ele parar de devolver S_OK. A versao anterior contava com
+	// SUCCEEDED(Skip(1)), que nunca termina: Skip devolve S_FALSE (sucesso) quando acaba a lista.
+	// Cada filtro recebe um Release, o da referencia que o Next entregou; o laco ate zerar liberava
+	// tambem referencias de outros donos.
+	IBaseFilter* ppFilters[32];
 	int iFiltCount = 0;
-	int iPos = 0;
-
-	while (SUCCEEDED(pFilterEnum->Skip(1u)))
-		++iFiltCount;
-
-	IBaseFilter** ppFilters = (IBaseFilter**)_malloca(sizeof(IBaseFilter*) * iFiltCount);
-
-	HRESULT nextFilterHR = S_OK;
-	IBaseFilter** nextFilter = nullptr;
 	pFilterEnum->Reset();
-
-	while (pFilterEnum->Next(1, &(ppFilters[iPos++]), NULL) == S_OK)
-		;
+	while (iFiltCount < 32 && pFilterEnum->Next(1, &ppFilters[iFiltCount], NULL) == S_OK)
+		++iFiltCount;
 
 	SAFE_RELEASE(pFilterEnum);
 
 	for (int iPos = 0; iPos < iFiltCount; ++iPos)
 	{
 		graph_builder->RemoveFilter(ppFilters[iPos]);
-
-		while (ppFilters[iPos]->Release())
-			;
+		ppFilters[iPos]->Release();
 	}
 
 	return 1;
