@@ -24,15 +24,18 @@ relatório, este arquivo é escrito à mão: ao mudar um destes pacotes, atualiz
     um ponteiro; o cliente recebia lixo da pilha.
   - A extração (0x2D4) passou a ler `MSG_Sell.MyPos`, o campo que o cliente preenche, em vez de um
     `int` que só dava certo pelo preenchimento zerado.
+- **Resolvido depois da triagem**:
+  - Cápsula: o DBSrv responde 0xDC3 no layout de `MSG_CAPSULEINFO` do cliente (rosto, nível, atributos
+    e maestrias; as 9 skills e os bits de quest ficam 0, sem correspondência no personagem salvo). O
+    0xD1F com `STRUCT_SEALOFSOUL` saiu.
+  - O TMSrv repassa ao DBSrv o pedido de transferência de personagem (0xFAA), no modo de transferência.
+  - Placar do RvR (0x3BB): o servidor manda os pontos crus, como o cliente decodifica (o vermelho em
+    módulo 256, porque o cliente só lê o byte baixo).
+  - O log de erro do cliente (0x2BC) vai para o log do servidor.
 - **Ainda em aberto**:
-  - Cápsula (selo de alma): o cliente pede com 0x2CD e espera a resposta em 0xDC3 (`MSG_CAPSULEINFO`:
-    classe, nível, atributos, 4 maestrias, 9 skills). O TMSrv repassa a resposta do DBSrv em 0xD1F
-    (`STRUCT_SEALOFSOUL`: classes celestial/subclasse, atributos e quests, sem skills). O tooltip da
-    cápsula nunca é preenchido, e os dados não se traduzem um a um.
-  - O pedido de transferência de personagem (0xFAA, cliente → servidor) não tem `case` no TMSrv, que
-    deveria repassá-lo ao DBSrv (o DBSrv já trata).
-  - Placar do RvR (0x3BB): o servidor manda `Red + 1024` e `Blue + 1024` em dois shorts; o cliente
-    mostra `Parm & 0xFF` e `Parm >> 16`. Não está claro qual dos dois lados está certo.
+  - Os outros recursos A do cliente (quiz, jackpot, loja de cash, preço dinâmico, saída com atraso,
+    convocação, fogos premium, contador da quest 12, recompra, painel de 4 linhas, voo por rota, chat
+    de grupo por índice): cada um é desenho de jogo no servidor.
   - Os 8 combinadores marcados D (Lindy, Shany, Odin, Odin2, Ehre, Alquimia, Ailyn, Agatha) recebem do
     cliente o opcode que vem do `Mixlist.bin`, que não está no repositório.
 
@@ -51,7 +54,7 @@ relatório, este arquivo é escrito à mão: ao mudar um destes pacotes, atualiz
 | `0x1CF` | s→c | A | Saldo de cash no HUD. | `client/src/entities/TMHuman_Packets.cpp:1881` |
 | `0x1D0` | s→c | A | Loja de cash (reaproveita a lista da loja comum). | `client/src/scene/TMFieldScene_Packets.cpp:119` |
 | `0x1D6` | s→c | C | Nomes de guilda na seleção de personagem: gravados, nunca lidos. | `client/src/scene/TMSelectCharScene.cpp:1556` |
-| `0x2BC` | c→s | A | Log de erro crítico do cliente (falha ao carregar mapa ou malha). | `client/src/scene/TMScene.cpp:798` |
+| `0x2BC` | c→s | A → resolvido | Log de erro crítico do cliente (falha ao carregar mapa ou malha); o servidor passou a registrá-lo. | `client/src/scene/TMScene.cpp:798` |
 | `0x2BE` | c→s | A | Aposta no jackpot. | `client/src/scene/TMFieldScene_Controls.cpp:187` |
 | `0x2C7` | c→s | A | Resposta do quiz (par do 0x1C6). | `client/src/scene/TMFieldScene_UI.cpp:562` |
 | `0x2C8` | s→c | C | "AutoKick": handler vazio. | `client/src/scene/TMFieldScene_Packets.cpp:1809` |
@@ -63,7 +66,7 @@ relatório, este arquivo é escrito à mão: ao mudar um destes pacotes, atualiz
 | `0x3B0` | s→c | B | Mobs restantes (salas secretas, pista de runas). | `client/src/scene/TMFieldScene_Packets.cpp:1693`; `server/tmsrv/core/ProcessSecMinTimer.cpp:246` |
 | `0x3B2` | s→c | A | Pedido de convocação, que o alvo aceita num painel. | `client/src/scene/TMFieldScene_Packets.cpp:471` |
 | `0x3B3` | s→c | A | Cancela a convocação. | `client/src/scene/TMFieldScene_Packets.cpp:481` |
-| `0x3BB` | s→c | B | Placar do RvR (ver "Ainda em aberto"). | `client/src/scene/TMFieldScene_Packets.cpp:1763`; `server/tmsrv/core/ProcessSecMinTimer.cpp:258` |
+| `0x3BB` | s→c | B | Placar do RvR; o servidor passou a mandar os pontos sem o +1024. | `client/src/scene/TMFieldScene_Packets.cpp:1763`; `server/tmsrv/core/ProcessSecMinTimer.cpp:258` |
 | `0x3C9` | c→s | A | Fogos premium com padrão escolhido. | `client/src/scene/TMFieldScene_Items.cpp:613` |
 | `0x3CA` | s→c | C | "PremiumFireWork": handler vazio. | `client/src/entities/TMHuman_Packets.cpp:628` |
 | `0x3CF` | s→c | A | Início do contador de mobs da quest 12. | `client/src/scene/TMFieldScene_Packets.cpp:1814` |
@@ -74,11 +77,11 @@ relatório, este arquivo é escrito à mão: ao mudar um destes pacotes, atualiz
 | `0x7DB` | s→c | C | Tempo de jogo do controle anti-vício: gravado, nunca lido. | `client/src/scene/TMScene_Packets.cpp:469` |
 | `0xAD9` | c→s | A | Início e fim do voo por rota. | `client/src/scene/TMFieldScene.cpp:423` |
 | `0xBFF` | s→c | C | Desafio de "Encode": os três handlers de destino estão vazios. | `client/src/scene/TMScene_Packets.cpp:74` |
-| `0xDC3` | s→c | D | Dados da cápsula no tooltip (ver "Ainda em aberto"). | `client/src/scene/TMFieldScene_PacketItems.cpp:987`; `server/tmsrv/net/ProcessDBMessage.cpp:1247` |
+| `0xDC3` | s→c | D → resolvido | Dados da cápsula no tooltip; o DBSrv passou a responder neste opcode e layout. | `client/src/scene/TMFieldScene_PacketItems.cpp:987`; `server/dbsrv/persistence/CFileDB_AccountPackets.cpp` |
 | `0xED7` | c→s | C | Declarar guerra de servidor; o painel nunca é aberto. | `client/src/scene/TMFieldScene_Controls.cpp:993` |
 | `0xED8` | c→s | C | Recusar guerra de servidor; o painel nunca é aberto. | `client/src/scene/TMFieldScene_Controls.cpp:1003` |
 | `0xFAA` | s→c | B | Resultado da transferência de personagem, gerado no DBSrv e repassado pelo TMSrv (repasse corrigido). | `client/src/scene/TMSelectCharScene.cpp:1465`; `server/tmsrv/net/ProcessDBMessage.cpp:213` |
-| `0xFAA` | c→s | D | Pedido de transferência: o DBSrv trata, mas o TMSrv não repassa. | `client/src/scene/TMSelectCharScene.cpp:694`; `server/dbsrv/persistence/CFileDB_WorldPackets.cpp:60` |
+| `0xFAA` | c→s | D → resolvido | Pedido de transferência; o TMSrv passou a repassá-lo ao DBSrv (`handlers/account/_MSG_ReqTransper.cpp`). | `client/src/scene/TMSelectCharScene.cpp:694`; `server/dbsrv/persistence/CFileDB_WorldPackets.cpp:60` |
 
 Os handlers vazios (C) podem ser lacuna da reconstrução, e não recurso morto no jogo original.
 
@@ -128,7 +131,7 @@ Os handlers vazios (C) podem ser lacuna da reconstrução, e não recurso morto 
 | `0x3C0` | c→s | `_MSG_CombineItemTiny` | B | Combinação do Tiny; `Type` num membro do ObjectManager. | `client/src/scene/TMFieldScene_Panels.cpp:519` |
 | `0x3CC` | c→s | `_MSG_PutoutSeal` | B | Tirar o personagem da cápsula (972). | `client/src/scene/TMFieldScene_Panels.cpp:1466` |
 | `0xD1D` | c→s | `_MSG_MagicTrumpet` | C | Trombeta vinda do DBSrv, retransmitida a todos. | `server/tmsrv/net/ProcessDBMessage.cpp:136` |
-| `0xD1F` | c→s | `_MSG_CNFDBCapsuleInfo` | C | Resposta da cápsula vinda do DBSrv (ver "Ainda em aberto"). | `server/tmsrv/net/ProcessDBMessage.cpp:1247` |
+| `0xD1F` | c→s | `_MSG_CNFDBCapsuleInfo` | C → removido | Resposta da cápsula vinda do DBSrv; trocada pelo 0xDC3. | `server/tmsrv/net/ProcessDBMessage.cpp:1247` |
 | `0xE0E` | c→s | `_MSG_War` | B | Declarar guerra no painel da guilda (3598). | `client/src/scene/TMFieldScene_MsgBox.cpp:212` |
 | `0xE12` | c→s | `_MSG_GuildAlly` | B | Aliança (3602). | `client/src/scene/TMFieldScene_MsgBox.cpp:224` |
 | `0xE13` | c→s | `_MSG_GuildInfo` | C | Só lido do DBSrv. | `server/tmsrv/net/ProcessDBMessage.cpp:99` |
