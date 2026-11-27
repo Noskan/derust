@@ -317,7 +317,7 @@ void Exec_MSG_TradingItem(int conn, char *pMsg)
 			BASE_GetItemCode(&save1, itemLog);
 			BASE_GetItemCode(&save2, itemLog2);
 
-			sprintf(temp, "tradingitem, SrcType:%d SrcSlot:%d Item:%s DstType:%d DstSlot:%d Item:%s", m->SrcPlace, m->SrcSlot, itemLog, m->DestPlace, m->DestSlot, itemLog2);
+			W2Format(temp, sizeof(temp), "tradingitem, SrcType:%d SrcSlot:%d Item:%s DstType:%d DstSlot:%d Item:%s", m->SrcPlace, m->SrcSlot, itemLog, m->DestPlace, m->DestSlot, itemLog2);
 			ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);	
 
 			memcpy(SrcItem, &save2, sizeof(STRUCT_ITEM));

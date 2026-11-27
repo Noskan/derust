@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <stdio.h> 
 #include <fcntl.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -37,7 +36,9 @@
 
 #include "persistence/CRanking.h"
 
-const char* const CReadFiles::UPDATE_CONNECTION_PATH = "C:/wamp/www/serv%2.2d.htm";
+// O original gravava em C:/wamp/www, a raiz do Apache do WampServer. Agora o diret√≥rio √© o de
+// W2_STATUS_DIR, ou este, e um servidor web o publica (ver docs/LINUX.md).
+const char* const CReadFiles::UPDATE_CONNECTION_PATH = "../../Common/status";
 const char* const CReadFiles::UPDATE_CONNECTION_DATA_PATH = "../../Common/data%2.2d.csv";
 
 const char* const CReadFiles::IMPORT_ITEM_PATH = "../../Common/ImportItem/*.*";
@@ -58,13 +59,26 @@ const char* const CReadFiles::UPDATE_USER2_PATH = "../../Common/serv%2.2d/update
 
 const char* const CReadFiles::RANKING_PATH = "../../Common/Ranking.txt";
 
+/// P√°gina de status (serv<NN>.htm): uma linha por canal, com -1 para canal sem TMSrv e a lota√ß√£o
+/// para os outros. O cliente a baixa pela URL da coluna 0 do serverlist.bin dele e a mostra na
+/// lista de canais. O nome .htm √© do original: o conte√∫do √© texto puro.
 void CReadFiles::UpdateConnection()
 {
-	char temp[256];
+	const char *dir = getenv("W2_STATUS_DIR");
 
-	sprintf(temp, UPDATE_CONNECTION_PATH, ServerIndex);
+	if (dir == NULL || dir[0] == 0)
+		dir = UPDATE_CONNECTION_PATH;
 
-	FILE *fp = fopen(temp, "wt");
+	char temp[512];
+	char part[520];
+
+	if (snprintf(temp, sizeof(temp), "%s/serv%2.2d.htm", dir, ServerIndex) >= (int)sizeof(temp))
+		return;
+
+	// Grava ao lado e troca o nome no fim: quem baixa a p√°gina nunca a v√™ pela metade.
+	snprintf(part, sizeof(part), "%s.part", temp);
+
+	FILE *fp = fopen(part, "wt");
 
 	if (fp == NULL)
 		return;
@@ -83,7 +97,8 @@ void CReadFiles::UpdateConnection()
 		fprintf(fp, "%d\n", ((4 * pUser[i].Count / 3) + W2Rand() % 4));
 	}
 
-	fclose(fp);
+	if (fclose(fp) != 0 || rename(part, temp) != 0)
+		unlink(part);
 }
 
 void CReadFiles::UpdateConnectionData()
@@ -163,10 +178,11 @@ void CReadFiles::ImportItem()
 			continue;
 		}
 
-		sprintf(filename, IMPORT_ITEM2_PATH, c_file.name);
-		sprintf(movefile, IMPORT_ITEM_ERROR_PATH, c_file.name);
-
-		fp = fopen(filename, "rt");
+		// Um nome longo demais para o caminho È pulado como um arquivo que n„o abre.
+		fp = NULL;
+		if (W2Format(filename, sizeof(filename), IMPORT_ITEM2_PATH, c_file.name) &&
+			W2Format(movefile, sizeof(movefile), IMPORT_ITEM_ERROR_PATH, c_file.name))
+			fp = fopen(filename, "rt");
 
 		if (fp == NULL)
 		{
@@ -416,8 +432,10 @@ void CReadFiles::ImportUser()
 				break;
 		}
 
-		sprintf(filename, IMPORT_USER2_PATH, &c_file.name);
-		fp = fopen(filename, "rt");
+		// Um nome longo demais para o caminho È pulado como um arquivo que n„o abre.
+		fp = NULL;
+		if (W2Format(filename, sizeof(filename), IMPORT_USER2_PATH, c_file.name))
+			fp = fopen(filename, "rt");
 
 		if (fp == NULL)
 		{
@@ -750,10 +768,11 @@ void CReadFiles::ImportDonate()
 			break;
 
 
-		sprintf(filename, IMPORT_DONATE2_PATH, c_file.name);
-		sprintf(movefile, IMPORT_DONATE_ERROR_PATH, c_file.name);
-
-		fp = fopen(filename, "rt");
+		// Um nome longo demais para o caminho È pulado como um arquivo que n„o abre.
+		fp = NULL;
+		if (W2Format(filename, sizeof(filename), IMPORT_DONATE2_PATH, c_file.name) &&
+			W2Format(movefile, sizeof(movefile), IMPORT_DONATE_ERROR_PATH, c_file.name))
+			fp = fopen(filename, "rt");
 
 		if (fp == NULL)
 		{
@@ -938,9 +957,10 @@ void CReadFiles::UpdateUser()
 			continue;
 		}
 
-		sprintf(filename, UPDATE_USER2_PATH, ServerIndex, c_file.name);
-
-		fp = fopen(filename, "rt");
+		// Um nome longo demais para o caminho È pulado como um arquivo que n„o abre.
+		fp = NULL;
+		if (W2Format(filename, sizeof(filename), UPDATE_USER2_PATH, ServerIndex, c_file.name))
+			fp = fopen(filename, "rt");
 
 		if (fp != NULL)
 		{
@@ -1019,14 +1039,14 @@ void CReadFiles::UpdateUser()
 			{
 				ret = (unlink(filename) == 0);
 
-				sprintf(temp, "AccountName:%s AccountPass:%s filename:%s", id, pass, filename);
+				W2Format(temp, sizeof(temp), "AccountName:%s AccountPass:%s filename:%s", id, pass, filename);
 				Log(temp, "-UPDATE USER SUCCESS - FILE DELETED [WARNING]", 0);
 			}
 			else
 			{
 				ret = (unlink(filename) == 0);
 
-				sprintf(temp, "AccountName:%s AccountPass:%s filename:%s", id, pass, filename);
+				W2Format(temp, sizeof(temp), "AccountName:%s AccountPass:%s filename:%s", id, pass, filename);
 				Log(temp, "-UPDATE USER FAIL - FILE DELETED [WARNING]", 0);
 			}
 		}

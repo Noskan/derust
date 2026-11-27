@@ -1,6 +1,7 @@
 #include "common/Platform.h"
 
 #include <cctype>
+#include <cstdarg>
 #include <chrono>
 #include <cstdio>
 #include <thread>
@@ -19,6 +20,15 @@ int W2Rand()
 void W2Srand(unsigned int seed)
 {
 	g_RandState = seed;
+}
+
+bool W2Format(char* buf, size_t size, const char* fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	int n = vsnprintf(buf, size, fmt, ap);
+	va_end(ap);
+	return n >= 0 && (size_t)n < size;
 }
 
 void ServerAlert(const char* text, const char* caption)

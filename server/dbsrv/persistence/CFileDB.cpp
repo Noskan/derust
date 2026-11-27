@@ -77,7 +77,7 @@ CFileDB::~CFileDB()
 
 int CFileDB::AddAccount(char *id, char *pass, char *name, int ssn1, int ssn2, char *email, char *tel, char *addr, int bonus)
 {
-	char check[ACCOUNTNAME_LENGTH];
+	char check[ACCOUNTNAME_LENGTH + 1] = { 0, };
 
 	strncpy(check, id, ACCOUNTNAME_LENGTH);
 
@@ -94,7 +94,8 @@ int CFileDB::AddAccount(char *id, char *pass, char *name, int ssn1, int ssn2, ch
 
 	char temp[128];
 
-	sprintf(temp, "./account/%s/%s", First, check);
+	if (!W2Format(temp, sizeof(temp), "./account/%s/%s", First, check))
+		return FALSE;
 
 	int Handle = open(temp, O_RDONLY);
 
@@ -144,7 +145,7 @@ int CFileDB::AddAccount(char *id, char *pass, char *name, int ssn1, int ssn2, ch
 
 int CFileDB::UpdateAccount(char *id, char *pass)
 {
-	char check[ACCOUNTNAME_LENGTH];
+	char check[ACCOUNTNAME_LENGTH + 1] = { 0, };
 
 	strncpy(check, id, ACCOUNTNAME_LENGTH);
 
@@ -161,7 +162,8 @@ int CFileDB::UpdateAccount(char *id, char *pass)
 
 	char temp[128];
 
-	sprintf(temp, "./account/%s/%s", First, check);
+	if (!W2Format(temp, sizeof(temp), "./account/%s/%s", First, check))
+		return FALSE;
 
 	int Handle = open(temp, O_RDONLY);
 
@@ -220,7 +222,8 @@ int ProcessRecord(int conn, char * str)
 	
 	char filetemp[236];
    
-	sprintf(filetemp, "../../Common/record%d/%s", ServerIndex, file);
+	if (!W2Format(filetemp, sizeof(filetemp), "../../Common/record%d/%s", ServerIndex, file))
+		return FALSE;
 	
 	FILE *fp = fopen(filetemp, "wt");
 
@@ -378,7 +381,7 @@ void CFileDB::RemoveAccountList(int Idx)
 
 int CFileDB::CreateCharacter(char *ac, char *ch)
 {
-	char check[ACCOUNTNAME_LENGTH];
+	char check[ACCOUNTNAME_LENGTH + 1] = { 0, };
 
 	strncpy(check, ac, ACCOUNTNAME_LENGTH);
 
@@ -403,7 +406,8 @@ int CFileDB::CreateCharacter(char *ac, char *ch)
 
 	BASE_GetFirstKey(check, First);
 
-	sprintf(temp, "./char/%s/%s", First, check);
+	if (!W2Format(temp, sizeof(temp), "./char/%s/%s", First, check))
+		return FALSE;
 
 	FILE *fp = NULL;
 
@@ -445,7 +449,7 @@ int CFileDB::CreateCharacter(char *ac, char *ch)
 
 int CFileDB::DeleteCharacter(char *ch, char *account)
 {
-	char check[ACCOUNTNAME_LENGTH];
+	char check[ACCOUNTNAME_LENGTH + 1] = { 0, };
 
 	strncpy(check, ch, ACCOUNTNAME_LENGTH);
 
@@ -461,7 +465,8 @@ int CFileDB::DeleteCharacter(char *ch, char *account)
 
 	BASE_GetFirstKey(check, First);
 
-	sprintf(temp, "./char/%s/%s", First, check);
+	if (!W2Format(temp, sizeof(temp), "./char/%s/%s", First, check))
+		return FALSE;
 
 	int ret = unlink(temp) == 0;
 
@@ -534,7 +539,7 @@ int CFileDB::DBWriteAccount(STRUCT_ACCOUNTFILE *account)
 {
 	char *accname = account->Info.AccountName;
 
-	char check[ACCOUNTNAME_LENGTH];
+	char check[ACCOUNTNAME_LENGTH + 1] = { 0, };
 
 	strncpy(check, accname, ACCOUNTNAME_LENGTH);
 
@@ -551,7 +556,8 @@ int CFileDB::DBWriteAccount(STRUCT_ACCOUNTFILE *account)
 
 	char temp[128];
 
-	sprintf(temp, "./account/%s/%s", First, check);	
+	if (!W2Format(temp, sizeof(temp), "./account/%s/%s", First, check))
+		return FALSE;
 
 	int Handle = open(temp, O_RDWR | O_CREAT, 0644);
 
@@ -613,7 +619,7 @@ int CFileDB::DBWriteAccount(STRUCT_ACCOUNTFILE *account)
 
 int CFileDB::DBExportAccount(STRUCT_ACCOUNTFILE *file)
 {
-	char check[ACCOUNTNAME_LENGTH];
+	char check[ACCOUNTNAME_LENGTH + 1] = { 0, };
 
 	char *accname = file->Info.AccountName;
 
@@ -665,7 +671,7 @@ int CFileDB::DBReadAccount(STRUCT_ACCOUNTFILE *file)
 	file->Info.AccountPass[ACCOUNTPASS_LENGTH-1] = 0;
 	file->Info.AccountPass[ACCOUNTPASS_LENGTH-2] = 0;
 
-	char check[ACCOUNTNAME_LENGTH];
+	char check[ACCOUNTNAME_LENGTH + 1] = { 0, };
 
 	strncpy(check, file->Info.AccountName, ACCOUNTNAME_LENGTH);
 
@@ -682,7 +688,8 @@ int CFileDB::DBReadAccount(STRUCT_ACCOUNTFILE *file)
 
 	char temp[128];
 
-	sprintf(temp, "./account/%s/%s", First, check);
+	if (!W2Format(temp, sizeof(temp), "./account/%s/%s", First, check))
+		return FALSE;
 
 	int Handle = open(temp, O_RDONLY);
 
@@ -776,7 +783,7 @@ void CFileDB::DBGetSelChar(STRUCT_SELCHAR *sel, STRUCT_ACCOUNTFILE *file)
 
 void CFileDB::GetAccountByChar(char *acc, char *cha)
 {
-	char check[NAME_LENGTH];
+	char check[NAME_LENGTH + 1] = { 0, };
 
 	strncpy(check, cha, NAME_LENGTH);
 

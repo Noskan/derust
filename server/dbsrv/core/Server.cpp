@@ -639,7 +639,7 @@ void OnServerEvent(const W2Event& ev)
 					TempUser.cSock.CloseSocket();
 
 					char temp[256];   
-					sprintf(temp, "err wsa_accept request from  %s", sIP );
+					W2Format(temp, sizeof(temp), "err wsa_accept request from  %s", sIP );
 
 					Log(temp, "-system", 0);
 

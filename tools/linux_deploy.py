@@ -39,7 +39,8 @@ ROOT = Path(__file__).resolve().parent.parent
 
 INITIALS = [chr(c) for c in range(ord("A"), ord("Z") + 1)] + ["etc"]
 WRITE_DIRS = {
-    "Common": ["ImportUser", "ImportItem", "ImportDonate", "ImportDonateError", "Error"],
+    # status: a página de status do DBSrv (serv<NN>.htm), que um servidor web publica.
+    "Common": ["ImportUser", "ImportItem", "ImportDonate", "ImportDonateError", "Error", "status"],
     "DBSRV/Run": ["Log", "DayLog", "capsule"] + [f"account/{i}" for i in INITIALS] + [f"char/{i}" for i in INITIALS],
     "TMSRV/Run": ["Log", "chat_log", "item_log", "npc"],
 }

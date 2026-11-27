@@ -239,7 +239,8 @@ void DayLog_ItemLog()
 
 		sprintf(Temp, "[%02d/%02d/%04d][%02d:%02d:%02d] ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 
-		sprintf(Temp + strlen(Temp), " ItemID:%d ItemName:%s ItemNum:%d \n", i, g_pItemList[i].Name, ItemDayLog[i].Num);
+		size_t len = strlen(Temp);
+		W2Format(Temp + len, sizeof(Temp) - len, " ItemID:%d ItemName:%s ItemNum:%d \n", i, g_pItemList[i].Name, ItemDayLog[i].Num);
 
 		if (fp)
 			fprintf(fp, Temp);

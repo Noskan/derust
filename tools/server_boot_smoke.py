@@ -449,13 +449,40 @@ def check_bin_csv(common):
     return problems
 
 
+def check_status_page(common, db_started, timeout=45):
+    """A página de status do DBSrv (Common/status/serv<NN>.htm), que ele grava a cada 30 s: uma
+    linha por canal (MAX_SERVER), com a lotação do canal 1, onde está o TMSrv, e -1 nos outros."""
+    deadline = db_started + timeout
+    pages = []
+    while time.time() < deadline:
+        pages = sorted((common / "status").glob("serv*.htm"))
+        if pages:
+            break
+        time.sleep(1)
+    if not pages:
+        return [f"DBSrv: não gravou a página de status em {common / 'status'} em {timeout}s"]
+    lines = pages[0].read_text().split("\n")
+    if lines[-1] == "":
+        lines.pop()
+    try:
+        counts = [int(l) for l in lines]
+    except ValueError:
+        return [f"DBSrv: página de status com linha que não é número: {lines!r}"]
+    if len(counts) != 10 or counts[0] < 0 or any(c != -1 for c in counts[1:]):
+        return [f"DBSrv: página de status inesperada ({pages[0].name}): {counts}"]
+    if list((common / "status").glob("*.part")):
+        return ["DBSrv: sobrou um .part da página de status"]
+    print(f"página de status: {pages[0].name} com o canal 1 no ar e os outros 9 em -1")
+    return []
+
+
 def boot(host, work, exe_dir, args):
     db_dir, tm_dir, game_host = prepare(work, exe_dir)
     import_files = import_accounts(work / "Common") if args.login_client else None
     servers = []
     graceful = False  # só encerra com WM_QUIT se os dois chegaram ao fim do tempo no ar
     try:
-        t0 = time.time()
+        t0 = db_started = time.time()
         servers.append(host.start("DBSrv", db_dir))
         problems = wait_port(DB_PORT, "127.0.0.1", servers, args.timeout)
         if problems:
@@ -479,6 +506,8 @@ def boot(host, work, exe_dir, args):
             problems += host.control(servers)
             problems += [p for s in servers for p in s.problems()]
         time.sleep(args.settle)
+        if not problems:
+            problems += check_status_page(work / "Common", db_started)
         problems += [p for s in servers for p in s.problems()]
         graceful = not problems
     finally:

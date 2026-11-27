@@ -901,7 +901,8 @@ int ProcessAdminMessage(int conn, char *msg)
 			when = *localtime(&now);
 
 			sprintf(name, "%02d%02d%04d%02d%02d%02d%02d", when.tm_mday, when.tm_mon, when.tm_year+1900, when.tm_hour, when.tm_min, when.tm_sec, W2Rand()%255);
-			sprintf(filename, "../../Common/ImportDonate/%s", name);
+			if (!W2Format(filename, sizeof(filename), "../../Common/ImportDonate/%s", name))
+				break;
 
 			FILE *fp = fopen(filename, "wt");
 

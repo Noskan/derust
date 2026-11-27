@@ -269,7 +269,7 @@ void ProcessDBMessage(char *Msg)
 
 									char cMsg[128];
 
-									sprintf(cMsg, "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[m->Item.sIndex].Name);
+									W2Format(cMsg, sizeof(cMsg), "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[m->Item.sIndex].Name);
 
 									SendClientMessage(conn, cMsg);
 
@@ -301,7 +301,7 @@ void ProcessDBMessage(char *Msg)
 
 									char cMsg[128];
 
-									sprintf(cMsg, "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[m->Item.sIndex].Name);
+									W2Format(cMsg, sizeof(cMsg), "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[m->Item.sIndex].Name);
 
 									SendClientMessage(conn, cMsg);
 

@@ -46,7 +46,7 @@ python3 tools/linux_deploy.py /srv/w2 --bin build/linux --user w2   # ou --bin c
 
 O script:
 - cria `Common/`, `DBSRV/Run/` e `TMSRV/Run/`;
-- cria os diretórios em que os servidores gravam e que não criam sozinhos: `Log`, `DayLog`, `chat_log`, `item_log`, `account/<inicial>`, `char/<inicial>`, `capsule`, `npc`, e `Import*` e `Error` em `Common`;
+- cria os diretórios em que os servidores gravam e que não criam sozinhos: `Log`, `DayLog`, `chat_log`, `item_log`, `account/<inicial>`, `char/<inicial>`, `capsule`, `npc`, e `Import*`, `Error` e `status` em `Common`;
 - copia os binários para os `Run`;
 - confere a caixa dos arquivos de dados contra os nomes que o código abre, tirados das próprias fontes. `--fix-case` renomeia arquivos e diretórios para a caixa certa, e `--check-only` só confere;
 - grava `systemd/w2-dbsrv.service` e `systemd/w2-tmsrv.service` com os caminhos da árvore.
@@ -138,7 +138,30 @@ O servidor ecoa cada comando no stderr (`controle: SaveAll (9003)`). Um nome des
 
 Cada servidor registra os seus comandos no início do `main` (`RegisterCommands`, com `W2LoopAddCommand`), com os nomes dos itens do menu do Windows.
 
+## Página de status dos canais
+
+A lista de canais do cliente mostra a lotação de cada canal e marca os que estão fora do ar. Os números vêm de uma página que o DBSrv grava a cada 30 s e que o cliente baixa por HTTP:
+
+- **O arquivo.** `Common/status/serv<NN>.htm`, com `NN` o índice do grupo do DBSrv no `serverlist.txt`. A variável `W2_STATUS_DIR` troca o diretório. Apesar do nome, é texto puro: uma linha por canal, `-1` para canal sem TMSrv e a lotação para os outros. A lotação é a do jogo mais um terço, mais de 0 a 3, como no original, e o cliente escreve "FULL" acima de 600.
+- **A gravação.** O DBSrv grava num `.part` ao lado e troca o nome no fim, então o servidor web nunca entrega a página pela metade. Sem o diretório, a gravação é pulada sem aviso, e a lista de canais aparece toda fora do ar. O login continua funcionando.
+- **A URL.** O cliente lê a URL da coluna 0 do grupo no `serverlist.bin` dele, por exemplo `http://jogo.exemplo/status/serv00.htm`. Essa lista é a do cliente, não o `serverlist.txt` do servidor.
+- **O servidor web.** O DBSrv não serve a página: no Windows quem a servia era o Apache do WampServer (o caminho original era `C:/wamp/www`). No Linux, um nginx basta:
+
+  ```nginx
+  server {
+      listen 80;
+      location /status/ {
+          alias /srv/w2/Common/status/;
+          default_type text/plain;
+          add_header Cache-Control no-store;
+      }
+  }
+  ```
+
+  Os arquivos saem com permissão 0644, legíveis pelo usuário do nginx.
+
+O histórico de lotação vai para `Common/data<NN>.csv`: a cada 15 minutos, uma linha com a data e a hora, o pico de cada canal no período e o total.
+
 ## Pendências
 
-- O gcc 13 do Ubuntu, que liga mais avisos por padrão, aponta 22 `-Wformat-overflow`: `sprintf` que pode passar do tamanho do buffer, a maioria no DBSrv (`CReadFiles.cpp`, `CFileDB.cpp`). Eles ficam fora da linha de base, que só conta os tipos acompanhados, e pedem uma revisão caso a caso, porque um estouro desses num servidor exposto é falha de segurança.
-- A página de status do DBSrv vai para `C:/wamp/www/serv<NN>.htm` (`CReadFiles::UPDATE_CONNECTION_PATH`). No Linux esse caminho não existe e a gravação é pulada, como no Windows sem o wamp.
+- Nenhuma do port. Os `sprintf` que o gcc do Ubuntu apontava com `-Wformat-overflow` foram corrigidos (`docs/ARCHITECTURE.md`, item 27).

@@ -1672,7 +1672,7 @@ void DoItemLevel(int conn)
 
 			char cMsg[128];
 
-			sprintf(cMsg, "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[LevelItem[pMob[conn].MOB.Class][type][pMob[conn].MOB.BaseScore.Level].sIndex].Name);
+			W2Format(cMsg, sizeof(cMsg), "%s [%s]", g_pMessageStringTable[_NN_Item_Arrived], g_pItemList[LevelItem[pMob[conn].MOB.Class][type][pMob[conn].MOB.BaseScore.Level].sIndex].Name);
 
 			SendClientMessage(conn, cMsg);
 

@@ -391,7 +391,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				break;
 			}
 
-			char check[NAME_LENGTH];
+			char check[NAME_LENGTH + 1] = { 0, };
 
 			strncpy(check, m->MobName, NAME_LENGTH);
 
@@ -955,7 +955,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 			return TRUE;
 		}
 
-		char check[NAME_LENGTH];
+		char check[NAME_LENGTH + 1] = { 0, };
 
 		strncpy(check, m->MobName, NAME_LENGTH);
 
