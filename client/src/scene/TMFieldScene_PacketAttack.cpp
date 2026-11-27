@@ -278,24 +278,7 @@ if (pAttacker)
 		// Recuperar, Exterminar
 		else if (pAttack->SkillIndex == 30 || pAttack->SkillIndex == 23)
 		{
-			if (pAttacker)
-			{
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pAttacker->m_vecPosition.y };
-				int nType = 0;
-				if (pAttack->SkillIndex == 23)
-				{
-					nType = 2;
-
-					if (pTarget)
-						vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 0.5f, pTarget->m_vecPosition.y);
-					else
-						vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fHeight + 0.5f, (float)pAttack->TargetY + 0.5f);
-				}
-
-				auto pJudgement = new TMSkillJudgement(vecPos, nType, 0.1f);
-				if (pJudgement)
-					m_pEffectContainer->AddChild(pJudgement);
-			}
+			PacketAttack_Skill30Or23Effect(pAttack, pAttacker, pTarget, fHeight);
 		}
 		else if (pAttack->SkillIndex == 55) // Aura Bestial
 		{
@@ -752,6 +735,30 @@ void TMFieldScene::PacketAttack_Skill36Effect(MSG_Attack*& pAttack, TMHuman*& pA
 
 		if (pMeteor && m_pEffectContainer)
 			m_pEffectContainer->AddChild(pMeteor);
+	}
+}
+
+/// Efeitos das skills 30 e 23 no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill30Or23Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget, float& fHeight)
+{
+	if (pAttacker)
+	{
+		TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 0.5f, pAttacker->m_vecPosition.y };
+		int nType = 0;
+		if (pAttack->SkillIndex == 23)
+		{
+			nType = 2;
+
+			if (pTarget)
+				vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 0.5f, pTarget->m_vecPosition.y);
+			else
+				vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fHeight + 0.5f, (float)pAttack->TargetY + 0.5f);
+		}
+
+		auto pJudgement = new TMSkillJudgement(vecPos, nType, 0.1f);
+		if (pJudgement)
+			m_pEffectContainer->AddChild(pJudgement);
 	}
 }
 
