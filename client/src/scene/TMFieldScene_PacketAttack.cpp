@@ -323,18 +323,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 109)
 		{
-			if (pTarget && pAttacker)
-			{
-				fHeight = ((float)(TMHuman::m_vecPickSize[pAttacker->m_nSkinMeshType].y * pAttacker->m_fScale) * 0.69999999f) + pAttacker->m_fHeight;
-				if (pAttacker->m_nSkinMeshType == 42)
-					fHeight = (float)(1.0f * pAttacker->m_fScale) + fHeight;
-
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, fHeight, pAttacker->m_vecPosition.y };
-
-				auto pEffectSpark = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFF550000, 0xAA663311, 1000, 1.0f, 5, 0.0f);
-
-				m_pEffectContainer->AddChild(pEffectSpark);
-			}
+			PacketAttack_Skill109Effect(pAttacker, pTarget, fHeight);
 		}
 		else if (pAttack->SkillIndex == 110) // Skill Kefra
 		{
@@ -778,6 +767,24 @@ void TMFieldScene::PacketAttack_Skill107Effect(TMHuman*& pAttacker, TMHuman*& pT
 		TMVector3 vecPos{ pAttacker->m_vecPosition.x, fHeight, pAttacker->m_vecPosition.y };
 
 		auto pEffectSpark = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFFFFAA00, 0xFF554411, 1000, 1.0f, 5, 0.0f);
+
+		m_pEffectContainer->AddChild(pEffectSpark);
+	}
+}
+
+/// Efeitos da skill 109 no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill109Effect(TMHuman*& pAttacker, TMHuman*& pTarget, float& fHeight)
+{
+	if (pTarget && pAttacker)
+	{
+		fHeight = ((float)(TMHuman::m_vecPickSize[pAttacker->m_nSkinMeshType].y * pAttacker->m_fScale) * 0.69999999f) + pAttacker->m_fHeight;
+		if (pAttacker->m_nSkinMeshType == 42)
+			fHeight = (float)(1.0f * pAttacker->m_fScale) + fHeight;
+
+		TMVector3 vecPos{ pAttacker->m_vecPosition.x, fHeight, pAttacker->m_vecPosition.y };
+
+		auto pEffectSpark = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFF550000, 0xAA663311, 1000, 1.0f, 5, 0.0f);
 
 		m_pEffectContainer->AddChild(pEffectSpark);
 	}
