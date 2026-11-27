@@ -728,25 +728,6 @@ struct STRUCT_GUILDZONE
 	int Victory;
 };
 
-struct STRUCT_SEALOFSOUL
-{
-	int Read;
-	int MortalClass;
-	int ClassCele;
-	int SubClass;
-	int LevelCele;
-	int LevelSub;
-	int For;
-	int Int;
-	int Dex;
-	int Con;
-	int ScoreBonus;
-	int SkillPoint;
-	int ArchQuest;
-	int CelestialQuest;
-	int ArcanaQuest;
-};
-
 struct STRUCT_SELCHAR
 {
 	short SPX[4];
@@ -1402,12 +1383,23 @@ struct		  MSG_DBOutCapsule
 
 	char MobName[NAME_LENGTH];
 };
-const short  _MSG_CNFDBCapsuleInfo			= (31 | FLAG_DB2GAME | FLAG_GAME2DB | FLAG_GAME2CLIENT);
-struct		  MSG_CNFDBCapsuleInfo
+/// @brief Dados de uma cápsula (selo de alma) para o tooltip do cliente: DBSrv → TMSrv → cliente, no
+/// layout de MSG_CAPSULEINFO do cliente (0xDC3, 56 bytes). Antes o DBSrv respondia 0xD1F com outra
+/// struct, que o cliente não trata, e o tooltip nunca era preenchido.
+const short  _MSG_CNFCapsuleInfo			= (195 | FLAG_DB2GAME | FLAG_GAME2DB | FLAG_GAME2CLIENT);
+struct		  MSG_CNFCapsuleInfo
 {
 	_MSG;
-	int Index;
-	STRUCT_SEALOFSOUL Capsule;
+	unsigned int CIndex;		// Índice da cápsula, o mesmo do pedido
+	short Class;				// Rosto (MOB.Equip[0].sIndex): dezena = classe, unidade > 5 = evoluído
+	short Level;				// O cliente mostra Level + 1
+	short sStr;
+	short sInt;
+	short sDex;
+	short sCon;
+	short Mastery[4];			// BaseScore.Special
+	short skill[9];				// Skills mostradas em 3 linhas (item 5000 + skill); o servidor não tem a lista
+	short Quest;				// Bits de quest do cliente; o servidor não tem a mesma codificação
 };
 
 const short  _MSG_MessageChat				= (51 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);

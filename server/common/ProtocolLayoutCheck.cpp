@@ -77,6 +77,15 @@ W2_FIELD(STRUCT_AFFECT, Level, 1, 1);
 W2_FIELD(STRUCT_AFFECT, Value, 2, 2);
 W2_FIELD(STRUCT_AFFECT, Time, 4, 4);
 
+// Cápsula para o tooltip do cliente (MSG_CAPSULEINFO, 0xDC3).
+static_assert(sizeof(MSG_CNFCapsuleInfo) == 56, "MSG_CNFCapsuleInfo deve ter 56 bytes (cliente).");
+static_assert(_MSG_CNFCapsuleInfo == 0xDC3, "_MSG_CNFCapsuleInfo deve ser 0xDC3 (cliente).");
+W2_FIELD(MSG_CNFCapsuleInfo, CIndex, 12, 4);
+W2_FIELD(MSG_CNFCapsuleInfo, Class, 16, 2);
+W2_FIELD(MSG_CNFCapsuleInfo, Mastery, 28, 8);
+W2_FIELD(MSG_CNFCapsuleInfo, skill, 36, 18);
+W2_FIELD(MSG_CNFCapsuleInfo, Quest, 54, 2);
+
 // Pacotes do login, na ordem do fluxo: conta, senha numérica, criação/exclusão e entrada.
 static_assert(sizeof(MSG_AccountLogin) == 120, "MSG_AccountLogin deve ter 120 bytes (cliente).");
 W2_FIELD(MSG_AccountLogin, AccountPassword, 12, 16);         // (AccountPass)

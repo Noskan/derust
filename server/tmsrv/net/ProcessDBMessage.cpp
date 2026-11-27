@@ -1243,10 +1243,10 @@ void ProcessDBMessage(char *Msg)
 
 		} break;
 #pragma endregion
-#pragma region _MSG_CNFDBCapsuleInfo
-		case _MSG_CNFDBCapsuleInfo:
+#pragma region _MSG_CNFCapsuleInfo
+		case _MSG_CNFCapsuleInfo:
 		{
-									  pUser[conn].cSock.SendOneMessage((char*)Msg, sizeof(MSG_CNFDBCapsuleInfo));
+									  pUser[conn].cSock.SendOneMessage((char*)Msg, sizeof(MSG_CNFCapsuleInfo));
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFCapsuleCharacterFail

@@ -1120,34 +1120,28 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		_close(Handle);
 
-		MSG_CNFDBCapsuleInfo sm;
+		// Resposta no layout que o cliente lê (MSG_CAPSULEINFO, 0xDC3). Skills e quest ficam 0: o
+		// cliente mostra 9 skills e bits de quest que não têm correspondência direta no personagem.
+		MSG_CNFCapsuleInfo sm;
+		memset(&sm, 0, sizeof(sm));
 
-		sm.Size = sizeof(MSG_CNFDBCapsuleInfo);
-		sm.Type = _MSG_CNFDBCapsuleInfo;
+		sm.Size = sizeof(MSG_CNFCapsuleInfo);
+		sm.Type = _MSG_CNFCapsuleInfo;
 		sm.ID = m->ID;
 
-		sm.Index = Index;
+		sm.CIndex = Index;
+		sm.Class = file.MOB.Equip[0].sIndex;
+		sm.Level = file.MOB.BaseScore.Level;
 
-		sm.Capsule.Read = 1;
-		sm.Capsule.MortalClass = file.extra.MortalFace / 10;
-		sm.Capsule.ClassCele = file.extra.SaveCelestial[0].Class;
-		sm.Capsule.SubClass = file.MOB.Class;
-		sm.Capsule.LevelCele = file.extra.SaveCelestial[0].BaseScore.Level;
-		sm.Capsule.LevelSub = file.MOB.BaseScore.Level;
+		sm.sStr = file.MOB.BaseScore.Str;
+		sm.sInt = file.MOB.BaseScore.Int;
+		sm.sDex = file.MOB.BaseScore.Dex;
+		sm.sCon = file.MOB.BaseScore.Con;
 
-		sm.Capsule.For = file.MOB.BaseScore.Str;
-		sm.Capsule.Int = file.MOB.BaseScore.Int;
-		sm.Capsule.Dex = file.MOB.BaseScore.Dex;
-		sm.Capsule.Con = file.MOB.BaseScore.Con;
+		for (int i = 0; i < 4; i++)
+			sm.Mastery[i] = file.MOB.BaseScore.Special[i];
 
-		sm.Capsule.ScoreBonus = file.MOB.ScoreBonus;
-		sm.Capsule.SkillPoint = file.MOB.SkillBonus;
-
-		sm.Capsule.ArchQuest = file.extra.QuestInfo.Arch.Cristal;
-		sm.Capsule.CelestialQuest = file.extra.QuestInfo.Celestial.Reset;
-		sm.Capsule.ArcanaQuest = file.extra.QuestInfo.Circle;
-
-		pUser[conn].cSock.SendOneMessage((char*)&sm, sizeof(MSG_CNFDBCapsuleInfo));
+		pUser[conn].cSock.SendOneMessage((char*)&sm, sizeof(MSG_CNFCapsuleInfo));
 	} break;
 
 	case _MSG_DBPutInCapsule:
