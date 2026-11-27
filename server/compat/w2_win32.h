@@ -16,7 +16,10 @@
 /// - Sockets: `SOCKET` é o descritor; `WSAAsyncSelect` deixa o socket não bloqueante, como no
 ///   Winsock. Para um socket de dados com leitura pronta, o laço espia um byte (`MSG_PEEK`):
 ///   0 bytes é `FD_CLOSE`, dados são `FD_READ`, que é o que o Winsock entrega.
-/// - Interface: `MessageBox` escreve no stderr; desenho (GDI), menus e janelas não fazem nada.
+/// - Interface: `MessageBox` escreve no stderr; desenho (GDI) e janelas não fazem nada.
+/// - Menu: `AppendMenu` registra os itens, e cada linha escrita no FIFO de controle
+///   (`control.fifo`, ou `W2_CONTROL`) com o nome de um item vira o `WM_COMMAND` dele
+///   (ver docs/LINUX.md).
 /// - CRT: `_open`/`_read`/... e `_findfirst` sobre POSIX; `_strupr`, `_stricmp`, `GetTickCount`,
 ///   `timeGetTime`, `GetLocalTime`, `Sleep`.
 

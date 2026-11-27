@@ -34,7 +34,8 @@ garante que o detector funciona na plataforma em uso (desligue com --no-self-tes
 
 Plataformas:
   - Linux nativo (o diretório tem DBSrv e TMSrv ELF, do build CMake no Linux): executa os
-    binários direto. A MessageBox da camada server/compat escreve "[título] texto" no stderr,
+    binários direto, e manda os comandos do menu da janela pelo FIFO de controle
+    (`control.fifo`), conferindo o eco de cada um. A MessageBox da camada server/compat escreve "[título] texto" no stderr,
     que vai para <dir>/stderr.log; o encerramento é por SIGTERM, que a camada transforma em
     WM_CLOSE. O LoginClient.exe continua rodando no wine: é um cliente Windows contra
     servidores Linux.
@@ -405,6 +406,41 @@ class LinuxHost:
             out.append(f"{server.name}: terminou pelo sinal {-code}")
         return out
 
+    # Comandos do menu da janela pelo FIFO de controle (server/compat): os que não derrubam o
+    # servidor, com o texto que cada um ecoa no stderr. Reboot e Exit encerram e ficam de fora;
+    # o encerramento já é conferido pelo SIGTERM.
+    CONTROL = {
+        "TMSrv": [("readgameconfig", "ReadGameConfig"), ("readguild", "ReadGuild"),
+                  ("readguildname", "ReadGuildName"), ("reloadmob", "ReloadMob"), ("saveall", "SaveAll")],
+        "DBSrv": [("reloadmobbase", "Reload MobBase")],
+    }
+
+    def control(self, servers, timeout=15):
+        """Manda os comandos pelo FIFO de cada servidor e espera o eco "controle: <texto> (<id>)".
+        Confere também o `help` e a recusa de um comando que não existe."""
+        problems = []
+        for s in servers:
+            fifo = s.log.parent / "control.fifo"
+            if not fifo.exists():
+                problems.append(f"{s.name}: não criou {fifo.name}")
+                continue
+            cmds = self.CONTROL.get(s.name, [])
+            with open(fifo, "w") as f:
+                f.write("help\nnao_existe\n" + "".join(c + "\n" for c, _ in cmds))
+            want = ["controle: comandos:", 'controle: comando desconhecido "nao_existe"'] + \
+                   [f"controle: {label} (" for _, label in cmds]
+            end = time.time() + timeout
+            while True:
+                text = s.log.read_bytes().decode("utf-8", "replace")
+                missing = [w for w in want if w not in text]
+                if not missing or time.time() > end:
+                    break
+                time.sleep(0.5)
+            problems += [f"{s.name}: o FIFO de controle não ecoou \"{m}\"" for m in missing]
+            if not missing:
+                print(f"{s.name}: comandos do menu pelo FIFO de controle: {', '.join(c for c, _ in cmds)}")
+        return problems
+
     def run(self, exe, args, cwd, timeout):
         if Path(exe).suffix.lower() == ".exe":
             return self.wine.run(exe, args, cwd, timeout)
@@ -552,6 +588,9 @@ def boot(host, work, exe_dir, args):
             problems += [p for s in servers for p in s.problems()]
             if not problems:
                 print("login e jogo de ponta a ponta conferidos")
+        if hasattr(host, "control") and not problems:
+            problems += host.control(servers)
+            problems += [p for s in servers for p in s.problems()]
         time.sleep(args.settle)
         problems += [p for s in servers for p in s.problems()]
         graceful = not problems
