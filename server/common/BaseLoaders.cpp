@@ -945,7 +945,7 @@ int BASE_ReadInitItem()
 
 	for(int nIndex = len-1; nIndex > 0; nIndex--)
 	{
-		if(szPathName[nIndex]=='\\')
+		if(szPathName[nIndex]=='\\' || szPathName[nIndex]=='/')
 		{
 			sprintf(szFileName, "%s", &szPathName[nIndex+1]);
 

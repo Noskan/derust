@@ -297,8 +297,8 @@ SOCKET CPSock::ConnectBillServer(char *HostAddr, int Port, int ip, int WSA)
 		}
 	}
 
-	sprintf(msg, "sock:%d ip:%d.%d.%d.%d port:%d-%d", tSock, local_sin.sin_addr.S_un.S_un_b.s_b1, local_sin.sin_addr.S_un.S_un_b.s_b2, 
-		local_sin.sin_addr.S_un.S_un_b.s_b3, local_sin.sin_addr.S_un.S_un_b.s_b4, local_sin.sin_port, ConnectPort); 
+	sprintf(msg, "sock:%d ip:%d.%d.%d.%d port:%d-%d", tSock, ((unsigned char*)&local_sin.sin_addr)[0], ((unsigned char*)&local_sin.sin_addr)[1], 
+		((unsigned char*)&local_sin.sin_addr)[2], ((unsigned char*)&local_sin.sin_addr)[3], local_sin.sin_port, ConnectPort); 
 
 	ConnectPort++;
 
@@ -308,8 +308,8 @@ SOCKET CPSock::ConnectBillServer(char *HostAddr, int Port, int ip, int WSA)
 
 	if(connect(tSock, (PSOCKADDR)&remote_sin, sizeof(remote_sin)) < 0)       
 	{	
-		sprintf(msg, "sock:%d ip:%d.%d.%d.%d port:%d-%d", tSock, remote_sin.sin_addr.S_un.S_un_b.s_b1, remote_sin.sin_addr.S_un.S_un_b.s_b2, 
-			remote_sin.sin_addr.S_un.S_un_b.s_b3, remote_sin.sin_addr.S_un.S_un_b.s_b4, remote_sin.sin_port, Port); 
+		sprintf(msg, "sock:%d ip:%d.%d.%d.%d port:%d-%d", tSock, ((unsigned char*)&remote_sin.sin_addr)[0], ((unsigned char*)&remote_sin.sin_addr)[1], 
+			((unsigned char*)&remote_sin.sin_addr)[2], ((unsigned char*)&remote_sin.sin_addr)[3], remote_sin.sin_port, Port); 
 
 		closesocket(tSock);
 		Sock = 0;
@@ -317,8 +317,8 @@ SOCKET CPSock::ConnectBillServer(char *HostAddr, int Port, int ip, int WSA)
 		return 0;
 	}
 
-	sprintf(msg, "sock:%d ip:%d.%d.%d.%d port:%d-%d", tSock, remote_sin.sin_addr.S_un.S_un_b.s_b1, remote_sin.sin_addr.S_un.S_un_b.s_b2, 
-		remote_sin.sin_addr.S_un.S_un_b.s_b3, remote_sin.sin_addr.S_un.S_un_b.s_b4, remote_sin.sin_port, Port);
+	sprintf(msg, "sock:%d ip:%d.%d.%d.%d port:%d-%d", tSock, ((unsigned char*)&remote_sin.sin_addr)[0], ((unsigned char*)&remote_sin.sin_addr)[1], 
+		((unsigned char*)&remote_sin.sin_addr)[2], ((unsigned char*)&remote_sin.sin_addr)[3], remote_sin.sin_port, Port);
 
     if(WSAAsyncSelect(tSock, hWndMain, WSA, FD_READ|FD_CLOSE) > 0) 
 	{	

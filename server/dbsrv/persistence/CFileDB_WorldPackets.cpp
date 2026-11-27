@@ -20,7 +20,7 @@
 /// @file CFileDB_WorldPackets.cpp
 /// @brief Tratamento de pacotes DB relacionados a guildas, guerras, safira, logs, ranking e anúncios.
 
-#include <ERRNO.H>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <io.h>

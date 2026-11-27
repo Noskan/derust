@@ -20,7 +20,7 @@
 /// @file CFileDB_AccountPackets.cpp
 /// @brief Tratamento de pacotes DB relacionados a contas, personagens, cápsulas e troca de canal.
 
-#include <ERRNO.H>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <io.h>

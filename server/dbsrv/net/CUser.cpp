@@ -58,7 +58,7 @@ BOOL CUser::AcceptUser(int ListenSocket, int wsa)
 	cSock.nSendPosition = 0;
 
 	char * tmp = inet_ntoa(acc_sin.sin_addr);
-	IP		   = acc_sin.sin_addr.S_un.S_addr;
+	IP		   = acc_sin.sin_addr.s_addr;
 	Mode	   = USER_ACCEPT;
 
 	return TRUE;

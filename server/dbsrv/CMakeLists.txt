@@ -21,6 +21,11 @@ set(DBSRV_SOURCES
 
 add_executable(DBSrv WIN32 ${DBSRV_SOURCES})
 
+# Fora do Windows, o main de server/compat chama o WinMain das fontes.
+if(NOT WIN32)
+  target_sources(DBSrv PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../compat/w2_main.cpp)
+endif()
+
 target_include_directories(DBSrv
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

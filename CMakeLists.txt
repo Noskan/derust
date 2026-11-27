@@ -3,7 +3,13 @@ cmake_minimum_required(VERSION 3.24)
 project(derust LANGUAGES CXX)
 
 option(DERUST_BUILD_SERVER "Build W2PP server targets (DBSrv, TMSrv)" ON)
-option(DERUST_BUILD_CLIENT "Build TMProject client target" ON)
+# O cliente (DirectX 9) só existe no Windows; os servidores compilam também no Linux.
+if(WIN32)
+  set(_derust_client_default ON)
+else()
+  set(_derust_client_default OFF)
+endif()
+option(DERUST_BUILD_CLIENT "Build TMProject client target" ${_derust_client_default})
 option(W2PP_BUILD_CLIENT_PATCH "Build legacy ClientPatch_v7662 DLL" OFF)
 option(DERUST_BUILD_TESTS "Build unit tests (CTest)" ON)
 

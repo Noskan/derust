@@ -118,6 +118,11 @@ set(TMSRV_SOURCES
 
 add_executable(TMSrv WIN32 ${TMSRV_SOURCES})
 
+# Fora do Windows, o main de server/compat chama o WinMain das fontes.
+if(NOT WIN32)
+  target_sources(TMSrv PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../compat/w2_main.cpp)
+endif()
+
 target_include_directories(TMSrv
   PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}

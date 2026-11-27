@@ -18,7 +18,7 @@
 */
 
 #include <windows.h>
-#include <ERRNO.H>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <io.h>

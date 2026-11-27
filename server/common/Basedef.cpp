@@ -1395,7 +1395,7 @@ void BASE_InitModuleDir()
 
 	for(int i = len; i > 0; i--)
 	{
-		if(String[i] == '\\')
+		if(String[i] == '\\' || String[i] == '/')
 		{
 			String[i] = 0;
 
