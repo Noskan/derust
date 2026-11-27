@@ -178,12 +178,42 @@ void TestVisualCodes()
 	item.stEffect[0].cValue = 233;
 	CHECK(BASE_VisualAnctCode(&item) == 0x40);
 
-	// Tintura retorna (cEffect - 3).
+	// Tintura (efeitos 115..126), como TMHuman::SetColorItem lê: até +9, o byte é o próprio efeito;
+	// acima, nibble baixo = efeito - 115 e alto = tipo da refinação celestial. A refinação vem do
+	// cValue da tintura (BASE_GetItemSanc do cliente).
 	item = {};
 	item.sIndex = 1200;
 	item.stEffect[1].cEffect = 116;
 	item.stEffect[1].cValue = 5;
-	CHECK(BASE_VisualAnctCode(&item) == 113);
+	CHECK(BASE_VisualAnctCode(&item) == 116);
+	CHECK(BASE_VisualItemCode(&item, 1) == (1200 | 5 * 0x1000));
+	item.stEffect[1].cEffect = 118;
+	item.stEffect[1].cValue = 230;
+	CHECK(BASE_VisualAnctCode(&item) == 0x13);
+	CHECK(BASE_VisualItemCode(&item, 1) == (1200 | 10 * 0x1000));
+	item.stEffect[1].cEffect = 126;
+	item.stEffect[1].cValue = 234;
+	CHECK(BASE_VisualAnctCode(&item) == 0x1B);
+	CHECK(BASE_VisualItemCode(&item, 1) == (1200 | 11 * 0x1000));
+
+	// Montaria viva (HP em stEffect[0].sValue): refinação = stEffect[1].cEffect / 10 nos bits altos.
+	item = {};
+	item.sIndex = 2370;
+	item.stEffect[0].sValue = 100;
+	item.stEffect[1].cEffect = 100;
+	CHECK(BASE_VisualItemCode(&item, 14) == (2370 | 10 * 0x1000));
+	item.stEffect[0].sValue = 0;
+	CHECK(BASE_VisualItemCode(&item, 14) == 0);
+}
+
+/// @brief Subguilda pelo GuildLevel, como no cliente.
+void TestSubGuild()
+{
+	CHECK(BASE_GetSubGuild(0) == 0);
+	CHECK(BASE_GetSubGuild(6) == 1);
+	CHECK(BASE_GetSubGuild(7) == 2);
+	CHECK(BASE_GetSubGuild(8) == 3);
+	CHECK(BASE_GetSubGuild(9) == 0);
 }
 
 /// @brief Testa distância no grid, velocidade de movimento (AttackRun) e fórmula de dano base.
@@ -378,6 +408,7 @@ int main()
 	TestItemSanc();
 	TestItemAmountAndClear();
 	TestVisualCodes();
+	TestSubGuild();
 	TestCombatHelpers();
 	TestCarryCargoGrid();
 	TestCarryBags();

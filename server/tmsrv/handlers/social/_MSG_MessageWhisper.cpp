@@ -631,7 +631,7 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 			return;
 		}
 
-		int sub = BASE_GetSubGuildByMedal(pMob[conn].MOB.Equip[12].sIndex);
+		int sub = BASE_GetSubGuild(pMob[conn].MOB.GuildLevel);
 
 		if (village < 0 || village >= 5)
 		{

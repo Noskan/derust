@@ -1629,14 +1629,15 @@ int BASE_GetGuild(STRUCT_ITEM *item)
 	return value;
 }
 
-/// @brief Subguilda (1..3) pela medalha de subguilda (526..537) em Equip[12]; 0 sem medalha. O cliente tem
-/// um BASE_GetSubGuild diferente, que deriva a subguilda do GuildLevel (3..8).
-int BASE_GetSubGuildByMedal(int item)
+/// @brief Regra do cliente: subguilda (1..3) pelo GuildLevel (3..8); 0 fora disso. O servidor tirava a
+/// subguilda da medalha em Equip[12] (526..537), o que só concorda com o cliente quando os dois batem
+/// (o servidor grava GuildLevel 6/7/8 com as medalhas das subguildas 1/2/3).
+int BASE_GetSubGuild(int item)
 {
 	int ret = 0;
 
-	if(item >= 526 && item <= 537)
-		ret = (item - 526) % 3 + 1;
+	if (item >= 3 && item <= 8)
+		ret = item % 3 + 1;
 
 	return ret;
 }

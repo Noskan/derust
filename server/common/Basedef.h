@@ -2187,7 +2187,7 @@ void BASE_GetFirstKey(char * source, char * dest);
 int  BASE_GetGuild(int x, int y);
 int  BASE_GetIndex(STRUCT_ITEM *item);
 int  BASE_GetGuild(STRUCT_ITEM *item);
-int  BASE_GetSubGuildByMedal(int item);
+int  BASE_GetSubGuild(int item);
 int  BASE_GetArena(int x, int y);
 int  BASE_GetVillage(int x, int y);
 void BASE_GetKorFirst(int temp, int *a);

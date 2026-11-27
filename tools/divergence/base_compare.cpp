@@ -389,6 +389,8 @@ void CaseWorld()
 		Emit("BASE_GetDistance", I(x1) + "," + I(y1) + " -> " + I(x2) + "," + I(y2), I(BASE_GetDistance(x1, y1, x2, y2)));
 		int vx = r.Range(0, 4095), vy = r.Range(0, 4095);
 		Emit("BASE_GetVillage", I(vx) + "," + I(vy), I(BASE_GetVillage(vx, vy)));
+		int gl = r.Range(-2, 12);
+		Emit("BASE_GetSubGuild", I(gl), I(BASE_GetSubGuild(gl)));
 
 		int sx = r.Range(lo, hi), sy = r.Range(lo, hi);
 		int tx = sx + r.Range(-30, 30), ty = sy + r.Range(-30, 30);

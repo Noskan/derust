@@ -1596,76 +1596,77 @@ int BASE_UpdateItem2(int maskidx, int CurrentState, int NextState, int xx, int y
 	return 1;
 }
 
-/// Codifica indice visual e refinacao de equipamento/montaria para envio aos clientes.
+/// @brief Valor de refinação como o cliente o lê (BASE_GetItemSanc): o de EF_SANC; sem ele, o da
+/// tintura (efeitos 115..126). Em `dye`, o efeito da tintura (0 se não há).
+static int VisualSancValue(STRUCT_ITEM *Item, int *dye)
+{
+	*dye = 0;
+	for (int i = 0; i < 3; i++)
+	{
+		if (Item->stEffect[i].cEffect >= 115 && Item->stEffect[i].cEffect <= 126)
+		{
+			*dye = Item->stEffect[i].cEffect;
+			break;
+		}
+	}
+	for (int i = 0; i < 3; i++)
+		if (Item->stEffect[i].cEffect == EF_SANC)
+			return Item->stEffect[i].cValue;
+	for (int i = 0; i < 3; i++)
+		if (Item->stEffect[i].cEffect == *dye && *dye)
+			return Item->stEffect[i].cValue;
+	return 0;
+}
+
+/// @brief Nível de refinação (0..16) de um valor de EF_SANC, como no cliente.
+static int VisualSancLevel(int value)
+{
+	if (value < 230)
+		return value % 10;
+	if (value < 254)
+		return 10 + (value - 230) / 4;
+	return 16;
+}
+
+/// @brief Codifica índice visual e refinação de equipamento/montaria para envio aos clientes: o
+/// nível de refinação vai nos 4 bits altos, que o cliente lê com `Equip[i] >> 12`.
 int  BASE_VisualItemCode(STRUCT_ITEM *Item, int mnt)
 {
-	int value = 0;
-
 	if (mnt == 14)
 	{// montaria
 		if (Item->sIndex >= 3980 && Item->sIndex < 3995)
 			return Item->sIndex;
 
-		if (Item->sIndex >= 2360 && Item->sIndex < 2360)
+		// O cliente, para a própria montaria, usa EF_MOUNTSANC / 10 (stEffect[1].cEffect / 10) e,
+		// para a dos outros, estes 4 bits. Antes a condição era `>= 2360 && < 2360` e nunca valia.
+		int value = 0;
+		if (Item->sIndex >= 2360 && Item->sIndex < 2390)
 		{
-			if (Item->stEffect[0].sValue > 0)
-			{
-				value = Item->stEffect[1].cEffect/10;
-			}
-			else
+			if (Item->stEffect[0].sValue <= 0)
 				return 0;
+			value = Item->stEffect[1].cEffect / 10;
 		}
 
 		return Item->sIndex | (value * 0x1000);
 	}
-	else
-	{
-		if (Item->stEffect[0].cEffect == 43)
-			value = Item->stEffect[0].cValue;
-		else if (Item->stEffect[1].cEffect == 43)
-			value = Item->stEffect[1].cValue;
-		else if (Item->stEffect[2].cEffect == 43)
-			value = Item->stEffect[2].cValue;
 
-		else if(Item->stEffect[0].cEffect >= 116 && Item->stEffect[0].cEffect <= 125)
-				return Item->sIndex | (12 * 0x1000);
+	int dye = 0;
+	int value = VisualSancValue(Item, &dye);
+	int found = dye != 0 || Item->stEffect[0].cEffect == EF_SANC || Item->stEffect[1].cEffect == EF_SANC
+		|| Item->stEffect[2].cEffect == EF_SANC;
 
-		else if(Item->stEffect[1].cEffect >= 116 && Item->stEffect[1].cEffect <= 125)
-				return Item->sIndex | (12 * 0x1000);
+	if (!found)
+		return Item->sIndex;
 
-		else if(Item->stEffect[2].cEffect >= 116 && Item->stEffect[2].cEffect <= 125)
-				return Item->sIndex | (12 * 0x1000);
-
-		else
-			return Item->sIndex;
-	}
-
-	if (value < 230)
-		value %= 10;
-
-	else if (value < 234)
-		value = 10;
-	else if (value < 238)
-		value = 11;
-	else if (value < 242)
-		value = 12;
-	else if (value < 246)
-		value = 13;
-	else if (value < 250)
-		value = 14;
-	else if (value < 254)
-		value = 15;
-	else// value < 256
-		value = 16;
-
-	return Item->sIndex | (value * 0x1000);
+	return Item->sIndex | (VisualSancLevel(value) * 0x1000);
 }
 
-/// Codifica o efeito visual de item ancient/tingido para exibicao.
+/// @brief Código de cor (`Equip2`) de um item para os outros clientes, como TMHuman::SetColorItem lê:
+/// com refinação até +9, o byte inteiro é o código de cor (43, ou o efeito da tintura); acima de +9,
+/// o nibble baixo é a tintura (efeito - 115) e o alto o tipo da refinação celestial (1..4).
+/// Montarias 2360..2390 levam o traje.
 int BASE_VisualAnctCode(STRUCT_ITEM *Item)
 {
-	int value = 0;
-
 	if (Item->sIndex >= 2360 && Item->sIndex <= 2390 && Item->stEffect[0].sValue > 0)
 	{
 		switch (Item->stEffect[2].cValue)
@@ -1702,34 +1703,29 @@ int BASE_VisualAnctCode(STRUCT_ITEM *Item)
 
 		return 0;
 	}
-	if (Item->stEffect[0].cEffect == 43)
-		value = Item->stEffect[0].cValue;
-	else if (Item->stEffect[1].cEffect == 43)
-		value = Item->stEffect[1].cValue;
-	else if (Item->stEffect[2].cEffect == 43)
-		value = Item->stEffect[2].cValue;
 
+	int dye = 0;
+	int value = VisualSancValue(Item, &dye);
 
-	if (Item->stEffect[0].cEffect >= 116 && Item->stEffect[0].cEffect <= 125)
-		return value = Item->stEffect[0].cEffect-3;
-	if (Item->stEffect[1].cEffect >= 116 && Item->stEffect[1].cEffect <= 125)
-		return value = Item->stEffect[1].cEffect-3;
-	if (Item->stEffect[2].cEffect >= 116 && Item->stEffect[2].cEffect <= 125)
-		return value = Item->stEffect[2].cEffect-3;
-
-	if (value == 0)
+	if (dye == 0 && value == 0)
 		return 0;
+
+	int level = VisualSancLevel(value);
+
+	// Tipo da refinação celestial (valor % 4): 0 -> 3, 1 -> 4, 2 -> 1, 3 -> 2.
+	static const int kType[4] = { 3, 4, 1, 2 };
+
+	if (dye)
+	{
+		if (level <= 9)
+			return dye;
+		return (kType[value % 4] << 4) | (dye - 115);
+	}
 
 	if (value < 230)
 		return 43;
 
-	switch (value % 4)
-	{
-	case 0:  return 0x30;
-	case 1:  return 0x40;
-	case 2:  return 0x10;
-	default: return 0x20;
-	}
+	return kType[value % 4] << 4;
 }
 
 /// Grava data de expiracao (em dias a partir de hoje) nos efeitos do item.

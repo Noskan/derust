@@ -451,7 +451,7 @@ uint64_t CaseWorld()
 		h.Int(BASE_GetDistance(x, y, x + r.Range(-40, 40), y + r.Range(-40, 40)));
 	}
 	for (int i = 0; i < 70000; i += 7)
-		h.Int(BASE_GetSubGuildByMedal(i));
+		h.Int(BASE_GetSubGuild(i));
 	return h.h;
 }
 
@@ -517,12 +517,12 @@ struct Expected
 const Expected kExpected[] = {
 	{ "ItemAbility", 0x2c15d8ada96d2d67ull },
 	{ "ItemSancAndAmount", 0x769fd67fddc0605aull },
-	{ "VisualCodes", 0x6fcaf7a9a9970a97ull },
+	{ "VisualCodes", 0xe91ddd3ec45a6efbull },
 	{ "CanEquipCarry", 0x960e157356ecf0bbull },
 	{ "MobScores", 0xcddc89609e2dbc6eull },
 	{ "CurrentScore", 0x2905368ce8c7e6fbull },
 	{ "CombatFormulas", 0x1c71a18045eab420ull },
-	{ "World", 0xa676176912029d1dull },
+	{ "World", 0x561789797a213c5eull },
 	{ "Strings", 0x3beba7e089bbf0b7ull },
 };
 
