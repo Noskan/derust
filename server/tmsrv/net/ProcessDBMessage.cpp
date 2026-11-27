@@ -843,8 +843,8 @@ void ProcessDBMessage(char *Msg)
 
 										 int CityID = (pMob[conn].MOB.Merchant & 0xC0) >> 6;
 
-										 tx = g_pGuildZone[CityID].CitySpawnX + W2Rand() % 15;
-										 ty = g_pGuildZone[CityID].CitySpawnY + W2Rand() % 15;
+										 tx = g_pGuildZone[CityID].Start.X + W2Rand() % 15;
+										 ty = g_pGuildZone[CityID].Start.Y + W2Rand() % 15;
 
 										 int MobGuild = pMob[conn].MOB.Guild;
 										 int MobCLS = pMob[conn].MOB.Class;
@@ -864,8 +864,8 @@ void ProcessDBMessage(char *Msg)
 										 {
 											 if (MobGuild != 0 && MobGuild == g_pGuildZone[n].ChargeGuild)
 											 {
-												 tx = g_pGuildZone[n].GuildSpawnX;
-												 ty = g_pGuildZone[n].GuildSpawnY;
+												 tx = g_pGuildZone[n].GuildStartX;
+												 ty = g_pGuildZone[n].GuildStartY;
 
 												 break;
 											 }
@@ -998,7 +998,7 @@ void ProcessDBMessage(char *Msg)
 											 pUser[n].Admin = 1;
 
 										 MountProcess(conn, 0);
-										 SendWarInfo(conn, g_pGuildZone[4].Clan);
+										 SendWarInfo(conn, g_pGuildZone[4].ChargeClan);
 
 										 if (CastleState != 0)
 											 SendClientSignalParm(conn, ESCENE_FIELD, _MSG_SendCastleState, CastleState);

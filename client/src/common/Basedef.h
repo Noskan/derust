@@ -84,12 +84,6 @@ struct STRUCT_NEEDITEM
 	int dINDEX;
 };
 
-struct STRUCT_POSITION
-{
-	int X;
-	int Y;
-};
-
 struct STRUCT_RESULT_ITEMLIST
 {
 	unsigned int dNPCHead;
@@ -395,30 +389,6 @@ struct STRUCT_ACCOUNTFILE_OLD2
 	char ShortSkill[4][16];
 	STRUCT_EXT1_OLD Ext1[4];
 	STRUCT_EXT2_OLD Ext2[4];
-};
-
-struct STRUCT_GUILDZONE
-{
-	int ChargeGuild;
-	int ChallangeGuild;
-	int GuildStartX;
-	int GuildStartY;
-	STRUCT_POSITION Start;
-	int vx1;
-	int vy1;
-	int vx2;
-	int vy2;
-	int ax1;
-	int ay1;
-	int ax2;
-	int ay2;
-	int hx;
-	int hy;
-	int gx;
-	int gy;
-	int Tax;
-	int ChargeClan;
-	int ChargeCount;
 };
 
 struct STRUCT_SELCHAR_OLD

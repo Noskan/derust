@@ -806,17 +806,17 @@ void CReadFiles::ReadGuild()
 
 	for (int i = 0; i < 5; i++)
 	{
-		fscanf(fp, " %d", &g_pGuildZone[i].CityTax);
+		fscanf(fp, " %d", &g_pGuildZone[i].Tax);
 
-		if (g_pGuildZone[i].CityTax < 0 || g_pGuildZone[i].CityTax > 20)
-			g_pGuildZone[i].CityTax = 10;
+		if (g_pGuildZone[i].Tax < 0 || g_pGuildZone[i].Tax > 20)
+			g_pGuildZone[i].Tax = 10;
 	}
 
 	for (int i = 0; i < 5; i++)
-		fscanf(fp, " %d", &g_pGuildZone[i].Clan);
+		fscanf(fp, " %d", &g_pGuildZone[i].ChargeClan);
 
 	for (int i = 0; i < 5; i++)
-		fscanf(fp, " %d", &g_pGuildZone[i].Victory);
+		fscanf(fp, " %d", &g_pGuildZone[i].ChargeCount);
 
 	fclose(fp);
 
@@ -857,17 +857,17 @@ void CReadFiles::WriteGuild()
 	fprintf(fp, "\n");
 
 	for (int i = 0; i < 5; i++)
-		fprintf(fp, " %d", g_pGuildZone[i].CityTax);
+		fprintf(fp, " %d", g_pGuildZone[i].Tax);
 
 	fprintf(fp, "\n");
 
 	for (int i = 0; i < 5; i++)
-		fprintf(fp, " %d", g_pGuildZone[i].Clan);
+		fprintf(fp, " %d", g_pGuildZone[i].ChargeClan);
 
 	fprintf(fp, "\n");
 
 	for (int i = 0; i < 5; i++)
-		fprintf(fp, " %d", g_pGuildZone[i].Victory);
+		fprintf(fp, " %d", g_pGuildZone[i].ChargeCount);
 
 	fclose(fp);
 

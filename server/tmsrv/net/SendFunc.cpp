@@ -1399,7 +1399,7 @@ void SendShopList(int conn, int MobIndex, int ShopType)
 	int village = BASE_GetVillage(posX, posY);
 
 	if (village >= 0 && village < MAX_GUILDZONE)
-		sm_sl.Tax = g_pGuildZone[village].CityTax;
+		sm_sl.Tax = g_pGuildZone[village].Tax;
 	else
 		sm_sl.Tax = 0;
 

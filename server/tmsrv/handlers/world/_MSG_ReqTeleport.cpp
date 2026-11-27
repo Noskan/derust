@@ -32,7 +32,7 @@ void Exec_MSG_ReqTeleport(int conn, char *pMsg)
 
 	int clan = pMob[conn].MOB.Clan;
 
-	if (g_pGuildZone[4].Clan == clan)
+	if (g_pGuildZone[4].ChargeClan == clan)
 		goto label_tel;
 						
 	if (reqcoin <= pMob[conn].MOB.Coin)

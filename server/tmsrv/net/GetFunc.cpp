@@ -1224,7 +1224,7 @@ void GetCreateItem(int idx, MSG_CreateItem *sm)
 		int chargeGuild = 0;
 		if (zone >= 0 && zone < MAX_GUILDZONE)
 		{
-			victory = g_pGuildZone[zone].Victory;
+			victory = g_pGuildZone[zone].ChargeCount;
 			chargeGuild = g_pGuildZone[zone].ChargeGuild;
 		}
 

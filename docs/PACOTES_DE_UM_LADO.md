@@ -37,7 +37,9 @@ relatório, este arquivo é escrito à mão: ao mudar um destes pacotes, atualiz
     convocação, fogos premium, contador da quest 12, recompra, painel de 4 linhas, voo por rota, chat
     de grupo por índice): cada um é desenho de jogo no servidor.
   - Os 8 combinadores marcados D (Lindy, Shany, Odin, Odin2, Ehre, Alquimia, Ailyn, Agatha) recebem do
-    cliente o opcode que vem do `Mixlist.bin`, que não está no repositório.
+    cliente o opcode que vem do `Mixlist.bin`, que não está no repositório. No `Mixlist.bin` do WYD
+    Global (patch 749) os 8 opcodes aparecem nas receitas, mas o registro de lá tem 2664 bytes contra
+    os 2656 do `STRUCT_RESULT_ITEMLIST` do cliente: é outra versão, e o arquivo da nossa continua faltando.
 
 ## Só do cliente
 
