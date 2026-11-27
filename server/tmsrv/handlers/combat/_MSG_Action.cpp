@@ -269,13 +269,14 @@ void Exec_MSG_Action(int conn, char *pMsg)
 
 				m->Effect = 0;
 
-				pUser[conn].cSock.SendOneMessage((char*)m, sizeof(m));
+				// sizeof(MSG_Action): sizeof(m) era o tamanho do ponteiro, 4 bytes, menor que o cabeçalho.
+				pUser[conn].cSock.SendOneMessage((char*)m, sizeof(MSG_Action));
 				return;
 			}
 			m->TargetX = destx;
 			m->TargetY = desty;
 
-			pUser[conn].cSock.AddMessage((char*)m, sizeof(m));
+			pUser[conn].cSock.AddMessage((char*)m, sizeof(MSG_Action));
 		}
 
 		memcpy(pMob[conn].Route, m->Route, MAX_ROUTE);
