@@ -61,6 +61,7 @@ public:
 	int MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int dwServerTime);
 	bool MobAttack_RejectTarget(TMHuman*& pOver, int& nReturnValue);
 	void MobAttack_WeaponSkill(STRUCT_MOB*& pMobData, MSG_Attack& stAttack);
+	void MobAttack_Class3Rule(TMHuman*& pOver, STRUCT_MOB*& pMobData, MSG_Attack& stAttack, int& nSize);
 	int MobMove(D3DXVECTOR3 vec, unsigned int dwServerTime);
 	int MobMove2(TMVector2 vec, unsigned int dwServerTime);
 	void DropItem(unsigned int dwServerTime);
