@@ -35,7 +35,8 @@ relatório, este arquivo é escrito à mão: ao mudar um destes pacotes, atualiz
 - **Ainda em aberto**:
   - Os outros recursos A do cliente (quiz, jackpot, loja de cash, preço dinâmico, saída com atraso,
     convocação, fogos premium, contador da quest 12, recompra, painel de 4 linhas, voo por rota, chat
-    de grupo por índice): cada um é desenho de jogo no servidor.
+    de grupo por índice): cada um é desenho de jogo no servidor. Por decisão de 27/11/2026, ficam fora
+    por ora, assim como a troca de servidor (0x52A).
   - Os 8 combinadores marcados D (Lindy, Shany, Odin, Odin2, Ehre, Alquimia, Ailyn, Agatha) recebem do
     cliente o opcode que vem do `Mixlist.bin`, que não está no repositório. No `Mixlist.bin` do WYD
     Global (patch 749) os 8 opcodes aparecem nas receitas, mas o registro de lá tem 2664 bytes contra
