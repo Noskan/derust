@@ -255,7 +255,10 @@ lbl_PST1:
 		SendSignalParmArea(3330, 1475, 3448, 1525, ESCENE_FIELD, _MSG_MobLeft, Pista[6].Party[0].MobCount);
 
 		//RvR
-		SendShortSignalParm2Area(1017, 1911, 1290, 2183, ESCENE_FIELD, _MSG_MobCount, RvRRedPoint + 1024, RvRBluePoint + 1024);
+		// O cliente (OnPacketRemainNPCCount) lê um int Parm e mostra "Parm & 0xFF / Parm >> 16": o byte
+		// baixo do primeiro short e o segundo short. O +1024 de antes era de outro cliente: o vermelho
+		// saía certo (o byte baixo de 1024 é 0) e o azul aparecia somado a 1024.
+		SendShortSignalParm2Area(1017, 1911, 1290, 2183, ESCENE_FIELD, _MSG_MobCount, RvRRedPoint, RvRBluePoint);
 	}
 
 	if(SecCounter % 1200 == 0)
