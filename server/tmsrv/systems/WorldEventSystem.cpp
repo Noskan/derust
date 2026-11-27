@@ -925,9 +925,9 @@ void DecideWinner()
 		BASE_GetGuildName(ServerGroup, g_pGuildZone[i].ChargeGuild, GuildChargeName);
 		BASE_GetGuildName(ServerGroup, ChallangeGuild, GuildChallangeName);
 
-		for (int j = g_pGuildZone[i].WarAreaY1; j <= g_pGuildZone[i].WarAreaY2; j++)
+		for (int j = g_pGuildZone[i].ay1; j <= g_pGuildZone[i].ay2; j++)
 		{
-			for (int k = g_pGuildZone[i].WarAreaX1; k <= g_pGuildZone[i].WarAreaX2; k++)
+			for (int k = g_pGuildZone[i].ax1; k <= g_pGuildZone[i].ax2; k++)
 			{
 				if(j < 0 || j >= MAX_GRIDY || k < 0 || k >= MAX_GRIDX)
 					continue;
@@ -979,7 +979,7 @@ void DecideWinner()
 			SendGuildNotice(ChallangeGuild, temp);
 
 			g_pGuildZone[i].ChargeGuild = ChallangeGuild;
-			g_pGuildZone[i].Victory = 0;
+			g_pGuildZone[i].ChargeCount = 0;
 		}
 		else
 		{
@@ -987,8 +987,8 @@ void DecideWinner()
 			SendGuildNotice(ChargeGuild, temp);
 			SendGuildNotice(ChallangeGuild, temp);
 
-			if(g_pGuildZone[i].Victory < 4)
-				g_pGuildZone[i].Victory++;
+			if(g_pGuildZone[i].ChargeCount < 4)
+				g_pGuildZone[i].ChargeCount++;
 		}
 
 		g_pGuildZone[i].ChallangeGuild = 0;
@@ -1338,8 +1338,8 @@ void GuildProcess()
 								if(i == 4)
 									continue;
 
-								if(g_pGuildZone[i].ChallangeGuild == 0 && g_pGuildZone[i].Victory < 4)
-									g_pGuildZone[i].Victory++; 
+								if(g_pGuildZone[i].ChallangeGuild == 0 && g_pGuildZone[i].ChargeCount < 4)
+									g_pGuildZone[i].ChargeCount++; 
 							}
 
 						}
@@ -1384,7 +1384,7 @@ void GuildProcess()
 					if (g_pGuildZone[n].ChallangeGuild)
 					{
 						if (g_pGuildZone[n].ChargeGuild)
-							SummonGuild(g_pGuildZone[n].ChargeGuild, g_pGuildZone[n].ChargeWarSpawnX, g_pGuildZone[n].ChargeWarSpawnY, NumGuildBattle, n);
+							SummonGuild(g_pGuildZone[n].ChargeGuild, g_pGuildZone[n].hx, g_pGuildZone[n].hy, NumGuildBattle, n);
 					}
 				}
 			}
@@ -1394,7 +1394,7 @@ void GuildProcess()
 				if (n != 4)
 				{
 					if (g_pGuildZone[n].ChallangeGuild)
-						SummonGuild(g_pGuildZone[n].ChallangeGuild,	g_pGuildZone[n].ChallangeWarSpawnX, g_pGuildZone[n].ChallangeWarSpawnY, NumGuildBattle, n);
+						SummonGuild(g_pGuildZone[n].ChallangeGuild,	g_pGuildZone[n].gx, g_pGuildZone[n].gy, NumGuildBattle, n);
 				}
 			}
 		}
@@ -1586,8 +1586,8 @@ void DoRecall(int conn)
 	int y = pMob[conn].MOB.HomeTownY;
 	int CityID = (pMob[conn].MOB.Merchant & 0xC0) >> 6;
 
-	x = W2Rand() % 15 + g_pGuildZone[CityID].CitySpawnX;
-	y = W2Rand() % 15 + g_pGuildZone[CityID].CitySpawnY;
+	x = W2Rand() % 15 + g_pGuildZone[CityID].Start.X;
+	y = W2Rand() % 15 + g_pGuildZone[CityID].Start.Y;
 
 	int Guild = pMob[conn].MOB.Guild;
 
@@ -1597,8 +1597,8 @@ void DoRecall(int conn)
 		{
 			if (Guild == g_pGuildZone[i].ChargeGuild)
 			{
-				x = g_pGuildZone[i].GuildSpawnX;
-				y = g_pGuildZone[i].GuildSpawnY;
+				x = g_pGuildZone[i].GuildStartX;
+				y = g_pGuildZone[i].GuildStartY;
 
 				break;
 			}
@@ -1670,7 +1670,7 @@ void DoWar(int myguild, int target)
 				for (int i = 0; i < MAX_USER; i++)
 				{
 					if (pUser[i].Mode == USER_PLAY && (pMob[i].MOB.Guild == myguild || pMob[i].MOB.Guild == target))
-						SendWarInfo(i, g_pGuildZone[4].Clan);
+						SendWarInfo(i, g_pGuildZone[4].ChargeClan);
 
 				}
 			}
@@ -1705,7 +1705,7 @@ void DoWar(int myguild, int target)
 			for (int j = 0; j < MAX_USER; j++)
 			{
 				if (pUser[j].Mode == USER_PLAY && (pMob[j].MOB.Guild == myguild || pMob[j].MOB.Guild == myGuildWar))
-					SendWarInfo(j, g_pGuildZone[4].Clan);
+					SendWarInfo(j, g_pGuildZone[4].ChargeClan);
 			}
 		}
 
@@ -1775,7 +1775,7 @@ void DoAlly(int myguild, int target)
 	for (int i = 0; i < MAX_USER; i++)
 	{
 		if (pUser[i].Mode == USER_PLAY && pMob[i].MOB.Guild == myguild)
-			SendWarInfo(i, g_pGuildZone[4].Clan);
+			SendWarInfo(i, g_pGuildZone[4].ChargeClan);
 	}
 }
 

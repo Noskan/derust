@@ -85,7 +85,7 @@ void RegenMob(int conn)
 					SendNotice(temp);
 				
 					g_pGuildZone[4].ChargeGuild = Guild;
-					g_pGuildZone[4].Clan = pMob[conn].MOB.Clan;
+					g_pGuildZone[4].ChargeClan = pMob[conn].MOB.Clan;
 				
 					FinishCastleWar();
 				

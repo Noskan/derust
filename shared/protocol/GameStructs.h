@@ -243,3 +243,36 @@ struct STRUCT_BEASTBONUS
 	int Spe_Delay;
 	int SancLevel;
 };
+
+/// @brief Ponto do mapa (x, y) em ints.
+struct STRUCT_POSITION
+{
+	int X;
+	int Y;
+};
+
+/// @brief Cidade com guerra de guilda (84 bytes), uma por reino (`g_pGuildZone`, com a mesma tabela nos
+/// dois lados). Os nomes são os do cliente; entre parênteses, o nome que o servidor usava.
+struct STRUCT_GUILDZONE
+{
+	int ChargeGuild;		///< Guilda dona da cidade.
+	int ChallangeGuild;		///< Guilda desafiante.
+	int GuildStartX;		///< Retorno dos membros da guilda dona (GuildSpawnX).
+	int GuildStartY;		///< (GuildSpawnY)
+	STRUCT_POSITION Start;	///< Retorno dos demais jogadores na cidade (CitySpawnX/CitySpawnY).
+	int vx1;				///< Limites da cidade (CityLimitX1, CityLimitY1, CityLimitX2, CityLimitY2).
+	int vy1;
+	int vx2;
+	int vy2;
+	int ax1;				///< Área da guerra (WarAreaX1, WarAreaY1, WarAreaX2, WarAreaY2).
+	int ay1;
+	int ax2;
+	int ay2;
+	int hx;					///< Entrada da guilda dona na guerra (ChargeWarSpawnX/ChargeWarSpawnY).
+	int hy;
+	int gx;					///< Entrada da guilda desafiante (ChallangeWarSpawnX/ChallangeWarSpawnY).
+	int gy;
+	int Tax;				///< Imposto da cidade, em % (CityTax).
+	int ChargeClan;			///< Reino da guilda dona (Clan).
+	int ChargeCount;		///< Vitórias seguidas da guilda dona (Victory).
+};

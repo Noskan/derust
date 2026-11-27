@@ -1560,7 +1560,7 @@ int BASE_GetGuild(int x, int y)
 {
 	for(int i = 0; i < MAX_GUILDZONE; ++i)
 	{
-		if (x >= g_pGuildZone[i].CityLimitX1 && x <= g_pGuildZone[i].CityLimitX2 && y >= g_pGuildZone[i].CityLimitY1 && y <= g_pGuildZone[i].CityLimitY2)
+		if (x >= g_pGuildZone[i].vx1 && x <= g_pGuildZone[i].vx2 && y >= g_pGuildZone[i].vy1 && y <= g_pGuildZone[i].vy2)
 			return i;
 	}
 
@@ -1646,7 +1646,7 @@ int BASE_GetArena(int x, int y)
 {
 	for(int i = 0; i < MAX_GUILDZONE; i++)
 	{
-		if(x >= g_pGuildZone[i].WarAreaX1 && x <= g_pGuildZone[i].WarAreaX2 && y >= g_pGuildZone[i].WarAreaY1 && y <= g_pGuildZone[i].WarAreaY2)
+		if(x >= g_pGuildZone[i].ax1 && x <= g_pGuildZone[i].ax2 && y >= g_pGuildZone[i].ay1 && y <= g_pGuildZone[i].ay2)
 			return i;
 	}
 
@@ -1657,7 +1657,7 @@ int BASE_GetVillage(int x, int y)
 {
 	for(int i = 0; i < 5; ++i )
 	{
-		if (x >= g_pGuildZone[i].CityLimitX1 && x <= g_pGuildZone[i].CityLimitX2 && y >= g_pGuildZone[i].CityLimitY1 && y <= g_pGuildZone[i].CityLimitY2)
+		if (x >= g_pGuildZone[i].vx1 && x <= g_pGuildZone[i].vx2 && y >= g_pGuildZone[i].vy1 && y <= g_pGuildZone[i].vy2)
 			return i;
 	}
 

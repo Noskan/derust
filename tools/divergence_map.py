@@ -81,6 +81,11 @@ PACKET_NOTES = {
 }
 
 
+# Structs que seguem na tabela mas já foram conferidas à mão: por que ficam como estão.
+STRUCT_NOTES = {
+    "STRUCT_ACCOUNTFILE": "o arquivo de conta só existe no DBSrv; o cliente declara a struct (e cinco variantes antigas) sem usá-la em lugar nenhum. O layout do servidor guarda `affect` e `mobExtra`, que o personagem salvo precisa, e mudá-lo invalidaria as contas gravadas",
+}
+
 def strip_comments(t):
     t = re.sub(r"/\*.*?\*/", lambda m: "\n" * m.group(0).count("\n"), t, flags=re.S)
     return re.sub(r"//[^\n]*", "", t)
@@ -539,7 +544,7 @@ def write_report(out_path, L, rules, bodies, usage, only):
       f"batem em offsets mas trocam nomes de campos, e {len(proto_ok)} batem por inteiro. Em {len(cli_only)}, o cliente "
       f"envia ou espera um pacote que o servidor não lê ou não envia; em {len(srv_only)}, é o servidor que envia ou lê "
       f"algo que o cliente não usa (fora {len(srv_only_all) - len(srv_only)} do tráfego com o DBSrv).")
-    w(f"- **Structs de jogo e de arquivo** de mesmo nome: {len(game_structs)}, das quais {len(game_diff)} diferem. "
+    w(f"- **Structs de jogo e de arquivo** de mesmo nome: {len(game_structs)}, das quais {len(game_diff)} {'difere' if len(game_diff) == 1 else 'diferem'}. "
       f"`STRUCT_MOB` tem {S['sizes'].get('STRUCT_MOB')} bytes no servidor e {C['sizes'].get('STRUCT_MOB')} no cliente, "
       f"e vai dentro dos pacotes de login.")
     w(f"- **Regras `BASE_*`** comparadas com as mesmas entradas: {len(rules)}. **{len(rule_bad)} divergem** em ao "
@@ -662,6 +667,11 @@ def write_report(out_path, L, rules, bodies, usage, only):
     for n in game_diff:
         w(f"| `{n}` | {S['sizes'][n]} | {C['sizes'][n]} | {'; '.join(struct_field_diff(n, S['fields'], C['fields'])) or '—'} |")
     w("")
+    for n in game_diff:
+        if n in STRUCT_NOTES:
+            w(f"- `{n}`: {STRUCT_NOTES[n]}.")
+    if any(n in STRUCT_NOTES for n in game_diff):
+        w("")
     w(f"Idênticas (mesmo tamanho, mesmos campos nos mesmos offsets): {code_list(n for n in game_structs if n not in game_diff)}.")
     w("")
 

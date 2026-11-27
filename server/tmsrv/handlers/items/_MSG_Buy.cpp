@@ -120,7 +120,7 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 	// Fora das cidades BASE_GetVillage devolve MAX_GUILDZONE; antes a tabela era lida com esse
 	// índice (além do fim) e o valor descartado pelo goto abaixo.
 	if (Village >= 0 && Village < MAX_GUILDZONE)
-		CityTax = g_pGuildZone[Village].CityTax;
+		CityTax = g_pGuildZone[Village].Tax;
 
 	if (Village < 0 || Village >= 5 || CityTax <= 0 || CityTax >= 30)
 		goto LABEL_BUY1;

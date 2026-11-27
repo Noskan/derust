@@ -95,7 +95,7 @@ void Exec_MSG_SendAutoTrade(int conn, char *pMsg)
 		}
 	}
 
-	m->Tax = g_pGuildZone[Village].CityTax;
+	m->Tax = g_pGuildZone[Village].Tax;
 
 	m->Title[MAX_AUTOTRADETITLE-1] = 0;
 	m->Title[MAX_AUTOTRADETITLE-2] = 0;

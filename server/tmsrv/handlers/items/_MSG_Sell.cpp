@@ -180,7 +180,7 @@ LABEL_S1:
 
 
 	int CityTax;
-	CityTax = g_pGuildZone[sVillage].CityTax;
+	CityTax = g_pGuildZone[sVillage].Tax;
 
 	if (CityTax >= 0 && CityTax <= 30)
 	{

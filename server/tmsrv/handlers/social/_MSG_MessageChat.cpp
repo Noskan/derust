@@ -85,7 +85,7 @@ void Exec_MSG_MessageChat(int conn, char *pMsg)
 				break;
 			}
 
-			g_pGuildZone[i].CityTax = tax;
+			g_pGuildZone[i].Tax = tax;
 			TaxChanged[i] = 1;
 
 			sprintf(temp, g_pMessageStringTable[169], tax, 0);
