@@ -44,6 +44,8 @@ O DBSrv e o TMSrv também compilam e rodam nativos no Linux. O cliente fica só 
 cmake -S . -B build/linux -DCMAKE_BUILD_TYPE=Release
 cmake --build build/linux --parallel
 ctest --test-dir build/linux --output-on-failure
+python3 tools/linux_warning_check.py --build-dir build/linux   # avisos do gcc com linha de base
+python3 tools/linux_deploy.py /srv/w2 --bin build/linux        # árvore da produção e unidades do systemd
 ```
 
 Para verificar localmente as fronteiras de `#include`:

@@ -28,7 +28,47 @@ O teste de jogo aceita os binários Linux. Coloque `DBSrv`, `TMSrv` e o `LoginCl
 python3 tools/server_boot_smoke.py <diretório> --require-login
 ```
 
-O LoginClient roda no wine. O teste fica sendo um cliente Windows jogando contra servidores Linux.
+O LoginClient roda no wine. O teste fica sendo um cliente Windows jogando contra servidores Linux. A árvore que o teste monta é a mesma da produção (próxima seção).
+
+Avisos: `tools/linux_warning_check.py` compila o Release do zero e compara os avisos com a linha de base. Os tipos acompanhados são os mesmos da checagem mingw. Há uma linha de base por versão do gcc, `tools/linux_warning_baseline-gcc<N>.txt`, e a comparação vale por tipo e por arquivo. O CI usa esse mesmo build para os testes e para o artefato. Depois de remover ou justificar avisos:
+
+```bash
+python3 tools/linux_warning_check.py --build-dir build/linux --update-warning-baseline
+```
+
+## Implantação e systemd
+
+`tools/linux_deploy.py` monta a árvore da produção e gera as unidades do systemd:
+
+```bash
+python3 tools/linux_deploy.py /srv/w2 --bin build/linux --user w2   # ou --bin com o artefato derust-linux-x86_64 do CI
+```
+
+O script:
+- cria `Common/`, `DBSRV/Run/` e `TMSRV/Run/`;
+- cria os diretórios em que os servidores gravam e que não criam sozinhos: `Log`, `DayLog`, `chat_log`, `item_log`, `account/<inicial>`, `char/<inicial>`, `capsule`, `npc`, e `Import*` e `Error` em `Common`;
+- copia os binários para os `Run`;
+- confere a caixa dos arquivos de dados contra os nomes que o código abre, tirados das próprias fontes. `--fix-case` renomeia arquivos e diretórios para a caixa certa, e `--check-only` só confere;
+- grava `systemd/w2-dbsrv.service` e `systemd/w2-tmsrv.service` com os caminhos da árvore.
+
+Ele não copia os dados do jogo nem cria arquivos de configuração (`localip.txt`, `serverlist.txt`, `gameconfig.txt`...): isso fica com quem opera. A lista dos arquivos que o código abre e que ainda faltam sai no fim.
+
+Para instalar as unidades:
+
+```bash
+sudo cp /srv/w2/systemd/w2-*.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now w2-dbsrv w2-tmsrv
+journalctl -u w2-tmsrv -f        # MessageBox e eco dos comandos
+```
+
+Como as unidades se comportam:
+- `systemctl stop` manda `SIGTERM`, que o servidor recebe como `WM_CLOSE`: grava e sai, com até 60 s de prazo.
+- `Restart=always` reinicia em 5 s sempre que o processo sai sem um `stop`. Isso cobre:
+  - uma queda;
+  - os comandos `reboot` e `exit` do FIFO de controle (para desligar de vez, use `systemctl stop`);
+  - o TMSrv que sai quando não alcança o DBSrv no boot. A unidade dele vem depois da do DBSrv (`After=`), mas o DBSrv pode ainda não estar escutando.
+- `LimitNOFILE=8192`: o padrão de 1024 descritores fica curto para os 1000 jogadores (`MAX_USER`), mais os arquivos e as conexões entre servidores.
 
 ## Como a camada funciona
 
@@ -96,4 +136,4 @@ A camada monta a lista de comandos a partir do `AppendMenu` de cada servidor. Um
 
 ## Pendências
 
-- Os avisos do gcc nativo ainda não têm linha de base. Hoje são 41 e nenhum é bug: casts de `HMENU` para o menu, que não existe no Linux, `int*` no lugar de `socklen_t*`, que tem o mesmo tamanho, e `NULL` comparado com inteiros.
+- A página de status do DBSrv vai para `C:/wamp/www/serv<NN>.htm` (`CReadFiles::UPDATE_CONNECTION_PATH`). No Linux esse caminho não existe e a gravação é pulada, como no Windows sem o wamp.
