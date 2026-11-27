@@ -721,20 +721,20 @@ int BASE_ReadItemListFile(char *filename, int Build)
 		sscanf(temp1, "%d.%d", &Mesh, &Texture);
 		sscanf(temp2, "%d.%d.%d.%d.%d", &ReqLvl, &ReqStr, &ReqInt, &ReqDex, &ReqCon);
 
-		g_pItemList[Index].IndexMesh          = Mesh;
-		g_pItemList[Index].IndexTexture       = Texture;
-		g_pItemList[Index].ReqLvl             = ReqLvl;
-	    g_pItemList[Index].ReqStr             = ReqStr;
-	    g_pItemList[Index].ReqInt             = ReqInt;
-	    g_pItemList[Index].ReqDex             = ReqDex;
-	    g_pItemList[Index].ReqCon             = ReqCon;
+		g_pItemList[Index].nIndexMesh          = Mesh;
+		g_pItemList[Index].nIndexTexture       = Texture;
+		g_pItemList[Index].nReqLvl             = ReqLvl;
+	    g_pItemList[Index].nReqStr             = ReqStr;
+	    g_pItemList[Index].nReqInt             = ReqInt;
+	    g_pItemList[Index].nReqDex             = ReqDex;
+	    g_pItemList[Index].nReqCon             = ReqCon;
 		g_pItemList[Index].nUnique             = unique;
-		g_pItemList[Index].Price              = nprice;
+		g_pItemList[Index].nPrice              = nprice;
 		g_pItemList[Index].nPos                = npos;
-		g_pItemList[Index].Grade			   = Grade;
-		g_pItemList[Index].Extra			   = Extra;
+		g_pItemList[Index].nGrade			   = Grade;
+		g_pItemList[Index].nExtra			   = Extra;
 
-   	    g_pItemList[Index].IndexVisualEffect  = 0;
+   	    g_pItemList[Index].nIndexVisualEffect  = 0;
 
 
         for(int j = 0; j < MAX_STATICEFFECT; j++)
@@ -1043,7 +1043,7 @@ void BASE_InitializeInitItem()
 
 		g_pInitItem[g_dwInitItem].PosX = PosX;
 		g_pInitItem[g_dwInitItem].PosY = PosY;
-		g_pInitItem[g_dwInitItem].ItemIndex = Index;
+		g_pInitItem[g_dwInitItem].sIndex = Index;
 		g_pInitItem[g_dwInitItem].Rotate = Rotate;
 
 		g_dwInitItem++;

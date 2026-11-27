@@ -104,7 +104,7 @@ STRUCT_SCORE RandomScore(Lcg& r)
 	s.Level = (short)r.Range(0, 400);
 	s.Ac = r.Range(0, 3000);
 	s.Damage = r.Range(0, 5000);
-	s.Reserved = (char)r.Range(0, 255);
+	s.Merchant = (char)r.Range(0, 255);
 	s.AttackRun = (char)r.Range(0, 255);
 	s.MaxHp = r.Range(1, 60000);
 	s.MaxMp = r.Range(1, 60000);

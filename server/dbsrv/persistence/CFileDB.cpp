@@ -755,7 +755,7 @@ void CFileDB::DBGetSelChar(STRUCT_SELCHAR *sel, STRUCT_ACCOUNTFILE *file)
 {
 	for(int i = 0; i < MOB_PER_ACCOUNT; i++)
 	{
-		memcpy(sel->Name[i], file->Char[i].MobName, NAME_LENGTH);
+		memcpy(sel->MobName[i], file->Char[i].MobName, NAME_LENGTH);
 		memcpy(sel->Equip[i], file->Char[i].Equip, sizeof(file->Char[i].Equip));
 
 		if (sel->Equip[i][0].sIndex == 22 || sel->Equip[i][0].sIndex == 23 || sel->Equip[i][0].sIndex == 24 || sel->Equip[i][0].sIndex == 25 || sel->Equip[i][0].sIndex == 32)
@@ -763,8 +763,8 @@ void CFileDB::DBGetSelChar(STRUCT_SELCHAR *sel, STRUCT_ACCOUNTFILE *file)
 
 		sel->Guild[i] = file->Char[i].Guild;
 
-		sel->SPX[i] = file->Char[i].SPX;
-		sel->SPX[i] = file->Char[i].SPY;
+		sel->HomeTownX[i] = file->Char[i].HomeTownX;
+		sel->HomeTownX[i] = file->Char[i].HomeTownY;
 
 		sel->Score[i] = file->Char[i].CurrentScore;		
 

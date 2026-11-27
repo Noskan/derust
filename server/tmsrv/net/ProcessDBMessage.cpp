@@ -776,8 +776,8 @@ void ProcessDBMessage(char *Msg)
 										 pMob[conn].Mode = MOB_USER;
 
 										 sm.mob = pMob[conn].MOB;
-										 sm.mob.SPX = sm.mob.SPX;
-										 sm.mob.SPY = sm.mob.SPY;
+										 sm.mob.HomeTownX = sm.mob.HomeTownX;
+										 sm.mob.HomeTownY = sm.mob.HomeTownY;
 										 sm.Type = _MSG_CNFCharacterLogin;
 										
 										 if(NewbieEventServer == 1)
@@ -785,8 +785,8 @@ void ProcessDBMessage(char *Msg)
 										 else
 											sm.ID = ESCENE_FIELD;
 
-										 sm.PosX = sm.mob.SPX;
-										 sm.PosY = sm.mob.SPY;
+										 sm.PosX = sm.mob.HomeTownX;
+										 sm.PosY = sm.mob.HomeTownY;
 										 sm.ClientID = conn;
 										 sm.Weather = CurrentWeather;
 
@@ -796,8 +796,8 @@ void ProcessDBMessage(char *Msg)
 										 // cliente esse offset cai em STRUCT_EXT2::SubClass[1], então não vai mais.
 
 										 pMob[conn].LastTime = CurrentTime;
-										 pMob[conn].LastX = pMob[conn].TargetX = sm.mob.SPX;
-										 pMob[conn].LastY = pMob[conn].TargetY = sm.mob.SPY;
+										 pMob[conn].LastX = pMob[conn].TargetX = sm.mob.HomeTownX;
+										 pMob[conn].LastY = pMob[conn].TargetY = sm.mob.HomeTownY;
 
 										 if (pMob[conn].MOB.Carry[KILL_MARK].sIndex == 0)
 										 {
@@ -830,7 +830,7 @@ void ProcessDBMessage(char *Msg)
 										 int k;
 
 										 for (k = 0; k < MAX_TRADE; k++)
-											 pUser[conn].Trade.InvenPos[k] = -1;
+											 pUser[conn].Trade.CarryPos[k] = -1;
 
 										 for (k = 0; k < MAX_AUTOTRADE; k++)
 											 pUser[conn].AutoTrade.CarryPos[k] = -1;

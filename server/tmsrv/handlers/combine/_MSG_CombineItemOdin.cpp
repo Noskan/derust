@@ -125,7 +125,7 @@ void Exec_MSG_CombineItemOdin(int conn, char *pMsg)
 		{
 			memcpy(&pMob[conn].MOB.Carry[m->InvenPos[1]], &m->Item[1], sizeof(STRUCT_ITEM));
 
-			pMob[conn].MOB.Carry[m->InvenPos[1]].sIndex = g_pItemList[m->Item[0].sIndex].Extra;
+			pMob[conn].MOB.Carry[m->InvenPos[1]].sIndex = g_pItemList[m->Item[0].sIndex].nExtra;
 			BASE_SetItemSanc(&pMob[conn].MOB.Carry[m->InvenPos[1]], 0, 0);
 
 			char tt[256];

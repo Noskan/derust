@@ -409,8 +409,8 @@ lbl_m_noparty:
 		else if (when.tm_min >= 45 && when.tm_min <= 48)
 			NigthTime -= ((when.tm_min - 45) * 60) + when.tm_sec;
 
-		if((pMob[conn].MOB.SPX/128) == 8 && (pMob[conn].MOB.SPY/128) == 2)
-			DoTeleport(conn, pMob[conn].MOB.SPX, pMob[conn].MOB.SPY);
+		if((pMob[conn].MOB.HomeTownX/128) == 8 && (pMob[conn].MOB.HomeTownY/128) == 2)
+			DoTeleport(conn, pMob[conn].MOB.HomeTownX, pMob[conn].MOB.HomeTownY);
 		else
 			DoTeleport(conn, PesaMPosStandard[0][0], PesaMPosStandard[0][1]);
 							 
@@ -425,8 +425,8 @@ lbl_m_noparty:
 
 			if (partyconn > 0 && partyconn < MAX_USER && partyconn != conn && pUser[partyconn].Mode == USER_PLAY)
 			{
-				if((pMob[partyconn].MOB.SPX/128) == 8 && (pMob[partyconn].MOB.SPY/128) == 2)
-					DoTeleport(partyconn, pMob[partyconn].MOB.SPX, pMob[partyconn].MOB.SPY);
+				if((pMob[partyconn].MOB.HomeTownX/128) == 8 && (pMob[partyconn].MOB.HomeTownY/128) == 2)
+					DoTeleport(partyconn, pMob[partyconn].MOB.HomeTownX, pMob[partyconn].MOB.HomeTownY);
 				else
 					DoTeleport(partyconn, PesaMPosStandard[i][0], PesaMPosStandard[i][1]);
 
@@ -526,8 +526,8 @@ lbl_a_noparty:
 		if ((pMob[conn].extra.ClassMaster == CELESTIAL || pMob[conn].extra.ClassMaster == SCELESTIAL || pMob[conn].extra.ClassMaster == CELESTIALCS))
 			pMob[conn].extra.NT--;
 
-		if((pMob[conn].MOB.SPX/128) == 9 && (pMob[conn].MOB.SPY/128) == 1)
-			DoTeleport(conn, pMob[conn].MOB.SPX+rand()%1, pMob[conn].MOB.SPY+rand()%1);
+		if((pMob[conn].MOB.HomeTownX/128) == 9 && (pMob[conn].MOB.HomeTownY/128) == 1)
+			DoTeleport(conn, pMob[conn].MOB.HomeTownX+rand()%1, pMob[conn].MOB.HomeTownY+rand()%1);
 
 		else
 			DoTeleport(conn, PesaAPosStandard[0][0]+rand()%1, PesaAPosStandard[0][1]+rand()%1);
@@ -551,8 +551,8 @@ lbl_a_noparty:
 					pMob[partyconn].extra.NT--;
 				}
 
-				if((pMob[partyconn].MOB.SPX/128) == 9 && (pMob[partyconn].MOB.SPY/128) == 1)
-					DoTeleport(partyconn, pMob[partyconn].MOB.SPX+rand()%1, pMob[partyconn].MOB.SPY+rand()%1);
+				if((pMob[partyconn].MOB.HomeTownX/128) == 9 && (pMob[partyconn].MOB.HomeTownY/128) == 1)
+					DoTeleport(partyconn, pMob[partyconn].MOB.HomeTownX+rand()%1, pMob[partyconn].MOB.HomeTownY+rand()%1);
 				else
 				DoTeleport(partyconn, PesaAPosStandard[i][0]+rand()%1, PesaAPosStandard[i][1]+rand()%1);
 
@@ -685,10 +685,10 @@ lbl_a_noparty:
 		if (item->sIndex < 3432 || item->sIndex > 3437)
 			return true;
 
-		if (m->WarpID <= 0 || m->WarpID > 10)
+		if (m->ItemID <= 0 || m->ItemID > 10)
 			return true;
 
-		DoTeleport(conn, HuntingScrolls[item->sIndex - 3432][m->WarpID-1][0], HuntingScrolls[item->sIndex - 3432][m->WarpID-1][1]);
+		DoTeleport(conn, HuntingScrolls[item->sIndex - 3432][m->ItemID-1][0], HuntingScrolls[item->sIndex - 3432][m->ItemID-1][1]);
 
 		if (amount > 1)
 			BASE_SetItemAmount(item, amount - 1);
@@ -696,7 +696,7 @@ lbl_a_noparty:
 		else
 			memset(item, 0, sizeof(STRUCT_ITEM));
 
-		sprintf(temp, "useitem,huntingscrolls itemindex:%d warpid:%d tx:%d ty:%d", item->sIndex, m->WarpID, HuntingScrolls[item->sIndex - 3432][m->WarpID-1][0], HuntingScrolls[item->sIndex - 3432][m->WarpID-1][1]);
+		sprintf(temp, "useitem,huntingscrolls itemindex:%d warpid:%d tx:%d ty:%d", item->sIndex, m->ItemID, HuntingScrolls[item->sIndex - 3432][m->ItemID-1][0], HuntingScrolls[item->sIndex - 3432][m->ItemID-1][1]);
 		ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
 		return true;
 	}
@@ -745,7 +745,7 @@ lbl_a_noparty:
 
 			pMob[conn].extra.SaveCelestial[1].BaseScore = pMob[conn].MOB.BaseScore;
 
-			pMob[conn].extra.SaveCelestial[1].LearnedSkill = pMob[conn].MOB.LearnedSkill;
+			pMob[conn].extra.SaveCelestial[1].LearnedSkill = pMob[conn].MOB.LearnedSkill[0];
 
 			pMob[conn].extra.SaveCelestial[1].BaseScore.Level = 0;
 
@@ -844,7 +844,7 @@ lbl_a_noparty:
 
 			pMob[conn].MOB.SpecialBonus = 855;
 
-			pMob[conn].MOB.LearnedSkill = 1073741824;
+			pMob[conn].MOB.LearnedSkill[0] = 1073741824;
 
 			pMob[conn].MOB.Exp = 0;
 
@@ -917,30 +917,30 @@ lbl_a_noparty:
 		pMob[conn].extra.SaveCelestial[cl].BaseScore = pMob[conn].MOB.BaseScore;
 		pMob[conn].extra.SaveCelestial[cl].Class = pMob[conn].MOB.Class;
 		pMob[conn].extra.SaveCelestial[cl].Exp = pMob[conn].MOB.Exp;
-		pMob[conn].extra.SaveCelestial[cl].LearnedSkill = pMob[conn].MOB.LearnedSkill;
+		pMob[conn].extra.SaveCelestial[cl].LearnedSkill = pMob[conn].MOB.LearnedSkill[0];
 		pMob[conn].extra.SaveCelestial[cl].ScoreBonus = pMob[conn].MOB.ScoreBonus;
 		pMob[conn].extra.SaveCelestial[cl].SkillBonus = pMob[conn].MOB.SkillBonus;
 		pMob[conn].extra.SaveCelestial[cl].SpecialBonus = pMob[conn].MOB.SpecialBonus;
-		pMob[conn].extra.SaveCelestial[cl].SPX = pMob[conn].MOB.SPX;
-		pMob[conn].extra.SaveCelestial[cl].SPY = pMob[conn].MOB.SPY;
+		pMob[conn].extra.SaveCelestial[cl].SPX = pMob[conn].MOB.HomeTownX;
+		pMob[conn].extra.SaveCelestial[cl].SPY = pMob[conn].MOB.HomeTownY;
 
 		pMob[conn].extra.SaveCelestial[cl].Soul = pMob[conn].extra.Soul;
 
-		memcpy(pMob[conn].extra.SaveCelestial[cl].SkillBar1, pMob[conn].MOB.SkillBar, 4);
+		memcpy(pMob[conn].extra.SaveCelestial[cl].SkillBar1, pMob[conn].MOB.ShortSkill, 4);
 		memcpy(pMob[conn].extra.SaveCelestial[cl].SkillBar2, pUser[conn].CharShortSkill, 16);
 
 		pMob[conn].MOB.BaseScore = pMob[conn].extra.SaveCelestial[ncl].BaseScore;
 		pMob[conn].MOB.Class = pMob[conn].extra.SaveCelestial[ncl].Class;
 		pMob[conn].MOB.Exp = pMob[conn].extra.SaveCelestial[ncl].Exp;
-		pMob[conn].MOB.LearnedSkill = pMob[conn].extra.SaveCelestial[ncl].LearnedSkill;
+		pMob[conn].MOB.LearnedSkill[0] = pMob[conn].extra.SaveCelestial[ncl].LearnedSkill;
 		pMob[conn].MOB.ScoreBonus = pMob[conn].extra.SaveCelestial[ncl].ScoreBonus;
 		pMob[conn].MOB.SkillBonus =  pMob[conn].extra.SaveCelestial[ncl].SkillBonus;
 		pMob[conn].MOB.SpecialBonus = pMob[conn].extra.SaveCelestial[ncl].SpecialBonus;
-		pMob[conn].MOB.SPX = pMob[conn].extra.SaveCelestial[ncl].SPX;
-		pMob[conn].MOB.SPY = pMob[conn].extra.SaveCelestial[ncl].SPY;
+		pMob[conn].MOB.HomeTownX = pMob[conn].extra.SaveCelestial[ncl].SPX;
+		pMob[conn].MOB.HomeTownY = pMob[conn].extra.SaveCelestial[ncl].SPY;
 		pMob[conn].extra.Soul = pMob[conn].extra.SaveCelestial[ncl].Soul;
 
-		memcpy(pMob[conn].MOB.SkillBar, pMob[conn].extra.SaveCelestial[ncl].SkillBar1, 4);
+		memcpy(pMob[conn].MOB.ShortSkill, pMob[conn].extra.SaveCelestial[ncl].SkillBar1, 4);
 		memcpy(pUser[conn].CharShortSkill, pMob[conn].extra.SaveCelestial[ncl].SkillBar2, 16);
 
 		for (int i = 0; i < MAX_AFFECT; i++)

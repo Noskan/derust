@@ -1275,7 +1275,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									if (item->sIndex == 454)
 										continue;
 
-									int reqlv = g_pItemList[item->sIndex].ReqLvl;
+									int reqlv = g_pItemList[item->sIndex].nReqLvl;
 
 									if (reqlv < 140 || (droprate % 2) != 1)
 									{
@@ -1310,7 +1310,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										{
 											int item_index = item->sIndex;
 
-											int reqlv = g_pItemList[item_index].ReqLvl;
+											int reqlv = g_pItemList[item_index].nReqLvl;
 											int itempos = g_pItemList[item_index].nPos;
 
 											if (itempos & 0xFE && itempos != 128 && conn < MAX_USER)

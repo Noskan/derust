@@ -28,7 +28,7 @@ void Exec_MSG_REQShopList(int conn, char *pMsg)
 		return;
 	}
 
-	int target = m->Target;
+	int target = m->TargetID;
 
 	if (target < MAX_USER || target >= MAX_MOB)
 	{

@@ -370,7 +370,7 @@ void CNPCGenerator::DropList()
 				if (MOB->Carry[k].sIndex == 0 || MOB->Carry[k].sIndex == 419 || MOB->Carry[k].sIndex == 420 || MOB->Carry[k].sIndex == 412 || MOB->Carry[k].sIndex == 413)
 					continue;
 
-				int price = g_pItemList[MOB->Carry[k].sIndex].Price;
+				int price = g_pItemList[MOB->Carry[k].sIndex].nPrice;
 				
 				//if (price < 100000)
 				//	continue;
@@ -418,7 +418,7 @@ void CNPCGenerator::DropList()
 				if (MOB->Carry[k].sIndex == 0 || MOB->Carry[k].sIndex != 419 && MOB->Carry[k].sIndex != 420 && MOB->Carry[k].sIndex != 412 && MOB->Carry[k].sIndex != 413)
 					continue;
 
-				int price = g_pItemList[MOB->Carry[k].sIndex].Price;
+				int price = g_pItemList[MOB->Carry[k].sIndex].nPrice;
 
 				//if (price < 100000)
 				//	continue;
@@ -488,7 +488,7 @@ void CNPCGenerator::DropList()
 				if (MOB->Carry[k].sIndex == 0 || MOB->Carry[k].sIndex == 412 || MOB->Carry[k].sIndex == 413 || MOB->Carry[k].sIndex == 419 || MOB->Carry[k].sIndex == 420)
 					continue;
 
-				int price = g_pItemList[MOB->Carry[k].sIndex].Price;
+				int price = g_pItemList[MOB->Carry[k].sIndex].nPrice;
 
 				//if (price < 100000)
 				//	continue;
@@ -537,7 +537,7 @@ void CNPCGenerator::DropList()
 				if (MOB->Carry[k].sIndex == 0 || MOB->Carry[k].sIndex != 419 && MOB->Carry[k].sIndex != 420 && MOB->Carry[k].sIndex != 412 && MOB->Carry[k].sIndex != 413)
 					continue;
 
-				int price = g_pItemList[MOB->Carry[k].sIndex].Price;
+				int price = g_pItemList[MOB->Carry[k].sIndex].nPrice;
 
 				//if (price < 100000)
 				//	continue;

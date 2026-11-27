@@ -30,7 +30,7 @@ void Exec_MSG_Motion(int conn, char *pMsg)
 		return;
 	}
 
-	sprintf(temp, "etc,motion motion:%d parm:%d notused:%d", m->Motion, m->Parm, m->NotUsed);
+	sprintf(temp, "etc,motion motion:%d parm:%d notused:%d", m->Motion, m->Parm, m->Direction);
 	Log(temp, pUser[conn].AccountName, pUser[conn].IP);
 
 	GridMulticast(pMob[conn].TargetX, pMob[conn].TargetY, (MSG_STANDARD*)m, 0);

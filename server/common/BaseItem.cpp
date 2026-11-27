@@ -68,7 +68,7 @@ int BASE_NeedLog(struct STRUCT_ITEM *item, int money)
 	if((idx >= 551 || idx <= 562) || item->stEffect[0].cEffect != 0 || item->stEffect[0].cEffect != 59|| item->stEffect[1].cEffect != 0 || item->stEffect[1].cEffect != 59)
 		return TRUE;
 
-	int price = g_pItemList[idx].Price;
+	int price = g_pItemList[idx].nPrice;
 
 	if(price >= 100)
 		return TRUE;
@@ -145,19 +145,19 @@ int BASE_GetItemAbilityNosanc(STRUCT_ITEM *item, unsigned char type)
 	}
 
 	if (type == EF_LEVEL)
-		value += g_pItemList[itemId].ReqLvl;
+		value += g_pItemList[itemId].nReqLvl;
 
 	if (type == EF_REQ_STR)
-		value += g_pItemList[itemId].ReqStr;
+		value += g_pItemList[itemId].nReqStr;
 
 	if (type == EF_REQ_INT)
-		value += g_pItemList[itemId].ReqInt;
+		value += g_pItemList[itemId].nReqInt;
 
 	if (type == EF_REQ_DEX)
-		value += g_pItemList[itemId].ReqDex;
+		value += g_pItemList[itemId].nReqDex;
 
 	if (type == EF_REQ_CON)
-		value += g_pItemList[itemId].ReqCon;
+		value += g_pItemList[itemId].nReqCon;
 
 	if (type == EF_POS)
 		value += g_pItemList[itemId].nPos;
@@ -286,19 +286,19 @@ int BASE_GetItemAbility(STRUCT_ITEM *item, unsigned char Type)
 		Type = EF_ACADD2;
 
 	if (Type == EF_LEVEL)
-		value = g_pItemList[idx].ReqLvl;
+		value = g_pItemList[idx].nReqLvl;
 
 	if (Type == EF_REQ_STR)
-		value += g_pItemList[idx].ReqStr;
+		value += g_pItemList[idx].nReqStr;
 
 	if (Type == EF_REQ_INT)
-		value += g_pItemList[idx].ReqInt;
+		value += g_pItemList[idx].nReqInt;
 
 	if (Type == EF_REQ_DEX)
-		value += g_pItemList[idx].ReqDex;
+		value += g_pItemList[idx].nReqDex;
 
 	if (Type == EF_REQ_CON)
-		value += g_pItemList[idx].ReqCon;
+		value += g_pItemList[idx].nReqCon;
 
 	if (Type == EF_POS)
 		value += g_pItemList[idx].nPos;
@@ -495,19 +495,19 @@ int BASE_GetStaticItemAbility(STRUCT_ITEM *item, unsigned char Type)
 	int nPos = g_pItemList[idx].nPos;
 
 	if (Type == EF_LEVEL)
-		value += g_pItemList[idx].ReqLvl;
+		value += g_pItemList[idx].nReqLvl;
 
 	if (Type == EF_REQ_STR)
-		value += g_pItemList[idx].ReqStr;
+		value += g_pItemList[idx].nReqStr;
 
 	if (Type == EF_REQ_INT)
-		value += g_pItemList[idx].ReqInt;
+		value += g_pItemList[idx].nReqInt;
 
 	if (Type == EF_REQ_DEX)
-		value += g_pItemList[idx].ReqDex;
+		value += g_pItemList[idx].nReqDex;
 
 	if (Type == EF_REQ_CON)
-		value += g_pItemList[idx].ReqCon;
+		value += g_pItemList[idx].nReqCon;
 
 	if (Type == EF_POS)
 		value += g_pItemList[idx].nPos;

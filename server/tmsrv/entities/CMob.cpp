@@ -700,7 +700,7 @@ void CMob::GetCurrentScore(int idx)
 		ExpBonus += 32;
 
 	//Concentração
-	if ((MOB.LearnedSkill & (1 << 28)) != 0)
+	if ((MOB.LearnedSkill[0] & (1 << 28)) != 0)
 		Accuracy += 50;
 
 	if(MOB.Resist[0] < 0 && idx < MAX_USER)
@@ -728,14 +728,14 @@ void CMob::GetCurrentScore(int idx)
 	int fw2 = (w2 / 2);
 
 	//Pericia do caçador
-	if(MOB.LearnedSkill & (1 << 10) && MOB.Class == 3)
+	if(MOB.LearnedSkill[0] & (1 << 10) && MOB.Class == 3)
 	{
 		fw1 = w1;
 		fw2 = w2;
 	}
 
 	//Mestre das Armas
-	if(MOB.LearnedSkill & (1 << 9) && MOB.Class == 0)
+	if(MOB.LearnedSkill[0] & (1 << 9) && MOB.Class == 0)
 	{
 		fw1 = w1;
 		fw2 = w2;
@@ -743,11 +743,11 @@ void CMob::GetCurrentScore(int idx)
 
 	if(MOB.Class == 2)
 	{
-		if(MOB.LearnedSkill & (1 << 17))
+		if(MOB.LearnedSkill[0] & (1 << 17))
 			ReflectDamage += ((MOB.CurrentScore.Special[3] + 1) / 6);
 
 		//Escudo do tormento
-		if(MOB.LearnedSkill & (1 << 19) && g_pItemList[MOB.Equip[7].sIndex].nPos == 128)
+		if(MOB.LearnedSkill[0] & (1 << 19) && g_pItemList[MOB.Equip[7].sIndex].nPos == 128)
 			MOB.CurrentScore.Ac += (BASE_GetItemAbility(&MOB.Equip[7], EF_AC) + 1) / 7;
 	}
 
@@ -796,16 +796,16 @@ void CMob::GetCurrentScore(int idx)
 		if (ItemId <= 0 || ItemId > MAX_ITEMLIST)
 			continue;
 
-		if (g_pItemList[ItemId].Grade == 5)
+		if (g_pItemList[ItemId].nGrade == 5)
 			DropBonus += 8;
 
-		if (g_pItemList[ItemId].Grade == 6)
+		if (g_pItemList[ItemId].nGrade == 6)
 			ForceDamage += i == 20;
 
-		if (g_pItemList[ItemId].Grade == 7)
+		if (g_pItemList[ItemId].nGrade == 7)
 			ExpBonus += 2;
 
-		if (g_pItemList[ItemId].Grade == 8)
+		if (g_pItemList[ItemId].nGrade == 8)
 			ReflectDamage += 20;
 
 		int isanc = 0;
@@ -832,13 +832,13 @@ void CMob::GetCurrentScore(int idx)
 			DropBonus += 8;
 
 		if(itemGem == 1)
-			ForceDamage += (g_pItemList[ItemId].Grade == 6 ? 80 : 40) * isanc;
+			ForceDamage += (g_pItemList[ItemId].nGrade == 6 ? 80 : 40) * isanc;
 
 		if(itemGem == 2)
 			ExpBonus += 2;
 
 		if(itemGem == 3)
-			ReflectDamage += (g_pItemList[ItemId].Grade == 8 ? 80 : 40) * isanc;
+			ReflectDamage += (g_pItemList[ItemId].nGrade == 8 ? 80 : 40) * isanc;
 	}
 	
 	PvPDamage = 0;

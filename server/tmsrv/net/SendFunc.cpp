@@ -829,7 +829,7 @@ void SendEmotion(int conn, int Motion, int Parm)
 	sm.Type = _MSG_Motion;
 	sm.Size = sizeof(MSG_Motion);
 
-	sm.NotUsed = 0;
+	sm.Direction = 0;
 
 	sm.ID = conn;
 
@@ -904,14 +904,14 @@ void GridMulticast(int tx, int ty, MSG_STANDARD *msg, int skip)
 
 						((MSG_CreateMob*)msg)->Equip[1] = BASE_VisualItemCode(&hcitem, 1);
 
-						((MSG_CreateMob*)msg)->AnctCode[1] = BASE_VisualAnctCode(&hcitem);
+						((MSG_CreateMob*)msg)->Equip2[1] = BASE_VisualAnctCode(&hcitem);
 
 
 						hcitem.sIndex = 3999;
 
 						((MSG_CreateMob*)msg)->Equip[15] = BASE_VisualItemCode(&hcitem, 15);
 
-						((MSG_CreateMob*)msg)->AnctCode[15] = BASE_VisualAnctCode(&hcitem);
+						((MSG_CreateMob*)msg)->Equip2[15] = BASE_VisualAnctCode(&hcitem);
 					}
 
 				}
@@ -919,7 +919,7 @@ void GridMulticast(int tx, int ty, MSG_STANDARD *msg, int skip)
 				if (msg->Type == _MSG_CNFMobKill)
 				{
 					((MSG_CNFMobKill*)msg)->Exp = pMob[tmob].MOB.Exp;
-					((MSG_CNFMobKill*)msg)->Hold = pMob[tmob].extra.Hold;
+					((MSG_CNFMobKill*)msg)->FakeExp = pMob[tmob].extra.Hold;
 
 					int Segment = pMob[tmob].CheckGetLevel();
 
@@ -1069,13 +1069,13 @@ void SendItem(int conn, int Type, int Slot, STRUCT_ITEM *item)
 	sm_si.Size = sizeof(MSG_SendItem);
 	sm_si.ID = conn;
 
-	sm_si.invType = Type;
-	sm_si.Slot = Slot;
+	sm_si.DestType = Type;
+	sm_si.DestPos = Slot;
 
 //	*(int*)&sm.item = *(int*)&item;
 //	*(int*)((int)&sm.item + 4) = *(int*)((int)&item + 4);
 
-	memcpy(&sm_si.item, item, sizeof(STRUCT_ITEM));
+	memcpy(&sm_si.Item, item, sizeof(STRUCT_ITEM));
 
 	pUser[conn].cSock.AddMessage((char*)&sm_si, sizeof(MSG_SendItem));
 }
@@ -1095,20 +1095,20 @@ void SendEquip(int conn, int skip)
 	{
 		STRUCT_ITEM *item = &pMob[conn].MOB.Equip[i];
 
-		sm_ue.Equip[i] = BASE_VisualItemCode(item, i);
+		sm_ue.sEquip[i] = BASE_VisualItemCode(item, i);
 
-		sm_ue.AnctCode[i] = BASE_VisualAnctCode(item);
+		sm_ue.Equip2[i] = BASE_VisualAnctCode(item);
 
-		if (i == 14 && sm_ue.Equip[14] >= 2360 && sm_ue.Equip[i] < 2390 && pMob[conn].MOB.Equip[i].stEffect[0].sValue <= 0)
+		if (i == 14 && sm_ue.sEquip[14] >= 2360 && sm_ue.sEquip[i] < 2390 && pMob[conn].MOB.Equip[i].stEffect[0].sValue <= 0)
 		{
-			sm_ue.Equip[i] = 0;
+			sm_ue.sEquip[i] = 0;
 
 			SendMount = 1;
 
 			continue;
 		}
 
-		if (i == 14 && sm_ue.Equip[14] >= 2360 && sm_ue.Equip[i] < 2390)
+		if (i == 14 && sm_ue.sEquip[14] >= 2360 && sm_ue.sEquip[i] < 2390)
 		{
 			int MountLevel = pMob[conn].MOB.Equip[i].stEffect[1].cEffect; // level
 
@@ -1120,7 +1120,7 @@ void SendEquip(int conn, int skip)
 				MountLevel = 0;
 
 			MountLevel = MountLevel * 4096;
-			sm_ue.Equip[i] += MountLevel;
+			sm_ue.sEquip[i] += MountLevel;
 
 			continue;
 		}
@@ -1141,8 +1141,8 @@ void SendScore(int conn)
 
 	if (conn < MAX_USER)
 	{
-		sm_vus.CurrHp = pMob[conn].MOB.CurrentScore.Hp;
-		sm_vus.CurrMp = pMob[conn].MOB.CurrentScore.Mp;
+		sm_vus.ReqHp = pMob[conn].MOB.CurrentScore.Hp;
+		sm_vus.ReqMp = pMob[conn].MOB.CurrentScore.Mp;
 	}
 
 	sm_vus.Size = sizeof(MSG_UpdateScore);
@@ -1210,14 +1210,14 @@ void SendEtc(int conn)
 
 	sm.SpecialBonus = pMob[conn].MOB.SpecialBonus;
 
-	sm.Learn = pMob[conn].MOB.LearnedSkill;
+	sm.LearnedSkill = pMob[conn].MOB.LearnedSkill[0];
 
 	sm.ScoreBonus = pMob[conn].MOB.ScoreBonus;
 	sm.SkillBonus = pMob[conn].MOB.SkillBonus;
 
 	sm.Coin = pMob[conn].MOB.Coin;
 
-	sm.Hold = pMob[conn].extra.Hold;
+	sm.FakeExp = pMob[conn].extra.Hold;
 	sm.Magic = pMob[conn].MOB.Magic;
 
 	if (!pUser[conn].cSock.AddMessage((char*)&sm, sizeof(MSG_UpdateEtc)))

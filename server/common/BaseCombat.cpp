@@ -62,7 +62,7 @@ int BASE_GetBonusSkillPoint(STRUCT_MOB *mob, STRUCT_MOBEXTRA *extra)
 
 	for(int j = 0; j < MAX_SKILL; j++)
 	{
-		if((mob->LearnedSkill & skillbit) != 0)
+		if((mob->LearnedSkill[0] & skillbit) != 0)
 			spelluse += g_pSpell[((cls * MAX_SKILL) + j)].SkillPoint;
 
 		skillbit *= 2;
@@ -527,7 +527,7 @@ int BASE_GetMobAbility(STRUCT_MOB *mob, unsigned char Type)
 		value = BASE_GetMaxAbility(mob, Type);
 		if (value < 2 && mob->Class == 3)
 		{
-			if (mob->LearnedSkill & 0x80000)
+			if (mob->LearnedSkill[0] & 0x80000)
 				value = 2;
 		}
 
@@ -582,9 +582,9 @@ int BASE_GetMobAbility(STRUCT_MOB *mob, unsigned char Type)
 					multi = 50;
 				else
 					multi = 30;
-				if (!mob->Class && mob->LearnedSkill & 0x200)
+				if (!mob->Class && mob->LearnedSkill[0] & 0x200)
 					multi += 15;
-				if (mob->Class == 3 && mob->LearnedSkill & 0x400)
+				if (mob->Class == 3 && mob->LearnedSkill[0] & 0x400)
 					multi += 10;
 				if (ldam <= rdam)
 					value += multi * ldam / 100 + rdam;
@@ -648,8 +648,8 @@ void BASE_ClearMob(STRUCT_MOB *mob)
 {
 	memset(mob, 0, sizeof(STRUCT_MOB));
 
-	mob->SPX = 2112;
-	mob->SPY = 2112;
+	mob->HomeTownX = 2112;
+	mob->HomeTownY = 2112;
 
 	memset(&mob->BaseScore, 0, sizeof(STRUCT_SCORE));
 	memset(&mob->CurrentScore, 0, sizeof(STRUCT_SCORE));
@@ -660,10 +660,10 @@ void BASE_ClearMob(STRUCT_MOB *mob)
 	for(int i = 0; i < MAX_CARRY; i++)
 		BASE_ClearItem(&mob->Carry[i]);
 
-	mob->SkillBar[0] = 0;
-	mob->SkillBar[1] = 0;
-	mob->SkillBar[2] = 0;
-	mob->SkillBar[3] = 0;
+	mob->ShortSkill[0] = 0;
+	mob->ShortSkill[1] = 0;
+	mob->ShortSkill[2] = 0;
+	mob->ShortSkill[3] = 0;
 }
 
 /// Inicializa/zera uma estrutura STRUCT_MOBEXTRA.
@@ -913,7 +913,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 	if(MOB.Class == 0)
 	{
 		//Armadura Crítica
-		if(MOB.LearnedSkill & (1 << 15))
+		if(MOB.LearnedSkill[0] & (1 << 15))
 		{
 			MOB.CurrentScore.Ac = (int)(MOB.CurrentScore.Ac * 1.1f);
 
@@ -1046,7 +1046,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			if(MOB.Class == 1)
 			{
-				if(MOB.LearnedSkill & 0x80000)
+				if(MOB.LearnedSkill[0] & 0x80000)
 				{
 					add *= 3;
 					DAMAGEMULTI += 10;
@@ -1142,9 +1142,9 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			 int HpAdd = 0;
 			 int AcAdd = 0;
 			 int AttAdd = 0;
-			 int IsWolf = MOB.LearnedSkill & 0x20000;
-			 int IsBear = MOB.LearnedSkill & 0x80000;
-			 int IsAsta = MOB.LearnedSkill & 0x200000;
+			 int IsWolf = MOB.LearnedSkill[0] & 0x20000;
+			 int IsBear = MOB.LearnedSkill[0] & 0x80000;
+			 int IsAsta = MOB.LearnedSkill[0] & 0x200000;
 			 int RegAdd = 0;
 
 			 if(MOB.Equip[0].sIndex == 22 && IsWolf != 0)
@@ -1180,7 +1180,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			 }
 
 			 int sanc = (special3 + (extra->ClassMaster != ARCH && extra->ClassMaster != MORTAL ? MOB.CurrentScore.Level+MAX_LEVEL : MOB.CurrentScore.Level) * 2) / 3;
-			 sanc = (sanc - pTransBonus[value].Unk17) / 12;
+			 sanc = (sanc - pTransBonus[value].SancLevel) / 12;
 
 			 if(sanc <= 0)
 				 sanc = 0;
@@ -1191,8 +1191,8 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			 MOB.Equip[0].stEffect[0].cEffect = EF_SANC;
 			 MOB.Equip[0].stEffect[0].cValue = sanc;
 
-			 int min = DamAdd + pTransBonus[value].Unk;
-			 int max = DamAdd + pTransBonus[value].Unk2;
+			 int min = DamAdd + pTransBonus[value].Int_Damage;
+			 int max = DamAdd + pTransBonus[value].Spe_Damage;
 			 int delta = max - min;
 			 int multi = delta * Level / 200 + min;
 			 int tv = MOB.CurrentScore.Damage;
@@ -1204,8 +1204,8 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			 DAMAGEMULTI = DAMAGEMULTI + multi - 100;
 
-			 min = AcAdd + pTransBonus[value].Unk3;
-			 max = AcAdd + pTransBonus[value].Unk4;
+			 min = AcAdd + pTransBonus[value].Int_Ac;
+			 max = AcAdd + pTransBonus[value].Spe_Ac;
 			 delta = max - min;
 			 multi = delta * Level / 200 + min;
 			 tv = MOB.CurrentScore.Ac;
@@ -1216,8 +1216,8 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 
 			 MOB.CurrentScore.Ac = tv;
 
-			 min = HpAdd + pTransBonus[value].Unk5;
-			 max = HpAdd + pTransBonus[value].Unk6;
+			 min = HpAdd + pTransBonus[value].Int_Hp;
+			 max = HpAdd + pTransBonus[value].Spe_Hp;
 			 delta = max - min;
 			 multi = delta * Level / 200 + min;
 			 tv = MOB.CurrentScore.MaxHp;
@@ -1229,8 +1229,8 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 			 Trovao += RegAdd;
 			 Gelo += RegAdd;
 
-			 AttackSpeedBonus = pTransBonus[value].Unk9 + AttAdd;
-			 RunSpeedBonus = pTransBonus[value].Unk7;
+			 AttackSpeedBonus = pTransBonus[value].Int_Attack + AttAdd;
+			 RunSpeedBonus = pTransBonus[value].Int_Run;
 		}
 		else if(Type == 42)
 		{
@@ -1642,7 +1642,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 	if(MOB.Class == 3)
 	{
 		//Aggressividade
-		if(MOB.LearnedSkill & (1 << 2))
+		if(MOB.LearnedSkill[0] & (1 << 2))
 		{
 			int lidx = MOB.Equip[6].sIndex;
 
@@ -1659,12 +1659,12 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 		}
 
 		//Tempestade de Raios Bonus em Dano
-		if(MOB.LearnedSkill & (1 << 7))
+		if(MOB.LearnedSkill[0] & (1 << 7))
 			MOB.CurrentScore.Damage += special1 * 2;
 
 
 		//Visão do Caçador
-		if(MOB.LearnedSkill & (1 << 18))
+		if(MOB.LearnedSkill[0] & (1 << 18))
 		{
 			int criticaladd = ((special3+1)/10) + (MOB.CurrentScore.Dex / 75);
 			
@@ -1675,7 +1675,7 @@ void BASE_GetCurrentScore(STRUCT_MOB & MOB, STRUCT_AFFECT *Affect, STRUCT_MOBEXT
 		}
 
 		//Proteção das sombras
-		if(MOB.LearnedSkill & (1 << 22))
+		if(MOB.LearnedSkill[0] & (1 << 22))
 		{
 			int sombraadd = (special3 / 3) + 10;
 			MOB.CurrentScore.Ac += sombraadd;
@@ -2373,7 +2373,7 @@ int BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weaponda
 		}
 
 		// Bônus da skill de classe aprendida (o 8º bit de cada bloco de skills).
-		if ((1 << (8 * skillclass + 7)) & mob->LearnedSkill)
+		if ((1 << (8 * skillclass + 7)) & mob->LearnedSkill[0])
 		{
 			switch (mob->Class)
 			{
@@ -2412,7 +2412,7 @@ int BASE_GetSkillDamage(int skillnum, STRUCT_MOB *mob, int weather, int weaponda
 	{
 		dam = base + 3 * special / 2;
 
-		if (skillnum == 29 && mob->LearnedSkill & 0x80)
+		if (skillnum == 29 && mob->LearnedSkill[0] & 0x80)
 			dam = 120 * dam / 100;
 	}
 	else if (instanceindex == 11)

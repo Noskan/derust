@@ -145,8 +145,8 @@ STRUCT_MOB RandomMob(Lcg& r)
 	m.Quest = (unsigned char)r.Range(0, 255);
 	m.Coin = r.Range(0, 2000000000);
 	m.Exp = (long long)r.Range(0, 2000000000) * r.Range(1, 3);
-	m.SPX = (short)r.Range(0, 4095);
-	m.SPY = (short)r.Range(0, 4095);
+	m.HomeTownX = (short)r.Range(0, 4095);
+	m.HomeTownY = (short)r.Range(0, 4095);
 	m.BaseScore = RandomScore(r);
 	m.CurrentScore = RandomScore(r);
 	for (int i = 0; i < MAX_EQUIP; ++i)
@@ -154,7 +154,7 @@ STRUCT_MOB RandomMob(Lcg& r)
 	m.Equip[14] = RandomMountSlot(r);
 	for (int i = 0; i < MAX_CARRY; ++i)
 		m.Carry[i] = r.Range(0, 2) ? RandomItem(r) : STRUCT_ITEM{};
-	m.LearnedSkill = (long)(r.Next() | (r.Next() << 24));
+	m.LearnedSkill[0] = r.Next() | (r.Next() << 24);
 	// Domínio do jogo: BASE_GetCurrentScore limita Magic a MAX_DAMAGE_MG (254) e RegenHP/RegenMP
 	// a 0..255; o cliente guarda os três em 1 byte.
 	m.Magic = (r.Next() | (r.Next() << 24)) % (MAX_DAMAGE_MG + 1);   // mesmo consumo do gerador de antes
@@ -164,7 +164,7 @@ STRUCT_MOB RandomMob(Lcg& r)
 	m.Critical = (unsigned char)r.Range(0, 255);
 	m.SaveMana = (unsigned char)r.Range(0, 255);
 	for (int i = 0; i < 4; ++i)
-		m.SkillBar[i] = (unsigned char)r.Range(0, 255);
+		m.ShortSkill[i] = (unsigned char)r.Range(0, 255);
 	m.GuildLevel = (unsigned char)r.Range(0, 9);
 	m.RegenHP = (unsigned short)r.Range(0, 255);
 	m.RegenMP = (unsigned short)r.Range(0, 255);
@@ -189,16 +189,16 @@ void HashMob(Hash& h, const STRUCT_MOB& m)
 {
 	h.Bytes(m.MobName, sizeof(m.MobName));
 	h.Int(m.Clan); h.Int(m.Merchant); h.Int(m.Guild); h.Int(m.Class); h.Int(m.Rsv); h.Int(m.Quest);
-	h.Int(m.Coin); h.Int(m.Exp); h.Int(m.SPX); h.Int(m.SPY);
+	h.Int(m.Coin); h.Int(m.Exp); h.Int(m.HomeTownX); h.Int(m.HomeTownY);
 	HashScore(h, m.BaseScore);
 	HashScore(h, m.CurrentScore);
 	h.Bytes(m.Equip, sizeof(m.Equip));
 	h.Bytes(m.Carry, sizeof(m.Carry));
-	h.Int(m.LearnedSkill); h.Int(m.Magic);
+	h.Int((int)m.LearnedSkill[0]); h.Int(m.Magic);	// (int): o hash da referência é do antigo `long`
 	h.Int(m.ScoreBonus); h.Int(m.SpecialBonus); h.Int(m.SkillBonus);
 	h.Int(m.Critical); h.Int(m.SaveMana);
 	for (int i = 0; i < 4; ++i)
-		h.Int(m.SkillBar[i]);
+		h.Int(m.ShortSkill[i]);
 	h.Int(m.GuildLevel); h.Int(m.RegenHP); h.Int(m.RegenMP);
 	for (int i = 0; i < 4; ++i)
 		h.Int(m.Resist[i]);
@@ -230,25 +230,25 @@ void FillTables()
 		STRUCT_ITEMLIST& it = g_pItemList[i];
 		std::memset(&it, 0, sizeof(it));
 		std::snprintf(it.Name, sizeof(it.Name), "item%d", i);
-		it.IndexMesh = (short)r.Range(0, 200);
-		it.IndexTexture = (short)r.Range(0, 200);
-		it.IndexVisualEffect = (short)r.Range(0, 50);
-		it.ReqLvl = (short)r.Range(0, MAX_LEVEL);
-		it.ReqStr = (short)r.Range(0, 400);
-		it.ReqInt = (short)r.Range(0, 400);
-		it.ReqDex = (short)r.Range(0, 400);
-		it.ReqCon = (short)r.Range(0, 400);
+		it.nIndexMesh = (short)r.Range(0, 200);
+		it.nIndexTexture = (short)r.Range(0, 200);
+		it.nIndexVisualEffect = (short)r.Range(0, 50);
+		it.nReqLvl = (short)r.Range(0, MAX_LEVEL);
+		it.nReqStr = (short)r.Range(0, 400);
+		it.nReqInt = (short)r.Range(0, 400);
+		it.nReqDex = (short)r.Range(0, 400);
+		it.nReqCon = (short)r.Range(0, 400);
 		for (int e = 0; e < MAX_STATICEFFECT; ++e)
 		{
 			it.stEffect[e].sEffect = (short)r.Range(0, 125);
 			// EF_GRID indexa g_pItemGrid[8] em BASE_CanCarry/CanCargo sem validação.
 			it.stEffect[e].sValue = (short)(it.stEffect[e].sEffect == EF_GRID ? r.Range(0, 7) : r.Range(0, 300));
 		}
-		it.Price = r.Range(0, 2000000000);
+		it.nPrice = r.Range(0, 2000000000);
 		it.nUnique = (short)r.Range(0, 80);
 		it.nPos = (short)(1 << r.Range(0, 14));
-		it.Extra = (short)r.Range(0, 200);
-		it.Grade = (short)r.Range(0, 5);
+		it.nExtra = (short)r.Range(0, 200);
+		it.nGrade = (short)r.Range(0, 5);
 	}
 	for (int i = 0; i < MAX_SKILLINDEX; ++i)
 	{
@@ -353,7 +353,7 @@ uint64_t CaseCanEquipCarry()
 		STRUCT_MOBEXTRA e = RandomExtra(r);
 		STRUCT_ITEM it = RandomItem(r);
 		for (int pos = 0; pos < MAX_EQUIP; ++pos)
-			h.Int(BASE_CanEquip(&it, &m.CurrentScore, pos, m.Equip[0].sIndex, m.Equip, m.Equip[0].sIndex, (m.LearnedSkill & 0x40000000) != 0));
+			h.Int(BASE_CanEquip(&it, &m.CurrentScore, pos, m.Equip[0].sIndex, m.Equip, m.Equip[0].sIndex, (m.LearnedSkill[0] & 0x40000000) != 0));
 		int err = 0;
 		h.Int(BASE_CanCarry(&it, m.Carry, r.Range(0, 8), r.Range(0, 8), &err));
 		h.Int(err);

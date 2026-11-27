@@ -933,7 +933,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 			pMob[conn].MOB.Equip[6].stEffect[2].cEffect = 0;
 			pMob[conn].MOB.Equip[6].stEffect[2].cValue = 0;
 
-			SetItemBonus(&pMob[conn].MOB.Equip[6], (25 * NumCristal / 10) + g_pItemList[pMob[conn].MOB.Equip[6].sIndex].ReqLvl, 1, pMob[conn].DropBonus);
+			SetItemBonus(&pMob[conn].MOB.Equip[6], (25 * NumCristal / 10) + g_pItemList[pMob[conn].MOB.Equip[6].sIndex].nReqLvl, 1, pMob[conn].DropBonus);
 
 			for(int i = 0; i < 7; i++)
 				memset(&pMob[conn].MOB.Carry[Cristais[i]], 0, sizeof(STRUCT_ITEM));

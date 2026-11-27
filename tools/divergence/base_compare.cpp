@@ -115,11 +115,7 @@ STRUCT_SCORE RandomScore(Lcg& r)
 	s.Level = (short)r.Range(0, 400);
 	s.Ac = r.Range(0, 3000);
 	s.Damage = r.Range(0, 5000);
-#if defined(DIV_CLIENT)
-	s.Reserved = (char)r.Range(0, 255);
-#else
 	s.Merchant = (unsigned char)r.Range(0, 255);
-#endif
 	s.AttackRun = (unsigned char)r.Range(0, 255);
 	s.MaxHp = r.Range(1, 60000);
 	s.MaxMp = r.Range(1, 60000);
@@ -150,13 +146,8 @@ STRUCT_MOB RandomMob(Lcg& r)
 	m.Coin = r.Range(0, 2000000000);
 	m.Exp = (long long)r.Range(0, 2000000000) * r.Range(1, 3);
 	short spx = (short)r.Range(0, 4095), spy = (short)r.Range(0, 4095);
-#if defined(DIV_CLIENT)
 	m.HomeTownX = spx;
 	m.HomeTownY = spy;
-#else
-	m.SPX = spx;
-	m.SPY = spy;
-#endif
 	m.BaseScore = RandomScore(r);
 	m.CurrentScore = RandomScore(r);
 	for (int i = 0; i < 16; ++i)
@@ -164,11 +155,7 @@ STRUCT_MOB RandomMob(Lcg& r)
 	for (int i = 0; i < MAX_CARRY; ++i)
 		m.Carry[i] = r.Range(0, 2) ? RandomItem(r) : STRUCT_ITEM{};
 	unsigned int learned = r.Next() | (r.Next() << 24);
-#if defined(DIV_CLIENT)
 	m.LearnedSkill[0] = learned;
-#else
-	m.LearnedSkill = (long)learned;
-#endif
 	m.Magic = (unsigned char)r.Range(0, 255);
 	m.ScoreBonus = (unsigned short)r.Range(0, 3000);
 	m.SpecialBonus = (unsigned short)r.Range(0, 300);
@@ -178,11 +165,7 @@ STRUCT_MOB RandomMob(Lcg& r)
 	for (int i = 0; i < 4; ++i)
 	{
 		unsigned char sb = (unsigned char)r.Range(0, 255);
-#if defined(DIV_CLIENT)
 		m.ShortSkill[i] = sb;
-#else
-		m.SkillBar[i] = sb;
-#endif
 	}
 	m.GuildLevel = (unsigned char)r.Range(0, 9);
 	m.RegenHP = (unsigned char)r.Range(0, 255);
@@ -234,15 +217,9 @@ void FillTables()
 		int price = r.Range(0, 2000000);
 		short uniq = (short)r.Range(0, 60), pos = (short)(1 << r.Range(0, 15));
 		short extra = (short)r.Range(0, 3000), grade = (short)r.Range(0, 10);
-#if defined(DIV_CLIENT)
 		it.nIndexMesh = mesh; it.nIndexTexture = tex; it.nIndexVisualEffect = vis;
 		it.nReqLvl = lvl; it.nReqStr = str; it.nReqInt = in; it.nReqDex = dex; it.nReqCon = con;
 		it.nPrice = price; it.nExtra = extra; it.nGrade = grade;
-#else
-		it.IndexMesh = mesh; it.IndexTexture = tex; it.IndexVisualEffect = vis;
-		it.ReqLvl = lvl; it.ReqStr = str; it.ReqInt = in; it.ReqDex = dex; it.ReqCon = con;
-		it.Price = price; it.Extra = extra; it.Grade = grade;
-#endif
 		it.nUnique = uniq;
 		it.nPos = pos;
 	}

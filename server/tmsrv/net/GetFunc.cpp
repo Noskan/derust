@@ -51,7 +51,7 @@ int GetMatchCombine(STRUCT_ITEM *item)
 	if (g_pItemList[target].nUnique < 41 || g_pItemList[target].nUnique > 49)
 		return 0;
 
-	if (g_pItemList[target].Extra <= 0)
+	if (g_pItemList[target].nExtra <= 0)
 		return 0;
 
 	if (BASE_GetItemAbility(&item[0], EF_MOBTYPE) == 3)
@@ -184,13 +184,13 @@ int GetMatchCombineTiny(STRUCT_ITEM *Item)
 	if (BASE_GetItemAbility(&Item[0], EF_MOBTYPE) != ARCH)
 		return 0;
 
-	if (g_pItemList[Item[0].sIndex].Grade < 5 || g_pItemList[Item[0].sIndex].Grade > 8)
+	if (g_pItemList[Item[0].sIndex].nGrade < 5 || g_pItemList[Item[0].sIndex].nGrade > 8)
 		return 0;
 
 	if (BASE_GetItemAbility(&Item[1], EF_ITEMTYPE) != 4 || BASE_GetItemAbility(&Item[1], EF_ITEMTYPE) != 5)
 		return 0;
 
-	if (g_pItemList[Item[1].sIndex].Grade < 5 || g_pItemList[Item[1].sIndex].Grade > 8)
+	if (g_pItemList[Item[1].sIndex].nGrade < 5 || g_pItemList[Item[1].sIndex].nGrade > 8)
 		return 0;
 
 	if (BASE_GetItemAbility(&Item[2], EF_ITEMTYPE) != 4 || BASE_GetItemAbility(&Item[2], EF_ITEMTYPE) != 5)
@@ -290,7 +290,7 @@ int GetMatchCombineAilyn(STRUCT_ITEM *Item)
 	if (Item[0].sIndex != Item[1].sIndex)
 		return 0;
 
-	if (g_pItemList[Item[0].sIndex].Grade != g_pItemList[Item[1].sIndex].Grade)
+	if (g_pItemList[Item[0].sIndex].nGrade != g_pItemList[Item[1].sIndex].nGrade)
 		return 0;
 
 	if (Item[2].sIndex != 1774)
@@ -301,7 +301,7 @@ int GetMatchCombineAilyn(STRUCT_ITEM *Item)
 	if((g_pItemList[Item[0].sIndex].nPos != 2 && g_pItemList[Item[0].sIndex].nPos != 4 && g_pItemList[Item[0].sIndex].nPos != 8 && g_pItemList[Item[0].sIndex].nPos != 16 && g_pItemList[Item[0].sIndex].nPos != 32 && g_pItemList[Item[0].sIndex].nPos != 64 && g_pItemList[Item[0].sIndex].nPos != 192 && g_pItemList[Item[0].sIndex].nPos != 128))
 		return 0;
 
-	if (g_pItemList[Item[0].sIndex].Grade == 5)
+	if (g_pItemList[Item[0].sIndex].nGrade == 5)
 	{
 		for (int i = 3; i < 7; i++)
 		{
@@ -315,7 +315,7 @@ int GetMatchCombineAilyn(STRUCT_ITEM *Item)
 		}
 	}
 	
-	else if (g_pItemList[Item[0].sIndex].Grade == 6)
+	else if (g_pItemList[Item[0].sIndex].nGrade == 6)
 	{
 		for (int i = 3; i < 7; i++)
 		{
@@ -329,7 +329,7 @@ int GetMatchCombineAilyn(STRUCT_ITEM *Item)
 		}
 	}
 
-	else if (g_pItemList[Item[0].sIndex].Grade == 7)
+	else if (g_pItemList[Item[0].sIndex].nGrade == 7)
 	{
 		for (int i = 3; i < 7; i++)
 		{
@@ -343,7 +343,7 @@ int GetMatchCombineAilyn(STRUCT_ITEM *Item)
 		}
 	}
 
-	else if (g_pItemList[Item[0].sIndex].Grade == 8)
+	else if (g_pItemList[Item[0].sIndex].nGrade == 8)
 	{
 		for (int i = 3; i < 7; i++)
 		{
@@ -421,7 +421,7 @@ int GetMatchCombineAgatha(STRUCT_ITEM *Item)
 	if (Item[2].sIndex != 3140 || Item[3].sIndex != 3140 || Item[4].sIndex != 3140 || Item[5].sIndex != 3140)
 		return 0;
 
-	return g_pAgathaBase + (g_pItemList[Item[1].sIndex].Grade * 5) + (BASE_GetItemAbility(&Item[1], EF_ITEMLEVEL) == 5 ? 30 : 1);
+	return g_pAgathaBase + (g_pItemList[Item[1].sIndex].nGrade * 5) + (BASE_GetItemAbility(&Item[1], EF_ITEMLEVEL) == 5 ? 30 : 1);
 }
 
 int GetMatchCombineOdin(STRUCT_ITEM *Item)
@@ -456,7 +456,7 @@ int GetMatchCombineOdin(STRUCT_ITEM *Item)
 	if (Item[7].sIndex < 0 || Item[7].sIndex >= MAX_ITEMLIST)
 		return 0;
 	
-	if (Item[0].sIndex == g_pItemList[Item[1].sIndex].Extra && BASE_GetItemSanc(&Item[0]) >= 9 && BASE_GetItemSanc(&Item[1]) == REF_15
+	if (Item[0].sIndex == g_pItemList[Item[1].sIndex].nExtra && BASE_GetItemSanc(&Item[0]) >= 9 && BASE_GetItemSanc(&Item[1]) == REF_15
 		&& (Item[2].sIndex == 542 || Item[2].sIndex == 772) && Item[3].sIndex == 5334 && Item[4].sIndex == 5335 && Item[5].sIndex == 5336 && Item[6].sIndex == 5337)
 		return 1;//Item celestial
 
@@ -985,12 +985,12 @@ int GetCreateMob(int mob, MSG_CreateMob *sm)
 	sm->Score = pMob[mob].MOB.CurrentScore;
 
 	sm->Guild = pMob[mob].MOB.Guild;
-	sm->GuildMemberType = pMob[mob].MOB.GuildLevel;
+	sm->GuildLevel = pMob[mob].MOB.GuildLevel;
 
 	if (pMob[mob].GuildDisable == 1)
 	{
 		sm->Guild = 0;
-		sm->GuildMemberType = 0;
+		sm->GuildLevel = 0;
 	}
 	if (mob >= MAX_USER)
 	{
@@ -1012,7 +1012,7 @@ int GetCreateMob(int mob, MSG_CreateMob *sm)
 
 	sm->Server = (unsigned char)pMob[mob].extra.Citizen;
 
-	strncpy(sm->Tab, pMob[mob].Tab, 26);
+	strncpy(sm->Nick, pMob[mob].Tab, 26);
 
 	int selfdead = 0;
 
@@ -1025,7 +1025,7 @@ int GetCreateMob(int mob, MSG_CreateMob *sm)
 
 		sm->Equip[i] = BASE_VisualItemCode(item, i);
 
-		sm->AnctCode[i] = BASE_VisualAnctCode(item);
+		sm->Equip2[i] = BASE_VisualAnctCode(item);
 		
 		if (i == 14 && sm->Equip[i] >= 2360 && sm->Equip[i] < 2390 && pMob[mob].MOB.Equip[i].stEffect[0].sValue <= 0)
 		{
@@ -1133,7 +1133,7 @@ int GetCreateMobTrade(int mob, MSG_CreateMobTrade *sm)
 
 		sm->Equip[i] = BASE_VisualItemCode(item, i);
 
-		sm->AnctCode[i] = BASE_VisualAnctCode(item);
+		sm->Equip2[i] = BASE_VisualAnctCode(item);
 
 		if (i == 14 && sm->Equip[i] >= 2360 && sm->Equip[i] < 2390 && pMob[mob].MOB.Equip[i].stEffect[0].sValue <= 0)
 		{
@@ -1163,7 +1163,7 @@ int GetCreateMobTrade(int mob, MSG_CreateMobTrade *sm)
 		}
 	}
 
-	strncpy(sm->Tab, pMob[mob].Tab, 26);
+	strncpy(sm->Nick, pMob[mob].Tab, 26);
 	strncpy(sm->Desc, pUser[mob].AutoTrade.Title, MAX_AUTOTRADETITLE-1);
 	sm->Server = (unsigned char)pMob[mob].extra.Citizen;
 
@@ -1322,13 +1322,13 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 		int dis = BASE_GetDistance(pMob[mob].TargetX, pMob[mob].TargetY, pMob[target].TargetX, pMob[target].TargetY);
 		if (dis >= 3)
 		{
-			special = /*pMob[mob].MOB.BaseScore.Special[2]*/pMob[mob].MOB.SkillBar[2];
-			special2 = /*pMob[mob].MOB.BaseScore.Special[3] */ pMob[mob].MOB.SkillBar[3];
+			special = /*pMob[mob].MOB.BaseScore.Special[2]*/pMob[mob].MOB.ShortSkill[2];
+			special2 = /*pMob[mob].MOB.BaseScore.Special[3] */ pMob[mob].MOB.ShortSkill[3];
 		}
 		else
 		{
-			special = /*pMob[mob].MOB.BaseScore.Special[0]*/pMob[mob].MOB.SkillBar[0];
-			special2 = /*pMob[mob].MOB.BaseScore.Special[1]*/pMob[mob].MOB.SkillBar[1];
+			special = /*pMob[mob].MOB.BaseScore.Special[0]*/pMob[mob].MOB.ShortSkill[0];
+			special2 = /*pMob[mob].MOB.BaseScore.Special[1]*/pMob[mob].MOB.ShortSkill[1];
 		}
 
 		sm->Motion = 0;
@@ -1454,9 +1454,9 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 			}
 		}
 		int rand_ = rand() % 100;
-		if (pMob[mob].MOB.SkillBar[3] != 255 && rand_ >= 25 && rand_ <= 64)
+		if (pMob[mob].MOB.ShortSkill[3] != 255 && rand_ >= 25 && rand_ <= 64)
 		{
-			int skillb3 = pMob[mob].MOB.SkillBar[3];
+			int skillb3 = pMob[mob].MOB.ShortSkill[3];
 			
 			int insttype = g_pSpell[skillb3].InstanceType;
 			
@@ -1492,26 +1492,26 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 				}
 			}
 		}
-		if (pMob[mob].MOB.SkillBar[0] == 255 || rand_ < 0 || rand_ > 49)
+		if (pMob[mob].MOB.ShortSkill[0] == 255 || rand_ < 0 || rand_ > 49)
 		{
-			if (pMob[mob].MOB.SkillBar[1] == 255 || rand_ < 50 || rand_ > 84)
+			if (pMob[mob].MOB.ShortSkill[1] == 255 || rand_ < 50 || rand_ > 84)
 			{
-				if (pMob[mob].MOB.SkillBar[2] != 255 && rand_ >= 85 && rand_ <= 99)
+				if (pMob[mob].MOB.ShortSkill[2] != 255 && rand_ >= 85 && rand_ <= 99)
 				{
-					Resist = g_pSpell[pMob[mob].MOB.SkillBar[2]].InstanceType - 2;
-					sm->SkillIndex = pMob[mob].MOB.SkillBar[2];
+					Resist = g_pSpell[pMob[mob].MOB.ShortSkill[2]].InstanceType - 2;
+					sm->SkillIndex = pMob[mob].MOB.ShortSkill[2];
 				}
 			}
 			else
 			{
-				Resist = g_pSpell[pMob[mob].MOB.SkillBar[1]].InstanceType - 2;
-				sm->SkillIndex = pMob[mob].MOB.SkillBar[1];
+				Resist = g_pSpell[pMob[mob].MOB.ShortSkill[1]].InstanceType - 2;
+				sm->SkillIndex = pMob[mob].MOB.ShortSkill[1];
 			}
 		}
 		else
 		{
-			Resist = g_pSpell[pMob[mob].MOB.SkillBar[0]].InstanceType - 2;
-			sm->SkillIndex = pMob[mob].MOB.SkillBar[0];
+			Resist = g_pSpell[pMob[mob].MOB.ShortSkill[0]].InstanceType - 2;
+			sm->SkillIndex = pMob[mob].MOB.ShortSkill[0];
 		}
 	}
 
@@ -1620,13 +1620,13 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 			int dis = BASE_GetDistance(pMob[mob].TargetX, pMob[mob].TargetY, pMob[sm->Dam[i].TargetID].TargetX, pMob[sm->Dam[i].TargetID].TargetY);
 			if (dis >= 3)
 			{
-				special = /*pMob[mob].MOB.BaseScore.Special[2]*/pMob[mob].MOB.SkillBar[2];
-				special2 = /*pMob[mob].MOB.BaseScore.Special[3] */ pMob[mob].MOB.SkillBar[3];
+				special = /*pMob[mob].MOB.BaseScore.Special[2]*/pMob[mob].MOB.ShortSkill[2];
+				special2 = /*pMob[mob].MOB.BaseScore.Special[3] */ pMob[mob].MOB.ShortSkill[3];
 			}
 			else
 			{
-				special = /*pMob[mob].MOB.BaseScore.Special[0]*/pMob[mob].MOB.SkillBar[0];
-				special2 = /*pMob[mob].MOB.BaseScore.Special[1]*/pMob[mob].MOB.SkillBar[1];
+				special = /*pMob[mob].MOB.BaseScore.Special[0]*/pMob[mob].MOB.ShortSkill[0];
+				special2 = /*pMob[mob].MOB.BaseScore.Special[1]*/pMob[mob].MOB.ShortSkill[1];
 			}
 
 			sm->Motion = 0;
@@ -1752,9 +1752,9 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 				}
 			}
 			int rand_ = rand() % 100;
-			if (pMob[mob].MOB.SkillBar[3] != 255 && rand_ >= 25 && rand_ <= 64)
+			if (pMob[mob].MOB.ShortSkill[3] != 255 && rand_ >= 25 && rand_ <= 64)
 			{
-				int skillb3 = pMob[mob].MOB.SkillBar[3];
+				int skillb3 = pMob[mob].MOB.ShortSkill[3];
 			
 				int insttype = g_pSpell[skillb3].InstanceType;
 			
@@ -1790,26 +1790,26 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 					}
 				}
 			}
-			if (pMob[mob].MOB.SkillBar[0] == 255 || rand_ < 0 || rand_ > 49)
+			if (pMob[mob].MOB.ShortSkill[0] == 255 || rand_ < 0 || rand_ > 49)
 			{
-				if (pMob[mob].MOB.SkillBar[1] == 255 || rand_ < 50 || rand_ > 84)
+				if (pMob[mob].MOB.ShortSkill[1] == 255 || rand_ < 50 || rand_ > 84)
 				{
-					if (pMob[mob].MOB.SkillBar[2] != 255 && rand_ >= 85 && rand_ <= 99)
+					if (pMob[mob].MOB.ShortSkill[2] != 255 && rand_ >= 85 && rand_ <= 99)
 					{
-						Resist = g_pSpell[pMob[mob].MOB.SkillBar[2]].InstanceType - 2;
-						sm->SkillIndex = pMob[mob].MOB.SkillBar[2];
+						Resist = g_pSpell[pMob[mob].MOB.ShortSkill[2]].InstanceType - 2;
+						sm->SkillIndex = pMob[mob].MOB.ShortSkill[2];
 					}
 				}
 				else
 				{
-					Resist = g_pSpell[pMob[mob].MOB.SkillBar[1]].InstanceType - 2;
-					sm->SkillIndex = pMob[mob].MOB.SkillBar[1];
+					Resist = g_pSpell[pMob[mob].MOB.ShortSkill[1]].InstanceType - 2;
+					sm->SkillIndex = pMob[mob].MOB.ShortSkill[1];
 				}
 			}
 			else
 			{
-				Resist = g_pSpell[pMob[mob].MOB.SkillBar[0]].InstanceType - 2;
-				sm->SkillIndex = pMob[mob].MOB.SkillBar[0];
+				Resist = g_pSpell[pMob[mob].MOB.ShortSkill[0]].InstanceType - 2;
+				sm->SkillIndex = pMob[mob].MOB.ShortSkill[0];
 			}
 		}
 

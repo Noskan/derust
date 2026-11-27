@@ -103,7 +103,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 
 	int ItemId = Dest->sIndex;
 	int nUnique = g_pItemList[ItemId].nUnique;
-	int nReqLv = g_pItemList[ItemId].ReqLvl;
+	int nReqLv = g_pItemList[ItemId].nReqLvl;
 	int nPos = g_pItemList[ItemId].nPos;
 
 	int lvdif = (Level - nReqLv + 1) / 25;
@@ -956,7 +956,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 
   for (int i = 0; i < 12; ++i )
   {
-    int v12 = g_pItemList[ItemId].ReqLvl;
+    int v12 = g_pItemList[ItemId].nReqLvl;
     switch ( g_pItemList[ItemId].stEffect[i].sEffect )
     {
       case 0x2B:
@@ -1224,8 +1224,8 @@ void WriteWeapon(FILE *fp)
 			if (j == 8)
 				strcpy(dest, "#DFE9D0");
 
-			int reqlv = g_pItemList[item].ReqLvl;
-			int reqstatus = g_pItemList[item].ReqCon + g_pItemList[item].ReqDex + g_pItemList[item].ReqInt + g_pItemList[item].ReqStr;
+			int reqlv = g_pItemList[item].nReqLvl;
+			int reqstatus = g_pItemList[item].nReqCon + g_pItemList[item].nReqDex + g_pItemList[item].nReqInt + g_pItemList[item].nReqStr;
 
 			if (reqlv || reqstatus <= 75)
 			{

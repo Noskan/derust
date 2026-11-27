@@ -85,8 +85,8 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 			SendEmotion(conn, 15, 0);
 							 
 
-		pMob[conn].MOB.SPX = pMob[conn].TargetX;
-		pMob[conn].MOB.SPY = pMob[conn].TargetY;
+		pMob[conn].MOB.HomeTownX = pMob[conn].TargetX;
+		pMob[conn].MOB.HomeTownY = pMob[conn].TargetY;
 
 		sprintf(temp, "useitem,gema salva %d %d", pMob[conn].TargetX, pMob[conn].TargetY);
 		ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -105,7 +105,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 #pragma region Portal
 	if (Vol == 13)
 	{
-		if((pMob[conn].MOB.SPX/128) == 9 && (pMob[conn].MOB.SPY/128) == 1 || (pMob[conn].MOB.SPX/128) == 8 && (pMob[conn].MOB.SPY/128) == 2)
+		if((pMob[conn].MOB.HomeTownX/128) == 9 && (pMob[conn].MOB.HomeTownY/128) == 1 || (pMob[conn].MOB.HomeTownX/128) == 8 && (pMob[conn].MOB.HomeTownY/128) == 2)
 		{
 			SendClientMessage(conn, g_pMessageStringTable[_NN_Cant_Use_That_Here]);
 			SendItem(conn, m->SourType, m->SourPos, item);
@@ -121,7 +121,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 			return true;
 		}
 
-		DoTeleport(conn, pMob[conn].MOB.SPX, pMob[conn].MOB.SPY);
+		DoTeleport(conn, pMob[conn].MOB.HomeTownX, pMob[conn].MOB.HomeTownY);
 
 		sprintf(temp, "useitem,teleport portal scrool %d %d", pMob[conn].TargetX, pMob[conn].TargetY);
 		ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -525,14 +525,14 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 
 		int SkillLearn = 1 << (Vol-7);
 
-		if ((pMob[conn].MOB.LearnedSkill & SkillLearn) != 0)
+		if ((pMob[conn].MOB.LearnedSkill[0] & SkillLearn) != 0)
 		{
 			SendItem(conn, m->SourType, m->SourPos, item);
 			SendClientMessage(conn, g_pMessageStringTable[_NN_Already_Learned_It]);
 			return true;
 		}
 
-		pMob[conn].MOB.LearnedSkill = pMob[conn].MOB.LearnedSkill | SkillLearn;
+		pMob[conn].MOB.LearnedSkill[0] = pMob[conn].MOB.LearnedSkill[0] | SkillLearn;
 							 
 		sprintf(temp, g_pMessageStringTable[_SN_Learn_Sephera], g_pItemList[ItemID].Name);
 							 

@@ -397,89 +397,7 @@
 
 #pragma region Structures
 
-#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_TREASURE, STRUCT_DAM, STRUCT_SPELL, STRUCT_AFFECT (iguais nos dois lados)
-
-/// @brief Atributos de combate, defesa, HP/MP, pontos base e maestrias de um mob/personagem (48 bytes).
-struct STRUCT_SCORE
-{
-	short Level;	 // Nível (2 bytes, como no cliente; os bytes 2-3 são alinhamento de Ac)
-	int Ac;		 // The mob's defense
-	int Damage;   // The mob's damage force
-
-	unsigned char  Merchant; // UNK
-	unsigned char  AttackRun; // The mob's speed
-	unsigned char  Direction;
-	unsigned char  ChaosRate;
-
-	int MaxHp;     // The max HP the mob can have
-	int MaxMp;	  // The max MP the mob can have
-	int Hp;		  // The current HP of the mob
-	int Mp;		  // The current MP of the mob
-
-	short		   Str;		  // The mob's strength points, affects it's attack power
-	short		   Int;		  // The mob's intelligence points, affects it's skill attack powers and MP
-	short		   Dex;		  // The mob's dexterity points, affects it's attack speed
-	short		   Con;       // The mob's constitution points, affects it's HP
-
-	short  Special[4]; // The mob's special points, affects it's skill tiers
-};
-
-/// @brief Estrutura principal do personagem/NPC em memória, persistência e pacotes (1024 bytes).
-/// @details Layout do cliente (`client/src/common/Basedef.h`), que é a versão alvo: vai dentro dos
-/// pacotes de login e de `MSG_CNFClientCharacterLogin`. Os nomes do servidor ficaram; os offsets e
-/// as larguras seguem o cliente (conferidos em ProtocolLayoutCheck.cpp). Em relação ao layout antigo
-/// de 816 bytes: Rsv e Quest trocam de largura (1 e 2 bytes) e Coin sobe para o offset 24; o
-/// segundo bloco de skills aprendidas (`SecLearnedSkill`, o `LearnedSkill[1]` do cliente) ocupa o
-/// offset que era de Magic; Magic, RegenHP e RegenMP têm 1 byte (o servidor já os limita a 254,
-/// 255 e 255 em BASE_GetCurrentScore); e o fim ganha a área reservada e os contadores de kills.
-struct STRUCT_MOB
-{
-	char		   MobName[NAME_LENGTH];	  // The name of the mob
-	char		   Clan;		  // The clan the mob belongs to
-	unsigned char  Merchant;	  // The mob's merchant ID
-	unsigned short Guild;		  // The ID of the guild the mob belongs to
-	unsigned char  Class;		  // The mobs class
-	unsigned char  Rsv;			  // Flags RSV_* (todas cabem em 1 byte; RSV_IMUNIDADE não é usada)
-	unsigned short Quest;
-
-	int			   Coin;		  // The ammount of coins the mob has
-
-	long long   Exp;			  // The ammount of experience the mob has to level up
-
-	short		   SPX;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll
-	short		   SPY;			 // The Y position saved by the stellar gem, to teleport the mob there when using warp scroll
-
-	STRUCT_SCORE   BaseScore;    // The base score of the mob 
-	STRUCT_SCORE   CurrentScore; // The score the mob actually has
-
-	STRUCT_ITEM    Equip[MAX_EQUIP];	 // The items the mob is wearing
-	STRUCT_ITEM	   Carry[MAX_CARRY];	 // The items the mob is carrying
-
-	long LearnedSkill; // The skills the mob learned, divided into four categories (00 _ 00 _ 00 _ 00)
-	unsigned int SecLearnedSkill; // Skills 200+ do cliente (LearnedSkill[1] lá); o servidor não as tem e envia 0
-
-	unsigned short ScoreBonus;   // The points the mob can use to increase score (Str, Int, Dex, Con)
-	unsigned short SpecialBonus; // The points the mob can use to increase special, to increase effect of learned skills (score->Special[4])
-	unsigned short SkillBonus;	 // The points the mob can use to buy skills
-
-	unsigned char  Critical;	 // The chance the mob has to deliver critical hits
-	unsigned char  SaveMana;	 // Uknown use, nomenclature of variable is correct to all current standards
-
-	unsigned char  SkillBar[4];  // The skills saved on the first 4 slots of the skill bar
-
-	unsigned char  GuildLevel;   // The mob's guuld level, used to define if it's a guild member or leader
-
-	unsigned char  Magic;		 // Bônus de dano mágico, limitado a MAX_DAMAGE_MG (254)
-
-	unsigned char  RegenHP;		 // 0..255 (BASE_GetCurrentScore)
-	unsigned char  RegenMP;		 // 0..255 (BASE_GetCurrentScore)
-
-	char  Resist[4];	 // The mob's resistencies, to fire / ice / thunder / magic
-
-	char  Reserved[212];		 // Reservado no cliente (`dummy`); o servidor envia zerado
-	unsigned short CurrentKill;	 // Contadores de kills do cliente; o servidor não os usa
-	unsigned short TotalKill;
-};
+#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_SCORE, STRUCT_MOB, STRUCT_SELCHAR, STRUCT_ITEMLIST e outras (iguais nos dois lados)
 
 /// @brief Dados extras de evolução (Arch/Celestial/SubCelestial), quests e contadores temporais (536 bytes em Win32).
 struct STRUCT_MOBEXTRA
@@ -607,27 +525,6 @@ struct STRUCT_CAPSULE
 	STRUCT_MOBEXTRA extra;
 };
 
-struct STRUCT_BEASTBONUS
-{
-	int Unk; // MinDamAdd ? // 0
-	int Unk2; // MaxDamAdd ? // 4
-	int Unk3; // MinAcAdd ? // 8
-	int Unk4; // MaxAcAdd ? //12
-	int Unk5; // MinHpAdd ? // 16
-	int Unk6; // MaxHpAdd ? // 20
-	int Unk7; // RunSpeedBonus ? // 24
-	int Unk8; // 28
-	int Unk9; // AttackSpeedBonus ? // 32
-	int Unk10; // 36
-	int Unk11; // 40
-	int Unk12; // 44 
-	int Unk13; // 48
-	int Unk14; // 52
-	int Unk15; // 56
-	int Unk16; // 60
-	int Unk17; // BaseSanc ? // 64
-};
-
 struct STRUCT_PISTA
 {
 	struct
@@ -728,21 +625,6 @@ struct STRUCT_GUILDZONE
 	int Victory;
 };
 
-struct STRUCT_SELCHAR
-{
-	short SPX[4];
-	short SPY[4];
-	char Name[4][16];
-
-	STRUCT_SCORE Score[4];
-	STRUCT_ITEM  Equip[4][16];
-
-	unsigned short Guild[4];
-
-	int Coin[4];
-	long long Exp[4];
-};
-
 struct STRUCT_ACCOUNTINFO
 {
 	char AccountName[ACCOUNTNAME_LENGTH];
@@ -820,40 +702,6 @@ struct STRUCT_ACCOUNTFILE
 	int Donate;
 
 	char TempKey[52];
-};
-
-struct STRUCT_ITEMLIST
-{
-	char					Name[ITEMNAME_LENGTH];
-	short				IndexMesh;
-	short				IndexTexture;
-	short				IndexVisualEffect;
-	short				ReqLvl;
-	short				ReqStr;
-	short				ReqInt;
-	short				ReqDex;
-	short				ReqCon;
-
-	struct
-	{
-		short sEffect;
-		short sValue;
-
-	} stEffect[MAX_STATICEFFECT];
-
-	int					Price; // 92
-	short				nUnique; // 96
-	short				nPos; // 98
-	short				Extra; // 100
-	short				Grade; // 102 1 = Normal 2 = Mistico = 3 Arcano 4 = Le
-};
-
-struct STRUCT_INITITEM
-{
-	short PosX;
-	short PosY;
-	short ItemIndex;
-	short Rotate;
 };
 
 struct STRUCT_BLOCKMAC
@@ -1162,17 +1010,17 @@ struct		  MSG_AccountLogin
 {
 	_MSG;
 
-	char AccountPassword[ACCOUNTPASS_LENGTH];
+	char AccountPass[ACCOUNTPASS_LENGTH];
 	char AccountName[ACCOUNTNAME_LENGTH];
 
-	char Zero[52];
+	char TID[52];
 
 
-	int  ClientVersion;
+	int  Version;
 
-	int  DBNeedSave;
+	int  Force;
 
-	int AdapterName[4];
+	int Mac[4];
 };
 struct		  MSG_AccountLogin_HWID
 {
@@ -1249,7 +1097,7 @@ struct		  MSG_CNFNewCharacter
 {
 	_MSG;
 
-	STRUCT_SELCHAR sel;
+	STRUCT_SELCHAR SelChar;
 };
 
 const short  _MSG_CNFDeleteCharacter		= (18 | FLAG_GAME2CLIENT);
@@ -1257,7 +1105,7 @@ struct		  MSG_CNFDeleteCharacter
 {
 	_MSG;
 
-	STRUCT_SELCHAR sel;
+	STRUCT_SELCHAR SelChar;
 };
 
 const short _MSG_GuildAlly					= (18 | FLAG_CLIENT2GAME | FLAG_DB2GAME | FLAG_GAME2DB);
@@ -1448,8 +1296,8 @@ struct		  MSG_UpdateScore
 	unsigned char RegenHP;
 	unsigned char RegenMP;
 
-	int CurrHp;				// ReqHp no cliente (em NPC, 1 reinicia a barra de HP grande)
-	int CurrMp;				// ReqMp no cliente
+	int ReqHp;				// ReqHp no cliente (em NPC, 1 reinicia a barra de HP grande)
+	int ReqMp;				// ReqMp no cliente
 
 	unsigned short Magic;	// O servidor limita Magic a 254 (BASE_GetCurrentScore)
 	unsigned short Rsv;
@@ -1461,9 +1309,9 @@ struct		  MSG_UpdateEtc
 {
 	_MSG;
 
-	unsigned int				Hold;
+	unsigned int				FakeExp;
 	long long				Exp;
-	long long				Learn;
+	long long				LearnedSkill;
 
 	unsigned short			ScoreBonus;
 	unsigned short			SpecialBonus;
@@ -1477,7 +1325,7 @@ const short  _MSG_CNFMobKill				= (56 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME); //
 struct		  MSG_CNFMobKill
 {
 	_MSG;
-	int			   Hold;
+	int			   FakeExp;
 
 	unsigned short KilledMob;
 	unsigned short Killer;
@@ -1500,7 +1348,7 @@ struct		  MSG_CreateMobTrade
 	unsigned short Equip[MAX_EQUIP];
 	unsigned short Affect[MAX_AFFECT];
 	unsigned short Guild;
-	char GuildMemberType;
+	char GuildLevel;
 
 	char Unknow[3];
 
@@ -1508,8 +1356,8 @@ struct		  MSG_CreateMobTrade
 
 	unsigned short          CreateType;
 
-	unsigned char AnctCode[16];
-	char Tab[26];
+	unsigned char Equip2[16];
+	char Nick[26];
 
 
 	char           Desc[MAX_AUTOTRADETITLE];
@@ -1530,7 +1378,7 @@ struct		  MSG_CreateMob
 	unsigned short Equip[MAX_EQUIP];
 	unsigned short Affect[MAX_AFFECT];
 	unsigned short Guild;
-	char GuildMemberType;
+	char GuildLevel;
 
 	char Unknow[3];
 
@@ -1538,8 +1386,8 @@ struct		  MSG_CreateMob
 
 	unsigned short CreateType;
 
-	unsigned char AnctCode[16];
-	char Tab[26];
+	unsigned char Equip2[16];
+	char Nick[26];
 
 	unsigned char Server;	// Cidadania (extra.Citizen); o cliente a guarda em m_citizen. Antes ia o Hold
 };
@@ -1641,10 +1489,10 @@ struct		  MSG_SendItem
 {
 	_MSG;
 
-	short invType;
-	short Slot;
+	short DestType;
+	short DestPos;
 
-	STRUCT_ITEM item;
+	STRUCT_ITEM Item;
 
 };
 
@@ -1686,15 +1534,15 @@ struct		  MSG_Motion
 
 	short Motion;
 	short Parm;
-	int   NotUsed;
+	int   Direction;
 };
 
 const short  _MSG_UpdateEquip				= (107 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
 struct		  MSG_UpdateEquip
 {
 	_MSG;
-	unsigned short  Equip[MAX_EQUIP];
-	unsigned char AnctCode[MAX_EQUIP];
+	unsigned short  sEquip[MAX_EQUIP];
+	unsigned char Equip2[MAX_EQUIP];
 };
 
 const short _MSG_TradingItem				= (118 | FLAG_CLIENT2GAME | FLAG_GAME2CLIENT);
@@ -1714,7 +1562,7 @@ const short _MSG_SetShortSkill				= (120 | FLAG_CLIENT2GAME | FLAG_GAME2CLIENT);
 struct		 MSG_SetShortSkill
 {
 	_MSG;
-	unsigned char  Skill[20];	// [0..3]: SkillBar do MOB; [4..19]: CharShortSkill
+	unsigned char  Skill[20];	// [0..3]: ShortSkill do MOB; [4..19]: CharShortSkill
 };
 
 const short _MSG_Buy						= (121 | FLAG_GAME2CLIENT | FLAG_CLIENT2GAME);
@@ -1723,8 +1571,8 @@ struct		 MSG_Buy
 	_MSG;
 
 	unsigned short TargetID;
-	short TargetInvenPos;
-	short MyInvenPos;
+	short TargetCarryPos;
+	short MyCarryPos;
 	int   Coin;
 };
 
@@ -1751,7 +1599,7 @@ const short _MSG_REQShopList				= (123 | FLAG_CLIENT2GAME); //STARNDARDPARM
 struct		 MSG_REQShopList
 {
 	_MSG;
-	unsigned short Target;
+	unsigned short TargetID;
 };
 
 const short _MSG_Restart					= (137 | FLAG_CLIENT2GAME); // STANDARD
@@ -1798,7 +1646,7 @@ struct		  MSG_UseItem
 	int      DestPos;
 
 	unsigned short GridX, GridY;
-	unsigned short WarpID;
+	unsigned short ItemID;
 };
 
 const short   STATE_NOTHING					= 0;
@@ -2014,7 +1862,7 @@ struct		 MSG_Trade
 
 	STRUCT_ITEM		Item[MAX_TRADE];
 
-	char			InvenPos[MAX_TRADE];
+	char			CarryPos[MAX_TRADE];
 	int				TradeMoney;
 	unsigned char	MyCheck;
 	unsigned short	OpponentID;

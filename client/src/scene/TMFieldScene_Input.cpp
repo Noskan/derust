@@ -943,7 +943,7 @@ int TMFieldScene::MouseClick_NPC(int nX, int nY, D3DXVECTOR3 vec, unsigned int d
 		(int)m_pMyHuman->m_vecPosition.y >> 7 == 28)
 		return 1;
 
-	if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Reserved & 0xF) == 1)
+	if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Merchant & 0xF) == 1)
 	{
 		if (!m_pShopPanel->IsVisible())
 		{
@@ -974,7 +974,7 @@ int TMFieldScene::MouseClick_NPC(int nX, int nY, D3DXVECTOR3 vec, unsigned int d
 		return 1;
 	}
 
-	if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Reserved & 0xF) == 3)
+	if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Merchant & 0xF) == 3)
 	{
 		if (!m_pShopPanel->IsVisible())
 		{
@@ -1005,7 +1005,7 @@ int TMFieldScene::MouseClick_NPC(int nX, int nY, D3DXVECTOR3 vec, unsigned int d
 		return 1;
 	}
 	
-	if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Reserved & 0xF) == 2 && pOver->m_sHeadIndex != 51)
+	if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Merchant & 0xF) == 2 && pOver->m_sHeadIndex != 51)
 	{
 		if (!m_pCargoPanel->IsVisible())
 		{
@@ -1016,7 +1016,7 @@ int TMFieldScene::MouseClick_NPC(int nX, int nY, D3DXVECTOR3 vec, unsigned int d
 		return 1;
 	}
 	
-	if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Reserved & 0xF) == 3)
+	if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Merchant & 0xF) == 3)
 	{
 		MouseClick_SkillMasterNPC(dwServerTime, pOver);
 		return 1;
@@ -1053,7 +1053,7 @@ int TMFieldScene::MouseClick_NPC(int nX, int nY, D3DXVECTOR3 vec, unsigned int d
 
 		if (pOver->m_dwID >= 1000 && 
 			pOver->m_sHeadIndex == 63 &&
-			(pOver->m_stScore.Reserved & 0xF) == 7 && 
+			(pOver->m_stScore.Merchant & 0xF) == 7 && 
 			m_pGround->m_vecOffsetIndex.x == 16 &&
 			m_pGround->m_vecOffsetIndex.y == 16)
 		{
@@ -1061,13 +1061,13 @@ int TMFieldScene::MouseClick_NPC(int nX, int nY, D3DXVECTOR3 vec, unsigned int d
 			return 1;
 		}
 		
-		if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Reserved & 0xF) == 4 || (pOver->m_stScore.Reserved & 0xF) >= 8 && (pOver->m_stScore.Reserved & 0xF) <= 15)
+		if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Merchant & 0xF) == 4 || (pOver->m_stScore.Merchant & 0xF) >= 8 && (pOver->m_stScore.Merchant & 0xF) <= 15)
 		{
 			MouseClick_QuestNPC(dwServerTime, pOver);
 			return 1;
 		}
 		
-		if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Reserved & 0xF) >= 6 && (pOver->m_stScore.Reserved & 0xF) <= 8)
+		if (pOver->m_dwID >= 1000 && (pOver->m_stScore.Merchant & 0xF) >= 6 && (pOver->m_stScore.Merchant & 0xF) <= 8)
 		{
 			MSG_STANDARDPARM stPacket{};
 
@@ -1114,11 +1114,11 @@ int TMFieldScene::CheckMerchant(TMHuman* pOver)
 
 	if (pOver->m_TradeDesc[0])
 		return 1;
-	if ((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Reserved & 0xF) == 1)
+	if ((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Merchant & 0xF) == 1)
 		return 1;
-	if ((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Reserved & 0xF) == 2)
+	if ((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Merchant & 0xF) == 2)
 		return 1;
-	if ((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Reserved & 0xF) == 3)
+	if ((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Merchant & 0xF) == 3)
 		return 1;
 	if ((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && pOver->m_sHeadIndex == 67 && m_pGround->m_vecOffsetIndex.x == 13 && m_pGround->m_vecOffsetIndex.y == 13)
 		return 1;
@@ -1136,10 +1136,10 @@ int TMFieldScene::CheckMerchant(TMHuman* pOver)
 		return 1;
 
 
-	if (((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Reserved & 0xF) == 4) ||
-		(pOver->m_stScore.Reserved & 0xF) >= 8 && (pOver->m_stScore.Reserved & 0xF) <= 15)
+	if (((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Merchant & 0xF) == 4) ||
+		(pOver->m_stScore.Merchant & 0xF) >= 8 && (pOver->m_stScore.Merchant & 0xF) <= 15)
 	{
-		if ((pOver->m_stScore.Reserved & 0xF) == 15)
+		if ((pOver->m_stScore.Merchant & 0xF) == 15)
 		{
 			if (!m_pMyHuman->IsInTown())
 			{
@@ -1162,15 +1162,15 @@ int TMFieldScene::CheckMerchant(TMHuman* pOver)
 			}
 		}
 
-		if ((pOver->m_stScore.Reserved & 0xF) == 13)
+		if ((pOver->m_stScore.Merchant & 0xF) == 13)
 			return 1;
-		if ((pOver->m_stScore.Reserved & 0xF) == 14)
+		if ((pOver->m_stScore.Merchant & 0xF) == 14)
 			return 1;
 
 		return 1;
 	}
 
-	if ((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Reserved & 0xF) >= 6 && (pOver->m_stScore.Reserved & 0xF) <= 8)
+	if ((pOver->m_dwID < 0 || pOver->m_dwID >= 1000) && (pOver->m_stScore.Merchant & 0xF) >= 6 && (pOver->m_stScore.Merchant & 0xF) <= 8)
 		return 1;
 
 	return 0;
@@ -2189,7 +2189,7 @@ int TMFieldScene::MouseClick_MixNPC(TMHuman* pOver)
 		return 1;
 	}
 	if (pOver->m_dwID <= 0 || pOver->m_dwID >= 1000 && pOver->m_sHeadIndex == 67 && 
-		(pOver->m_stScore.Reserved & 0xF) == 8 && 
+		(pOver->m_stScore.Merchant & 0xF) == 8 && 
 		m_pGround->m_vecOffsetIndex.x == 25 && m_pGround->m_vecOffsetIndex.y == 13)
 	{
 		m_ItemMixClass.ResultItemListSet(67, 25, 13);
@@ -2242,7 +2242,7 @@ int TMFieldScene::MouseClick_SkillMasterNPC(unsigned int dwServerTime, TMHuman* 
 
 int TMFieldScene::MouseClick_QuestNPC(unsigned int dwServerTime, TMHuman* pOver)
 {
-	if ((pOver->m_stScore.Reserved & 0xF) == 15 && !m_pMyHuman->IsInTown())
+	if ((pOver->m_stScore.Merchant & 0xF) == 15 && !m_pMyHuman->IsInTown())
 	{
 		if (pOver->m_cMantua > 0 && m_pMyHuman->m_cMantua > 0 && pOver->m_cMantua != m_pMyHuman->m_cMantua && m_pMyHuman->m_cMantua != 3)
 			return 1;
@@ -2264,7 +2264,7 @@ int TMFieldScene::MouseClick_QuestNPC(unsigned int dwServerTime, TMHuman* pOver)
 			}
 		}
 	}
-	if ((pOver->m_stScore.Reserved & 0xF) == 13)
+	if ((pOver->m_stScore.Merchant & 0xF) == 13)
 	{
 		if (!m_pMessageBox->IsVisible())
 		{
@@ -2275,7 +2275,7 @@ int TMFieldScene::MouseClick_QuestNPC(unsigned int dwServerTime, TMHuman* pOver)
 
 		return 1;
 	}
-	if ((pOver->m_stScore.Reserved & 0xF) == 14)
+	if ((pOver->m_stScore.Merchant & 0xF) == 14)
 	{
 		char cLifeStone = 0;
 		char cSapha = 0;
@@ -2297,14 +2297,14 @@ int TMFieldScene::MouseClick_QuestNPC(unsigned int dwServerTime, TMHuman* pOver)
 			}
 		}
 	}
-	if ((pOver->m_stScore.Reserved & 0xF) == 15 || (pOver->m_stScore.Reserved & 0xF) == 10)
+	if ((pOver->m_stScore.Merchant & 0xF) == 15 || (pOver->m_stScore.Merchant & 0xF) == 10)
 	{
 		if (!m_pMessageBox->IsVisible())
 		{
 			if (pOver->m_sHeadIndex == 51 && _locationCheck(pOver->m_vecPosition, 16, 16))
-				m_pMessageBox->SetMessage(g_pMessageStringTable[404], pOver->m_stScore.Reserved & 0xF, 0);
+				m_pMessageBox->SetMessage(g_pMessageStringTable[404], pOver->m_stScore.Merchant & 0xF, 0);
 			else
-				m_pMessageBox->SetMessage(g_pMessageStringTable[152], pOver->m_stScore.Reserved & 0xF, 0);
+				m_pMessageBox->SetMessage(g_pMessageStringTable[152], pOver->m_stScore.Merchant & 0xF, 0);
 
 			m_pMessageBox->m_dwArg = pOver->m_dwID;
 			m_pMessageBox->SetVisible(1);
@@ -2312,7 +2312,7 @@ int TMFieldScene::MouseClick_QuestNPC(unsigned int dwServerTime, TMHuman* pOver)
 
 		return 1;
 	}
-	if ((pOver->m_stScore.Reserved & 0xF) == 4 && pOver->m_sHeadIndex == 271)
+	if ((pOver->m_stScore.Merchant & 0xF) == 4 && pOver->m_sHeadIndex == 271)
 	{
 		if (!m_pMessageBox->IsVisible())
 		{
@@ -2323,7 +2323,7 @@ int TMFieldScene::MouseClick_QuestNPC(unsigned int dwServerTime, TMHuman* pOver)
 		return 1;
 	}
 
-	if (pOver->m_dwID <= 0 || pOver->m_dwID >= 1000 && (pOver->m_stScore.Reserved & 0xF) == 9 && pOver->m_sHeadIndex == 51)
+	if (pOver->m_dwID <= 0 || pOver->m_dwID >= 1000 && (pOver->m_stScore.Merchant & 0xF) == 9 && pOver->m_sHeadIndex == 51)
 	{
 		m_pInputGoldPanel->SetVisible(1);
 		auto pText = (SText*)m_pControlContainer->FindControl(65888);
@@ -2335,7 +2335,7 @@ int TMFieldScene::MouseClick_QuestNPC(unsigned int dwServerTime, TMHuman* pOver)
 			m_pControlContainer->SetFocusedControl((SControl*)pEdit);
 		}
 	}
-	else if (pOver->m_dwID <= 0 || pOver->m_dwID >= 1000 && pOver->m_sHeadIndex == 58 && (pOver->m_stScore.Reserved & 0xF) == 11)
+	else if (pOver->m_dwID <= 0 || pOver->m_dwID >= 1000 && pOver->m_sHeadIndex == 58 && (pOver->m_stScore.Merchant & 0xF) == 11)
 	{
 		if (!m_pMessageBox->IsVisible())
 		{
@@ -2345,7 +2345,7 @@ int TMFieldScene::MouseClick_QuestNPC(unsigned int dwServerTime, TMHuman* pOver)
 		}
 		return 1;
 	}
-	else if (pOver->m_dwID <= 0 || pOver->m_dwID >= 1000 && pOver->m_sHeadIndex == 58 && pOver->m_stScore.Reserved == 76)
+	else if (pOver->m_dwID <= 0 || pOver->m_dwID >= 1000 && pOver->m_sHeadIndex == 58 && pOver->m_stScore.Merchant == 76)
 	{
 		if (!m_pMessageBox->IsVisible())
 		{

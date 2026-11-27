@@ -170,19 +170,19 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 		int sanc = BASE_GetItemSanc(dest);
 		int ItemId = dest->sIndex;
 
-		if(sanc < REF_10 && g_pItemList[ItemId].Grade < 5)
+		if(sanc < REF_10 && g_pItemList[ItemId].nGrade < 5)
 		{
 			SendItem(conn, m->SourType, m->SourPos, item);
 			return true;
 		}
 
-		if(g_pItemList[ItemId].Grade == 6)
+		if(g_pItemList[ItemId].nGrade == 6)
 			ItemId -= 1;
 
-		else if(g_pItemList[ItemId].Grade == 7)
+		else if(g_pItemList[ItemId].nGrade == 7)
 			ItemId -= 2;
 
-		else if(g_pItemList[ItemId].Grade == 8)
+		else if(g_pItemList[ItemId].nGrade == 8)
 			ItemId -= 3;
 
 		dest->sIndex = ItemId;
@@ -248,19 +248,19 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 		int sanc = BASE_GetItemSanc(dest);
 		int ItemId = dest->sIndex;
 
-		if(sanc < REF_10 && g_pItemList[ItemId].Grade < 5)
+		if(sanc < REF_10 && g_pItemList[ItemId].nGrade < 5)
 		{
 			SendItem(conn, m->SourType, m->SourPos, item);
 			return true;
 		}
 
-		if(g_pItemList[ItemId].Grade == 5)
+		if(g_pItemList[ItemId].nGrade == 5)
 			ItemId += 1;
 
-		else if(g_pItemList[ItemId].Grade == 7)
+		else if(g_pItemList[ItemId].nGrade == 7)
 			ItemId -= 1;
 
-		else if(g_pItemList[ItemId].Grade == 8)
+		else if(g_pItemList[ItemId].nGrade == 8)
 			ItemId -= 2;
 
 		dest->sIndex = ItemId;
@@ -326,19 +326,19 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 		int sanc = BASE_GetItemSanc(dest);
 		int ItemId = dest->sIndex;
 
-		if(sanc < REF_10 && g_pItemList[ItemId].Grade < 5)
+		if(sanc < REF_10 && g_pItemList[ItemId].nGrade < 5)
 		{
 			SendItem(conn, m->SourType, m->SourPos, item);
 			return true;
 		}
 
-		if(g_pItemList[ItemId].Grade == 5)
+		if(g_pItemList[ItemId].nGrade == 5)
 			ItemId += 2;
 
-		else if(g_pItemList[ItemId].Grade == 6)
+		else if(g_pItemList[ItemId].nGrade == 6)
 			ItemId += 1;
 
-		else if(g_pItemList[ItemId].Grade == 8)
+		else if(g_pItemList[ItemId].nGrade == 8)
 			ItemId -= 1;
 
 		dest->sIndex = ItemId;
@@ -404,19 +404,19 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 		int sanc = BASE_GetItemSanc(dest);
 		int ItemId = dest->sIndex;
 
-		if(sanc < REF_10 && g_pItemList[ItemId].Grade < 5)
+		if(sanc < REF_10 && g_pItemList[ItemId].nGrade < 5)
 		{
 			SendItem(conn, m->SourType, m->SourPos, item);
 			return true;
 		}
 
-		if(g_pItemList[ItemId].Grade == 5)
+		if(g_pItemList[ItemId].nGrade == 5)
 			ItemId += 3;
 
-		else if(g_pItemList[ItemId].Grade == 6)
+		else if(g_pItemList[ItemId].nGrade == 6)
 			ItemId += 2;
 
-		else if(g_pItemList[ItemId].Grade == 7)
+		else if(g_pItemList[ItemId].nGrade == 7)
 			ItemId += 1;
 
 		dest->sIndex = ItemId;

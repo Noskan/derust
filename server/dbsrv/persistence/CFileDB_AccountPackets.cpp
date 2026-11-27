@@ -163,9 +163,9 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			int ChangeServer = 0;
 
-			if (file.TempKey[0] != 0 && m->Zero[0] != 0)
+			if (file.TempKey[0] != 0 && m->TID[0] != 0)
 			{
-				if (memcmp(file.TempKey, m->Zero, sizeof(file.TempKey)) == 0)
+				if (memcmp(file.TempKey, m->TID, sizeof(file.TempKey)) == 0)
 				{
 					memset(file.TempKey, 0, sizeof(file.TempKey));
 					ChangeServer = 1;
@@ -176,7 +176,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				return TRUE;
 			}
 
-			if(strcmp(file.Info.AccountPass, m->AccountPassword) != 0)
+			if(strcmp(file.Info.AccountPass, m->AccountPass) != 0)
 			{
 				SendDBSignal(conn, m->ID, _MSG_DBAccountLoginFail_Pass);
 
@@ -191,7 +191,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 			{
 				Log("err, desconectado. conexão anterior finalizada.", m->AccountName, 0);
 
-				if(m->DBNeedSave == 0)
+				if(m->Force == 0)
 				{
 					SendDBSignal(conn, m->ID, _MSG_DBAlreadyPlaying);
 
@@ -250,10 +250,10 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			memcpy(pFile, &file, sizeof(STRUCT_ACCOUNTFILE));
 
-			pAccountList[Idx].Mac[0] = m->AdapterName[0];
-			pAccountList[Idx].Mac[1] = m->AdapterName[1];
-			pAccountList[Idx].Mac[2] = m->AdapterName[2];
-			pAccountList[Idx].Mac[3] = m->AdapterName[3];
+			pAccountList[Idx].Mac[0] = m->Mac[0];
+			pAccountList[Idx].Mac[1] = m->Mac[1];
+			pAccountList[Idx].Mac[2] = m->Mac[2];
+			pAccountList[Idx].Mac[3] = m->Mac[3];
 
 			AddAccountList(Idx);
 
@@ -281,7 +281,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			pUser[conn].cSock.SendOneMessage((char *)&sm, sizeof(MSG_DBCNFAccountLogin));
 			
-			if (GetAccountsByMac(m->AdapterName) <= 1)
+			if (GetAccountsByMac(m->Mac) <= 1)
 			{
 				MSG_DBCheckPrimaryAccount sm_pa;
 				memset(&sm_pa, 0, sizeof(MSG_DBCheckPrimaryAccount));
@@ -289,7 +289,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				sm_pa.Size = sizeof(MSG_DBCheckPrimaryAccount);
 				sm_pa.Type = _MSG_DBCheckPrimaryAccount;
 
-				memcpy(&sm_pa.Mac, m->AdapterName, sizeof(sm_pa.Mac));
+				memcpy(&sm_pa.Mac, m->Mac, sizeof(sm_pa.Mac));
 
 				strncpy(sm_pa.AccountName, pAccountList[Idx].File.Info.AccountName, ACCOUNTNAME_LENGTH);
 
@@ -311,7 +311,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				int Server;
 				int Enc[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
-				sscanf(m->Zero, "*%d %d %d %d %d %d %d %d %d %d", &Server, &Enc[0], &Enc[1], &Enc[2], &Enc[3], &Enc[4], &Enc[5], &Enc[6], &Enc[7], &Slot);
+				sscanf(m->TID, "*%d %d %d %d %d %d %d %d %d %d", &Server, &Enc[0], &Enc[1], &Enc[2], &Enc[3], &Enc[4], &Enc[5], &Enc[6], &Enc[7], &Slot);
 
 				pAccountList[Idx].Slot = Slot;
 
@@ -519,7 +519,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			sm.Type = _MSG_DBCNFNewCharacter;
 
-			DBGetSelChar(&sm.sel, &pAccountList[Idx].File);
+			DBGetSelChar(&sm.SelChar, &pAccountList[Idx].File);
 
 			sm.ID = m->ID;
 
@@ -848,7 +848,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			sm.Type = _MSG_DBCNFDeleteCharacter;
 
-			DBGetSelChar(&sm.sel, &pAccountList[Idx].File);
+			DBGetSelChar(&sm.SelChar, &pAccountList[Idx].File);
 
 			sm.ID = m->ID;
 
@@ -1081,7 +1081,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		sm.Type = _MSG_DBCNFNewCharacter;
 
-		DBGetSelChar(&sm.sel, &pAccountList[Idx].File);
+		DBGetSelChar(&sm.SelChar, &pAccountList[Idx].File);
 
 		sm.ID = m->ID;
 
@@ -1215,7 +1215,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		sm.Type = _MSG_DBCNFDeleteCharacter;
 
-		DBGetSelChar(&sm.sel, &pAccountList[Idx].File);
+		DBGetSelChar(&sm.SelChar, &pAccountList[Idx].File);
 
 		sm.ID = m->ID;
 
@@ -1382,7 +1382,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		sm.Type = _MSG_DBCNFNewCharacter;
 
-		DBGetSelChar(&sm.sel, &pAccountList[Idx].File);
+		DBGetSelChar(&sm.SelChar, &pAccountList[Idx].File);
 
 		sm.ID = m->ID;
 

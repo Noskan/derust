@@ -42,7 +42,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 							break;
 						}
 
-						int price = g_pItemList[mountIndex].Price;
+						int price = g_pItemList[mountIndex].nPrice;
 
 						if (confirm == 0)
 						{
@@ -524,13 +524,13 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 						pMob[conn].extra.QuestInfo.Circle = 1;
 
 					if (ncircle == 0)
-						pMob[conn].MOB.LearnedSkill &= 0xFFFFFF00;
+						pMob[conn].MOB.LearnedSkill[0] &= 0xFFFFFF00;
 
 					if (ncircle == 1)
-						pMob[conn].MOB.LearnedSkill &= 0xFFFF00FF;
+						pMob[conn].MOB.LearnedSkill[0] &= 0xFFFF00FF;
 
 					if (ncircle == 2)
-						pMob[conn].MOB.LearnedSkill &= 0xFF00FFFF;
+						pMob[conn].MOB.LearnedSkill[0] &= 0xFF00FFFF;
 
 					BASE_GetBonusSkillPoint(&pMob[conn].MOB, &pMob[conn].extra);
 
@@ -624,7 +624,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 		if(WeaponId > 0 && WeaponId < MAX_ITEMLIST)
 		{
-			int ReqLv = g_pItemList[WeaponId].ReqLvl;
+			int ReqLv = g_pItemList[WeaponId].nReqLvl;
 
 			if(ReqLv > 39)
 				break;
@@ -679,7 +679,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 			if (itemId > 0 && itemId < MAX_ITEMLIST)
 			{
-				int ReqLv = g_pItemList[itemId].ReqLvl;
+				int ReqLv = g_pItemList[itemId].nReqLvl;
 
 				pMob[conn].MOB.Equip[j].stEffect[0].cEffect = 0;
 				pMob[conn].MOB.Equip[j].stEffect[0].cValue = 0;

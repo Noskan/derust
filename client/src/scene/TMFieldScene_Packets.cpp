@@ -689,7 +689,7 @@ int TMFieldScene::OnPacketCreateMob(MSG_STANDARD* pStd)
 		}
 
 		float fAngle = 0.0f;
-		unsigned char nDir = ((unsigned char)pHuman->m_stScore.Reserved >> 4);
+		unsigned char nDir = ((unsigned char)pHuman->m_stScore.Merchant >> 4);
 		if (nDir == 6)
 			fAngle = D3DXToRadian(180);
 		if (nDir == 9)
@@ -713,8 +713,8 @@ int TMFieldScene::OnPacketCreateMob(MSG_STANDARD* pStd)
 				
 		pHuman->InitPosition(vecPosition.x, GroundGetMask(vecPosition) * 0.1f, vecPosition.y);
 
-		pHuman->m_cHide = (pHuman->m_dwID >= 0 && pHuman->m_dwID < 1000) && pHuman->m_stScore.Reserved & 1;
-		if ((pHuman->m_dwID < 0 || pHuman->m_dwID > 1000) && (pHuman->IsMerchant() || (pHuman->m_stScore.Reserved & 0xF) == 15))
+		pHuman->m_cHide = (pHuman->m_dwID >= 0 && pHuman->m_dwID < 1000) && pHuman->m_stScore.Merchant & 1;
+		if ((pHuman->m_dwID < 0 || pHuman->m_dwID > 1000) && (pHuman->IsMerchant() || (pHuman->m_stScore.Merchant & 0xF) == 15))
 			pHuman->m_pNameLabel->SetTextColor(0xFFAAFFAA);
 
 		int nItemCode = pCreateMob->Equip[13] & 0xFFF;
@@ -874,7 +874,7 @@ int TMFieldScene::OnPacketCreateMob(MSG_STANDARD* pStd)
 		pHuman->InitObject();
 
 		float fAngle = 0.0f;
-		unsigned char nDir = ((unsigned char)pHuman->m_stScore.Reserved >> 4);
+		unsigned char nDir = ((unsigned char)pHuman->m_stScore.Merchant >> 4);
 		if (nDir == 6)
 			fAngle = D3DXToRadian(180);
 		if (nDir == 9)
@@ -946,8 +946,8 @@ int TMFieldScene::OnPacketCreateMob(MSG_STANDARD* pStd)
 				Guildmark_Create(&pHuman->m_stGuildMark);
 		}
 
-		pHuman->m_cHide = (pHuman->m_dwID >= 0 && pHuman->m_dwID < 1000) && pHuman->m_stScore.Reserved & 1;
-		if ((pHuman->m_dwID < 0 || pHuman->m_dwID > 1000) && (pHuman->m_stScore.Reserved & 0xF) >= 1 && (pHuman->m_stScore.Reserved & 0xF) <= 15)
+		pHuman->m_cHide = (pHuman->m_dwID >= 0 && pHuman->m_dwID < 1000) && pHuman->m_stScore.Merchant & 1;
+		if ((pHuman->m_dwID < 0 || pHuman->m_dwID > 1000) && (pHuman->m_stScore.Merchant & 0xF) >= 1 && (pHuman->m_stScore.Merchant & 0xF) <= 15)
 			pHuman->m_pNameLabel->SetTextColor(0xFFAAFFAA);
 
 		if ((pHuman->m_dwID < 0 || pHuman->m_dwID > 1000) && pHuman->m_sHeadIndex == 54)

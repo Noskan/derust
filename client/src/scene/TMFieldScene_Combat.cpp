@@ -317,7 +317,7 @@ int TMFieldScene::SkillUse(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwServe
 	{
 		return GetItemFromGround(dwServerTime);
 	}
-	if ((pOver->m_stScore.Reserved & 0xF) == 15 && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
+	if ((pOver->m_stScore.Merchant & 0xF) == 15 && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
 	{
 		if (!m_pMyHuman->m_cMantua)
 			return 1;
@@ -1802,7 +1802,7 @@ int TMFieldScene::MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int d
 			if (pOver->IsMerchant())
 				return 0;
 
-			if ((pOver->m_stScore.Reserved & 0xF) == 15)
+			if ((pOver->m_stScore.Merchant & 0xF) == 15)
 			{
 				if (!m_pMyHuman->m_cMantua || m_pMyHuman->m_cMantua == 3)
 					return 0;

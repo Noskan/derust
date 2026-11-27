@@ -160,18 +160,18 @@ int GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num)
 		int Int = pMob[conn].MOB.CurrentScore.Int;
 		int Evocacao = pMob[conn].MOB.CurrentScore.Special[2];
 
-		int sBase = Int * pSummonBonus[SummonID].Unk / 100;
-		int sMax = Evocacao * pSummonBonus[SummonID].Unk2 / 100;
+		int sBase = Int * pSummonBonus[SummonID].Int_Damage / 100;
+		int sMax = Evocacao * pSummonBonus[SummonID].Spe_Damage / 100;
 
 		pMob[MobEmpty].MOB.BaseScore.Damage += sMax + sBase;
 
-		sBase = Int * pSummonBonus[SummonID].Unk3 / 100;
-		sMax = Evocacao * pSummonBonus[SummonID].Unk4 / 100;
+		sBase = Int * pSummonBonus[SummonID].Int_Ac / 100;
+		sMax = Evocacao * pSummonBonus[SummonID].Spe_Ac / 100;
 
 		pMob[MobEmpty].MOB.BaseScore.Ac += sMax + sBase;
 
-		sBase = Int * pSummonBonus[SummonID].Unk5 / 100;
-		sMax = Evocacao * pSummonBonus[SummonID].Unk6 / 100;
+		sBase = Int * pSummonBonus[SummonID].Int_Hp / 100;
+		sMax = Evocacao * pSummonBonus[SummonID].Spe_Hp / 100;
 
 		pMob[MobEmpty].MOB.BaseScore.MaxHp += sMax + sBase;
 
@@ -1049,7 +1049,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 		{
 			int attackdex = pMob[attacker].MOB.CurrentScore.Dex / 5;
 
-			if (pMob[attacker].MOB.LearnedSkill & 0x1000000)
+			if (pMob[attacker].MOB.LearnedSkill[0] & 0x1000000)
 				attackdex += 100;
 
 			if (pMob[attacker].MOB.Rsv & 0x40)

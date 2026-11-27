@@ -41,7 +41,7 @@ void Exec_MSG_TradingItem(int conn, char *pMsg)
 		return;
 	}
 
-	if ((m->DestPlace == ITEM_PLACE_CARGO || m->SrcPlace == ITEM_PLACE_CARGO) && (pMob[conn].MOB.Class != 3 || !(pMob[conn].MOB.LearnedSkill & 0x2000)))
+	if ((m->DestPlace == ITEM_PLACE_CARGO || m->SrcPlace == ITEM_PLACE_CARGO) && (pMob[conn].MOB.Class != 3 || !(pMob[conn].MOB.LearnedSkill[0] & 0x2000)))
 	{
 		int WarpID = m->WarpID;
 
@@ -194,7 +194,7 @@ void Exec_MSG_TradingItem(int conn, char *pMsg)
 			int error = -2;
 
 			if (m->SrcPlace == ITEM_PLACE_EQUIP)
-				Can = BASE_CanEquip(dItem, &pMob[conn].MOB.CurrentScore, m->SrcSlot, pMob[conn].MOB.Equip[0].sIndex, pMob[conn].MOB.Equip, pMob[conn].MOB.Equip[0].sIndex, (pMob[conn].MOB.LearnedSkill & 0x40000000) != 0);
+				Can = BASE_CanEquip(dItem, &pMob[conn].MOB.CurrentScore, m->SrcSlot, pMob[conn].MOB.Equip[0].sIndex, pMob[conn].MOB.Equip, pMob[conn].MOB.Equip[0].sIndex, (pMob[conn].MOB.LearnedSkill[0] & 0x40000000) != 0);
 
 			if (m->SrcPlace == ITEM_PLACE_CARRY)
 			{
@@ -214,7 +214,7 @@ void Exec_MSG_TradingItem(int conn, char *pMsg)
 			int error = -2;
 
 			if (m->DestPlace == ITEM_PLACE_EQUIP)
-				YouCan = BASE_CanEquip(sItem, &pMob[conn].MOB.CurrentScore, m->DestSlot, pMob[conn].MOB.Equip[0].sIndex, pMob[conn].MOB.Equip, pMob[conn].MOB.Equip[0].sIndex, (pMob[conn].MOB.LearnedSkill & 0x40000000) != 0);
+				YouCan = BASE_CanEquip(sItem, &pMob[conn].MOB.CurrentScore, m->DestSlot, pMob[conn].MOB.Equip[0].sIndex, pMob[conn].MOB.Equip, pMob[conn].MOB.Equip[0].sIndex, (pMob[conn].MOB.LearnedSkill[0] & 0x40000000) != 0);
 
 			if (m->DestPlace == ITEM_PLACE_CARRY)
 			{

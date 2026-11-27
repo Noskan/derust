@@ -1156,7 +1156,7 @@ int TMHuman::OnPacketUpdateScore(MSG_STANDARD* pStd)
     if (g_pCurrentScene->m_eSceneType == ESCENE_TYPE::ESCENE_FIELD)
         static_cast<TMFieldScene*>(g_pCurrentScene)->Bag_View();
 
-    m_cHide = m_dwID < 1000 == 1 && pUpdateScore->Score.Reserved & 1;
+    m_cHide = m_dwID < 1000 == 1 && pUpdateScore->Score.Merchant & 1;
     
     if (m_dwID >= 1000 && pUpdateScore->ReqHp == 1)
     {

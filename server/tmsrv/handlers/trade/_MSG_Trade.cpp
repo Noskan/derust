@@ -57,10 +57,10 @@ void Exec_MSG_Trade(int conn, char *pMsg)
 	{
 		if (m->Item[i].sIndex)
 		{
-			if (m->InvenPos[i] < 0 || m->InvenPos[i] >= MAX_CARRY-4)
+			if (m->CarryPos[i] < 0 || m->CarryPos[i] >= MAX_CARRY-4)
 				return;
 
-			if (memcmp(&pMob[conn].MOB.Carry[m->InvenPos[i]], &m->Item[i], sizeof(STRUCT_ITEM)))
+			if (memcmp(&pMob[conn].MOB.Carry[m->CarryPos[i]], &m->Item[i], sizeof(STRUCT_ITEM)))
 			{
 				Log("err,msg_trade - item remove or changed.", pUser[conn].AccountName, pUser[conn].IP);
 				RemoveTrade(conn);
@@ -71,10 +71,10 @@ void Exec_MSG_Trade(int conn, char *pMsg)
 
 		if (pUser[OpponentID].Trade.Item[i].sIndex)
 		{
-			if (pUser[OpponentID].Trade.InvenPos[i] < 0 || pUser[OpponentID].Trade.InvenPos[i] >= MAX_CARRY-4)
+			if (pUser[OpponentID].Trade.CarryPos[i] < 0 || pUser[OpponentID].Trade.CarryPos[i] >= MAX_CARRY-4)
 				return;
 
-			if (memcmp(&pMob[OpponentID].MOB.Carry[pUser[OpponentID].Trade.InvenPos[i]], &pUser[OpponentID].Trade.Item[i], sizeof(STRUCT_ITEM)))
+			if (memcmp(&pMob[OpponentID].MOB.Carry[pUser[OpponentID].Trade.CarryPos[i]], &pUser[OpponentID].Trade.Item[i], sizeof(STRUCT_ITEM)))
 			{
 				Log("err,msg_trade - item remove or changed.", pUser[conn].AccountName, pUser[conn].IP);
 				RemoveTrade(conn);
@@ -195,7 +195,7 @@ void Exec_MSG_Trade(int conn, char *pMsg)
 		{
 			for (int i = 0; i < MAX_TRADE; i++)
 			{
-				int iPos = m->InvenPos[i];
+				int iPos = m->CarryPos[i];
 
 				if (iPos == -1)
 					memset(&m->Item[i], 0, sizeof(STRUCT_ITEM));
@@ -210,7 +210,7 @@ void Exec_MSG_Trade(int conn, char *pMsg)
 					}
 					for (int j = 0; j < MAX_TRADE; j++)
 					{
-						if (j != i && iPos == m->InvenPos[j])
+						if (j != i && iPos == m->CarryPos[j])
 						{
 							SendClientMessage(conn, g_pMessageStringTable[_NN_Wrong_Trade_Packet1]);
 							RemoveTrade(conn);
@@ -301,8 +301,8 @@ void Exec_MSG_Trade(int conn, char *pMsg)
 				STRUCT_ITEM mydest[MAX_CARRY];
 				STRUCT_ITEM oppdest[MAX_CARRY];
 
-				int mytrade = BASE_CanTrade(mydest, pMob[conn].MOB.Carry, (unsigned char*)&pUser[conn].Trade.InvenPos, pUser[OpponentID].Trade.Item);
-				int opptrade = BASE_CanTrade(oppdest, pMob[OpponentID].MOB.Carry, (unsigned char*)&pUser[OpponentID].Trade.InvenPos, pUser[conn].Trade.Item);
+				int mytrade = BASE_CanTrade(mydest, pMob[conn].MOB.Carry, (unsigned char*)&pUser[conn].Trade.CarryPos, pUser[OpponentID].Trade.Item);
+				int opptrade = BASE_CanTrade(oppdest, pMob[OpponentID].MOB.Carry, (unsigned char*)&pUser[OpponentID].Trade.CarryPos, pUser[conn].Trade.Item);
 
 				if (mytrade == 0 && opptrade == 0)
 				{

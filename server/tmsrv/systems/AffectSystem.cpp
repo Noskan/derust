@@ -376,7 +376,8 @@ LABEL_59:
 			AffectValue = 100;
 
 			if (idx >= MAX_USER)
-				AffectValue -= pMob[idx].MOB.LearnedSkill / MAX_USER;
+				// Num NPC, LearnedSkill guarda um valor; a divisão é com sinal, como era com `long`.
+				AffectValue -= (int)pMob[idx].MOB.LearnedSkill[0] / MAX_USER;
 
 			AffectValue /= 10;
 
@@ -384,7 +385,7 @@ LABEL_59:
 			int Perda = 1000;
 
 			if (idx >= MAX_USER)
-				Perda = 10 * (100 - pMob[idx].MOB.LearnedSkill / MAX_USER);
+				Perda = 10 * (100 - (int)pMob[idx].MOB.LearnedSkill[0] / MAX_USER);
 
 			int Perdamax = Hp - Perda;
 

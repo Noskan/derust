@@ -1582,8 +1582,8 @@ void RemoveParty(int conn)
 /// Executa retorno do jogador para sua cidade natal ou ponto salvo.
 void DoRecall(int conn)
 {
-	int x = pMob[conn].MOB.SPX;
-	int y = pMob[conn].MOB.SPY;
+	int x = pMob[conn].MOB.HomeTownX;
+	int y = pMob[conn].MOB.HomeTownY;
 	int CityID = (pMob[conn].MOB.Merchant & 0xC0) >> 6;
 
 	x = rand() % 15 + g_pGuildZone[CityID].CitySpawnX;

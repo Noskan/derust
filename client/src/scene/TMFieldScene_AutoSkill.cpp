@@ -231,7 +231,7 @@ int TMFieldScene::AutoSkillUse(int nX, int nY, D3DXVECTOR3 vec, unsigned int dwS
 		return 0;
 	if (pOver->m_TradeDesc[0])
 		return 0;
-	if ((pOver->m_stScore.Reserved & 0xF) == 15 && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
+	if ((pOver->m_stScore.Merchant & 0xF) == 15 && g_pSpell[(unsigned char)cSkillIndex].Aggressive == 1)
 	{
 		if (!m_pMyHuman->m_cMantua)
 			return 0;

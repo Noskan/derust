@@ -1762,7 +1762,7 @@ int TMFieldScene::InitializeScene()
 
 	SetSanc();
 
-	m_pMyHuman->m_cHide = (m_pMyHuman->m_dwID >= 0 && m_pMyHuman->m_dwID < 1000) == 1 && m_pMyHuman->m_stScore.Reserved & 1;
+	m_pMyHuman->m_cHide = (m_pMyHuman->m_dwID >= 0 && m_pMyHuman->m_dwID < 1000) == 1 && m_pMyHuman->m_stScore.Merchant & 1;
 	m_pHumanContainer->AddChild(m_pMyHuman);
 
 	auto pSoundManager = g_pSoundManager;

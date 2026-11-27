@@ -553,7 +553,7 @@ void TMHuman::SetColorMaterial()
 
         if (g_pCurrentScene->m_pMouseOverHuman == this && pFocused != this)
         {
-            if ((m_dwID >= 0 && m_dwID < 1000) || (m_stScore.Reserved & 0xF) != 15)
+            if ((m_dwID >= 0 && m_dwID < 1000) || (m_stScore.Merchant & 0xF) != 15)
             {
                 if (m_dwID < 0 || m_dwID >= 1000 && IsMerchant())
                     m_dwEdgeColor = 0x8800FF00;
@@ -577,7 +577,7 @@ void TMHuman::SetColorMaterial()
                 m_dwEdgeColor = 0x8800FF00;
             }
 
-            if ((m_stScore.Reserved & 0xF) == 15 && pFocused->m_cMantua && pFocused->m_cMantua != 3 && m_pMantua && pFocused->m_pMantua
+            if ((m_stScore.Merchant & 0xF) == 15 && pFocused->m_cMantua && pFocused->m_cMantua != 3 && m_pMantua && pFocused->m_pMantua
                 && m_cMantua != pFocused->m_cMantua)
             {
                 m_dwEdgeColor = 0x88FF0000;

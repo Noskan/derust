@@ -97,7 +97,7 @@ void TMHuman::MoveAttack(TMHuman* pTarget)
         return;
 
     auto pFocused = g_pCurrentScene->m_pMyHuman;
-    if ((m_stScore.Reserved & 0xF) == 15 && m_cMantua > 0 && pFocused->m_cMantua > 0 && m_cMantua == pFocused->m_cMantua)
+    if ((m_stScore.Merchant & 0xF) == 15 && m_cMantua > 0 && pFocused->m_cMantua > 0 && m_cMantua == pFocused->m_cMantua)
         return;
 
     if (m_cCantAttk)
@@ -1851,7 +1851,7 @@ int TMHuman::MAutoAttack(TMHuman* pTarget, int mode)
         return 0;
     if (pTarget->m_cSummons == 1)
         return 0;
-    if ((m_stScore.Reserved & 0xF) == 15)
+    if ((m_stScore.Merchant & 0xF) == 15)
     {
         auto pFocused = g_pCurrentScene->m_pMyHuman;
         if (m_cMantua > 0 && pFocused->m_cMantua > 0 && m_cMantua == pFocused->m_cMantua)

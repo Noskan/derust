@@ -117,7 +117,7 @@ void ProcessImple(int conn, int level, char * str)
 			}
 			else if (!strcmp(sval1, "clearskill"))
 			{
-				pMob[conn].MOB.LearnedSkill = 0;
+				pMob[conn].MOB.LearnedSkill[0] = 0;
 				SendClientMessage(conn, "set clearskill");
 			}
 			else if (!strcmp(sval1, "level"))
@@ -1589,7 +1589,7 @@ void ProcessImple(int conn, int level, char * str)
 
 		else if (!strcmp(cmd, "learn"))
 		{
-			pMob[conn].MOB.LearnedSkill = -1;
+			pMob[conn].MOB.LearnedSkill[0] = -1;
 			SendEtc(conn);
 			SendClientMessage(conn, "LEARN");
 		}

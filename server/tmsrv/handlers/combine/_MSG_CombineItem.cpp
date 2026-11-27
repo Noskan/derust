@@ -84,7 +84,7 @@ void Exec_MSG_CombineItem(int conn, char *pMsg)
 	if (_rand <= combine || LOCALSERVER)
 	{
 		int itemindex = m->Item[0].sIndex;
-		int extra = g_pItemList[itemindex].Extra;
+		int extra = g_pItemList[itemindex].nExtra;
 
 		if (extra > 0 && extra < MAX_ITEMLIST)
 		{

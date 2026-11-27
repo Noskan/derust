@@ -81,3 +81,165 @@ struct STRUCT_AFFECT
 	unsigned short Value;	// 2 bytes: nível do efeito; no tipo 8, os bits das joias
 	unsigned int Time;
 };
+
+/// @brief Atributos de combate, defesa, HP/MP, pontos base e maestrias de um mob/personagem (48 bytes).
+/// @details Tipos do servidor. No cliente, que declarava `Merchant` e `AttackRun` como `char` e
+/// `Special` sem sinal, nada muda para o que o servidor envia: os dois bytes são sempre mascarados ou
+/// convertidos para `unsigned char` (e `Merchant == 76` é igual com ou sem sinal), e as maestrias ficam
+/// abaixo de 32768. `Direction` e `ChaosRate` ocupam bytes que no cliente eram alinhamento.
+struct STRUCT_SCORE
+{
+	short Level;			// Os bytes 2-3 são alinhamento de Ac
+	int Ac;
+	int Damage;
+
+	unsigned char Merchant;	// Nibble baixo: tipo de comerciante (15 = NPC agressivo, bit 1 = escondido); alto: direção
+	unsigned char AttackRun;	// Nibble baixo: velocidade de corrida; alto: velocidade de ataque
+	unsigned char Direction;	// Só o servidor usa
+	unsigned char ChaosRate;	// Só o servidor usa
+
+	int MaxHp;
+	int MaxMp;
+	int Hp;
+	int Mp;
+
+	short Str;
+	short Int;
+	short Dex;
+	short Con;
+
+	short Special[4];		// Maestrias
+};
+
+/// @brief Personagem ou NPC em memória, nos arquivos e nos pacotes de login (1024 bytes).
+/// @details Tipos do servidor, nomes do cliente. No cliente, os campos de 1 byte eram `char` e os
+/// bônus de pontos `short`. Para os valores que o servidor envia (classe 0..3, posições < 4096,
+/// bônus < 32768), nenhum uso do cliente muda. `Critical` e `SaveMana` o cliente já lia como
+/// `unsigned char` em quase todos os usos; os poucos sem cast passam a concordar com eles.
+struct STRUCT_MOB
+{
+	char MobName[16];
+	char Clan;
+	unsigned char Merchant;
+	unsigned short Guild;
+	unsigned char Class;
+	unsigned char Rsv;			// Flags RSV_* do servidor
+	unsigned short Quest;
+
+	int Coin;
+
+	long long Exp;
+
+	short HomeTownX;			// Posição salva (pedra estelar), para o pergaminho de retorno
+	short HomeTownY;
+
+	STRUCT_SCORE BaseScore;
+	STRUCT_SCORE CurrentScore;
+
+	STRUCT_ITEM Equip[16];
+	STRUCT_ITEM Carry[64];
+
+	// Skills aprendidas: [0] em quatro blocos de 8 bits (um por categoria) e o bit 0x40000000 do
+	// limite da alma; [1] são as skills 200+ do cliente, que o servidor não tem e envia 0.
+	unsigned int LearnedSkill[2];
+
+	unsigned short ScoreBonus;	// Pontos para Str/Int/Dex/Con
+	unsigned short SpecialBonus;	// Pontos para as maestrias
+	unsigned short SkillBonus;	// Pontos para comprar skills
+
+	unsigned char Critical;
+	unsigned char SaveMana;
+
+	unsigned char ShortSkill[4];	// As 4 primeiras posições da barra de skills
+
+	unsigned char GuildLevel;	// Membro ou líder da guilda
+
+	unsigned char Magic;		// Bônus de dano mágico, limitado a 254 no servidor
+
+	unsigned char RegenHP;
+	unsigned char RegenMP;
+
+	char Resist[4];				// Fogo, gelo, raio e magia
+
+	char dummy[212];			// Reservado; o servidor envia zerado
+	unsigned short CurrentKill;	// Contadores de kills do cliente; o servidor não os usa
+	unsigned short TotalKill;
+
+	bool HasSoulSkill() const
+	{
+		return this->LearnedSkill[0] & 0x40000000;
+	}
+};
+
+/// @brief Os 4 personagens de uma conta na tela de seleção (840 bytes).
+/// @details Tipos do servidor; no cliente as posições eram sem sinal, o que não muda nada abaixo de 4096.
+struct STRUCT_SELCHAR
+{
+	short HomeTownX[4];
+	short HomeTownY[4];
+	char MobName[4][16];
+	STRUCT_SCORE Score[4];
+	STRUCT_ITEM Equip[4][16];
+	unsigned short Guild[4];
+	int Coin[4];
+	long long Exp[4];
+};
+
+/// @brief Item posto no chão na partida do servidor (InitItem.csv).
+struct STRUCT_INITITEM
+{
+	short PosX;
+	short PosY;
+	short sIndex;
+	short Rotate;
+};
+
+/// @brief Par efeito/valor fixo de um item do ItemList.
+struct STRUCT_STATICEFFECT
+{
+	short sEffect;
+	short sValue;
+};
+
+/// @brief Entrada do ItemList (140 bytes): nome, malha, requisitos, efeitos fixos e preço.
+struct STRUCT_ITEMLIST
+{
+	char Name[64];
+	short nIndexMesh;
+	short nIndexTexture;
+	short nIndexVisualEffect;
+	short nReqLvl;
+	short nReqStr;
+	short nReqInt;
+	short nReqDex;
+	short nReqCon;
+	STRUCT_STATICEFFECT stEffect[12];
+	int nPrice;
+	short nUnique;
+	short nPos;
+	short nExtra;
+	short nGrade;
+};
+
+/// @brief Bônus das evocações e transformações (17 ints, em %): `Int_*` sobre a Int de quem invoca,
+/// `Spe_*` sobre a maestria de evocação (pSummonBonus, pTransBonus no servidor).
+struct STRUCT_BEASTBONUS
+{
+	int Int_Damage;
+	int Spe_Damage;
+	int Int_Ac;
+	int Spe_Ac;
+	int Int_Hp;
+	int Spe_Hp;
+	int Int_Run;
+	int Spe_Run;
+	int Int_Attack;
+	int Spe_Attack;
+	int Int_Critical;
+	int Spe_Critical;
+	int Int_Resist;
+	int Spe_Regist;
+	int Int_Delay;
+	int Spe_Delay;
+	int SancLevel;
+};

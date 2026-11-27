@@ -1751,7 +1751,7 @@ int TMHuman::OnCharEvent(char iCharCode, int lParam)
 
 int TMHuman::IsMerchant()
 {
-    if ((m_stScore.Reserved & 0xF) >= 1 && (m_stScore.Reserved & 0xF) <= 14)
+    if ((m_stScore.Merchant & 0xF) >= 1 && (m_stScore.Merchant & 0xF) <= 14)
         return 1;
 
     if (m_sHeadIndex == 54 || m_sHeadIndex == 55 || m_sHeadIndex == 56 || m_sHeadIndex == 57 || m_sHeadIndex == 51 || m_sHeadIndex == 68 || m_sHeadIndex == 67)

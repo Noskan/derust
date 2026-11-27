@@ -75,76 +75,7 @@ struct MSG_STANDARDPARM3
 	int Parm3;
 };
 
-struct STRUCT_SCORE
-{
-	short Level;
-	int Ac;
-	int Damage;
-	char Reserved;
-	char AttackRun;
-	int MaxHp;
-	int MaxMp;
-	int Hp;
-	int Mp;
-	short Str;
-	short Int;
-	short Dex;
-	short Con;
-	unsigned short Special[4];
-};
-
-#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_TREASURE, STRUCT_DAM, STRUCT_SPELL, STRUCT_AFFECT (iguais nos dois lados)
-
-struct STRUCT_SELCHAR
-{
-	unsigned short HomeTownX[4];
-	unsigned short HomeTownY[4];
-	char MobName[4][16];
-	STRUCT_SCORE Score[4];
-	STRUCT_ITEM Equip[4][16];
-	unsigned short Guild[4];
-	int Coin[4];
-	long long Exp[4];
-};
-
-struct STRUCT_MOB
-{
-	char MobName[16];
-	char Clan;
-	char Merchant;
-	unsigned short Guild;
-	char Class;
-	char Rsv;
-	unsigned short Quest;
-	int Coin;
-	long long Exp;
-	unsigned short HomeTownX;
-	unsigned short HomeTownY;
-	STRUCT_SCORE BaseScore;
-	STRUCT_SCORE CurrentScore;
-	STRUCT_ITEM Equip[16];
-	STRUCT_ITEM Carry[64];
-	unsigned int LearnedSkill[2];
-	short ScoreBonus;
-	short SpecialBonus;
-	short SkillBonus;
-	char Critical;
-	char SaveMana;
-	char ShortSkill[4];
-	char GuildLevel;
-	char Magic;
-	char RegenHP;
-	char RegenMP;
-	char Resist[4];
-	char dummy[212];
-	unsigned short CurrentKill;
-	unsigned short TotalKill;
-
-	bool HasSoulSkill() const
-	{
-		return this->LearnedSkill[0] & 0x40000000;
-	}
-};
+#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_SCORE, STRUCT_MOB, STRUCT_SELCHAR, STRUCT_ITEMLIST e outras (iguais nos dois lados)
 
 struct STRUCT_MYBONUSEFFECT
 {
@@ -225,31 +156,6 @@ struct STRUCT_REPURCHASEITEM
 	int Price;
 };
 
-struct STRUCT_STATICEFFECT
-{
-	short sEffect;
-	short sValue;
-};
-
-struct STRUCT_ITEMLIST
-{
-	char Name[64];
-	short nIndexMesh;
-	short nIndexTexture;
-	short nIndexVisualEffect;
-	short nReqLvl;
-	short nReqStr;
-	short nReqInt;
-	short nReqDex;
-	short nReqCon;
-	STRUCT_STATICEFFECT stEffect[12];
-	int nPrice;
-	short nUnique;
-	short nPos;
-	short nExtra;
-	short nGrade;
-};
-
 struct STRUCT_EXT1
 {
 	int Data[8];
@@ -277,14 +183,6 @@ struct STRUCT_EXT2
 	int SendLevItem;
 	short AdminGuildItem;
 	char Dummy[126];
-};
-
-struct STRUCT_INITITEM
-{
-	short PosX;
-	short PosY;
-	short sIndex;
-	short Rotate;
 };
 
 struct STRUCT_AIRMOVELIST
@@ -465,27 +363,6 @@ struct STRUCT_COMBINE
 	int Target;
 	int Source[8];
 	int Refine[8];
-};
-
-struct STRUCT_BEASTBONUS
-{
-	int Int_Damage;
-	int Spe_Damage;
-	int Int_Ac;
-	int Spe_Ac;
-	int Int_Hp;
-	int Spe_Hp;
-	int Int_Run;
-	int Spe_Run;
-	int Int_Attack;
-	int Spe_Attack;
-	int Int_Critical;
-	int Spe_Critical;
-	int Int_Resist;
-	int Spe_Regist;
-	int Int_Delay;
-	int Spe_Delay;
-	int SancLevel;
 };
 
 struct STRUCT_EXT

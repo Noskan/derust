@@ -742,7 +742,7 @@ int  IsFree(STRUCT_SELCHAR *sel)
 
 	for (int i = 0; i < MOB_PER_ACCOUNT; i++)
 	{
-		if (sel->Name[i][0] != 0 && sel->Score[i].Level >= FREEEXP && sel->Score[i].Level < 999)
+		if (sel->MobName[i][0] != 0 && sel->Score[i].Level >= FREEEXP && sel->Score[i].Level < 999)
 			return 1;
 	}
 
@@ -1098,8 +1098,8 @@ void CharLogOut(int conn)
 	SaveUser(conn, 1);
 	DeleteMob(conn, 2);
 
-	pMob[conn].TargetX = pMob[conn].MOB.SPX;
-	pMob[conn].TargetY = pMob[conn].MOB.SPY;
+	pMob[conn].TargetX = pMob[conn].MOB.HomeTownX;
+	pMob[conn].TargetY = pMob[conn].MOB.HomeTownY;
 	pMob[conn].Mode = 0;
 
 	SendClientSignal(conn, conn, _MSG_CNFCharacterLogout);
@@ -1149,7 +1149,7 @@ void Reboot()
 		STRUCT_ITEM Item;
 		memset(&Item, 0, sizeof(STRUCT_ITEM));
 
-		Item.sIndex = g_pInitItem[i].ItemIndex;
+		Item.sIndex = g_pInitItem[i].sIndex;
 
 		int ID = CreateItem(g_pInitItem[i].PosX, g_pInitItem[i].PosY, &Item, g_pInitItem[i].Rotate, 1);
 
@@ -1195,7 +1195,7 @@ void RemoveTrade(int conn)
 	memset(&pUser[conn].Trade, 0, sizeof(MSG_Trade));
 
 	for (int i = 0; i < MAX_TRADE; i++)
-		pUser[conn].Trade.InvenPos[i] = -1;
+		pUser[conn].Trade.CarryPos[i] = -1;
 
 	memset(&pUser[conn].AutoTrade, 0, sizeof(MSG_SendAutoTrade));
 

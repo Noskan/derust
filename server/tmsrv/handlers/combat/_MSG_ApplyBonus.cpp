@@ -92,7 +92,7 @@ void Exec_MSG_ApplyBonus(int conn, char *pMsg)
 
 				int max_special = 200;
 
-				if((1 << 7) & pMob[conn].MOB.LearnedSkill && m->Detail == 1 || (1 << 15) & pMob[conn].MOB.LearnedSkill && m->Detail == 2 || (1 << 23) & pMob[conn].MOB.LearnedSkill && m->Detail == 3)
+				if((1 << 7) & pMob[conn].MOB.LearnedSkill[0] && m->Detail == 1 || (1 << 15) & pMob[conn].MOB.LearnedSkill[0] && m->Detail == 2 || (1 << 23) & pMob[conn].MOB.LearnedSkill[0] && m->Detail == 3)
 					max_special = 255;
 
 				if (pMob[conn].extra.ClassMaster == CELESTIAL || pMob[conn].extra.ClassMaster == CELESTIALCS || pMob[conn].extra.ClassMaster == SCELESTIAL)
@@ -152,7 +152,7 @@ void Exec_MSG_ApplyBonus(int conn, char *pMsg)
 
 						if(skillpos == 7 || skillpos == 15 || skillpos == 23)
 						{
-							if ((1 << 7) & pMob[conn].MOB.LearnedSkill || (1 << 15) & pMob[conn].MOB.LearnedSkill || (1 << 23) & pMob[conn].MOB.LearnedSkill)
+							if ((1 << 7) & pMob[conn].MOB.LearnedSkill[0] || (1 << 15) & pMob[conn].MOB.LearnedSkill[0] || (1 << 23) & pMob[conn].MOB.LearnedSkill[0])
 							{
 								SendClientMessage(conn, g_pMessageStringTable[_NN_Only_OneSkillLearn]);
 								return;
@@ -162,7 +162,7 @@ void Exec_MSG_ApplyBonus(int conn, char *pMsg)
 													
 							for(int i = 0; i < 8; i++)
 							{
-								if ((1 << (skillpos - i)) & pMob[conn].MOB.LearnedSkill)
+								if ((1 << (skillpos - i)) & pMob[conn].MOB.LearnedSkill[0])
 									skillin++;
 							}
 
@@ -182,26 +182,26 @@ void Exec_MSG_ApplyBonus(int conn, char *pMsg)
 							}
 						}
 
-						if ((1 << skillpos) & pMob[conn].MOB.LearnedSkill)
+						if ((1 << skillpos) & pMob[conn].MOB.LearnedSkill[0])
 						{
 							SendClientMessage(conn, g_pMessageStringTable[_NN_Already_Learned_It]);
 							return;
 						}
 						else
 						{
-							int reqlv = pMob[conn].extra.ClassMaster == MORTAL || pMob[conn].extra.ClassMaster == ARCH ? g_pItemList[m->Detail].ReqLvl : 0;
+							int reqlv = pMob[conn].extra.ClassMaster == MORTAL || pMob[conn].extra.ClassMaster == ARCH ? g_pItemList[m->Detail].nReqLvl : 0;
 							if (pMob[conn].MOB.CurrentScore.Level >= reqlv)
 							{
-								if (pMob[conn].MOB.CurrentScore.Special[1] >= g_pItemList[m->Detail].ReqInt
-									&& pMob[conn].MOB.CurrentScore.Special[2] >= g_pItemList[m->Detail].ReqDex
-									&& pMob[conn].MOB.CurrentScore.Special[3] >= g_pItemList[m->Detail].ReqCon)
+								if (pMob[conn].MOB.CurrentScore.Special[1] >= g_pItemList[m->Detail].nReqInt
+									&& pMob[conn].MOB.CurrentScore.Special[2] >= g_pItemList[m->Detail].nReqDex
+									&& pMob[conn].MOB.CurrentScore.Special[3] >= g_pItemList[m->Detail].nReqCon)
 								{
 									int coin = pMob[conn].extra.ClassMaster != MORTAL && pMob[conn].extra.ClassMaster != ARCH ? 50000000 : 50000000;
 
 									if(skillpos == 7 || skillpos == 15 || skillpos == 23)
 										pMob[conn].MOB.Coin -= coin;
 
-									pMob[conn].MOB.LearnedSkill |= learn;
+									pMob[conn].MOB.LearnedSkill[0] |= learn;
 									pMob[conn].MOB.SkillBonus -= Skillbonus;
 									pMob[conn].GetCurrentScore(conn);
 									SendScore(conn);

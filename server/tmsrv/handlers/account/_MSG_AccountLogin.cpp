@@ -41,7 +41,7 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 #ifdef _PACKET_DEBUG
 	if (Size < sizeof(MSG_AccountLogin))
 #else
-	if (Size < sizeof(MSG_AccountLogin) || m->ClientVersion != ClientVersion)
+	if (Size < sizeof(MSG_AccountLogin) || m->Version != ClientVersion)
 #endif
 	{
 		sprintf(temp, g_pMessageStringTable[_NN_Version_Not_Match_Rerun], APP_VERSION);
@@ -67,7 +67,7 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 	if (m->Size < sizeof(MSG_AccountLogin))
 		memset(pUser[conn].Mac, 0xFF, sizeof(pUser[conn].Mac));
 	else
-		memcpy(pUser[conn].Mac, m->AdapterName, sizeof(pUser[conn].Mac));
+		memcpy(pUser[conn].Mac, m->Mac, sizeof(pUser[conn].Mac));
 
 
 	m->Type = _MSG_DBAccountLogin;

@@ -1052,7 +1052,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 			{
 				if (UniqueType == Type)
 				{
-					int Grade = g_pItemList[destIndex].Grade;
+					int Grade = g_pItemList[destIndex].nGrade;
 
 					if (Grade > 0 && Grade < 4)
 					{
@@ -1060,7 +1060,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 						int chance = 50;
 						if (_rand <= 50)
 						{
-							int Extra = g_pItemList[destIndex].Extra;
+							int Extra = g_pItemList[destIndex].nExtra;
 
 							dest->sIndex = Extra;
 

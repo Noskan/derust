@@ -340,17 +340,17 @@ DiretoReset:
 			break;
 		}
 
-		if(pMob[npcIndex].MOB.SkillBar[0] != 255)
-			SetAffect(conn, pMob[npcIndex].MOB.SkillBar[0], 400, 200);
+		if(pMob[npcIndex].MOB.ShortSkill[0] != 255)
+			SetAffect(conn, pMob[npcIndex].MOB.ShortSkill[0], 400, 200);
 
-		if(pMob[npcIndex].MOB.SkillBar[1] != 255)
-			SetAffect(conn, pMob[npcIndex].MOB.SkillBar[1], 400, 200);
+		if(pMob[npcIndex].MOB.ShortSkill[1] != 255)
+			SetAffect(conn, pMob[npcIndex].MOB.ShortSkill[1], 400, 200);
 
-		if(pMob[npcIndex].MOB.SkillBar[2] != 255)
-			SetAffect(conn, pMob[npcIndex].MOB.SkillBar[2], 400, 200);
+		if(pMob[npcIndex].MOB.ShortSkill[2] != 255)
+			SetAffect(conn, pMob[npcIndex].MOB.ShortSkill[2], 400, 200);
 
-		if(pMob[npcIndex].MOB.SkillBar[3] != 255)
-			SetAffect(conn, pMob[npcIndex].MOB.SkillBar[3], 400, 200);
+		if(pMob[npcIndex].MOB.ShortSkill[3] != 255)
+			SetAffect(conn, pMob[npcIndex].MOB.ShortSkill[3], 400, 200);
 
 		pMob[conn].GetCurrentScore(conn);
 		SendScore(conn);
@@ -482,7 +482,7 @@ DiretoReset:
 			}
 		}
 #endif
-		if(pMob[conn].extra.ClassMaster == MORTAL && (pMob[conn].MOB.LearnedSkill & (1 << 30)) == 0 && pMob[conn].MOB.CurrentScore.Level >= 369)
+		if(pMob[conn].extra.ClassMaster == MORTAL && (pMob[conn].MOB.LearnedSkill[0] & (1 << 30)) == 0 && pMob[conn].MOB.CurrentScore.Level >= 369)
 		{
 			int i = 0;
 
@@ -501,7 +501,7 @@ DiretoReset:
 				BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
 				SendItem(conn, ITEM_PLACE_CARRY, i, &pMob[conn].MOB.Carry[i]);
 
-				pMob[conn].MOB.LearnedSkill |= 1 << 30;
+				pMob[conn].MOB.LearnedSkill[0] |= 1 << 30;
 
 				memset(&pMob[conn].MOB.Equip[15], 0, sizeof(STRUCT_ITEM));
 

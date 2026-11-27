@@ -43,8 +43,8 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 	}
 
 	int TargetID = m->TargetID;
-	int TargetInvenPos = m->TargetInvenPos;
-	int MyInvenPos = m->MyInvenPos;
+	int TargetInvenPos = m->TargetCarryPos;
+	int MyInvenPos = m->MyCarryPos;
 
 	if (TargetID < MAX_USER || TargetID >= MAX_MOB || TargetInvenPos < 0 || TargetInvenPos >= MAX_CARRY || MyInvenPos < 0 || MyInvenPos >= MAX_CARRY)
 	{
@@ -98,9 +98,9 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 			return;
 		}
 
-		if (pMob[conn].MOB.Carry[m->MyInvenPos].sIndex != 0)
+		if (pMob[conn].MOB.Carry[m->MyCarryPos].sIndex != 0)
 		{
-			SendItem(conn, ITEM_PLACE_CARRY, m->MyInvenPos, &pMob[conn].MOB.Carry[m->MyInvenPos]);
+			SendItem(conn, ITEM_PLACE_CARRY, m->MyCarryPos, &pMob[conn].MOB.Carry[m->MyCarryPos]);
 			return;
 		}
 
@@ -112,7 +112,7 @@ void Exec_MSG_Buy(int conn, char *pMsg)
 		goto DonateBuy;
 	}
 
-	Price = g_pItemList[itemIndex].Price;
+	Price = g_pItemList[itemIndex].nPrice;
 	Price2 = Price;
 	int Village;
 	Village = BASE_GetVillage(pMob[TargetID].TargetX, pMob[TargetID].TargetY);
@@ -149,7 +149,7 @@ LABEL_BUY1:
 		Price = 7 * Price / 10;
 	}
 
-	if (Price <= 1999999999 && !Desconto && pMob[conn].MOB.Class == 3 && pMob[conn].MOB.LearnedSkill & 0x800)
+	if (Price <= 1999999999 && !Desconto && pMob[conn].MOB.Class == 3 && pMob[conn].MOB.LearnedSkill[0] & 0x800)
 	{
 		int special = (pMob[conn].MOB.CurrentScore.Special[2] / 10) + 6;
 
@@ -173,9 +173,9 @@ LABEL_BUY1:
 		return;
 	}
 
-	if (pMob[conn].MOB.Carry[m->MyInvenPos].sIndex != 0)
+	if (pMob[conn].MOB.Carry[m->MyCarryPos].sIndex != 0)
 	{
-		SendItem(conn, ITEM_PLACE_CARRY, m->MyInvenPos, &pMob[conn].MOB.Carry[m->MyInvenPos]);
+		SendItem(conn, ITEM_PLACE_CARRY, m->MyCarryPos, &pMob[conn].MOB.Carry[m->MyCarryPos]);
 		return;
 	}
 
@@ -308,7 +308,7 @@ DonateBuy:
 		sprintf(temp, "buy_npc,npc:%s price:%d item:%s", pMob[TargetID].MOB.MobName, Price, tmplog);
 		ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);				 
 		
-		SendItem(conn, ITEM_PLACE_CARRY, m->MyInvenPos, &pMob[conn].MOB.Carry[m->MyInvenPos]);
+		SendItem(conn, ITEM_PLACE_CARRY, m->MyCarryPos, &pMob[conn].MOB.Carry[m->MyCarryPos]);
 						 
 		if (FREEEXP == -2)
 		{
