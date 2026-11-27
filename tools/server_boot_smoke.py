@@ -63,6 +63,8 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "tools"))
+import linux_deploy  # noqa: E402  (WRITE_DIRS: a árvore da produção)
 DATA = ROOT / "tests" / "data" / "server_boot"
 
 DB_PORT = 7514      # server/common/Basedef.h
@@ -142,12 +144,18 @@ def local_ips():
 
 
 def build_tree(work, exe_dir, suffix):
-    """Monta <work>/Common e <work>/srv/{DBSrv,TMSrv}: os servidores abrem ../../Common."""
+    """Monta a árvore da produção, <work>/{Common,DBSRV/Run,TMSRV/Run} (os servidores abrem
+    ../../Common e ../../<outro>/Run), com os diretórios de gravação de tools/linux_deploy.py."""
     common = work / "Common"
-    db = work / "srv" / "DBSrv"
-    tm = work / "srv" / "TMSrv"
+    db = work / "DBSRV" / "Run"
+    tm = work / "TMSRV" / "Run"
     for d in (common, db, tm):
         d.mkdir(parents=True)  # work é <trabalho>/selftest ou <trabalho>/boot
+    # Log, DayLog, account/<inicial>, char/<inicial>, Common/ImportUser...: os servidores gravam
+    # neles mas não os criam.
+    for base, subs in linux_deploy.WRITE_DIRS.items():
+        for s in subs:
+            (work / base / s).mkdir(parents=True, exist_ok=True)
 
     ips = local_ips()[:10]  # MAX_SERVERGROUP
     # Um grupo por endereço: índice 0 é o DBSrv, índice 1 o TMSrv.
@@ -165,11 +173,6 @@ def build_tree(work, exe_dir, suffix):
     (db / "BaseMob").mkdir()
     for i, cls in enumerate(BASE_CLASSES):
         (db / "BaseMob" / cls).write_bytes(synthetic_base_mob(i))
-    # O DBSrv grava ./account/<inicial>/<CONTA> e ./char/<inicial>/<NOME>, mas não cria os diretórios.
-    for kind in ("account", "char"):
-        for first in [chr(c) for c in range(ord("A"), ord("Z") + 1)] + ["etc"]:
-            (db / kind / first).mkdir(parents=True)
-    (common / "ImportUser").mkdir()
 
     shutil.copy(exe_dir / ("TMSrv" + suffix), tm)
     # O gameconfig.txt é o que o próprio TMSrv grava quando não o encontra (DrawConfig).
@@ -496,8 +499,6 @@ def wait_port(port, host, servers, timeout):
 
 def prepare(work, exe_dir):
     db_dir, tm_dir, game_host = build_tree(work, exe_dir, exe_suffix(exe_dir))
-    for d in (db_dir, tm_dir):
-        (d / "Log").mkdir()  # StartLog grava em .\\Log\\, que os servidores não criam
     return db_dir, tm_dir, game_host
 
 

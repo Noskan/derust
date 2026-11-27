@@ -98,7 +98,10 @@ jobs:
         env:
           ASAN_OPTIONS: detect_leaks=0
           UBSAN_OPTIONS: print_stacktrace=1
-        run: python3 tools/server_boot_smoke.py "$RUNNER_TEMP/linux-bin" --keep "$RUNNER_TEMP/server_boot_linux" --require-login
+        run: |
+          python3 tools/server_boot_smoke.py "$RUNNER_TEMP/linux-bin" --keep "$RUNNER_TEMP/server_boot_linux" --require-login
+          # A árvore do teste é a da produção: os nomes dos dados sintéticos batem com os que o código abre.
+          python3 tools/linux_deploy.py "$RUNNER_TEMP/server_boot_linux/boot" --check-only
 
       - name: Upload server boot logs on failure
         if: failure()
@@ -106,10 +109,10 @@ jobs:
         with:
           name: server-boot-logs
           path: |
-            ${{ runner.temp }}/server_boot/*/srv/*/Log/
-            ${{ runner.temp }}/server_boot/*/srv/*/wine.log
-            ${{ runner.temp }}/server_boot_linux/*/srv/*/Log/
-            ${{ runner.temp }}/server_boot_linux/*/srv/*/stderr.log
+            ${{ runner.temp }}/server_boot/*/*/Run/Log/
+            ${{ runner.temp }}/server_boot/*/*/Run/wine.log
+            ${{ runner.temp }}/server_boot_linux/*/*/Run/Log/
+            ${{ runner.temp }}/server_boot_linux/*/*/Run/stderr.log
           if-no-files-found: ignore
 
   linux-native:
@@ -120,14 +123,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # O build que vai para a hospedagem: DBSrv e TMSrv nativos, sem o cliente (DirectX 9).
-      - name: Configure and build (Release)
-        run: |
-          cmake -S . -B build/linux -DCMAKE_BUILD_TYPE=Release
-          cmake --build build/linux --parallel 4
+      # O build que vai para a hospedagem: DBSrv e TMSrv nativos, sem o cliente (DirectX 9). Os
+      # avisos acompanhados (os mesmos da checagem mingw) são comparados com a linha de base.
+      - name: Build (Release) and compare gcc warnings with the baseline
+        run: python3 tools/linux_warning_check.py --build-dir build/linux --jobs 4
 
       - name: Run unit tests
         run: ctest --test-dir build/linux --output-on-failure
+
+      # Monta a árvore de produção com os binários e confere as unidades do systemd geradas.
+      - name: Deploy tree and verify the systemd units
+        run: |
+          python3 tools/linux_deploy.py "$RUNNER_TEMP/deploy" --bin build/linux
+          systemd-analyze verify "$RUNNER_TEMP/deploy/systemd/w2-dbsrv.service" "$RUNNER_TEMP/deploy/systemd/w2-tmsrv.service"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -199,7 +207,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: server-boot-logs-${{ matrix.config }}
-          path: ${{ runner.temp }}/server_boot/*/srv/*/Log/
+          path: ${{ runner.temp }}/server_boot/*/*/Run/Log/
           if-no-files-found: ignore
 
       - name: Upload artifacts
