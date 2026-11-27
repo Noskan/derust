@@ -260,17 +260,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 32 && (unsigned char)pAttack->Motion == 254) // Renascimento
 		{
-			if (pAttacker && pAttacker->m_pFamiliar)
-			{
-				auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
-				if (pEffect)
-				{
-					pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-					pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
-					pEffect->SetColor(0xFFFFAA00);
-					m_pEffectContainer->AddChild(pEffect);
-				}
-			}
+			PacketAttack_Skill32FairyEffect(pAttacker);
 		}
 		else if (pAttack->SkillIndex == 36) // Tempestade de Meteoros
 		{
@@ -736,6 +726,23 @@ void TMFieldScene::PacketAttack_Skill34FairyEffect(TMHuman*& pAttacker)
 			pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
 			pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
 			pEffect->SetColor(0xFFAAEEFF);
+			m_pEffectContainer->AddChild(pEffect);
+		}
+	}
+}
+
+/// Efeitos da skill 32 (Renascimento) lançada pela fada (`Motion` 254).
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill32FairyEffect(TMHuman*& pAttacker)
+{
+	if (pAttacker && pAttacker->m_pFamiliar)
+	{
+		auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
+		if (pEffect)
+		{
+			pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+			pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
+			pEffect->SetColor(0xFFFFAA00);
 			m_pEffectContainer->AddChild(pEffect);
 		}
 	}
