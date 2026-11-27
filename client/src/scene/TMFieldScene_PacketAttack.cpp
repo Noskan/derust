@@ -264,35 +264,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 36) // Tempestade de Meteoros
 		{
-			if ((unsigned char)pAttack->Motion == 254 && pAttacker && pAttacker->m_pFamiliar)
-			{
-				auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
-				if (pEffect)
-				{
-					pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-					pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
-					pEffect->SetColor(0xFFAAEEFF);
-					m_pEffectContainer->AddChild(pEffect);
-				}
-			}
-
-			TMVector3 vecPos{};
-			if (pTarget)
-				vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
-			else
-			{
-				float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
-				vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fY, (float)pAttack->TargetY + 0.5f);
-			}
-
-			for (int i = 0; i < 6; i++)
-			{
-				auto pMeteor = new TMSkillMeteorStorm(TMVector3(0.0f, 0.0f, 0.0f), TMVector3(((float)(i % 3) * 0.3f) + vecPos.x,
-					vecPos.y, ((float)((i + 3) % 5) * 0.3f) + vecPos.z), 1, 0);
-
-				if (pMeteor && m_pEffectContainer)
-					m_pEffectContainer->AddChild(pMeteor);
-			}
+			PacketAttack_Skill36Effect(pAttack, pAttacker, pTarget);
 		}
 		// Nevoa Venenosa, Choque Divino, Ataque de Fogo, Toque Sagrado
 		else if (pAttack->SkillIndex == 41 || pAttack->SkillIndex == 29	|| pAttack->SkillIndex == 33 || pAttack->SkillIndex == 2)
@@ -745,6 +717,41 @@ void TMFieldScene::PacketAttack_Skill32FairyEffect(TMHuman*& pAttacker)
 			pEffect->SetColor(0xFFFFAA00);
 			m_pEffectContainer->AddChild(pEffect);
 		}
+	}
+}
+
+/// Efeitos da skill 36 (Tempestade de Meteoros) no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill36Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget)
+{
+	if ((unsigned char)pAttack->Motion == 254 && pAttacker && pAttacker->m_pFamiliar)
+	{
+		auto pEffect = new TMEffectBillBoard(1, 700, 0.1f, 0.1f, 0.1f, 0.002f, 1, 80);
+		if (pEffect)
+		{
+			pEffect->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+			pEffect->m_vecStartPos = TMVector3(pAttacker->m_pFamiliar->m_vecPosition.x, pAttacker->m_pFamiliar->m_fHeight + 0.1f, pAttacker->m_pFamiliar->m_vecPosition.y);
+			pEffect->SetColor(0xFFAAEEFF);
+			m_pEffectContainer->AddChild(pEffect);
+		}
+	}
+
+	TMVector3 vecPos{};
+	if (pTarget)
+		vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight, pTarget->m_vecPosition.y);
+	else
+	{
+		float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
+		vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fY, (float)pAttack->TargetY + 0.5f);
+	}
+
+	for (int i = 0; i < 6; i++)
+	{
+		auto pMeteor = new TMSkillMeteorStorm(TMVector3(0.0f, 0.0f, 0.0f), TMVector3(((float)(i % 3) * 0.3f) + vecPos.x,
+			vecPos.y, ((float)((i + 3) % 5) * 0.3f) + vecPos.z), 1, 0);
+
+		if (pMeteor && m_pEffectContainer)
+			m_pEffectContainer->AddChild(pMeteor);
 	}
 }
 
