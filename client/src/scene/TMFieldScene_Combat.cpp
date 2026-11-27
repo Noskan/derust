@@ -1922,87 +1922,7 @@ int TMFieldScene::MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int d
 					stAttack.Header.Type = MSG_Attack_Two_Opcode;
 					nSize = sizeof(MSG_AttackTwo);
 				}
-				if (pMobData->Class == 3 && pMobData->LearnedSkill[0] & 0x40)
-				{
-					int nDX = (int)pOver->m_vecPosition.x - (int)m_pMyHuman->m_vecPosition.x;
-					int nDY = (int)pOver->m_vecPosition.y - (int)m_pMyHuman->m_vecPosition.y;
-					if (nDX > 0)
-						nDX = 1;
-					else if (nDX < 0)
-						nDX = -1;
-					if (nDY > 0)
-						nDY = 1;
-					else if (nDY < 0)
-						nDY = -1;
-
-					int TX = nDX + (int)pOver->m_vecPosition.x;
-					int TY = nDY + (int)pOver->m_vecPosition.y;
-
-					auto pNode = (TMHuman*)m_pHumanContainer->m_pDown;
-
-					while (pNode->m_pNextLink != nullptr)
-					{
-						if (pNode == m_pMyHuman || pNode == pOver || (int)pNode->m_vecPosition.x != TX || (int)pNode->m_vecPosition.y != TY)
-						{
-							pNode = (TMHuman*)pNode->m_pNextLink;
-							continue;
-						}
-
-						if (pNode->m_dwID > 0 && pNode->m_dwID < 1000)
-						{
-							if (!pNode->IsInPKZone() && pNode->m_bParty == 1)
-							{
-								pNode = (TMHuman*)pNode->m_pNextLink;
-								continue;
-							}
-							if (!TMFieldScene::m_bPK && g_pObjectManager->m_usWarGuild != pNode->m_usGuild && !g_bCastleWar)
-							{
-								pNode = (TMHuman*)pNode->m_pNextLink;
-								continue;
-							}
-							if (!TMFieldScene::m_bPK && m_pMyHuman->m_cMantua > 0 && m_pMyHuman->m_cMantua == pNode->m_cMantua && g_bCastleWar > 0)
-							{
-								pNode = (TMHuman*)pNode->m_pNextLink;
-								continue;
-							}
-							if (!TMFieldScene::m_bPK && g_bCastleWar > 0 && m_pMyHuman->m_cMantua == 3
-								&& ((pNode->m_dwID > 0 && pNode->m_dwID < 1000) || pNode->m_cMantua > 0 && pNode->m_cMantua != 4))
-							{
-								pNode = (TMHuman*)pNode->m_pNextLink;
-								continue;
-							}
-							if (!TMFieldScene::m_bPK && g_bCastleWar > 0 && pNode->IsInCastleZone())
-							{
-								pNode = (TMHuman*)pNode->m_pNextLink;
-								continue;
-							}
-						}
-						else
-						{
-							if (!TMFieldScene::m_bPK && pNode->m_cSummons == 1 && (g_pObjectManager->m_usWarGuild != pNode->m_usGuild && pNode->m_usGuild)
-								|| !pNode->m_usGuild)
-							{
-								pNode = (TMHuman*)pNode->m_pNextLink;
-								continue;
-							}
-						}
-
-						stAttack.Dam[1].TargetID = pNode->m_dwID;
-						stAttack.Dam[1].Damage = -2;
-						break;
-					}
-
-					if (pMobData->LearnedSkill[0] & 0x200000 || stAttack.Dam[1].Damage == -2)
-					{
-						stAttack.Header.Type = MSG_Attack_Two_Opcode;
-						nSize = sizeof(MSG_AttackTwo);
-					}
-					else
-					{
-						stAttack.Header.Type = MSG_Attack_One_Opcode;
-						nSize = sizeof(MSG_AttackOne);
-					}
-				}
+				MobAttack_Class3Rule(pOver, pMobData, stAttack, nSize);
 
 				if (m_pMyHuman->m_bMoveing && (stAttack.SkillIndex == -1 || stAttack.SkillIndex == 104 || stAttack.SkillIndex > 150))
 				{
@@ -2214,6 +2134,93 @@ void TMFieldScene::MobAttack_WeaponSkill(STRUCT_MOB*& pMobData, MSG_Attack& stAt
 			stAttack.SkillParm = 0;
 		else if (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh == 879)
 			stAttack.SkillParm = 1;
+	}
+}
+
+/// Regra extra do ataque da classe 3 quando o bit 0x40 de `LearnedSkill[0]` está ligado.
+/// @note Extraído de `TMFieldScene::MobAttack` (Fase 3); locais passadas por referência.
+void TMFieldScene::MobAttack_Class3Rule(TMHuman*& pOver, STRUCT_MOB*& pMobData, MSG_Attack& stAttack, int& nSize)
+{
+	if (pMobData->Class == 3 && pMobData->LearnedSkill[0] & 0x40)
+	{
+		int nDX = (int)pOver->m_vecPosition.x - (int)m_pMyHuman->m_vecPosition.x;
+		int nDY = (int)pOver->m_vecPosition.y - (int)m_pMyHuman->m_vecPosition.y;
+		if (nDX > 0)
+			nDX = 1;
+		else if (nDX < 0)
+			nDX = -1;
+		if (nDY > 0)
+			nDY = 1;
+		else if (nDY < 0)
+			nDY = -1;
+
+		int TX = nDX + (int)pOver->m_vecPosition.x;
+		int TY = nDY + (int)pOver->m_vecPosition.y;
+
+		auto pNode = (TMHuman*)m_pHumanContainer->m_pDown;
+
+		while (pNode->m_pNextLink != nullptr)
+		{
+			if (pNode == m_pMyHuman || pNode == pOver || (int)pNode->m_vecPosition.x != TX || (int)pNode->m_vecPosition.y != TY)
+			{
+				pNode = (TMHuman*)pNode->m_pNextLink;
+				continue;
+			}
+
+			if (pNode->m_dwID > 0 && pNode->m_dwID < 1000)
+			{
+				if (!pNode->IsInPKZone() && pNode->m_bParty == 1)
+				{
+					pNode = (TMHuman*)pNode->m_pNextLink;
+					continue;
+				}
+				if (!TMFieldScene::m_bPK && g_pObjectManager->m_usWarGuild != pNode->m_usGuild && !g_bCastleWar)
+				{
+					pNode = (TMHuman*)pNode->m_pNextLink;
+					continue;
+				}
+				if (!TMFieldScene::m_bPK && m_pMyHuman->m_cMantua > 0 && m_pMyHuman->m_cMantua == pNode->m_cMantua && g_bCastleWar > 0)
+				{
+					pNode = (TMHuman*)pNode->m_pNextLink;
+					continue;
+				}
+				if (!TMFieldScene::m_bPK && g_bCastleWar > 0 && m_pMyHuman->m_cMantua == 3
+					&& ((pNode->m_dwID > 0 && pNode->m_dwID < 1000) || pNode->m_cMantua > 0 && pNode->m_cMantua != 4))
+				{
+					pNode = (TMHuman*)pNode->m_pNextLink;
+					continue;
+				}
+				if (!TMFieldScene::m_bPK && g_bCastleWar > 0 && pNode->IsInCastleZone())
+				{
+					pNode = (TMHuman*)pNode->m_pNextLink;
+					continue;
+				}
+			}
+			else
+			{
+				if (!TMFieldScene::m_bPK && pNode->m_cSummons == 1 && (g_pObjectManager->m_usWarGuild != pNode->m_usGuild && pNode->m_usGuild)
+					|| !pNode->m_usGuild)
+				{
+					pNode = (TMHuman*)pNode->m_pNextLink;
+					continue;
+				}
+			}
+
+			stAttack.Dam[1].TargetID = pNode->m_dwID;
+			stAttack.Dam[1].Damage = -2;
+			break;
+		}
+
+		if (pMobData->LearnedSkill[0] & 0x200000 || stAttack.Dam[1].Damage == -2)
+		{
+			stAttack.Header.Type = MSG_Attack_Two_Opcode;
+			nSize = sizeof(MSG_AttackTwo);
+		}
+		else
+		{
+			stAttack.Header.Type = MSG_Attack_One_Opcode;
+			nSize = sizeof(MSG_AttackOne);
+		}
 	}
 }
 
