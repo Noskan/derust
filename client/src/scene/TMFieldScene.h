@@ -400,6 +400,7 @@ private:
 	void PacketAttack_Skill109Effect(TMHuman*& pAttacker, TMHuman*& pTarget, float& fHeight);
 	void PacketAttack_Skill111Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker);
 	void PacketAttack_Skill113Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker);
+	void PacketAttack_Skill115Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker);
 	void PacketAttack_SwingEffect(MSG_Attack*& pAttack, TMHuman*& pAttacker);
 	void PacketAttack_PrepareEffectEvent(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget);
 	void PacketAttack_Skill41Targets(MSG_Attack*& pAttack, TMHuman*& pAttacker);
