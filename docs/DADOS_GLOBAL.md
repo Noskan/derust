@@ -63,5 +63,8 @@ o primeiro número.
   pressionado quando o quadro consulta o DirectInput (`EventTranslator`). Um clique instantâneo
   do `xdotool` se perde; um clique de 1,5 s funciona. Nas listas, o clique instantâneo funcionou
   na medição. Para testes, prefira o atalho `W2_AUTOLOGIN` (`client/src/core/TMAutoLogin.h`).
-- **Ainda não investigado:** o painel "Battlefield" aberto ao entrar no campo, textos "Classe" no
-  lugar de valores e as linhas "Invalide Item Class 0" no log.
+- **Resultado:** com os arquivos visuais crus do Global, a camada da ferramenta e a música ligada,
+  o cliente entra no campo, anda e segue estável (sem "CheckSum Error" nem falha de textura no log).
+- **Ainda não investigado:** o painel "Battlefield" aberto ao entrar no campo, que não fecha no
+  botão Fechar; textos "Classe" no lugar de valores; trechos de chão brancos; e as linhas
+  "Invalide Item Class 0" no log.
