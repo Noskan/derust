@@ -173,6 +173,10 @@ void Exec_MSG_GetItem(int conn, char *pMsg)
 		return;
 	}
 
+	// O cliente (OnPacketCNFGetItem) põe no inventário o item que vem na confirmação e, se for ouro
+	// (EF_VOLATILE 2), soma as moedas dele: guarda o item antes de ele ser limpo abaixo.
+	STRUCT_ITEM picked = *ditem;
+
 	int Vol = BASE_GetItemAbility(ditem, EF_VOLATILE);
 
 	if (Vol == 2)
@@ -236,6 +240,7 @@ void Exec_MSG_GetItem(int conn, char *pMsg)
 
 	cnfGet.DestPos = m->DestPos;
 	cnfGet.DestType = m->DestType;
+	cnfGet.Item = picked;
 
 	pUser[conn].cSock.AddMessage((char*)&cnfGet, sizeof(MSG_CNFGetItem));
 
