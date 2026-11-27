@@ -4,6 +4,31 @@
 #include "core/TMLog.h"
 #include <stdexcept>
 
+/// Le um arquivo de lista de textura no formato do WYD Global (registros de
+/// TEXTURE_LIST_RECORD_SIZE bytes) para `pList`, ate `nMax` registros. Devolve quantos leu, ou -1
+/// quando o arquivo nao abre. Os tempos de uso comecam zerados.
+static int ReadTextureListFile(const char* szPath, stTextureListInfo* pList, int nMax)
+{
+	FILE* fpBin = fopen(szPath, "rb");
+	if (!fpBin)
+		return -1;
+
+	memset(pList, 0, sizeof(stTextureListInfo) * nMax);
+
+	unsigned char byRecord[TEXTURE_LIST_RECORD_SIZE];
+	int nCount = 0;
+	while (nCount < nMax && fread(byRecord, sizeof(byRecord), 1, fpBin) == 1)
+	{
+		byRecord[TEXTURE_LIST_RECORD_NAME - 1] = 0;
+		strncpy(pList[nCount].szFileName, reinterpret_cast<char*>(byRecord), sizeof(pList[nCount].szFileName) - 1);
+		pList[nCount].cAlpha = static_cast<char>(byRecord[TEXTURE_LIST_RECORD_ALPHA]);
+		++nCount;
+	}
+
+	fclose(fpBin);
+	return nCount;
+}
+
 int TextureManager::DYNAMIC_TEXTURE_WIDTH = 256;
 int TextureManager::DYNAMIC_TEXTURE_HEIGHT = 256;
 
@@ -221,15 +246,11 @@ int TextureManager::InitUITextureList()
 	char szBin[128];
 	sprintf(szBin, "%s", TextureListNList_Path);
 
-	FILE* fpBin = fopen(szBin, "rb");
-	if (!fpBin)
+	if (ReadTextureListFile(szBin, m_stUITextureList, MAX_UI_TEXTURE) < 0)
 	{
 		LOG_WRITELOG("Cannot init UI Texture List\n");
 		return 0;
 	}
-
-	fread(m_stUITextureList, sizeof(m_stUITextureList), 1, fpBin);
-	fclose(fpBin);
 
 	return 1;
 }
@@ -411,7 +432,7 @@ int TextureManager::LoadUITexture(int nIndex, int nSrcIndex)
 
 IDirect3DTexture9* TextureManager::GetUITexture(int nIndex, DWORD showTime)
 {
-	if (nIndex < 0 || nIndex > MAX_UI_TEXTURE)
+	if (nIndex < 0 || nIndex >= MAX_UI_TEXTURE)
 		return nullptr;
 
 	if (m_ppUITexture[nIndex] != nullptr || LoadUITexture(nIndex, -1))
@@ -478,7 +499,7 @@ void TextureManager::ReleaseUITextureSetList()
 
 ControlTextureSet* TextureManager::GetUITextureSet(int nIndex)
 {
-	if (nIndex < 0 || nIndex > MAX_UI_TEXTURE_SET_LIST)
+	if (nIndex < 0 || nIndex >= MAX_UI_TEXTURE_SET_LIST)
 		return nullptr;
 
 	return &m_UITextureSetList[nIndex];
@@ -508,15 +529,11 @@ int TextureManager::InitEffectTextureList()
 	char szBin[128];
 	sprintf(szBin, "%s", EffectTextureList_Path);
 
-	FILE* fpBin = fopen(szBin, "rb");
-	if (!fpBin)
+	if (ReadTextureListFile(szBin, m_stEffectTextureList, MAX_EFFECT_TEXTURE) < 0)
 	{
 		LOG_WRITELOG("Cannot init Effect Textur List\n");
 		return 0;
 	}
-
-	fread(m_stEffectTextureList, sizeof(m_stEffectTextureList), 1, fpBin);
-	fclose(fpBin);
 
 	return 1;
 }
@@ -680,7 +697,7 @@ int TextureManager::LoadEffectTexture(int nIndex)
 
 IDirect3DTexture9* TextureManager::GetEffectTexture(int nIndex, DWORD showTime)
 {
-	if (nIndex < 0 || nIndex > MAX_EFFECT_TEXTURE)
+	if (nIndex < 0 || nIndex >= MAX_EFFECT_TEXTURE)
 		return nullptr;
 
 	if (m_ppEffectTexture[nIndex] != nullptr || LoadEffectTexture(nIndex))
@@ -718,15 +735,11 @@ int TextureManager::InitModelTextureList()
 	char szBin[128];
 	sprintf(szBin, "%s", MeshTextureList_Path);
 
-	FILE* fpBin = fopen(szBin, "rb");
-	if (!fpBin)
+	if (ReadTextureListFile(szBin, m_stModelTextureList, MAX_MODEL_TEXTURE) < 0)
 	{
 		LOG_WRITELOG("Cannot init model texture list \n");
 		return 0;
 	}
-
-	fread(m_stModelTextureList, sizeof(m_stModelTextureList), 1, fpBin);
-	fclose(fpBin);
 	return 1;
 }
 
@@ -905,7 +918,7 @@ int TextureManager::LoadModelTexture(int nIndex)
 
 int TextureManager::IsValidModelTexture(int nIndex)
 {
-	if (nIndex < 0 || nIndex > MAX_MODEL_TEXTURE)
+	if (nIndex < 0 || nIndex >= MAX_MODEL_TEXTURE)
 		return 0;
 
 	return m_ppModelTexture[nIndex] != nullptr;
@@ -913,7 +926,7 @@ int TextureManager::IsValidModelTexture(int nIndex)
 
 IDirect3DTexture9* TextureManager::GetModelTexture(int nIndex, DWORD showTime)
 {
-	if (nIndex < 0 || nIndex > MAX_MODEL_TEXTURE)
+	if (nIndex < 0 || nIndex >= MAX_MODEL_TEXTURE)
 		return nullptr;
 
 	if (m_ppModelTexture[nIndex] != nullptr || LoadModelTexture(nIndex))
@@ -941,7 +954,7 @@ IDirect3DTexture9* TextureManager::GetModelTexture(char* szTextureName, DWORD sh
 		}
 	}
 
-	if (nIndex < 0 || nIndex > MAX_MODEL_TEXTURE || !bFind)
+	if (nIndex < 0 || nIndex >= MAX_MODEL_TEXTURE || !bFind)
 		return nullptr;
 
 	if (m_ppModelTexture[nIndex] != nullptr || LoadModelTexture(nIndex))
@@ -983,15 +996,11 @@ int TextureManager::InitEnvTextureList()
 	char szBin[128];
 	sprintf(szBin, "%s", EnvTextureList_Path);
 
-	FILE* fpBin = fopen(szBin, "rb");
-	if (!fpBin)
+	if (ReadTextureListFile(szBin, m_stEnvTextureList, MAX_ENV_TEXTURE) < 0)
 	{
 		LOG_WRITELOG("Cannot init env texture list \n");
 		return 0;
 	}
-
-	fread(m_stEnvTextureList, sizeof(m_stEnvTextureList), 1, fpBin);
-	fclose(fpBin);
 	return 1;
 }
 
@@ -1155,7 +1164,7 @@ int TextureManager::LoadEnvTexture(int nIndex)
 
 IDirect3DTexture9* TextureManager::GetEnvTexture(int nIndex, DWORD showTime)
 {
-	if (nIndex < 0 || nIndex > MAX_ENV_TEXTURE)
+	if (nIndex < 0 || nIndex >= MAX_ENV_TEXTURE)
 		return nullptr;
 
 	if (m_ppEnvTexture[nIndex] != nullptr || LoadEnvTexture(nIndex))
@@ -1178,7 +1187,7 @@ int TextureManager::InitDynamicTextureList()
 
 int TextureManager::IsValidDynamicTexture(int nIndex)
 {
-	if (nIndex < 0 || nIndex > MAX_DYNAMIC_TEXTURE)
+	if (nIndex < 0 || nIndex >= MAX_DYNAMIC_TEXTURE)
 		return 0;
 
 	return m_ppDynamicTexture[nIndex] != nullptr;
@@ -1383,7 +1392,7 @@ int TextureManager::GenerateTexture(int nDestUIIndex, int nSrcUIIndex, int nDest
 
 IDirect3DTexture9* TextureManager::GetDynamicTexture(int nIndex)
 {
-	if (nIndex < 0 || nIndex > MAX_DYNAMIC_TEXTURE)
+	if (nIndex < 0 || nIndex >= MAX_DYNAMIC_TEXTURE)
 		return nullptr;
 
 	if (m_ppDynamicTexture[nIndex] != nullptr)
@@ -1398,7 +1407,7 @@ IDirect3DTexture9* TextureManager::GetDynamicTexture(int nIndex)
 
 int TextureManager::LoadGuildTexture(int nIndex, char* szMarkBuffer)
 {
-	if (nIndex < 0 || nIndex > MAX_GUILD_MARK)
+	if (nIndex < 0 || nIndex >= MAX_GUILD_MARK)
 		return 0;
 
 	if (!szMarkBuffer || m_stGuildMark[nIndex].pTexture)

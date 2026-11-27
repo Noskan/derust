@@ -1,10 +1,20 @@
 #pragma once
 
 constexpr auto MAX_UI_TEXTURE_SET_LIST = 600;
+// Quantidades das listas de textura do WYD Global (patch 749), cujos arquivos o cliente lê direto
+// (modelo hibrido: recursos visuais no formato do Global, protocolo e tabelas do servidor no 7662).
+// No 7662 eram 512, 512, 2048 e 512.
 constexpr auto MAX_UI_TEXTURE = 512;
-constexpr auto MAX_EFFECT_TEXTURE = 512;
-constexpr auto MAX_MODEL_TEXTURE = 2048;
-constexpr auto MAX_ENV_TEXTURE = 512;
+constexpr auto MAX_EFFECT_TEXTURE = 600;
+constexpr auto MAX_MODEL_TEXTURE = 3048;
+constexpr auto MAX_ENV_TEXTURE = 2048;
+
+// Registro dos arquivos de lista de textura do Global (UITextureListN.bin, EffectTextureList.bin,
+// MeshTextureList.bin, EnvTextureList3.bin): o nome ocupa os primeiros 510 bytes e o caractere de
+// alfa fica no byte 510. O 7662 usava o proprio stTextureListInfo (264 bytes) no arquivo.
+constexpr auto TEXTURE_LIST_RECORD_SIZE = 528;
+constexpr auto TEXTURE_LIST_RECORD_NAME = 510;
+constexpr auto TEXTURE_LIST_RECORD_ALPHA = 510;
 constexpr auto MAX_DYNAMIC_TEXTURE = 72;
 
 constexpr auto MAX_GUILD_MARK = 64;
@@ -105,14 +115,14 @@ public:
 	int m_nOldShadowY;
 	unsigned int m_LastLoadTime;
 	ControlTextureSet m_UITextureSetList[600];
-	stTextureListInfo m_stUITextureList[512];
-	stTextureListInfo m_stEffectTextureList[512];
-	stTextureListInfo m_stModelTextureList[2048];
-	stTextureListInfo m_stEnvTextureList[512];
-	IDirect3DTexture9* m_ppUITexture[512];
-	IDirect3DTexture9* m_ppEffectTexture[512];
-	IDirect3DTexture9* m_ppModelTexture[2048];
-	IDirect3DTexture9* m_ppEnvTexture[512];
+	stTextureListInfo m_stUITextureList[MAX_UI_TEXTURE];
+	stTextureListInfo m_stEffectTextureList[MAX_EFFECT_TEXTURE];
+	stTextureListInfo m_stModelTextureList[MAX_MODEL_TEXTURE];
+	stTextureListInfo m_stEnvTextureList[MAX_ENV_TEXTURE];
+	IDirect3DTexture9* m_ppUITexture[MAX_UI_TEXTURE];
+	IDirect3DTexture9* m_ppEffectTexture[MAX_EFFECT_TEXTURE];
+	IDirect3DTexture9* m_ppModelTexture[MAX_MODEL_TEXTURE];
+	IDirect3DTexture9* m_ppEnvTexture[MAX_ENV_TEXTURE];
 	IDirect3DTexture9* m_ppDynamicTexture[72];
 	unsigned int m_dwDynamicLastUsedTime[72];
 	IDirect3DTexture9* m_pAccumTexture;

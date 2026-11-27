@@ -31,7 +31,8 @@ struct stBoneAni
 	LPD3DXQUATERNION matQuaternion; // 0x0ED9860
 };
 
-constexpr auto MAX_COMMON_MESH = 3048;
+// O MeshList.txt do WYD Global vai ate o indice 3148 (no 7662 eram 3048 entradas).
+constexpr auto MAX_COMMON_MESH = 4096;
 constexpr auto MAX_SKIN_MESH_LIST = 1024;
 constexpr auto MAX_BONE_ANIMATION_LIST = 100;
 
@@ -39,7 +40,8 @@ constexpr auto MAX_ANI_CLASS = 6;
 constexpr auto MAX_ANI_TYPE = 60;
 constexpr auto MAX_ANI_MOTION = 56;
 
-constexpr auto MAX_OBJECT_MASK = 2048;
+// O object.bin do WYD Global tem 4096 mascaras, com a mesma cifra e a mesma soma (no 7662, 2048).
+constexpr auto MAX_OBJECT_MASK = 4096;
 constexpr auto MAX_MASK_X = 16;
 constexpr auto MAX_MASK_Y = 16;
 

@@ -59,9 +59,15 @@ int MeshManager::InitMeshManager()
 	int nIndex = 0;
 	char szMeshName[255]{};
 
-	while (fscanf(fp, "%d %s\r\n", &nIndex, szMeshName) != -1)
+	while (fscanf(fp, "%d %254s\r\n", &nIndex, szMeshName) != -1)
 	{
-		sprintf(m_stCommonMesh[nIndex].szFileName, "%s", szMeshName);
+		if (nIndex < 0 || nIndex >= MAX_COMMON_MESH)
+		{
+			LOG_WRITELOG("MeshList: indice %d fora da tabela (%s)\r\n", nIndex, szMeshName);
+			continue;
+		}
+
+		snprintf(m_stCommonMesh[nIndex].szFileName, sizeof(m_stCommonMesh[nIndex].szFileName), "%s", szMeshName);
 	}
 
 	fclose(fp);

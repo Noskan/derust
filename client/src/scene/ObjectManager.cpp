@@ -14,6 +14,7 @@
 #include "scene/TMDemoScene.h"
 #include "render/TMMesh.h"
 #include "entities/TMItem.h"
+#include "core/TMLog.h"
 
 ObjectManager::ObjectManager()
 {
@@ -917,9 +918,28 @@ void ObjectManager::InitCurseList()
 	if (fpBin == nullptr)
 		return;
 
+	fseek(fpBin, 0, SEEK_END);
+	long nFileSize = ftell(fpBin);
+	fseek(fpBin, 0, SEEK_SET);
+
+	g_pCurseList.dnum = 0;
 	fread(&g_pCurseList.dnum, 4, 1, fpBin);
 
-	g_pCurseList.pCurseList = new stCurse[g_pCurseList.dnum * sizeof(stCurse)];
+	// Cada entrada consome dois blocos de sizeof(stCurse) no laço abaixo. Uma contagem que não cabe
+	// no arquivo (o curse.bin do WYD Global tem outro formato, sem contagem) faria o new[] estourar
+	// e derrubar o cliente: a lista fica vazia.
+	if (g_pCurseList.dnum == 0 || nFileSize < 4
+		|| g_pCurseList.dnum - 1 > static_cast<unsigned int>(nFileSize - 4) / (2 * sizeof(stCurse)))
+	{
+		LOG_WRITELOG("curse.bin: contagem %u nao cabe no arquivo de %ld bytes; lista vazia\r\n",
+			g_pCurseList.dnum, nFileSize);
+		g_pCurseList.dnum = 0;
+		g_pCurseList.pCurseList = nullptr;
+		fclose(fpBin);
+		return;
+	}
+
+	g_pCurseList.pCurseList = new stCurse[g_pCurseList.dnum * sizeof(stCurse)]();
 	for (size_t i = 0; i < g_pCurseList.dnum - 1; ++i)
 	{
 		fread(&g_pCurseList.pCurseList[i], sizeof(stCurse), 1, fpBin);

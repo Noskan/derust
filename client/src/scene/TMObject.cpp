@@ -606,7 +606,7 @@ int TMObject::IsInView()
 
 int TMObject::RegisterMask(TMGround* pGround, float fX, float fY)
 {
-	if (!pGround)
+	if (!pGround || m_nMaskIndex < 0 || m_nMaskIndex >= MAX_OBJECT_MASK)
 		return 0;
 
 	char cTempMask[16][16];
