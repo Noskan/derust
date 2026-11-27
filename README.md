@@ -19,7 +19,9 @@ Monorepo unificando o servidor (**W2PP**) e o cliente (**TMProject**) do *With Y
 - [`tools/check_boundaries.py`](tools/check_boundaries.py) — Verificador automático de fronteiras de dependência entre módulos.
 - [`tests/`](tests/CMakeLists.txt) — Suíte de testes unitários CTest (`w2pp_common_tests`) para funções puras e layout binário do servidor.
 
-## Build (Windows Win32 / MSVC)
+## Build do cliente (Windows Win32 / MSVC)
+
+No Windows o build é só o do cliente: `TMProject`, o `ClientPatch_v7662` (com `-DW2PP_BUILD_CLIENT_PATCH=ON`), o `LoginClient` e os testes do cliente. Os servidores são só Linux.
 
 ```powershell
 # Configurar (Visual Studio 2022 Win32)
@@ -61,20 +63,22 @@ Para verificar localmente as fronteiras de `#include`:
 python3 tools/check_boundaries.py
 ```
 
-Checagem cruzada com mingw-w64 i686 no Linux. Ela compila todas as TUs (`-O2`, ponto flutuante SSE2 como o MSVC), linka o DBSrv e o TMSrv, roda os testes de `tests/` no wine e compara os avisos do GCC acompanhados com a linha de base da versão do compilador (`tools/mingw_warning_baseline-gcc<N>.txt`). As TUs que ainda só compilam no MSVC ficam em [`tools/mingw_known_failures.txt`](tools/mingw_known_failures.txt).
+Checagem cruzada do cliente com mingw-w64 i686 no Linux. Ela compila todas as TUs do cliente (`-O2`, ponto flutuante SSE2 como o MSVC), linka o `LoginClient.exe`, roda os testes do cliente no wine e compara os avisos do GCC acompanhados com a linha de base da versão do compilador (`tools/mingw_warning_baseline-gcc<N>.txt`). As TUs que ainda só compilam no MSVC ficam em [`tools/mingw_known_failures.txt`](tools/mingw_known_failures.txt).
 
 ```bash
-sudo apt install g++-mingw-w64-i686 wine xvfb   # wine32 para os testes; xvfb para o teste de partida
+sudo apt install g++-mingw-w64-i686 wine xvfb   # wine32 para os testes e o LoginClient; xvfb para o teste de partida
 python3 tools/mingw_check.py --keep build/mingw
-python3 tools/server_boot_smoke.py build/mingw   # sobe DBSrv + TMSrv no wine com dados sintéticos
+# teste de partida: servidores do build Linux e o LoginClient.exe no mesmo diretório
+mkdir -p build/bin && cp build/linux/server/dbsrv/DBSrv build/linux/server/tmsrv/TMSrv build/mingw/LoginClient.exe build/bin/
+python3 tools/server_boot_smoke.py build/bin --require-login
 python3 tools/mingw_check.py --update-warning-baseline   # após remover ou justificar avisos
 ```
 
-Testes (CTest no MSVC; no wine pelo `mingw_check`):
+Testes (CTest no Linux para os do servidor e no MSVC para o do cliente, que roda também no wine pelo `mingw_check`):
 - [`w2pp_common_tests`](tests/w2pp_common_tests.cpp): casos unitários e travas de ABI.
 - [`w2pp_characterization_tests`](tests/w2pp_characterization_tests.cpp): hashes de referência de ~40 funções `BASE_*` com dados sintéticos, sem arquivos do jogo. Os hashes foram gerados com o código da tag `pre-modularization` e conferem com o atual. Após uma mudança **intencional** de regra, regrave com `w2pp_characterization_tests --print`.
 - [`tmproject_characterization_tests`](tests/tmproject_characterization_tests.cpp): o mesmo para ~55 funções `BASE_*` do cliente (`client/src/common`). Regrave com `tmproject_characterization_tests --print`.
-- [`server_boot_smoke.py`](tools/server_boot_smoke.py): sobe o DBSrv e o TMSrv com uma árvore de dados sintética (sem arquivos do jogo): no CI, o build mingw no wine e os builds MSVC Debug/Release nativos no Windows. No Windows: `python tools/server_boot_smoke.py <dir com DBSrv.exe e TMSrv.exe>`. Confere que o TMSrv conecta no DBSrv, que as portas 7514/8895/8281 aceitam conexão e que os dois seguem no ar sem MessageBox nem exceção. Com o `LoginClient.exe` ([`tools/login_client`](tools/login_client/LoginClient.cpp), montado com o `CPSock` e as structs do cliente) no mesmo diretório, faz também o login e uma sessão curta de jogo de ponta a ponta: cria duas contas pelo `ImportUser` do DBSrv, entra, define a senha numérica, cria e apaga personagens e entra no jogo com os dois; depois confere que um vê o outro, chat, movimento (inclusive para uma casa ocupada), soltar e pegar item, troca de posição com e sem bolsa, uso de poção e a volta do personagem com o inventário gravado, cada resposta no layout do cliente (o CI exige isso com `--require-login`). Não cobre combate, troca entre jogadores, lojas nem NPCs.
+- [`server_boot_smoke.py`](tools/server_boot_smoke.py): sobe o DBSrv e o TMSrv do build Linux com uma árvore de dados sintética (sem arquivos do jogo); no CI, o build com AddressSanitizer e UBSan. Confere que o TMSrv conecta no DBSrv, que as portas 7514/8895/8281 aceitam conexão e que os dois seguem no ar sem MessageBox nem exceção. Com o `LoginClient.exe` ([`tools/login_client`](tools/login_client/LoginClient.cpp), montado com o `CPSock` e as structs do cliente) no mesmo diretório, faz também o login e uma sessão curta de jogo de ponta a ponta: cria duas contas pelo `ImportUser` do DBSrv, entra, define a senha numérica, cria e apaga personagens e entra no jogo com os dois; depois confere que um vê o outro, chat, movimento (inclusive para uma casa ocupada), soltar e pegar item, troca de posição com e sem bolsa, uso de poção e a volta do personagem com o inventário gravado, cada resposta no layout do cliente (o CI exige isso com `--require-login`). Não cobre combate, troca entre jogadores, lojas nem NPCs.
 
 Bugs latentes do código legado encontrados por essas ferramentas, os mantidos por paridade e os já corrigidos (cada um com teste): [`docs/BUGS_LATENTES.md`](docs/BUGS_LATENTES.md).
 

@@ -24,16 +24,3 @@
 2 shadow client/src/ui/SGrid_Input.cpp
 1 shadow client/src/ui/SGrid_Tooltip.cpp
 4 shadow client/src/world/TMGround_Render.cpp
-1 shadow server/common/BaseCombat.cpp
-1 shadow server/common/BaseLoaders.cpp
-12 shadow server/dbsrv/core/CReadFiles.cpp
-1 shadow server/dbsrv/core/Server.cpp
-2 shadow server/dbsrv/core/Server_Admin.cpp
-2 shadow server/dbsrv/core/Server_Config.cpp
-1 shadow server/dbsrv/persistence/CFileDB_AccountPackets.cpp
-1 shadow server/tmsrv/entities/CUser.cpp
-4 shadow server/tmsrv/handlers/combat/_MSG_Attack.cpp
-2 shadow server/tmsrv/net/GetFunc.cpp
-2 shadow server/tmsrv/systems/CCastleZakum.cpp
-1 shadow server/tmsrv/systems/MobKilled_Drops.cpp
-1 shadow server/tmsrv/systems/imple.cpp

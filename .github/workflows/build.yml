@@ -1,4 +1,4 @@
-name: Build (Windows Win32 MSVC, Linux x86_64)
+name: Build (Linux x86_64 servers, Windows Win32 client)
 
 on:
   push:
@@ -67,17 +67,11 @@ jobs:
           i686-w64-mingw32-g++ --version | head -n1
           wine --version
 
-      - name: Cross-compile all TUs, link DBSrv/TMSrv and run the tests under wine
+      - name: Cross-compile the client, link LoginClient and run the client tests under wine
         env:
           WINEDEBUG: -all
           WINEPREFIX: ${{ runner.temp }}/wineprefix
         run: python3 tools/mingw_check.py --jobs 4 --keep "$RUNNER_TEMP/mingw"
-
-      # Sobe DBSrv e TMSrv com dados sintéticos (prefixo do wine e Xvfb próprios) e faz o login
-      # e uma sessão curta de jogo de ponta a ponta com o LoginClient (fontes do cliente).
-      - name: Boot DBSrv + TMSrv and log in under wine (synthetic data)
-        timeout-minutes: 10
-        run: python3 tools/server_boot_smoke.py "$RUNNER_TEMP/mingw" --keep "$RUNNER_TEMP/server_boot" --require-login
 
       # Servidores Linux nativos (server/compat) com AddressSanitizer e UBSan, que abortam no
       # primeiro erro: os testes e o mesmo teste de jogo, com o LoginClient.exe acima (um cliente
@@ -113,8 +107,6 @@ jobs:
         with:
           name: server-boot-logs
           path: |
-            ${{ runner.temp }}/server_boot/*/*/Run/Log/
-            ${{ runner.temp }}/server_boot/*/*/Run/wine.log
             ${{ runner.temp }}/server_boot_linux/*/*/Run/Log/
             ${{ runner.temp }}/server_boot_linux/*/*/Run/stderr.log
           if-no-files-found: ignore
@@ -149,8 +141,10 @@ jobs:
             build/linux/server/dbsrv/DBSrv
             build/linux/server/tmsrv/TMSrv
 
+  # Só o cliente: TMProject, o patch do cliente, os testes do cliente e o LoginClient. Os
+  # servidores são só Linux (jobs linux-native e mingw-check).
   build-windows:
-    name: MSVC Win32 (${{ matrix.config }})
+    name: MSVC Win32 client (${{ matrix.config }})
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -167,7 +161,7 @@ jobs:
       - name: Build targets (${{ matrix.config }})
         shell: pwsh
         run: |
-          $targets = @("w2pp_common", "DBSrv", "TMSrv", "ClientPatch_v7662", "TMProject", "w2pp_common_tests", "w2pp_characterization_tests", "tmproject_characterization_tests", "LoginClient")
+          $targets = @("ClientPatch_v7662", "TMProject", "tmproject_characterization_tests", "LoginClient")
           $failed = @()
           foreach ($t in $targets) {
             Write-Host "=== Building $t (${{ matrix.config }}) ==="
@@ -200,19 +194,6 @@ jobs:
             Where-Object { $_.DirectoryName -match "\\${{ matrix.config }}$" -and $_.FullName -notmatch "\\CMakeFiles\\" -and $_.Name -notmatch "_tests\.exe$" } |
             Copy-Item -Destination dist/${{ matrix.config }} -Force
           Get-ChildItem dist/${{ matrix.config }}
-
-      # Mesmo teste de partida do job mingw, agora com os binários MSVC, nativos.
-      - name: Boot DBSrv + TMSrv and log in (${{ matrix.config }}, synthetic data)
-        timeout-minutes: 10
-        run: python tools/server_boot_smoke.py dist/${{ matrix.config }} --keep "${{ runner.temp }}/server_boot" --require-login
-
-      - name: Upload server boot logs on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: server-boot-logs-${{ matrix.config }}
-          path: ${{ runner.temp }}/server_boot/*/*/Run/Log/
-          if-no-files-found: ignore
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

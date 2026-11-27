@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Teste de partida dos servidores (DBSrv + TMSrv), no wine ou no Windows, com dados sintéticos.
+"""Teste de partida dos servidores Linux (DBSrv + TMSrv), com dados sintéticos.
 
 Não usa dados do jogo: monta uma árvore mínima com arquivos gerados aqui (listas vazias,
 mapas zerados, um itemlist.csv com alguns itens) e o `server/common/ItemEffect.h` do
@@ -32,20 +32,14 @@ Não cobre combate, troca entre jogadores, lojas nem NPCs (o mundo sintético n�
 Antes, um autoteste sobe o DBSrv sem o SkillData.csv e exige que a MessageBox seja vista:
 garante que o detector funciona na plataforma em uso (desligue com --no-self-test).
 
-Plataformas:
-  - Linux nativo (o diretório tem DBSrv e TMSrv ELF, do build CMake no Linux): executa os
-    binários direto, e manda os comandos do menu da janela pelo FIFO de controle
-    (`control.fifo`), conferindo o eco de cada um. A MessageBox da camada server/compat escreve "[título] texto" no stderr,
-    que vai para <dir>/stderr.log; o encerramento é por SIGTERM, que a camada transforma em
-    WM_CLOSE. O LoginClient.exe continua rodando no wine: é um cliente Windows contra
-    servidores Linux.
-  - Linux com os .exe: wine (32 bits) e Xvfb, porque as janelas dos servidores pedem um display e o driver
-    `null` do wine não serve para isso em todas as versões. Usa um prefixo do wine próprio,
-    dentro do diretório de trabalho, para ligar o canal relay sem mexer no do usuário.
-  - Windows: executa os .exe direto (é como o CI testa os builds MSVC). As MessageBox são lidas
-    das janelas de diálogo do processo; exceções encerram o processo (sem janela do WER).
+Os servidores são os binários ELF do build CMake no Linux, executados direto. Os comandos do
+menu da janela vão pelo FIFO de controle (`control.fifo`), conferindo o eco de cada um. A
+MessageBox da camada server/compat escreve "[título] texto" no stderr, que vai para
+<dir>/stderr.log; o encerramento é por SIGTERM, que a camada transforma em WM_CLOSE. O
+LoginClient.exe roda no wine (32 bits, num prefixo próprio, dentro do diretório de trabalho, e
+num Xvfb próprio): é um cliente Windows contra servidores Linux.
 
-Uso: python3 tools/server_boot_smoke.py <dir com DBSrv e TMSrv (.exe ou ELF)> [--keep DIR] [--settle S]
+Uso: python3 tools/server_boot_smoke.py <dir com DBSrv e TMSrv> [--keep DIR] [--settle S]
        [--login-client EXE] [--require-login]
 """
 
@@ -151,7 +145,7 @@ def local_ips():
     return ips or ["127.0.0.1"]
 
 
-def build_tree(work, exe_dir, suffix):
+def build_tree(work, exe_dir):
     """Monta a árvore da produção, <work>/{Common,DBSRV/Run,TMSRV/Run} (os servidores abrem
     ../../Common e ../../<outro>/Run), com os diretórios de gravação de tools/linux_deploy.py."""
     common = work / "Common"
@@ -175,14 +169,14 @@ def build_tree(work, exe_dir, suffix):
                  "Settings/MobMerc.txt", "Settings/CastleQuest.txt"):
         zero_file(common / name, 0)
 
-    shutil.copy(exe_dir / ("DBSrv" + suffix), db)
+    shutil.copy(exe_dir / "DBSrv", db)
     (db / "Config.txt").write_text("Sapphire 8\nLastCapsule 0\n")
     zero_file(db / "AttributeMap.dat", 1024 * 1024)
     (db / "BaseMob").mkdir()
     for i, cls in enumerate(BASE_CLASSES):
         (db / "BaseMob" / cls).write_bytes(synthetic_base_mob(i))
 
-    shutil.copy(exe_dir / ("TMSrv" + suffix), tm)
+    shutil.copy(exe_dir / "TMSrv", tm)
     # O gameconfig.txt é o que o próprio TMSrv grava quando não o encontra (DrawConfig).
     # Com DropItem 1, para o teste de jogo soltar item no chão.
     config = (DATA / "gameconfig.txt").read_text()
@@ -211,31 +205,6 @@ def start_xvfb():
     return proc, ":" + num
 
 
-def unescape(s):
-    """Desfaz os escapes \\xNN do relay; os textos do fonte são UTF-8 (alguns, CP949 antigo)."""
-    raw = re.sub(r"\\x([0-9a-fA-F]{2})", lambda m: chr(int(m.group(1), 16)), s).encode("latin-1", "replace")
-    try:
-        return raw.decode("utf-8")
-    except UnicodeDecodeError:
-        return raw.decode("latin-1")
-
-
-def wine_log_problems(name, log):
-    """MessageBox (texto pelo relay; o wine escapa bytes fora do ASCII) e exceções não tratadas.
-    Numa exceção o wine abre o depurador e o processo fica pendurado em vez de terminar, então
-    "processo vivo" sozinho não prova nada: a linha "wine: Unhandled ..." é que denuncia."""
-    if not log.exists():
-        return []
-    out = []
-    for line in log.read_text("latin-1").splitlines():
-        if "Call user32.MessageBox" in line:
-            strs = [unescape(s) for s in re.findall(r'"((?:[^"\\]|\\.)*)"', line)]
-            out.append(f'{name}: MessageBox "{" / ".join(strs) if strs else line.strip()}"')
-        elif line.startswith("wine: Unhandled"):
-            out.append(f"{name}: {line.strip()}")
-    return out
-
-
 def server_log(directory):
     """Conteúdo do log do servidor (.\\Log\\*.txt), em latin-1."""
     return "".join(f.read_text("latin-1") for f in sorted((directory / "Log").glob("*.txt")))
@@ -250,8 +219,7 @@ def port_open(port, host="127.0.0.1"):
 
 
 class WineHost:
-    """Linux: wine 32 bits num prefixo próprio, num Xvfb próprio. As MessageBox saem pelo canal
-    relay (só MessageBoxA/W) no stderr do wine, que vai para <dir>/wine.log."""
+    """wine 32 bits num prefixo próprio, num Xvfb próprio, para o LoginClient.exe."""
 
     def __init__(self, work):
         for tool in ("wine", "wineserver", "wineboot", "Xvfb"):
@@ -263,136 +231,17 @@ class WineHost:
         self.env.pop("WAYLAND_DISPLAY", None)
         quiet = dict(self.env, WINEDEBUG="-all")
         subprocess.run(["wineboot", "-i"], env=quiet, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=300)
-        subprocess.run(["wine", "reg", "add", r"HKCU\Software\Wine\Debug", "/v", "RelayInclude",
-                        "/d", "user32.MessageBoxA;user32.MessageBoxW", "/f"],
-                       env=quiet, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True, timeout=120)
         subprocess.run(["wineserver", "-w"], env=quiet, timeout=120)
-        self.relay = dict(self.env, WINEDEBUG="-all,+relay")
-
-    def start(self, name, cwd):
-        log = cwd / "wine.log"
-        proc = subprocess.Popen(["wine", name + ".exe"], cwd=cwd, env=self.relay,
-                                stdout=subprocess.DEVNULL, stderr=open(log, "wb"))
-        return Server(self, name, proc, log)
-
-    def problems(self, server):
-        return wine_log_problems(server.name, server.log)
 
     def run(self, exe, args, cwd, timeout):
         quiet = dict(self.env, WINEDEBUG="-all")
         return subprocess.run(["wine", str(exe), *args], cwd=cwd, env=quiet, capture_output=True,
                               text=True, errors="replace", timeout=timeout)
 
-    def stop(self, servers, graceful=False):
-        # O msvcrt do wine já deixa o log em disco; matar o prefixo basta.
-        subprocess.run(["wineserver", "-k"], env=self.env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        for s in servers:
-            try:
-                s.proc.wait(timeout=20)
-            except subprocess.TimeoutExpired:
-                s.proc.kill()
-        return []
-
     def close(self):
+        subprocess.run(["wineserver", "-k"], env=self.env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         self.xvfb.send_signal(signal.SIGTERM)
         self.xvfb.wait(timeout=20)
-
-
-class NativeHost:
-    """Windows: executa os .exe direto. Uma MessageBox (e a caixa de asserção do CRT de Debug)
-    é uma janela de diálogo de classe #32770 do processo; o texto está no controle 0xFFFF.
-    SetErrorMode(SEM_NOGPFAULTERRORBOX), herdado pelos filhos, faz uma exceção não tratada
-    encerrar o processo (com o código da exceção) em vez de abrir a janela do WER."""
-
-    def __init__(self, work):
-        import ctypes
-        from ctypes import wintypes
-        self.ctypes, self.wintypes = ctypes, wintypes
-        ctypes.windll.kernel32.SetErrorMode(0x0001 | 0x0002 | 0x8000)  # FAILCRITICAL | NOGPFAULTERRORBOX | NOOPENFILEERRORBOX
-        u = ctypes.WinDLL("user32", use_last_error=True)
-        self.WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
-        u.EnumWindows.argtypes = [self.WNDENUMPROC, wintypes.LPARAM]
-        u.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
-        u.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
-        u.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
-        u.GetDlgItemTextW.argtypes = [wintypes.HWND, ctypes.c_int, wintypes.LPWSTR, ctypes.c_int]
-        u.GetWindowThreadProcessId.restype = wintypes.DWORD
-        u.PostThreadMessageW.argtypes = [wintypes.DWORD, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
-        self.user32 = u
-
-    def start(self, name, cwd):
-        proc = subprocess.Popen([str(cwd / (name + ".exe"))], cwd=cwd,
-                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        return Server(self, name, proc, None)
-
-    def windows(self, pid):
-        """(hwnd, thread id, classe) das janelas de topo do processo."""
-        ctypes, wintypes, u = self.ctypes, self.wintypes, self.user32
-        out = []
-
-        def cb(hwnd, _):
-            owner = wintypes.DWORD()
-            tid = u.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
-            if owner.value == pid:
-                cls = ctypes.create_unicode_buffer(64)
-                u.GetClassNameW(hwnd, cls, 64)
-                out.append((hwnd, tid, cls.value))
-            return True
-
-        u.EnumWindows(self.WNDENUMPROC(cb), 0)
-        return out
-
-    def dialogs(self, pid):
-        ctypes, wintypes, u = self.ctypes, self.wintypes, self.user32
-        found = []
-
-        def cb(hwnd, _):
-            owner = wintypes.DWORD()
-            u.GetWindowThreadProcessId(hwnd, ctypes.byref(owner))
-            if owner.value == pid:
-                cls = ctypes.create_unicode_buffer(64)
-                u.GetClassNameW(hwnd, cls, 64)
-                if cls.value == "#32770":
-                    cap = ctypes.create_unicode_buffer(512)
-                    txt = ctypes.create_unicode_buffer(4096)
-                    u.GetWindowTextW(hwnd, cap, 512)
-                    u.GetDlgItemTextW(hwnd, 0xFFFF, txt, 4096)
-                    found.append(" / ".join(s for s in (txt.value.replace("\r\n", " ").strip(), cap.value) if s))
-            return True
-
-        u.EnumWindows(self.WNDENUMPROC(cb), 0)
-        return found
-
-    def problems(self, server):
-        return [f'{server.name}: MessageBox "{d}"' for d in self.dialogs(server.proc.pid)]
-
-    def run(self, exe, args, cwd, timeout):
-        return subprocess.run([str(exe), *args], cwd=cwd, capture_output=True, text=True,
-                              errors="replace", timeout=timeout)
-
-    def stop(self, servers, graceful=False):
-        """graceful: WM_QUIT na thread das janelas. O GetMessage do WinMain devolve 0 e a saída
-        normal do CRT grava os logs (o Log() não faz fflush; matando o processo eles se perdem).
-        O WM_CLOSE não serve: os dois servidores pedem confirmação numa MessageBox."""
-        problems = []
-        for s in reversed(servers):
-            if graceful and s.proc.poll() is None:
-                tids = {tid for _, tid, cls in self.windows(s.proc.pid) if cls != "#32770"}
-                for tid in tids:
-                    self.user32.PostThreadMessageW(tid, 0x0012, 0, 0)  # WM_QUIT
-                try:
-                    code = s.proc.wait(timeout=30)
-                    if code != 0:
-                        problems.append(f"{s.name}: saiu com código {code} / 0x{code & 0xFFFFFFFF:08X} após WM_QUIT")
-                except subprocess.TimeoutExpired:
-                    problems.append(f"{s.name}: não terminou 30s após WM_QUIT")
-            if s.proc.poll() is None:
-                s.proc.kill()
-            s.proc.wait(timeout=20)
-        return problems
-
-    def close(self):
-        pass
 
 
 class LinuxHost:
@@ -506,7 +355,7 @@ def wait_port(port, host, servers, timeout):
 
 
 def prepare(work, exe_dir):
-    db_dir, tm_dir, game_host = build_tree(work, exe_dir, exe_suffix(exe_dir))
+    db_dir, tm_dir, game_host = build_tree(work, exe_dir)
     return db_dir, tm_dir, game_host
 
 
@@ -652,16 +501,10 @@ def boot(host, work, exe_dir, args):
     return problems
 
 
-def exe_suffix(exe_dir):
-    """".exe" para os binários Windows, "" para os do build Linux."""
-    return "" if os.name != "nt" and (exe_dir / "DBSrv").is_file() and (exe_dir / "TMSrv").is_file() else ".exe"
-
-
 def main():
-    # O console do Windows (cp1252) estraga os acentos das mensagens.
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
-    ap.add_argument("exe_dir", help="diretório com DBSrv e TMSrv (.exe, ou ELF do build Linux)")
+    ap.add_argument("exe_dir", help="diretório com DBSrv e TMSrv (build CMake no Linux)")
     ap.add_argument("--keep", help="diretório de trabalho a manter (padrão: temporário)")
     ap.add_argument("--settle", type=float, default=15, help="segundos com os dois no ar (padrão 15)")
     ap.add_argument("--timeout", type=float, default=90, help="espera máxima por cada porta (padrão 90)")
@@ -671,9 +514,8 @@ def main():
     args = ap.parse_args()
 
     exe_dir = Path(args.exe_dir).resolve()
-    suffix = exe_suffix(exe_dir)
-    for exe in ("DBSrv" + suffix, "TMSrv" + suffix):
-        if not (exe_dir / exe).exists():
+    for exe in ("DBSrv", "TMSrv"):
+        if not (exe_dir / exe).is_file():
             raise SystemExit(f"falta {exe_dir / exe}")
     client = Path(args.login_client).resolve() if args.login_client else exe_dir / "LoginClient.exe"
     if client.exists():
@@ -696,15 +538,9 @@ def main():
     else:
         work = Path(tempfile.mkdtemp(prefix="server_boot_"))
 
-    if os.name == "nt":
-        host, platform = NativeHost(work), "Windows nativo"
-    elif suffix == "":
-        need_wine = bool(args.login_client) and Path(args.login_client).suffix.lower() == ".exe"
-        host = LinuxHost(work, need_wine)
-        platform = "Linux nativo" + (" (LoginClient no wine + Xvfb)" if need_wine else "")
-    else:
-        host, platform = WineHost(work), "wine + Xvfb"
-    print(f"plataforma: {platform}")
+    need_wine = bool(args.login_client) and Path(args.login_client).suffix.lower() == ".exe"
+    host = LinuxHost(work, need_wine)
+    print("plataforma: Linux nativo" + (" (LoginClient no wine + Xvfb)" if need_wine else ""))
     try:
         problems = [] if args.no_self_test else self_test(host, work / "selftest", exe_dir, args.timeout)
         if not problems:

@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
-"""Checagem cruzada com mingw-w64 i686 (Linux): rede de segurança complementar ao build MSVC.
+"""Checagem cruzada do cliente com mingw-w64 i686 (Linux): rede de segurança complementar ao build MSVC.
+
+Os servidores são só Linux e não entram aqui (o build deles é o CMake nativo, com
+tools/linux_warning_check.py); o tools/divergence_map.py continua compilando com estes flags as
+regras de server/common, que não dependem do sistema.
 
 O que faz:
   1. Gera shims de headers do sistema cujo nome difere só em maiúsculas/minúsculas
      (ex.: <Windows.h> -> <windows.h>), já que o mingw no Linux é case-sensitive.
-  2. Compila todas as TUs de server/common, server/dbsrv, server/tmsrv e client/src.
-  3. Linka DBSrv, TMSrv e um executável por fonte em tests/ (os do cliente com client/src/common) e executa os testes no wine (se disponível).
-     Linka também o LoginClient.exe (tools/login_client), que o tools/server_boot_smoke.py usa.
+  2. Compila todas as TUs de client/src.
+  3. Linka e executa no wine (se disponível) os testes do cliente em tests/, com os fontes de
+     client/src/common. Linka também o LoginClient.exe (tools/login_client), que o
+     tools/server_boot_smoke.py usa contra os servidores Linux.
   4. Compara os avisos do GCC de uma lista curada (WARN_TRACKED: sombreamento, não inicializada,
      fora dos limites, memset/memcpy suspeitos, return ausente...) com a linha de base em
      tools/mingw_warning_baseline.txt. A checagem falha se um arquivo ganhar avisos de algum tipo;
@@ -69,20 +74,15 @@ COMMON_FLAGS = [
 
 # Módulo -> (diretórios de include, flags extras, objetos entram no link?)
 MODULES = {
-    "server/common": (["shared", "server", "server/common"], [], True),
-    "server/dbsrv": (["shared", "server", "server/common", "server/dbsrv"], [], True),
-    "server/tmsrv": (["shared", "server", "server/common", "server/tmsrv"], [], True),
     "client/src": (["shared", "client/src"], ["-D_MBCS"], False),
     "tests/tmproject_characterization_tests.cpp": (["shared", "client/src"], ["-D_MBCS"], True),
-    "tests": (["shared", "server", "server/common"], [], True),
     "tools/login_client": (["shared", "client/src"], ["-D_MBCS"], True),
 }
 
 # Testes do cliente: linkados com estes fontes do cliente (como em tests/CMakeLists.txt), não com w2pp_common.
 CLIENT_TEST_SOURCES = [f"client/src/common/{n}.cpp" for n in ("Basedef", "BaseItem", "BaseCombat", "BaseWorld")] + \
     ["client/src/core/TMGlobal.cpp", "client/src/core/TMLog.cpp"]
-CLIENT_TESTS = {"tmproject_characterization_tests"}
-# Cliente sintético do login: linkado como LoginClient.exe ao lado de DBSrv/TMSrv, mas não executado
+# Cliente sintético do login: linkado como LoginClient.exe, mas não executado
 # aqui (precisa dos servidores no ar; quem o roda é tools/server_boot_smoke.py).
 LOGIN_CLIENT_SOURCES = CLIENT_TEST_SOURCES + ["client/src/net/CPSock.cpp"]
 
@@ -208,14 +208,14 @@ def main():
     if KNOWN.exists():
         known = {l.split("#")[0].strip() for l in KNOWN.read_text().splitlines()} - {""}
 
-    sources = []
-    for mod in MODULES:
-        sources += sorted((ROOT / mod).rglob("*.cpp"))
+    # Um módulo é um diretório ou um fonte só (o teste do cliente em tests/).
+    files = lambda mod: [ROOT / mod] if (ROOT / mod).is_file() else sorted((ROOT / mod).rglob("*"))
+    sources = [f for mod in MODULES for f in files(mod) if f.suffix == ".cpp"]
     work = Path(args.keep) if args.keep else Path(tempfile.mkdtemp(prefix="mingw_check_"))
     (work / "obj").mkdir(parents=True, exist_ok=True)
     shim_dir = work / "shims"
     shim_dir.mkdir(exist_ok=True)
-    scan = [f for mod in MODULES for f in (ROOT / mod).rglob("*") if f.suffix.lower() in (".h", ".hpp", ".cpp")]
+    scan = [f for mod in MODULES for f in files(mod) if f.suffix.lower() in (".h", ".hpp", ".cpp")]
     print("shims:", ", ".join(make_shims(scan, shim_dir, inc_root)) or "nenhum")
 
     results = {}
@@ -244,20 +244,10 @@ def main():
 
     status |= check_warnings(all_warns, args.update_warning_baseline)
 
-    # Link: w2pp_common como biblioteca estatica (igual ao CMake), DBSrv e testes.
+    # Link: os testes do cliente e o LoginClient.exe.
     objs = lambda mod: [str(o) for r, (ok, _, o) in sorted(results.items()) if ok and o and r.startswith(mod + "/")]
-    linked = ("server/common/", "server/dbsrv/", "server/tmsrv/", "tests/", "tools/login_client/")
+    linked = ("tests/", "tools/login_client/")
     if all(results[r][0] for r in results if r.startswith(linked) or r in LOGIN_CLIENT_SOURCES):
-        lib = work / "libw2pp_common.a"
-        lib.unlink(missing_ok=True)
-        run([AR, "rcs", lib, *objs("server/common")], check=True)
-        libs = ["-lws2_32", "-lwinmm"]
-        if run([CXX, "-static", "-mwindows", *objs("server/dbsrv"), lib, "-o", work / "DBSrv.exe", *libs]).returncode:
-            print("::error::falha ao linkar DBSrv")
-            status = 1
-        if run([CXX, "-static", "-mwindows", *objs("server/tmsrv"), lib, "-o", work / "TMSrv.exe", *libs]).returncode:
-            print("::error::falha ao linkar TMSrv")
-            status = 1
         login = objs("tools/login_client") + [str(results[r][2]) for r in LOGIN_CLIENT_SOURCES]
         if run([CXX, "-static", *login, "-o", work / "LoginClient.exe",
                 "-lws2_32", "-lwininet", "-ld3dx9", "-liphlpapi", "-lwinmm"]).returncode:
@@ -267,12 +257,8 @@ def main():
         for obj in objs("tests"):
             name = Path(obj).name.replace("tests_", "", 1).rsplit(".cpp.o", 1)[0]
             exe = work / f"{name}.exe"
-            if name in CLIENT_TESTS:
-                deps = [str(results[r][2]) for r in CLIENT_TEST_SOURCES]
-                cmd = [CXX, "-static", obj, *deps, "-o", exe, "-lwininet", "-ld3dx9"]
-            else:
-                cmd = [CXX, "-static", obj, lib, "-o", exe, *libs]
-            if run(cmd).returncode:
+            deps = [str(results[r][2]) for r in CLIENT_TEST_SOURCES]
+            if run([CXX, "-static", obj, *deps, "-o", exe, "-lwininet", "-ld3dx9"]).returncode:
                 print(f"::error::falha ao linkar {name}")
                 status = 1
             elif not args.no_wine and shutil.which("wine"):
@@ -284,7 +270,7 @@ def main():
             elif not args.no_wine:
                 print("::warning::wine nao encontrado; testes nao executados")
     else:
-        print("::error::server/common, server/dbsrv, server/tmsrv, tests, tools/login_client ou fontes dos testes do cliente com falha de compilacao; link ignorado")
+        print("::error::tests, tools/login_client ou fontes dos testes do cliente com falha de compilacao; link ignorado")
         status = 1
 
     print("\nresultado:", "OK" if status == 0 else "FALHOU", f"(trabalho em {work})")
