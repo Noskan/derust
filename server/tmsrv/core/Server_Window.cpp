@@ -472,7 +472,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	memset(FailAccount, 0, sizeof(FailAccount));
 
-	CurrentTime = timeGetTime();
+	CurrentTime = W2TickCount();
 
 	CReadFiles::CReadFiles();
 	// CEncampment::ReadCamp();
@@ -625,7 +625,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 				if (ret != NULL)
 					break;
 
-				Sleep(200);
+				W2SleepMs(200);
 			}
 
 			if (ret == 0)
@@ -638,7 +638,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 			}
 
-			Sleep(200);
+			W2SleepMs(200);
 			PostQuitMessage(NULL);
 			return TRUE;
 		}
@@ -660,7 +660,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 				if (ret != NULL)
 					break;
 
-				Sleep(200);
+				W2SleepMs(200);
 			}
 
 			if (ret == 0)

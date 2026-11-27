@@ -1028,7 +1028,7 @@ lbl_a_noparty:
 #pragma region Selo do Guerreiro
 	if (item->sIndex == 4146)
 	{
-		pUser[conn].UseItemTime = GetTickCount();
+		pUser[conn].UseItemTime = W2TickCount();
 
 		if (pMob[conn].extra.Fame >= 2000000000)
 			pMob[conn].extra.Fame = 2000000000;

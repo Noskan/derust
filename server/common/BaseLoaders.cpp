@@ -206,7 +206,7 @@ int BASE_ReadItemList()
 		temp[i] = temp[i] ^ 0x5A;
 	}
 
-	int Handle = _open("../../Common/ExtraItem.bin", _O_RDONLY|_O_BINARY, 0);
+	int Handle = open("../../Common/ExtraItem.bin", O_RDONLY);
 
 	if(Handle != -1)
 	{
@@ -216,7 +216,7 @@ int BASE_ReadItemList()
 
 			STRUCT_ITEMLIST *item;
 
-			int sz = _read(Handle, buff, sizeof(STRUCT_ITEMLIST)+2);
+			int sz = read(Handle, buff, sizeof(STRUCT_ITEMLIST)+2);
 
 			if(sz < sizeof(STRUCT_ITEMLIST)+2) 
 				break;
@@ -231,7 +231,7 @@ int BASE_ReadItemList()
 			g_pItemList[idx] = *item;
 		}
 
-		_close(Handle);
+		close(Handle);
 #ifndef _DEBUG
 		for(int i = 0; i < size; i++)
 		{ 

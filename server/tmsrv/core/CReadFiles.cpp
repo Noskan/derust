@@ -104,7 +104,7 @@ void CReadFiles::ReadSancRate()
 		int val2 = atoi(str2);
 		int val3 = atoi(str3);
 
-		_strupr(str1);
+		W2StrUpper(str1);
 
 		if (strcmp(str1, "PO") == 0)
 		{
@@ -306,7 +306,7 @@ void CReadFiles::ReadQuestsRate()
 		int val5 = atoi(str5);
 		int val6 = atoi(str6);
 
-		_strupr(str1);
+		W2StrUpper(str1);
 
 		if (strcmp(str1, "EXP") == 0)
 		{
@@ -402,7 +402,7 @@ void CReadFiles::ReadCompRate()
 		int val2 = atoi(str2);
 		int val3 = atoi(str3);
 
-		_strupr(str1);
+		W2StrUpper(str1);
 
 		if (strcmp(str1, "EHRE") == 0)
 		{

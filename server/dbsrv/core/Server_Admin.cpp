@@ -214,7 +214,7 @@ int ProcessAdminClientMessage(char *msg)
 
 				memset(&file.Char[slot], 0, sizeof(STRUCT_MOB));
 
-				_strupr(file.Info.AccountName);
+				W2StrUpper(file.Info.AccountName);
 
 				ret = cFileDB.DBWriteAccount(&file);
 
@@ -268,7 +268,7 @@ void DisableAccount(int conn, char *account, int Year, int YearDay)
 	account[ACCOUNTNAME_LENGTH-1] = 0;
 	account[ACCOUNTNAME_LENGTH-2] = 0;
 
-	_strupr(account);
+	W2StrUpper(account);
 
 	STRUCT_ACCOUNTFILE file;
 	memcpy(file.Info.AccountName, account, ACCOUNTNAME_LENGTH);
@@ -328,7 +328,7 @@ void EnableAccount(int conn, char *account)
 	account[ACCOUNTNAME_LENGTH-1] = 0;
 	account[ACCOUNTNAME_LENGTH-2] = 0;
 
-	_strupr(account);
+	W2StrUpper(account);
 
 	STRUCT_ACCOUNTFILE file;
   	memcpy(file.Info.AccountName, account, ACCOUNTNAME_LENGTH);
@@ -481,7 +481,7 @@ int ProcessAdminMessage(int conn, char *msg)
 
 			memcpy(&file.Char[empty], &(m->Mob), sizeof(STRUCT_MOB));
 
-			_strupr(file.Info.AccountName);
+			W2StrUpper(file.Info.AccountName);
 
 			ret = cFileDB.DBWriteAccount(&file);
 
@@ -588,7 +588,7 @@ int ProcessAdminMessage(int conn, char *msg)
 		{
 			MSG_NPIDPASS *m = (MSG_NPIDPASS *) msg;
 
-			_strupr(m->Account);
+			W2StrUpper(m->Account);
 
 			if(pAdmin[conn].Encode1 != m->Encode1 || pAdmin[conn].Encode2 != m->Encode2) 
 				return FALSE;
@@ -649,8 +649,8 @@ int ProcessAdminMessage(int conn, char *msg)
 			if(pAdmin[conn].Level <= 0)
 				return TRUE;
 
-			_strupr(m->Account);
-			_strupr(m->Char);
+			W2StrUpper(m->Account);
+			W2StrUpper(m->Char);
 
 			if(m->Char[0] != 0)		
 				cFileDB.GetAccountByChar(m->Account, m->Char); 
@@ -841,7 +841,7 @@ int ProcessAdminMessage(int conn, char *msg)
 			m->AccountName[ACCOUNTNAME_LENGTH-1] = 0;
 			m->AccountName[ACCOUNTNAME_LENGTH-2] = 0;
 
-			_strupr(m->AccountName);
+			W2StrUpper(m->AccountName);
 
 			int IdxName = cFileDB.GetIndex(m->AccountName);
 
@@ -871,7 +871,7 @@ int ProcessAdminMessage(int conn, char *msg)
 			m->AccountName[ACCOUNTNAME_LENGTH-1] = 0;
 			m->AccountName[ACCOUNTNAME_LENGTH-2] = 0;
 
-			_strupr(m->AccountName);
+			W2StrUpper(m->AccountName);
 
 			int IdxName = cFileDB.GetIndex(m->AccountName);
 

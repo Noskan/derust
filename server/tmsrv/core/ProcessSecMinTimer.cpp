@@ -123,7 +123,7 @@ lbl_PST1:
 
 	SecCounter++;
 
-	CurrentTime = timeGetTime();
+	CurrentTime = W2TickCount();
 
 	if(SecCounter % 120)
 		CReadFiles::ReadMacblock();
@@ -134,7 +134,7 @@ lbl_PST1:
 
 		if (BillCounter <= 0)
 		{
-			CurrentTime = timeGetTime();
+			CurrentTime = W2TickCount();
 
 			sprintf(temp, "err,start reconnect BILL %d", CurrentTime);
 			Log(temp, "-system", 0);
@@ -143,7 +143,7 @@ lbl_PST1:
 
 			int ret = BillServerSocket.ConnectBillServer(BillServerAddress, BillServerPort, *pip, WSA_READBILL);
 
-			CurrentTime = timeGetTime();
+			CurrentTime = W2TickCount();
 
 			sprintf(temp, "err,start reconnect BILL %d", CurrentTime);
 			Log(temp, "-system", 0);
@@ -714,14 +714,14 @@ void ProcessMinTimer()
 
 		strcat(temp, name);
 
-		int handle = _open(temp, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+		int handle = open(temp, O_CREAT | O_RDWR, 0644);
 		if (handle == -1)
 		{
 			Log("-system", "fail - save npc imposto file", 0);
 			return;
 		}
-		_write(handle, (void*)&pMob[GuildImpostoID[i]].MOB, sizeof(pMob[GuildImpostoID[i]].MOB));
-		_close(handle);
+		write(handle, (void*)&pMob[GuildImpostoID[i]].MOB, sizeof(pMob[GuildImpostoID[i]].MOB));
+		close(handle);
 	}
 
 
@@ -757,7 +757,7 @@ void ProcessMinTimer()
 	if ((MinCounter % 10) == 0)
 		memset(FailAccount, 0, sizeof(FailAccount));
 
-	CurrentTime = timeGetTime();
+	CurrentTime = W2TickCount();
 
 #pragma region Close Gates
 	for (int i = 17; i < g_dwInitItem; i++)

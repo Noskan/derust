@@ -98,9 +98,9 @@ RankingSystem::RankingSystem()
 
 void RankingSystem::loadRanking()
 {
-	unsigned int startClock = GetTickCount();
+	unsigned int startClock = W2TickCount();
 	int entryCount = readAccountsInDir("./account/*");
-	unsigned int resultClock = GetTickCount() - startClock;
+	unsigned int resultClock = W2TickCount() - startClock;
 
 	char tt[1024];
 

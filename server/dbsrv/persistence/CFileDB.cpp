@@ -81,7 +81,7 @@ int CFileDB::AddAccount(char *id, char *pass, char *name, int ssn1, int ssn2, ch
 
 	strncpy(check, id, ACCOUNTNAME_LENGTH);
 
-	_strupr(check);
+	W2StrUpper(check);
 
 	if(check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
@@ -96,11 +96,11 @@ int CFileDB::AddAccount(char *id, char *pass, char *name, int ssn1, int ssn2, ch
 
 	sprintf(temp, "./account/%s/%s", First, check);
 
-	int Handle = _open(temp, O_RDONLY | O_BINARY);
+	int Handle = open(temp, O_RDONLY);
 
 	if(Handle != -1)
 	{
-		_close(Handle);
+		close(Handle);
 
 		return FALSE;
 	}
@@ -148,7 +148,7 @@ int CFileDB::UpdateAccount(char *id, char *pass)
 
 	strncpy(check, id, ACCOUNTNAME_LENGTH);
 
-	_strupr(check);
+	W2StrUpper(check);
 
 	if(check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
@@ -163,12 +163,12 @@ int CFileDB::UpdateAccount(char *id, char *pass)
 
 	sprintf(temp, "./account/%s/%s", First, check);
 
-	int Handle = _open(temp, O_RDONLY | O_BINARY);
+	int Handle = open(temp, O_RDONLY);
 
 	if(Handle == -1)
 		return FALSE;
 
-	_close(Handle);
+	close(Handle);
 
 	int Idx = GetIndex(id);
 
@@ -382,7 +382,7 @@ int CFileDB::CreateCharacter(char *ac, char *ch)
 
 	strncpy(check, ac, ACCOUNTNAME_LENGTH);
 
-	_strupr(check);
+	W2StrUpper(check);
 
 	if(check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
@@ -391,7 +391,7 @@ int CFileDB::CreateCharacter(char *ac, char *ch)
 
 	strncpy(check, ch, NAME_LENGTH);
 
-	_strupr(check);
+	W2StrUpper(check);
 
 	if(check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
@@ -417,7 +417,7 @@ int CFileDB::CreateCharacter(char *ac, char *ch)
         return FALSE;
 	}
 
-	int Handle = _open(temp, O_RDWR | O_CREAT | O_BINARY, _S_IREAD | _S_IWRITE);
+	int Handle = open(temp, O_RDWR | O_CREAT, 0644);
 
 	if(Handle == -1)
 	{
@@ -437,8 +437,8 @@ int CFileDB::CreateCharacter(char *ac, char *ch)
          return FALSE;
 	}
 
-	_write(Handle, ac, ACCOUNTNAME_LENGTH);
-	_close(Handle);
+	write(Handle, ac, ACCOUNTNAME_LENGTH);
+	close(Handle);
 
 	return TRUE;
 }
@@ -449,7 +449,7 @@ int CFileDB::DeleteCharacter(char *ch, char *account)
 
 	strncpy(check, ch, ACCOUNTNAME_LENGTH);
 
-	_strupr(check);
+	W2StrUpper(check);
 
 	if(check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
@@ -538,7 +538,7 @@ int CFileDB::DBWriteAccount(STRUCT_ACCOUNTFILE *account)
 
 	strncpy(check, accname, ACCOUNTNAME_LENGTH);
 
-	 _strupr(check);
+	 W2StrUpper(check);
 
 	if(check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
@@ -553,7 +553,7 @@ int CFileDB::DBWriteAccount(STRUCT_ACCOUNTFILE *account)
 
 	sprintf(temp, "./account/%s/%s", First, check);	
 
-	int Handle = _open(temp, O_RDWR|O_CREAT|O_BINARY, _S_IREAD | _S_IWRITE);
+	int Handle = open(temp, O_RDWR | O_CREAT, 0644);
 
 	if(Handle == -1)
 	{
@@ -573,22 +573,22 @@ int CFileDB::DBWriteAccount(STRUCT_ACCOUNTFILE *account)
 		return FALSE;
 	}
 
-	int ret = _lseek(Handle, 0, SEEK_SET);
+	int ret = lseek(Handle, 0, SEEK_SET);
 
 	if(ret == -1)
 	{
 		Log("err,writeaccount lseek fail", accname, 0);
 
-		_close(Handle); 
+		close(Handle); 
 
 		return FALSE;
 	}
 
-	ret = _write(Handle, account, sizeof(STRUCT_ACCOUNTFILE));
+	ret = write(Handle, account, sizeof(STRUCT_ACCOUNTFILE));
 
 	if(ret == -1)
 	{
-		_close(Handle);
+		close(Handle);
 
 		Log("CreateAccount write fail", accname, 0);
 
@@ -606,7 +606,7 @@ int CFileDB::DBWriteAccount(STRUCT_ACCOUNTFILE *account)
 		return FALSE;
 	}
 
-	_close(Handle);
+	close(Handle);
 
 	return TRUE;
 }
@@ -619,7 +619,7 @@ int CFileDB::DBExportAccount(STRUCT_ACCOUNTFILE *file)
 
 	strncpy(check, accname, 16);
 
-	_strupr(check);
+	W2StrUpper(check);
 
 	if(check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
@@ -630,30 +630,30 @@ int CFileDB::DBExportAccount(STRUCT_ACCOUNTFILE *file)
 
 	sprintf(temp, "S:/export/account%d/%s", ServerIndex, check);
 
-	int Handle = _open(temp, O_RDWR | O_CREAT | O_BINARY, _S_IREAD | _S_IWRITE);
+	int Handle = open(temp, O_RDWR | O_CREAT, 0644);
 
 	if(Handle == -1)
 		return FALSE;
 
-	int ret = _lseek(Handle, 0, SEEK_SET);
+	int ret = lseek(Handle, 0, SEEK_SET);
 
 	if(ret == -1)
 	{
-		_close(Handle);
+		close(Handle);
 
 		return FALSE;
 	}
 
-	ret = _write(Handle, file, sizeof(STRUCT_ACCOUNTFILE));
+	ret = write(Handle, file, sizeof(STRUCT_ACCOUNTFILE));
 
 	if(ret == -1)
 	{
-		_close(Handle);
+		close(Handle);
 
 		return FALSE;
 	}
 
-	_close(Handle);
+	close(Handle);
 
 	return TRUE;
 }
@@ -669,7 +669,7 @@ int CFileDB::DBReadAccount(STRUCT_ACCOUNTFILE *file)
 
 	strncpy(check, file->Info.AccountName, ACCOUNTNAME_LENGTH);
 
-	_strupr(check);
+	W2StrUpper(check);
 
 	if(check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
@@ -684,7 +684,7 @@ int CFileDB::DBReadAccount(STRUCT_ACCOUNTFILE *file)
 
 	sprintf(temp, "./account/%s/%s", First, check);
 
-	int Handle = _open(temp, O_RDONLY | O_BINARY);
+	int Handle = open(temp, O_RDONLY);
 
 	if(Handle == -1)
 	{
@@ -698,20 +698,21 @@ int CFileDB::DBReadAccount(STRUCT_ACCOUNTFILE *file)
 		return FALSE;
 	}
 
-	int length = _filelength(Handle);
+	struct stat st;
+	int length = fstat(Handle, &st) == 0 ? (int)st.st_size : -1;
 
 	int reqsz = sizeof(STRUCT_ACCOUNTFILE);
 
-	int ret = _read(Handle, file, reqsz);
+	int ret = read(Handle, file, reqsz);
 
 	if(ret == -1)
 	{
-		_close(Handle);
+		close(Handle);
 
 		return FALSE;
 	}
 
-	_close(Handle);
+	close(Handle);
 
 	if(length < reqsz)
 		memset(file->ShortSkill, 0, 8);
@@ -779,7 +780,7 @@ void CFileDB::GetAccountByChar(char *acc, char *cha)
 
 	strncpy(check, cha, NAME_LENGTH);
 
-	_strupr(check);
+	W2StrUpper(check);
 
 	if(check[0] == 'C' && check[1] == 'O' && check[2] == 'M' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return;
@@ -795,15 +796,15 @@ void CFileDB::GetAccountByChar(char *acc, char *cha)
 
 	sprintf(temp, "./char/%s/%s", first, check);
 
-	int Handle = _open(temp, O_RDONLY | O_BINARY);
+	int Handle = open(temp, O_RDONLY);
 
 	if(Handle == -1)
 	{
 		return;
 	}
 
-	_read(Handle, acc, ACCOUNTNAME_LENGTH);
-	_close(Handle);
+	read(Handle, acc, ACCOUNTNAME_LENGTH);
+	close(Handle);
 }
 
 void CFileDB::InitAccountList(int idx)

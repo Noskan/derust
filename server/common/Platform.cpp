@@ -1,6 +1,9 @@
 #include "common/Platform.h"
 
+#include <cctype>
+#include <chrono>
 #include <cstdio>
+#include <thread>
 
 namespace
 {
@@ -22,4 +25,22 @@ void ServerAlert(const char* text, const char* caption)
 {
 	std::fprintf(stderr, "[%s] %s\n", caption ? caption : "", text ? text : "");
 	std::fflush(stderr);
+}
+
+unsigned int W2TickCount()
+{
+	auto since = std::chrono::steady_clock::now().time_since_epoch();
+	return (unsigned int)std::chrono::duration_cast<std::chrono::milliseconds>(since).count();
+}
+
+void W2SleepMs(unsigned int ms)
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+
+char* W2StrUpper(char* s)
+{
+	for (char* p = s; *p; ++p)
+		*p = (char)std::toupper((unsigned char)*p);
+	return s;
 }

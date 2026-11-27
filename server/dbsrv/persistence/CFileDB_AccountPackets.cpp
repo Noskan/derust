@@ -63,7 +63,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			int Idx = GetIndex(conn, m->ID);
 
-			_strupr(m->AccountInfo.AccountName);
+			W2StrUpper(m->AccountInfo.AccountName);
 
 			char *accname = m->AccountInfo.AccountName;
 
@@ -91,7 +91,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				return TRUE;				
 			}
 
-			_strupr(file->Info.AccountName);
+			W2StrUpper(file->Info.AccountName);
 
 			AddAccountList(Idx);
 
@@ -114,7 +114,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 		{
 			MSG_AccountLogin *m = (MSG_AccountLogin*)Msg;
 
-			_strupr(m->AccountName);
+			W2StrUpper(m->AccountName);
 
 			char *ac = m->AccountName;
 
@@ -204,7 +204,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				break;
 			}
 
-			_strupr(file.Info.AccountName);
+			W2StrUpper(file.Info.AccountName);
 
 			int right = -1;
 			int left = -1;
@@ -394,7 +394,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			strncpy(check, m->MobName, NAME_LENGTH);
 
-			_strupr(check);
+			W2StrUpper(check);
 
 			if(strcmp(check, "KING") == 0 || strcmp(check, "KINGDOM") == 0 || strcmp(check, "GRITAR") == 0 || strcmp(check, "RELO") == 0)
 			{
@@ -958,7 +958,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		strncpy(check, m->MobName, NAME_LENGTH);
 
-		_strupr(check);
+		W2StrUpper(check);
 
 		if(strcmp(check, "KING") == 0 || strcmp(check, "KINGDOM") == 0 || strcmp(check, "GRITAR") == 0 || strcmp(check, "RELO") == 0)
 		{
@@ -1100,7 +1100,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		sprintf(temp, "./capsule/%d", Index);
 
-		int Handle = _open(temp, O_RDONLY | O_BINARY);
+		int Handle = open(temp, O_RDONLY);
 
 		if(Handle == -1)
 		{
@@ -1116,9 +1116,9 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		STRUCT_CAPSULE file;
 
-		_read(Handle, &file, sizeof(STRUCT_CAPSULE));
+		read(Handle, &file, sizeof(STRUCT_CAPSULE));
 
-		_close(Handle);
+		close(Handle);
 
 		// Resposta no layout que o cliente lê (MSG_CAPSULEINFO, 0xDC3). Skills e quest ficam 0: o
 		// cliente mostra 9 skills e bits de quest que não têm correspondência direta no personagem.
@@ -1163,7 +1163,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 		char temp[256];
 		sprintf(temp, "./capsule/%d", LastCapsule);
 
-		int Handle = _open(temp, O_RDWR | O_CREAT | O_BINARY, _S_IREAD | _S_IWRITE);
+		int Handle = open(temp, O_RDWR | O_CREAT, 0644);
 
 		if(Handle == -1)
 		{
@@ -1190,8 +1190,8 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		file.extra.QuestInfo.Arch.MortalSlot = -1;
 
-		_write(Handle, &file, sizeof(STRUCT_CAPSULE));
-		_close(Handle);
+		write(Handle, &file, sizeof(STRUCT_CAPSULE));
+		close(Handle);
 
 		memset(pAccountList[Idx].File.ShortSkill[Slot], 0, 16);
 
@@ -1273,7 +1273,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 		char temp[256];
 		sprintf(temp, "./capsule/%d", index);
 
-		int Handle = _open(temp, O_RDONLY | O_BINARY);
+		int Handle = open(temp, O_RDONLY);
 
 		if(Handle == -1)
 		{
@@ -1295,8 +1295,8 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		STRUCT_CAPSULE file;
 
-		_read(Handle, &file, sizeof(STRUCT_CAPSULE));
-		_close(Handle);
+		read(Handle, &file, sizeof(STRUCT_CAPSULE));
+		close(Handle);
 
 		strncpy(file.MOB.MobName, m->MobName, 12);
 

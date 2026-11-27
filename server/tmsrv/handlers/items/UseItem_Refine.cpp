@@ -30,7 +30,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 
 		if(pUser[conn].PotionTime != 0)
 		{
-			int isTime = GetTickCount() - pUser[conn].PotionTime;			
+			int isTime = W2TickCount() - pUser[conn].PotionTime;			
 
 			if(isTime < PotionDelay)
 			{
@@ -38,7 +38,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 				return true;
 			}
 		}
-		pUser[conn].PotionTime = GetTickCount();
+		pUser[conn].PotionTime = W2TickCount();
 
 		if (Hp && pMob[conn].MOB.CurrentScore.Hp > 0)
 		{

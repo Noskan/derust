@@ -513,14 +513,14 @@ void ProcessImple(int conn, int level, char * str)
 
 			strcat(temp, sval1);
 
-			int handle = _open(temp, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+			int handle = open(temp, O_CREAT | O_RDWR, 0644);
 			if (handle == -1)
 			{
 				SendClientMessage(conn, "fail - save file");
 				return;
 			}
-			_write(handle, (void*)&pMob[conn].MOB, sizeof(pMob[conn].MOB));
-			_close(handle);
+			write(handle, (void*)&pMob[conn].MOB, sizeof(pMob[conn].MOB));
+			close(handle);
 			sprintf(temp, "npc: %s saved", sval1);
 			SendClientMessage(conn, temp);
 		}
@@ -530,15 +530,15 @@ void ProcessImple(int conn, int level, char * str)
 
 			strcat(temp, sval1);
 
-			int handle = _open(temp, _O_RDONLY | _O_BINARY, NULL);
+			int handle = open(temp, O_RDONLY);
 			if (handle == -1)
 			{
 				SendClientMessage(conn, "fail - open file");
 				return;
 			}
 
-			_read(handle, &pMob[conn].MOB, sizeof(pMob[conn].MOB));
-			_close(handle);
+			read(handle, &pMob[conn].MOB, sizeof(pMob[conn].MOB));
+			close(handle);
 
 			sprintf(temp, "npc: %s read.", sval1);
 			SendClientMessage(conn, temp);
@@ -1224,7 +1224,7 @@ void ProcessImple(int conn, int level, char * str)
 
 					strcat(tt, name);
 
-					int handle = _open(tt, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+					int handle = open(tt, O_CREAT | O_RDWR, 0644);
 					if (handle == -1)
 					{
 						Log("-system", "fail - save npc", 0);
@@ -1233,8 +1233,8 @@ void ProcessImple(int conn, int level, char * str)
 
 					mNPCGen.pList[i].Leader.Exp = xp * mNPCGen.pList[i].Leader.BaseScore.Level / FREEEXP;
 
-					_write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
-					_close(handle);
+					write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
+					close(handle);
 				}
 			}
 
@@ -1257,7 +1257,7 @@ void ProcessImple(int conn, int level, char * str)
 
 					strcat(tt, name);
 
-					int handle = _open(tt, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+					int handle = open(tt, O_CREAT | O_RDWR, 0644);
 					if (handle == -1)
 					{
 						Log("-system", "fail - save npc", 0);
@@ -1266,8 +1266,8 @@ void ProcessImple(int conn, int level, char * str)
 
 					mNPCGen.pList[i].Leader.Exp = xp * mNPCGen.pList[i].Leader.BaseScore.Level / FREEEXP;
 
-					_write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
-					_close(handle);
+					write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
+					close(handle);
 				}
 			}
 
@@ -1290,7 +1290,7 @@ void ProcessImple(int conn, int level, char * str)
 
 					strcat(tt, name);
 
-					int handle = _open(tt, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+					int handle = open(tt, O_CREAT | O_RDWR, 0644);
 					if (handle == -1)
 					{
 						Log("-system", "fail - save npc", 0);
@@ -1299,8 +1299,8 @@ void ProcessImple(int conn, int level, char * str)
 
 					mNPCGen.pList[i].Leader.Exp = xp * mNPCGen.pList[i].Leader.BaseScore.Level / FREEEXP;
 
-					_write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
-					_close(handle);
+					write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
+					close(handle);
 				}
 			}
 
@@ -1342,7 +1342,7 @@ void ProcessImple(int conn, int level, char * str)
 
 				strcat(tt, name);
 
-				int handle = _open(tt, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+				int handle = open(tt, O_CREAT | O_RDWR, 0644);
 				if (handle == -1)
 				{
 					Log("-system", "fail - save npc", 0);
@@ -1351,8 +1351,8 @@ void ProcessImple(int conn, int level, char * str)
 
 				mNPCGen.pList[i].Leader.Exp = mNPCGen.pList[i].Leader.BaseScore.Level < lv ? xp : xp * mNPCGen.pList[i].Leader.BaseScore.Level / lv;
 
-				_write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
-				_close(handle);
+				write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
+				close(handle);
 
 				strcpy(tt, "./npc/");
 
@@ -1366,7 +1366,7 @@ void ProcessImple(int conn, int level, char * str)
 
 				strcat(tt, name);
 
-				handle = _open(tt, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+				handle = open(tt, O_CREAT | O_RDWR, 0644);
 				if (handle == -1)
 				{
 					Log("-system", "fail - save npc", 0);
@@ -1375,8 +1375,8 @@ void ProcessImple(int conn, int level, char * str)
 
 				mNPCGen.pList[i].Follower.Exp = xp * mNPCGen.pList[i].Follower.BaseScore.Level / lv;
 
-				_write(handle, (void*)&mNPCGen.pList[i].Follower, sizeof(STRUCT_MOB));
-				_close(handle);
+				write(handle, (void*)&mNPCGen.pList[i].Follower, sizeof(STRUCT_MOB));
+				close(handle);
 			}
 			
 
@@ -1408,7 +1408,7 @@ void ProcessImple(int conn, int level, char * str)
 
 					strcat(tt, name);
 
-					int handle = _open(tt, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+					int handle = open(tt, O_CREAT | O_RDWR, 0644);
 					if (handle == -1)
 					{
 						Log("-system", "fail - save npc", 0);
@@ -1417,8 +1417,8 @@ void ProcessImple(int conn, int level, char * str)
 
 					mNPCGen.pList[i].Leader.Exp = xp * mNPCGen.pList[i].Leader.BaseScore.Level / FREEEXP;
 
-					_write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
-					_close(handle);
+					write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
+					close(handle);
 				}
 			}
 
@@ -1441,7 +1441,7 @@ void ProcessImple(int conn, int level, char * str)
 
 					strcat(tt, name);
 
-					int handle = _open(tt, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+					int handle = open(tt, O_CREAT | O_RDWR, 0644);
 					if (handle == -1)
 					{
 						Log("-system", "fail - save npc", 0);
@@ -1450,8 +1450,8 @@ void ProcessImple(int conn, int level, char * str)
 
 					mNPCGen.pList[i].Leader.Exp = xp * mNPCGen.pList[i].Leader.BaseScore.Level / FREEEXP;
 
-					_write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
-					_close(handle);
+					write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
+					close(handle);
 				}
 			}
 
@@ -1474,7 +1474,7 @@ void ProcessImple(int conn, int level, char * str)
 
 					strcat(tt, name);
 
-					int handle = _open(tt, _O_CREAT | _O_RDWR | _O_BINARY, _S_IREAD | _S_IWRITE);
+					int handle = open(tt, O_CREAT | O_RDWR, 0644);
 					if (handle == -1)
 					{
 						Log("-system", "fail - save npc", 0);
@@ -1483,8 +1483,8 @@ void ProcessImple(int conn, int level, char * str)
 
 					mNPCGen.pList[i].Leader.Exp = xp * mNPCGen.pList[i].Leader.BaseScore.Level / FREEEXP;
 
-					_write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
-					_close(handle);
+					write(handle, (void*)&mNPCGen.pList[i].Leader, sizeof(STRUCT_MOB));
+					close(handle);
 				}
 			}
 

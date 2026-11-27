@@ -859,7 +859,7 @@ int  GetUserByName(char *name)
 	{
 		char *tname = name + 1;
 
-		_strupr(tname);
+		W2StrUpper(tname);
 
 		for (int i = 1; i < MAX_USER; i++)
 		{
@@ -1124,7 +1124,7 @@ void Reboot()
 
 	mNPCGen.ReadNPCGenerator();
 
-	int Handle = _open("./heightmap.dat", _O_RDONLY | _O_BINARY, NULL);
+	int Handle = open("./heightmap.dat", O_RDONLY);
 
 	if (Handle == -1)
 	{
@@ -1133,8 +1133,8 @@ void Reboot()
 		return;
 	}
 
-	_read(Handle, (void*)pHeightGrid, sizeof(pHeightGrid));
-	_close(Handle);
+	read(Handle, (void*)pHeightGrid, sizeof(pHeightGrid));
+	close(Handle);
 
 	BASE_InitializeBaseDef();
 	BASE_ApplyAttribute((char*)pHeightGrid, MAX_GRIDX);

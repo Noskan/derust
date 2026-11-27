@@ -1235,9 +1235,9 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 		{
 			if(pUser[conn].Message != 0)
 			{
-				int isTime = GetTickCount() - pUser[conn].Message;			
+				int isTime = W2TickCount() - pUser[conn].Message;			
 
-				pUser[conn].Message = GetTickCount();
+				pUser[conn].Message = W2TickCount();
 
 				if(isTime < 3000)
 				{
@@ -1245,7 +1245,7 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 					return;
 				}
 			}
-			pUser[conn].Message = GetTickCount();
+			pUser[conn].Message = W2TickCount();
 
 			strncpy(m->MobName, pMob[conn].MOB.MobName, NAME_LENGTH);
 
@@ -1262,9 +1262,9 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 		{
 			if(pUser[conn].Message != 0)
 			{
-				int isTime = GetTickCount() - pUser[conn].Message;			
+				int isTime = W2TickCount() - pUser[conn].Message;			
 
-				pUser[conn].Message = GetTickCount();
+				pUser[conn].Message = W2TickCount();
 
 				if(isTime < 3000)
 				{
@@ -1272,7 +1272,7 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 					return;
 				}
 			}
-			pUser[conn].Message = GetTickCount();
+			pUser[conn].Message = W2TickCount();
 
 			strncpy(m->MobName, pMob[conn].MOB.MobName, NAME_LENGTH);
 

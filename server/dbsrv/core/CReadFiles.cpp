@@ -204,7 +204,7 @@ void CReadFiles::ImportItem()
 
 		Log(temp, "-IMPORT starting", 0);
 
-		_strupr(ids);
+		W2StrUpper(ids);
 
 		if (Index < 0 || Index >= MAX_ITEMLIST || Eff1 < 0 || Eff2 < 0 || Eff3 < 0 || Eff1 > 255 || Eff2 > 255 || Eff3 > 255)
 		{
@@ -260,7 +260,7 @@ void CReadFiles::ImportItem()
 
 		memset(&file, 0, sizeof(STRUCT_ACCOUNTFILE));
 
-		_strupr(ids);
+		W2StrUpper(ids);
 
 		memcpy(file.Info.AccountName, ids, ACCOUNTNAME_LENGTH);
 
@@ -454,7 +454,7 @@ void CReadFiles::ImportUser()
 				break;
 		}
 
-		_strupr(id);
+		W2StrUpper(id);
 
 		id[ACCOUNTNAME_LENGTH - 1] = 0;
 		id[ACCOUNTNAME_LENGTH - 2] = 0;
@@ -693,7 +693,7 @@ void CReadFiles::ReadGuildInfo()
 {
 	int handle = -1;
 
-	handle = _open(GUILD_INFO_PATH, _O_RDONLY | _O_BINARY);
+	handle = open(GUILD_INFO_PATH, O_RDONLY);
 
 	if (handle == -1)
 	{
@@ -702,15 +702,15 @@ void CReadFiles::ReadGuildInfo()
 		return;
 	}
 
-	_read(handle, GuildInfo, sizeof(GuildInfo));
-	_close(handle);
+	read(handle, GuildInfo, sizeof(GuildInfo));
+	close(handle);
 }
 
 void CReadFiles::WriteGuildInfo()
 {
 	int handle = -1;
 
-	handle = _open(GUILD_INFO_PATH, O_RDWR | O_CREAT | O_BINARY, _S_IREAD | _S_IWRITE);
+	handle = open(GUILD_INFO_PATH, O_RDWR | O_CREAT, 0644);
 
 	if (handle == -1)
 	{
@@ -719,8 +719,8 @@ void CReadFiles::WriteGuildInfo()
 		return;
 	}
 
-	_write(handle, GuildInfo, sizeof(GuildInfo));
-	_close(handle);
+	write(handle, GuildInfo, sizeof(GuildInfo));
+	close(handle);
 }
 
 void CReadFiles::ImportDonate()
@@ -791,7 +791,7 @@ void CReadFiles::ImportDonate()
 
 		Log(temp, "-IMPORT DONATE starting", 0);
 
-		_strupr(ids);
+		W2StrUpper(ids);
 
 		if (Donate < 0)
 		{
@@ -836,7 +836,7 @@ void CReadFiles::ImportDonate()
 
 		memset(&file, 0, sizeof(STRUCT_ACCOUNTFILE));
 
-		_strupr(ids);
+		W2StrUpper(ids);
 
 		memcpy(file.Info.AccountName, ids, ACCOUNTNAME_LENGTH);
 
@@ -974,7 +974,7 @@ void CReadFiles::UpdateUser()
 				continue;
 			}
 
-			_strupr(id);
+			W2StrUpper(id);
 			id[ACCOUNTNAME_LENGTH - 1] = 0;
 			id[ACCOUNTNAME_LENGTH - 2] = 0;
 

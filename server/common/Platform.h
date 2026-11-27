@@ -20,3 +20,14 @@ constexpr int W2_RAND_MAX = 0x7FFF;
 ///        código original; o servidor segue depois do aviso, como seguia depois da caixa. O teste
 ///        de partida (tools/server_boot_smoke.py) procura essas linhas no stderr.
 void ServerAlert(const char* text, const char* caption);
+
+/// @brief Relógio monotônico em milissegundos (volta a zero a cada ~49 dias, como o
+///        GetTickCount/timeGetTime do código original): só as diferenças têm sentido.
+unsigned int W2TickCount();
+
+/// @brief Suspende a thread por `ms` milissegundos.
+void W2SleepMs(unsigned int ms);
+
+/// @brief Passa `s` para maiúsculas no lugar (só ASCII, como o _strupr do CRT no código de
+///        página de um byte) e devolve `s`.
+char* W2StrUpper(char* s);

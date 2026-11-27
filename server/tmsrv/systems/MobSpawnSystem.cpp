@@ -870,7 +870,7 @@ int  ReadMob(STRUCT_MOB *mob, char *dir)
 {
 	sprintf(temp, "./%s/%s", dir, mob->MobName);
 
-	int Handle = _open(temp, O_RDONLY | O_BINARY);
+	int Handle = open(temp, O_RDONLY);
 
 	if (Handle == -1)
 	{
@@ -892,16 +892,16 @@ int  ReadMob(STRUCT_MOB *mob, char *dir)
 
 	strncpy(temp, mob->MobName, NAME_LENGTH);
 
-	int ret = _read(Handle, mob, sizeof(STRUCT_MOB));
+	int ret = read(Handle, mob, sizeof(STRUCT_MOB));
 
 	if (ret == -1)
 	{
-		_close(Handle);
+		close(Handle);
 
 		return FALSE;
 	}
 
-	_close(Handle);
+	close(Handle);
 
 	strncpy(mob->MobName, temp, NAME_LENGTH);
 
@@ -1321,7 +1321,7 @@ int  ParseMobMercString(int Num, char *str)
 	if (strlen(str2) > 80)
 		return FALSE;
 
-	_strupr(str1);
+	W2StrUpper(str1);
 
 	if (!strcmp(str1, "MOBNAME:"))
 		strncpy(pMobMerc[Num].MobName, str2, NAME_LENGTH);

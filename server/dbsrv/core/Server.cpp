@@ -226,7 +226,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	int handle = -1;
 
-	handle = _open("./BaseMob/TK", _O_RDONLY | _O_BINARY);
+	handle = open("./BaseMob/TK", O_RDONLY);
 
 	if(handle == -1)
 	{
@@ -235,13 +235,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return FALSE;
 	}
 
-	_read(handle, &g_pBaseSet[0], sizeof(STRUCT_MOB));
-	_close(handle);
+	read(handle, &g_pBaseSet[0], sizeof(STRUCT_MOB));
+	close(handle);
 
 
 	handle = -1;
 
-	handle = _open("./BaseMob/FM", _O_RDONLY | _O_BINARY);
+	handle = open("./BaseMob/FM", O_RDONLY);
 
 	if(handle == -1)
 	{
@@ -250,12 +250,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return FALSE;
 	}
 
-	_read(handle, &g_pBaseSet[1], sizeof(STRUCT_MOB));
-	_close(handle);
+	read(handle, &g_pBaseSet[1], sizeof(STRUCT_MOB));
+	close(handle);
 
 	handle = -1;
 
-	handle = _open("./BaseMob/BM", _O_RDONLY | _O_BINARY);
+	handle = open("./BaseMob/BM", O_RDONLY);
 
 	if(handle == -1)
 	{
@@ -264,12 +264,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return FALSE;
 	}
 
-	_read(handle, &g_pBaseSet[2], sizeof(STRUCT_MOB));
-	_close(handle);
+	read(handle, &g_pBaseSet[2], sizeof(STRUCT_MOB));
+	close(handle);
 
 	handle = -1;
 
-	handle = _open("./BaseMob/HT", _O_RDONLY | _O_BINARY);
+	handle = open("./BaseMob/HT", O_RDONLY);
 
 	if(handle == -1)
 	{
@@ -278,8 +278,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		return FALSE;
 	}
 
-	_read(handle, &g_pBaseSet[3], sizeof(STRUCT_MOB));
-	_close(handle);
+	read(handle, &g_pBaseSet[3], sizeof(STRUCT_MOB));
+	close(handle);
 
 	g_pBaseSet[0].BaseScore = g_pBaseSet[0].CurrentScore;
 	g_pBaseSet[1].BaseScore = g_pBaseSet[1].CurrentScore;
@@ -482,7 +482,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 				break;
 			} 
 
-		 	CurrentTime = timeGetTime();
+		 	CurrentTime = W2TickCount();
 
 			if(pAdmin[User].cSock.Receive() != 1)
 			{	
@@ -561,7 +561,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 				break;
 			}
 
-			CurrentTime = timeGetTime();
+			CurrentTime = W2TickCount();
 
 			if(pUser[User].cSock.Receive() != 1)
 			{	
@@ -886,7 +886,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 				int handle = -1;
 
-				handle = _open("./BaseMob/TK", _O_RDONLY | _O_BINARY);
+				handle = open("./BaseMob/TK", O_RDONLY);
 
 				if (handle == -1)
 				{
@@ -895,13 +895,13 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 					return FALSE;
 				}
 
-				_read(handle, &g_pBaseSet[0], sizeof(STRUCT_MOB));
-				_close(handle);
+				read(handle, &g_pBaseSet[0], sizeof(STRUCT_MOB));
+				close(handle);
 
 
 				handle = -1;
 
-				handle = _open("./BaseMob/FM", _O_RDONLY | _O_BINARY);
+				handle = open("./BaseMob/FM", O_RDONLY);
 
 				if (handle == -1)
 				{
@@ -910,12 +910,12 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 					return FALSE;
 				}
 
-				_read(handle, &g_pBaseSet[1], sizeof(STRUCT_MOB));
-				_close(handle);
+				read(handle, &g_pBaseSet[1], sizeof(STRUCT_MOB));
+				close(handle);
 
 				handle = -1;
 
-				handle = _open("./BaseMob/BM", _O_RDONLY | _O_BINARY);
+				handle = open("./BaseMob/BM", O_RDONLY);
 
 				if (handle == -1)
 				{
@@ -924,12 +924,12 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 					return FALSE;
 				}
 
-				_read(handle, &g_pBaseSet[2], sizeof(STRUCT_MOB));
-				_close(handle);
+				read(handle, &g_pBaseSet[2], sizeof(STRUCT_MOB));
+				close(handle);
 
 				handle = -1;
 
-				handle = _open("./BaseMob/HT", _O_RDONLY | _O_BINARY);
+				handle = open("./BaseMob/HT", O_RDONLY);
 
 				if (handle == -1)
 				{
@@ -938,8 +938,8 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 					return FALSE;
 				}
 
-				_read(handle, &g_pBaseSet[3], sizeof(STRUCT_MOB));
-				_close(handle);
+				read(handle, &g_pBaseSet[3], sizeof(STRUCT_MOB));
+				close(handle);
 
 				g_pBaseSet[0].BaseScore = g_pBaseSet[0].CurrentScore;
 				g_pBaseSet[1].BaseScore = g_pBaseSet[1].CurrentScore;

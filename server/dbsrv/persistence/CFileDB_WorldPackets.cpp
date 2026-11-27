@@ -128,8 +128,8 @@ int CFileDB::ProcessWorldMessage(char *Msg, int conn, bool& handled)
 			mob->MobName[NAME_LENGTH-1] = 0;
 			mob->MobName[NAME_LENGTH-2] = 0;
 
-			_strupr(slotname);
-			_strupr(m->OldName);
+			W2StrUpper(slotname);
+			W2StrUpper(m->OldName);
 
 			if(strcmp(slotname, m->OldName))
 			{
