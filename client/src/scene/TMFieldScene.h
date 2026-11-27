@@ -387,6 +387,7 @@ private:
 	/// @name Etapas com retorno antecipado extraídas de OnPacketAttack (Fase 3)
 	/// @{
 	bool PacketAttack_Attacker(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget, TMVector2& vecAttackerPos, int& nClass, float& fHeight, int& nReturnValue);
+	bool PacketAttack_AnimateAttacker(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget, float& fHeight, int& nReturnValue);
 	void PacketAttack_Skill3Effect(TMHuman*& pAttacker);
 	void PacketAttack_Skill5Effect(TMHuman*& pAttacker);
 	void PacketAttack_Skill45Effect(MSG_Attack*& pAttack, TMHuman*& pTarget);
