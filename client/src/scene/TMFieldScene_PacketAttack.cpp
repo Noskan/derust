@@ -248,17 +248,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 5) // Fanatismo
 		{
-			if (pAttacker)
-			{
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-				vecPos.y -= 0.5f;
-
-				auto pEffect = new TMEffectStart(vecPos, 2, nullptr);
-				if (pEffect && m_pEffectContainer)
-					m_pEffectContainer->AddChild(pEffect);
-
-				GetSoundAndPlay(151, 0, 0);
-			}
+			PacketAttack_Skill5Effect(pAttacker);
 		}
 		else if (pAttack->SkillIndex == 45) // Arma Mágica
 		{
@@ -717,6 +707,23 @@ void TMFieldScene::PacketAttack_Skill3Effect(TMHuman*& pAttacker)
 
 		if (pHoly && m_pEffectContainer)
 			m_pEffectContainer->AddChild(pHoly);
+	}
+}
+
+/// Efeitos da skill 5 (Fanatismo) no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill5Effect(TMHuman*& pAttacker)
+{
+	if (pAttacker)
+	{
+		TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+		vecPos.y -= 0.5f;
+
+		auto pEffect = new TMEffectStart(vecPos, 2, nullptr);
+		if (pEffect && m_pEffectContainer)
+			m_pEffectContainer->AddChild(pEffect);
+
+		GetSoundAndPlay(151, 0, 0);
 	}
 }
 
