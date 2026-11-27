@@ -46,7 +46,7 @@ if(DERUST_BUILD_CLIENT)
   target_link_libraries(tmproject_characterization_tests PRIVATE w2_shared tm_directx wininet)
   add_test(NAME tmproject_characterization_tests COMMAND tmproject_characterization_tests)
 
-  # Cliente sintético do login (tools/login_client), com o CPSock e as estruturas do cliente. Não
+  # Cliente sintético do login e do jogo (tools/login_client), com o CPSock e as estruturas do cliente. Não
   # é um teste do CTest: precisa do DBSrv e do TMSrv no ar, e quem o roda é
   # tools/server_boot_smoke.py.
   add_executable(LoginClient
@@ -70,5 +70,5 @@ if(DERUST_BUILD_CLIENT)
   target_compile_options(LoginClient PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:/W3 /permissive->
   )
-  target_link_libraries(LoginClient PRIVATE w2_shared tm_directx wininet ws2_32 iphlpapi)
+  target_link_libraries(LoginClient PRIVATE w2_shared tm_directx wininet ws2_32 iphlpapi winmm)
 endif()

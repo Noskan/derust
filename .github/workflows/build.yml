@@ -69,7 +69,7 @@ jobs:
         run: python3 tools/mingw_check.py --jobs 4 --keep "$RUNNER_TEMP/mingw"
 
       # Sobe DBSrv e TMSrv com dados sintéticos (prefixo do wine e Xvfb próprios) e faz o login
-      # de ponta a ponta com o LoginClient (fontes do cliente).
+      # e uma sessão curta de jogo de ponta a ponta com o LoginClient (fontes do cliente).
       - name: Boot DBSrv + TMSrv and log in under wine (synthetic data)
         timeout-minutes: 10
         run: python3 tools/server_boot_smoke.py "$RUNNER_TEMP/mingw" --keep "$RUNNER_TEMP/server_boot" --require-login

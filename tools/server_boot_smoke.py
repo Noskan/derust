@@ -16,14 +16,18 @@ O que confere:
      boot é uma MessageBox.
 
 Com o LoginClient.exe (tools/login_client, montado com os fontes do cliente) no mesmo diretório,
-confere também o login de ponta a ponta:
-  6. Uma conta é criada pelo caminho do próprio DBSrv (arquivo em Common/ImportUser, que o
+confere também o login e uma sessão curta de jogo de ponta a ponta:
+  6. Duas contas são criadas pelo caminho do próprio DBSrv (arquivos em Common/ImportUser, que o
      ProcessSecTimer importa e apaga).
-  7. O LoginClient entra na conta, define a senha numérica, cria um personagem, cria e apaga
-     outro e entra no jogo, conferindo cada resposta no layout do cliente. Os valores do
-     personagem vêm do BaseMob sintético (synthetic_base_mob), gravado no layout do cliente.
+  7. O LoginClient entra na primeira conta, define a senha numérica, cria um personagem, cria e
+     apaga outro e entra no jogo; depois entra com a segunda conta perto do primeiro. Os valores
+     do personagem vêm do BaseMob sintético (synthetic_base_mob), gravado no layout do cliente.
+  8. Com os dois no jogo: cada um vê o outro, chat, movimento (inclusive para uma casa ocupada),
+     soltar e pegar item, troca de posição com e sem bolsa, uso de poção, e saída e volta do
+     personagem com o inventário gravado pelo DBSrv. Cada resposta é conferida no layout do
+     cliente (ver o cabeçalho de tools/login_client/LoginClient.cpp).
 
-Não cobre a jogabilidade depois da entrada.
+Não cobre combate, troca entre jogadores, lojas nem NPCs (o mundo sintético não tem mobs).
 
 Antes, um autoteste sobe o DBSrv sem o SkillData.csv e exige que a MessageBox seja vista:
 garante que o detector funciona na plataforma em uso (desligue com --no-self-test).
@@ -61,16 +65,19 @@ GAME_PORT = 8281    # server/common/Basedef.h
 SIZEOF_STRUCT_MOB = 1024  # Win32, layout do cliente; o servidor lê até isso, um arquivo menor também passaria
 BASE_CLASSES = ("TK", "FM", "BM", "HT")  # ordem de g_pBaseSet no DBSrv
 
-# Conta e personagem do login sintético.
+# Contas e personagens do login sintético: A faz o login completo; B entra perto de A para o
+# teste de jogo. As duas usam a mesma senha e a mesma senha numérica.
 LOGIN_ACCOUNT, LOGIN_PASSWORD, LOGIN_NUMERIC = "derust", "senha123", "1234"
 LOGIN_CHAR, LOGIN_CLASS = "Heroi", 1
+LOGIN_ACCOUNT_B, LOGIN_CHAR_B, LOGIN_CLASS_B = "derust2", "Parceiro", 2
 
-# Três itens sintéticos no formato de BASE_ReadItemListFile:
+# Itens sintéticos no formato de BASE_ReadItemListFile:
 # índice, nome, malha.textura, nível.for.int.des.con, único, preço, pos, extra, grau, (efeito, valor)*
 ITEMLIST_CSV = (
     "1,EspadaTeste,1.0,1.0.0.0.0,0,100,64,0,0,EF_DAMAGE,10,EF_GRID,0\n"
     "2,ArmaduraTeste,2.0,1.0.0.0.0,0,100,2,0,0,EF_AC,5\n"
-    "412,PocaoTeste,3.0,.,0,10,0,0,0,EF_VOLATILE,1\n"
+    "412,PocaoTeste,3.0,.,0,10,0,0,0,EF_VOLATILE,1,EF_HP,50\n"
+    "3467,BolsaTeste,4.0,.,0,10,0,0,0\n"
 )
 
 
@@ -89,6 +96,9 @@ def synthetic_base_mob(cls):
         struct.pack_into("<4h", mob, score + 32, 10 + cls, 20 + cls, 30 + cls, 40 + cls)  # Str/Int/Dex/Con
     struct.pack_into("<h", mob, 140 + 8, 2)               # Equip[1].sIndex: ArmaduraTeste
     struct.pack_into("<h", mob, 268, 412)                 # Carry[0].sIndex: PocaoTeste
+    # Carry[61]: bolsa (libera Carry[45..59]), válida até 31/12/2099 (dia, mês, ano - 2000 nos
+    # valores dos três efeitos, como BASE_CheckItemDate lê). Carry[60] fica sem bolsa.
+    struct.pack_into("<h6B", mob, 268 + 61 * 8, 3467, 0, 31, 0, 12, 0, 99)
     struct.pack_into("<I", mob, 780, 0x00010203 + cls)    # LearnedSkill
     return bytes(mob)
 
@@ -157,7 +167,10 @@ def build_tree(work, exe_dir):
 
     shutil.copy(exe_dir / "TMSrv.exe", tm)
     # O gameconfig.txt é o que o próprio TMSrv grava quando não o encontra (DrawConfig).
-    shutil.copy(DATA / "gameconfig.txt", tm / "gameconfig.txt")
+    # Com DropItem 1, para o teste de jogo soltar item no chão.
+    config = (DATA / "gameconfig.txt").read_text()
+    assert config.count("DropItem 0") == 1
+    (tm / "gameconfig.txt").write_text(config.replace("DropItem 0", "DropItem 1"))
     (tm / "LocalIP.txt").write_text(ips[0] + "\n")
     zero_file(tm / "AttributeMap.dat", 1024 * 1024)
     zero_file(tm / "heightmap.dat", 4096 * 4096)  # MAX_GRIDY * MAX_GRIDX
@@ -416,30 +429,35 @@ def self_test(host, work, exe_dir, timeout):
     return [f"autoteste: esperava a MessageBox do SkillData.csv ausente, veio {seen or 'nada'}"]
 
 
-def import_account(common):
-    """Arquivo de CReadFiles::ImportUser: conta, senha, nome, SSN1, SSN2 (não nulos), e-mail,
-    telefone, endereço e bônus, um por linha."""
-    lines = [LOGIN_ACCOUNT, LOGIN_PASSWORD, "Teste", "111", "222", "teste@exemplo.invalid",
-             "5550000", "RuaTeste", "0"]
-    path = common / "ImportUser" / LOGIN_ACCOUNT
-    path.write_text("".join(l + "\n" for l in lines))
-    return path
+def import_accounts(common):
+    """Arquivos de CReadFiles::ImportUser, um por conta: conta, senha, nome, SSN1, SSN2 (não
+    nulos), e-mail, telefone, endereço e bônus, um por linha."""
+    paths = []
+    for account in (LOGIN_ACCOUNT, LOGIN_ACCOUNT_B):
+        lines = [account, LOGIN_PASSWORD, "Teste", "111", "222", "teste@exemplo.invalid",
+                 "5550000", "RuaTeste", "0"]
+        path = common / "ImportUser" / account
+        path.write_text("".join(l + "\n" for l in lines))
+        paths.append(path)
+    return paths
 
 
-def login(host, work, db_dir, game_host, client, import_file, timeout):
-    """Espera o DBSrv importar a conta e roda o LoginClient contra o TMSrv."""
+def login(host, work, db_dir, game_host, client, import_files, timeout):
+    """Espera o DBSrv importar as contas e roda o LoginClient contra o TMSrv."""
     end = time.time() + timeout
-    while import_file.exists() and time.time() < end:
+    while any(f.exists() for f in import_files) and time.time() < end:
         time.sleep(0.5)
-    if import_file.exists():
-        return [f"DBSrv: não importou a conta de {import_file} em {timeout:.0f}s"]
-    account = db_dir / "account" / LOGIN_ACCOUNT[0].upper() / LOGIN_ACCOUNT.upper()
-    if not account.exists():
-        return [f"DBSrv: importou a conta mas não gravou {account}"]
-    print(f"conta \"{LOGIN_ACCOUNT}\" criada pelo ImportUser ({account.stat().st_size} bytes)")
+    for f in import_files:
+        if f.exists():
+            return [f"DBSrv: não importou a conta de {f} em {timeout:.0f}s"]
+        account = db_dir / "account" / f.name[0].upper() / f.name.upper()
+        if not account.exists():
+            return [f"DBSrv: importou a conta mas não gravou {account}"]
+        print(f"conta \"{f.name}\" criada pelo ImportUser ({account.stat().st_size} bytes)")
     cwd = work / "login"
     cwd.mkdir()
-    args = [game_host, str(GAME_PORT), LOGIN_ACCOUNT, LOGIN_PASSWORD, LOGIN_NUMERIC, LOGIN_CHAR, str(LOGIN_CLASS)]
+    args = [game_host, str(GAME_PORT), LOGIN_ACCOUNT, LOGIN_PASSWORD, LOGIN_NUMERIC, LOGIN_CHAR, str(LOGIN_CLASS),
+            LOGIN_ACCOUNT_B, LOGIN_CHAR_B, str(LOGIN_CLASS_B)]
     try:
         r = host.run(client, args, cwd, timeout)
     except subprocess.TimeoutExpired:
@@ -454,7 +472,7 @@ def login(host, work, db_dir, game_host, client, import_file, timeout):
 
 def boot(host, work, exe_dir, args):
     db_dir, tm_dir, game_host = prepare(work, exe_dir)
-    import_file = import_account(work / "Common") if args.login_client else None
+    import_files = import_accounts(work / "Common") if args.login_client else None
     servers = []
     graceful = False  # só encerra com WM_QUIT se os dois chegaram ao fim do tempo no ar
     try:
@@ -474,10 +492,10 @@ def boot(host, work, exe_dir, args):
             if not port_open(port, h):
                 problems.append(f"conexão de teste em {h}:{port} recusada")
         if args.login_client and not problems:
-            problems += login(host, work, db_dir, game_host, args.login_client, import_file, args.timeout)
+            problems += login(host, work, db_dir, game_host, args.login_client, import_files, args.timeout)
             problems += [p for s in servers for p in s.problems()]
             if not problems:
-                print("login de ponta a ponta conferido")
+                print("login e jogo de ponta a ponta conferidos")
         time.sleep(args.settle)
         problems += [p for s in servers for p in s.problems()]
         graceful = not problems

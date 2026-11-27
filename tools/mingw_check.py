@@ -257,7 +257,7 @@ def main():
             status = 1
         login = objs("tools/login_client") + [str(results[r][2]) for r in LOGIN_CLIENT_SOURCES]
         if run([CXX, "-static", *login, "-o", work / "LoginClient.exe",
-                "-lws2_32", "-lwininet", "-ld3dx9", "-liphlpapi"]).returncode:
+                "-lws2_32", "-lwininet", "-ld3dx9", "-liphlpapi", "-lwinmm"]).returncode:
             print("::error::falha ao linkar LoginClient")
             status = 1
         # Um executável por fonte de teste (cada um tem seu main), como em tests/CMakeLists.txt.
