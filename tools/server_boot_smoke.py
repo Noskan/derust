@@ -2,7 +2,7 @@
 """Teste de partida dos servidores (DBSrv + TMSrv), no wine ou no Windows, com dados sintéticos.
 
 Não usa dados do jogo: monta uma árvore mínima com arquivos gerados aqui (listas vazias,
-mapas zerados, um itemlist.csv com três itens) e o `server/common/ItemEffect.h` do
+mapas zerados, um itemlist.csv com alguns itens) e o `server/common/ItemEffect.h` do
 repositório, que o servidor lê em tempo de execução para montar a tabela de efeitos.
 
 O que confere:
@@ -65,6 +65,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 import linux_deploy  # noqa: E402  (WRITE_DIRS: a árvore da produção)
+import w2_bin_csv  # noqa: E402
 DATA = ROOT / "tests" / "data" / "server_boot"
 
 DB_PORT = 7514      # server/common/Basedef.h
@@ -86,6 +87,13 @@ ITEMLIST_CSV = (
     "2,ArmaduraTeste,2.0,1.0.0.0.0,0,100,2,0,0,EF_AC,5\n"
     "412,PocaoTeste,3.0,.,0,10,0,0,0,EF_VOLATILE,1,EF_HP,50\n"
     "3467,BolsaTeste,4.0,.,0,10,0,0,0\n"
+    # Casos difíceis do leitor, só para conferir tools/w2_bin_csv.py contra o ItemList.bin que o
+    # próprio servidor grava (check_bin_csv): negativos, valores que não cabem num short, tokens
+    # que o sscanf corta no meio, efeito que não existe (vira 128) e tab no lugar de vírgula.
+    "6001,Negativo,-5.-7,-1.2.-3.4.-5,-1,-100,-2,-3,-4,EF_DAMAGE,-9\n"
+    "6002,Prefixo,7x.3,1.2,5,12abc,1,0,0\n"
+    "6003,EfeitoDesconhecido,1.0,.,0,1,0,0,0,EF_NAO_EXISTE,5,EF_HP,3\n"
+    "6004\tTab,70000.1,0.0.0.0.0,0,1,0,0,0,EF_AC,40000\n"
 )
 
 
@@ -563,6 +571,35 @@ def login(host, work, db_dir, game_host, client, import_files, timeout):
     return []
 
 
+def check_bin_csv(common):
+    """Confere tools/w2_bin_csv.py contra o servidor: o ItemList.bin (e o ExtraItem.bin) que o
+    servidor gravou a partir do ITEMLIST_CSV tem que ser exatamente o que o leitor imitado pelo
+    script monta do mesmo csv, e o csv que o script tira do binário tem que voltar igual."""
+    raw, _ = w2_bin_csv.read_table(common / "ItemList.bin", w2_bin_csv.ITEM_FMT, w2_bin_csv.MAX_ITEMLIST,
+                                   "ItemList.bin")
+    w2_bin_csv.apply_extra(raw, common / "ExtraItem.bin")
+    effects, _ = w2_bin_csv.read_effect_names(common / "ItemEffect.h")
+    mirror = w2_bin_csv.server_read_itemlist(ITEMLIST_CSV.encode(), effects)
+    problems = []
+    for idx, rec in enumerate(raw):
+        rec = w2_bin_csv.item_record(rec)
+        want = mirror.get(idx)
+        if want is None:
+            if not w2_bin_csv.is_empty(rec):
+                problems.append(f"w2_bin_csv: o servidor gravou o item {idx}, que o leitor imitado não monta")
+        elif want != rec:
+            diff = [f"{f}: servidor {a!r}, script {b!r}" for f, a, b in zip(w2_bin_csv.ITEM_FIELDS, rec, want) if a != b]
+            problems.append(f"w2_bin_csv: item {idx} difere do servidor ({'; '.join(diff)})")
+    out = common.parent / "itemlist.from_bin.csv"
+    diffs, _ = w2_bin_csv.convert_itemlist(common / "ItemList.bin", out, common / "ExtraItem.bin",
+                                           common / "ItemEffect.h", quiet=True)
+    # O 6003 tem o efeito 128, que não tem nome: é a única coisa que o csv não representa.
+    problems += [f"w2_bin_csv: {d}" for d in diffs if not d.startswith("item 6003:")]
+    if not problems:
+        print(f"w2_bin_csv: o ItemList.bin do servidor confere com o leitor imitado ({len(mirror)} itens)")
+    return problems
+
+
 def boot(host, work, exe_dir, args):
     db_dir, tm_dir, game_host = prepare(work, exe_dir)
     import_files = import_accounts(work / "Common") if args.login_client else None
@@ -608,6 +645,8 @@ def boot(host, work, exe_dir, args):
         problems.append("TMSrv: perdeu a conexão com o DBSrv (\"err wsareaddb\")")
     if f"err wsa_accept request from  {game_host}" in db_log:
         problems.append(f"DBSrv: recusou a conexão do TMSrv ({game_host})")
+    if not problems:
+        problems += check_bin_csv(work / "Common")
     if not problems:
         print(f"os dois seguem no ar após {args.settle:.0f}s, sem MessageBox")
     return problems

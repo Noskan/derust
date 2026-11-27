@@ -24,6 +24,9 @@ jobs:
       - name: Check module include boundaries
         run: python3 tools/check_boundaries.py
 
+      - name: Self-test the client data converter (synthetic data)
+        run: python3 tools/w2_bin_csv.py selftest
+
   mingw-check:
     name: MinGW i686 Cross Check (Linux + wine)
     runs-on: ubuntu-24.04
