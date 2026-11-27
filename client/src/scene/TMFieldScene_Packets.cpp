@@ -577,7 +577,9 @@ int TMFieldScene::OnPacketCreateMob(MSG_STANDARD* pStd)
 			pCreateMob->Nick[25] = 0;
 			sprintf(pHuman->m_szName, "%s", pCreateMob->MobName);
 			sprintf(pHuman->m_szNickName, "%s", pCreateMob->Nick);
-			pHuman->m_citizen = pCreateMob->Server;
+			// Na loja (0x363) a cidadania vem depois de Desc, no layout de MSG_CreateMobTrade; pelo
+			// layout de MSG_CreateMob este byte seria Desc[0].
+			pHuman->m_citizen = pStd->Type == MSG_CreateMobTrade_Opcode ? pCreateMobTrade->Server : pCreateMob->Server;
 		}
 		else
 		{
