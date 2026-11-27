@@ -95,31 +95,31 @@ int TMHuman::OnPacketEvent(unsigned int dwCode, char* buf)
     case 0x3CA:
         return OnPacketPremiumFireWork((MSG_STANDARD*)buf);
         break;
-    case 0x36A:
+    case MSG_Motion_Opcode:
         return OnPacketFireWork(reinterpret_cast<MSG_Motion*>(buf));
         break;
-    case 0x165:
+    case MSG_RemoveMob_Opcode:
         return OnPacketRemoveMob((MSG_STANDARD*)buf);
         break;
-    case 0x182:
+    case MSG_SendItem_Opcode:
         return OnPacketSendItem((MSG_STANDARD*)buf);
         break;
     case MSG_UpdateEquip_Opcode:
         return OnPacketUpdateEquip((MSG_STANDARD*)buf);
         break;
-    case 0x3B9:
+    case MSG_UpdateAffect_Opcode:
         return OnPacketUpdateAffect((MSG_STANDARD*)buf);
         break;
-    case 0x336:
+    case MSG_UpdateScore_Opcode:
         return OnPacketUpdateScore((MSG_STANDARD*)buf);
         break;
-    case 0x181:
+    case MSG_SetHpMp_Opcode:
         return OnPacketSetHpMp(reinterpret_cast<MSG_SetHpMp*>(buf));
         break;
-    case 0x18A:
+    case MSG_SetHpDam_Opcode:
         return OnPacketSetHpDam((MSG_STANDARD*)buf);
         break;
-    case 0x333:
+    case MSG_MessageChat_Opcode:
         return OnPacketMessageChat((MSG_STANDARD*)buf);
         break;
     case 0x105:
@@ -128,10 +128,10 @@ int TMHuman::OnPacketEvent(unsigned int dwCode, char* buf)
     case 0x106:
         return OnPacketMessageChat_Param((MSG_STANDARD*)buf);
         break;
-    case 0x334:
+    case MSG_MessageWhisper_Opcode:
         return OnPacketMessageWhisper(reinterpret_cast<MSG_MessageWhisper*>(buf));
         break;
-    case 0x337:
+    case MSG_UpdateEtc_Opcode:
         return OnPacketUpdateEtc((MSG_STANDARD*)buf);
         break;
     case 0x3AF:
@@ -140,25 +140,25 @@ int TMHuman::OnPacketEvent(unsigned int dwCode, char* buf)
     case 0x1CF:
         return OnPacketUpdateRMB(reinterpret_cast<MSG_STANDARDPARM*>(buf));
         break;
-    case 0x383:
+    case MSG_Trade_Opcode:
         return OnPacketTrade(reinterpret_cast<MSG_Trade*>(buf));
         break;
-    case 0x384:
+    case MSG_CloseTrade_Opcode:
         return OnPacketQuitTrade((MSG_STANDARD*)buf);
         break;
-    case 0x185:
+    case MSG_UpdateCarry_Opcode:
         return OnPacketCarry(reinterpret_cast<MSG_Carry*>(buf));
         break;
-    case 0x386:
+    case MSG_CNFCheck_Opcode:
         return OnPacketCNFCheck((MSG_STANDARD*)buf);
         break;
-    case 0x193:
+    case MSG_SetClan_Opcode:
         return OnPacketSetClan(reinterpret_cast<MSG_STANDARDPARM*>(buf));
         break;
-    case 0x39F:
+    case MSG_ReqRanking_Opcode:
         return OnPacketReqRanking(reinterpret_cast<MSG_STANDARDPARM2*>(buf));
         break;
-    case 0x3AD:
+    case MSG_SendCastleState2_Opcode:
         return OnPacketVisualEffect((MSG_STANDARD*)buf);
         break;
     default:

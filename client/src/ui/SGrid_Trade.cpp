@@ -204,7 +204,7 @@ int SGridControl::TradeItem(int nCellX, int nCellY)
 
 			pFScene->m_dwLastCheckTime = g_pApp->m_pTimerManager->GetServerTime();
 			g_pObjectManager->m_stTrade.MyCheck = pMyCheck->m_bSelected;
-			g_pObjectManager->m_stTrade.Header.Type = 0x383;
+			g_pObjectManager->m_stTrade.Header.Type = MSG_Trade_Opcode;
 			SendOneMessage((char*)&g_pObjectManager->m_stTrade, sizeof(g_pObjectManager->m_stTrade));
 			return 1;
 		}
@@ -851,7 +851,7 @@ int SGridControl::SellItem(int nCellX, int nCellY, unsigned int dwFlags, unsigne
 			MSG_UseItem stUseItem{};
 
 			stUseItem.Header.ID = g_pObjectManager->m_dwCharID;
-			stUseItem.Header.Type = 883;
+			stUseItem.Header.Type = MSG_UseItem_Opcode;
 			stUseItem.SourType = sSrcType;
 			stUseItem.SourPos = Sourpage + sSrcPos;
 			stUseItem.DestType = sDestType;

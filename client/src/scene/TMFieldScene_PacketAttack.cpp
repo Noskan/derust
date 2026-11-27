@@ -705,7 +705,7 @@ else
 
 		MSG_STANDARDPARM stParm{};
 		stParm.Header.ID = g_pObjectManager->m_dwCharID;
-		stParm.Header.Type = 0x369;
+		stParm.Header.Type = MSG_REQMobByID_Opcode;
 		stParm.Parm = pAttack->AttackerID;
 		SendOneMessage((char*)&stParm, sizeof(stParm));
 	}

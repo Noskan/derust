@@ -818,7 +818,7 @@ int TMSelectServerScene::OnPacketEvent(unsigned int dwCode, char* buf)
 	auto packet = reinterpret_cast<MSG_STANDARD*>(buf);
 	if (TMScene::OnPacketEvent(dwCode, buf) == 1)
 	{
-		if (packet->Type == 0x101)
+		if (packet->Type == MSG_MessagePanel_Opcode)
 			m_pLoginPanel->SetVisible(1);
 
 		if (!m_pLoginBtns[0]->m_bEnable)
@@ -852,7 +852,7 @@ int TMSelectServerScene::OnPacketEvent(unsigned int dwCode, char* buf)
 	}
 	if (packet->Type == 0x11D || packet->Type == 0x11C)
 	{
-		if (packet->Type == 0x101)
+		if (packet->Type == MSG_MessagePanel_Opcode)
 			m_pLoginPanel->SetVisible(1);
 
 		m_pMessagePanel->SetMessage(g_pMessageStringTable[12], 4000);

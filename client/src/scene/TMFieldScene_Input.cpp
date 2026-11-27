@@ -374,7 +374,7 @@ int TMFieldScene::OnKeyDownEvent(unsigned int iKeyCode)
 				MSG_STANDARDPARM stDelayStart{};
 
 				stDelayStart.Header.ID = m_pMyHuman->m_dwID;
-				stDelayStart.Header.Type = 942;
+				stDelayStart.Header.Type = MSG_DelayStart_Opcode;
 				stDelayStart.Parm = 1;
 				SendOneMessage((char*)&stDelayStart, sizeof(MSG_STANDARDPARM));
 
@@ -930,7 +930,7 @@ int TMFieldScene::MouseClick_NPC(int nX, int nY, D3DXVECTOR3 vec, unsigned int d
 	{
 		MSG_STANDARDPARM stQuest{};
 
-		stQuest.Header.Type = 0x39A;
+		stQuest.Header.Type = MSG_ReqTradeList_Opcode;
 		stQuest.Header.ID = m_pMyHuman->m_dwID;
 		stQuest.Parm = pOver->m_dwID;
 		SendOneMessage((char*)&stQuest, sizeof(stQuest));
@@ -1071,7 +1071,7 @@ int TMFieldScene::MouseClick_NPC(int nX, int nY, D3DXVECTOR3 vec, unsigned int d
 		{
 			MSG_STANDARDPARM stPacket{};
 
-			stPacket.Header.Type = 0x28E;
+			stPacket.Header.Type = MSG_Challange_Opcode;
 			stPacket.Header.ID = m_pMyHuman->m_dwID;
 			m_dwTID = pOver->m_dwID;
 			stPacket.Parm = m_dwTID;

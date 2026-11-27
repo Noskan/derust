@@ -618,7 +618,7 @@ int TMFieldScene::OnControlEvent(unsigned int idwControlID, unsigned int idwEven
 		m_dwLastSelServer = g_pTimerManager->GetServerTime();
 		MSG_STANDARDPARM stParm{};
 		stParm.Header.ID = m_pMyHuman->m_dwID;
-		stParm.Header.Type = 0x3AE;
+		stParm.Header.Type = MSG_DelayStart_Opcode;
 		stParm.Parm = 0;
 		SendOneMessage((char*)&stParm, sizeof(stParm));
 		return 1;

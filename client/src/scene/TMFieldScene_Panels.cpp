@@ -1358,7 +1358,7 @@ void TMFieldScene::SetVisibleAutoTrade(int bShow, int bCargo)
 			{
 				MSG_STANDARD stStandard{};
 				
-				stStandard.Type = 0x384;
+				stStandard.Type = MSG_CloseTrade_Opcode;
 				stStandard.ID = m_pMyHuman->m_dwID;
 				SendOneMessage((char*)&stStandard, sizeof(stStandard));
 			}

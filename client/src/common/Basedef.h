@@ -31,8 +31,6 @@ constexpr auto MAX_SUB_EFFECT_STRING_TABLE = 10;
 
 constexpr auto MAX_ITEM_PRICE_REPLACE = 100;
 
-constexpr auto MSG_Recall_Opcode = 0x289;
-constexpr auto MSG_Ping_Opcode = 0x3A0;
 struct MSG_STANDARD
 {
 	unsigned short Size;
@@ -43,23 +41,12 @@ struct MSG_STANDARD
 	unsigned int Tick;
 };
 
-constexpr auto MSG_RequestCapsuleInfo_Opcode = 0x2CD;
-constexpr auto MSG_DelayStart_Opcode = 0x3AE;
-constexpr auto MSG_UseDeclarationOfWar_Opcode = 0xED7;
-constexpr auto MSG_SysQuit_Opcode = 0x3AE;
-constexpr auto MSG_SetPKMode_Opcode = 0x399;
 struct MSG_STANDARDPARM
 {
 	MSG_STANDARD Header;
 	int Parm;
 };
 
-constexpr auto MSG_DeleteItem_Opcode = 0x2E4;
-constexpr auto MSG_SplitItem_Opcode = 0x2E5;
-constexpr auto MSG_DoJackpotBet_Opcode = 0x2BE;
-constexpr auto MSG_InviteGuild_Opcode = 0x3D5;
-constexpr auto MSG_Quest_Opcode = 0x28B;
-constexpr auto MSG_AirMove_Start_Opcode = 0xAD9;
 struct MSG_STANDARDPARM2
 {
 	MSG_STANDARD Header;
@@ -75,6 +62,7 @@ struct MSG_STANDARDPARM3
 	int Parm3;
 };
 
+#include "protocol/Opcodes.h"	// MSG_X_Opcode (os mesmos valores do servidor)
 #include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_SCORE, STRUCT_MOB, STRUCT_SELCHAR, STRUCT_ITEMLIST e outras (iguais nos dois lados)
 
 struct STRUCT_MYBONUSEFFECT
@@ -527,9 +515,6 @@ struct STRUCT_AUTOKICK
 	char route[4][128];
 };
 
-constexpr auto MSG_Action_Opcode = 0x36C;
-constexpr auto MSG_Action2_Opcode = 0x368;
-constexpr auto MSG_Action_Stop_Opcode = 0x366;
 
 struct MSG_Action
 {
@@ -543,7 +528,6 @@ struct MSG_Action
 	unsigned short TargetY;
 };
 
-constexpr auto MSG_Motion_Opcode = 0x36A;
 struct MSG_Motion
 {
 	MSG_STANDARD Header;
@@ -567,7 +551,6 @@ struct MSG_CAPSULEINFO
 	short Quest;
 };
 
-constexpr auto MSG_Trade_Opcode = 0x383;
 struct MSG_Trade
 {
 	MSG_STANDARD Header;
@@ -578,13 +561,8 @@ struct MSG_Trade
 	unsigned short OpponentID;
 };
 
-constexpr auto MSG_CloseTrade_Opcode = 0x384;
 
-constexpr auto MSG_Withdraw_Opcode = 0x387;
-constexpr auto MSG_Deposit_Opcode = 0x388;
 
-constexpr auto MSG_CombineItem_Opcode = 0x3A6;
-constexpr auto MSG_CombineItemTiny_Opcode = 0x3C0;
 struct MSG_CombineItem
 {
 	MSG_STANDARD Header;
@@ -600,7 +578,6 @@ struct MSG_Mission
 	char CarryPos[8];
 };
 
-constexpr auto MSG_CNFAccountLogin_Opcode = 0x10A;
 struct MSG_CNFAccountLogin
 {
 	MSG_STANDARD Header;
@@ -613,7 +590,6 @@ struct MSG_CNFAccountLogin
 	int SSN2;
 };
 
-constexpr auto MSG_UseItem_Opcode = 0x373;
 struct MSG_UseItem
 {
 	MSG_STANDARD Header;
@@ -626,7 +602,6 @@ struct MSG_UseItem
 	unsigned short ItemID;
 };
 
-constexpr auto MSG_UseItem2_Opcode = 0x3C9;
 struct MSG_UseItem2
 {
 	MSG_STANDARD Header;
@@ -653,7 +628,6 @@ struct MSG_CAPSULEUSEITEM
 	char NewMobname[16];
 };
 
-constexpr auto MSG_AutoTrade_Opcode = 0x397;
 struct MSG_AutoTrade
 {
 	MSG_STANDARD Header;
@@ -695,7 +669,6 @@ struct MSG_CNFRemoveServer
 	char TID[52];
 };
 
-constexpr auto MSG_SendItem_Opcode = 0x182;
 struct MSG_SendItem
 {
 	MSG_STANDARD Header;
@@ -704,7 +677,6 @@ struct MSG_SendItem
 	STRUCT_ITEM Item;
 };
 
-constexpr auto MSG_UpdateEquip_Opcode = 0x36B;
 struct MSG_UpdateEquip
 {
 	MSG_STANDARD Header;
@@ -712,14 +684,12 @@ struct MSG_UpdateEquip
 	char Equip2[16];
 };
 
-constexpr auto MSG_UpdateAffect_Opcode = 0x3B9;
 struct MSG_UpdateAffect
 {
 	MSG_STANDARD Header;
 	STRUCT_AFFECT Affect[32];
 };
 
-constexpr auto MSG_AccountLogin_Opcode = 0x20D;
 struct MSG_AccountLogin
 {
 	MSG_STANDARD Header;
@@ -731,8 +701,6 @@ struct MSG_AccountLogin
 	unsigned int Mac[4];
 };
 
-constexpr auto MSG_MessageWhisper_Opcode = 0x334;
-constexpr auto MSG_MessageShout_Opcode = 0xD1D;
 struct MSG_MessageWhisper
 {
 	MSG_STANDARD Header;
@@ -741,21 +709,18 @@ struct MSG_MessageWhisper
 	short Color;
 };
 
-constexpr auto MSG_Encode_Opcode = 0xBFF;
 struct MSG_Encode
 {
 	MSG_STANDARD Header;
 	int Parm[42];
 };
 
-constexpr auto MSG_MessageChat_Opcode = 0x333;
 struct MSG_MessageChat
 {
 	MSG_STANDARD Header;
 	char String[128];
 };
 
-constexpr auto MSG_UpdateScore_Opcode = 0x336;
 struct MSG_UpdateScore
 {
 	MSG_STANDARD Header;
@@ -773,7 +738,6 @@ struct MSG_UpdateScore
 	char LearnedSkill;
 };
 
-constexpr auto MSG_UpdateEtc_Opcode = 0x337;
 struct MSG_UpdateEtc
 {
 	MSG_STANDARD Header;
@@ -786,14 +750,12 @@ struct MSG_UpdateEtc
 	int Coin;
 };
 
-constexpr auto MSG_MessagePanel_Opcode = 0x101;
 struct MSG_MessagePanel
 {
 	MSG_STANDARD Header;
 	char String[128];
 };
 
-constexpr auto MSG_CharPassword_Opcode = 0xFDE;
 struct MSG_CHARPASSWORD
 {
 	MSG_STANDARD Header;
@@ -801,7 +763,6 @@ struct MSG_CHARPASSWORD
 	char State;
 };
 
-constexpr auto MSG_CharacterLogin_Opcode = 0x213;
 struct MSG_CharacterLogin
 {
 	MSG_STANDARD Header;
@@ -810,7 +771,6 @@ struct MSG_CharacterLogin
 	char SecretCode[16];
 };
 
-constexpr auto MSG_NewCharacter_Opcode = 0x20F;
 struct MSG_NewCharacter
 {
 	MSG_STANDARD Header;
@@ -819,7 +779,6 @@ struct MSG_NewCharacter
 	int Class;
 };
 
-constexpr auto MSG_ReqTransper_Opcode = 0xFAA;
 struct MSG_ReqTransper
 {
 	MSG_STANDARD Header;
@@ -829,7 +788,6 @@ struct MSG_ReqTransper
 	char NewName[16];
 };
 
-constexpr auto MSG_DeleteCharacter_Opcode = 0x211;
 struct MSG_DeleteCharacter
 {
 	MSG_STANDARD Header;
@@ -838,21 +796,18 @@ struct MSG_DeleteCharacter
 	char Password[16];
 };
 
-constexpr auto MSG_CNFNewCharacter_Opcode = 0x110;
 struct MSG_CNFNewCharacter
 {
 	MSG_STANDARD Header;
 	STRUCT_SELCHAR SelChar;
 };
 
-constexpr auto MSG_CNFDeleteCharacter_Opcode = 0x112;
 struct MSG_CNFDeleteCharacter
 {
 	MSG_STANDARD Header;
 	STRUCT_SELCHAR SelChar;
 };
 
-constexpr auto MSG_CNFCharacterLogin_Opcode = 0x114;
 struct MSG_CNFCharacterLogin
 {
 	MSG_STANDARD Header;
@@ -867,7 +822,6 @@ struct MSG_CNFCharacterLogin
 	STRUCT_EXT2 Ext2;
 };
 
-constexpr auto MSG_InitGuldName_Opcode = 0x1D6;
 struct MSG_INITGULDNAME
 {
 	MSG_STANDARD Header;
@@ -875,14 +829,12 @@ struct MSG_INITGULDNAME
 	char GuildName[12];
 };
 
-constexpr auto MSG_MessageLog_Opcode = 0x2BC;
 struct MSG_MessageLog
 {
 	MSG_STANDARD Header;
 	char String[128];
 };
 
-constexpr auto MSG_CreateMob_Opcode = 0x364;
 struct MSG_CreateMob
 {
 	MSG_STANDARD Header;
@@ -901,7 +853,6 @@ struct MSG_CreateMob
 	char Server;
 };
 
-constexpr auto MSG_CreateMobTrade_Opcode = 0x363;
 struct MSG_CreateMobTrade
 {
 	MSG_STANDARD Header;
@@ -921,21 +872,18 @@ struct MSG_CreateMobTrade
 	char Server;
 };
 
-constexpr auto MSG_REQMobByID_Opcode = 0x369;
 struct MSG_REQMobByID
 {
 	MSG_STANDARD Header;
 	short MobID;
 };
 
-constexpr auto MSG_SetShortSkill_Opcode = 0x378;
 struct MSG_SetShortSkill
 {
 	MSG_STANDARD Header;
 	char Skill[20];
 };
 
-constexpr auto MSG_ShopList_Opcode = 0x17C;
 struct MSG_ShopList
 {
 	MSG_STANDARD Header;
@@ -944,9 +892,7 @@ struct MSG_ShopList
 	int Tax;
 };
 
-constexpr auto MSG_CloseShop_Opcode = 0x196;
 
-constexpr auto MSG_SwapItem_Opcode = 0x376;
 /// @brief Troca de posição de item (0x376). Apesar dos nomes, `Sour*` é a posição onde o item é solto e
 /// `Dest*` a posição de onde ele saiu (SGrid_Input.cpp, SGrid_Trade.cpp); no servidor são
 /// `DestPlace/DestSlot` e `SrcPlace/SrcSlot`.
@@ -960,7 +906,6 @@ struct MSG_SwapItem
 	unsigned short TargetID;
 };
 
-constexpr auto MSG_RepurchaseItems_Opcode = 0x3E8;
 struct MSG_RepurchaseItems
 {
 	MSG_STANDARD Header;
@@ -968,14 +913,12 @@ struct MSG_RepurchaseItems
 	STRUCT_REPURCHASEITEM Repurcharse[10];
 };
 
-constexpr auto MSG_REQShopList_Opcode = 0x27B;
 struct MSG_REQShopList
 {
 	MSG_STANDARD Header;
 	unsigned short TargetID;
 };
 
-constexpr auto MSG_Buy_Opcode = 0x379;
 struct MSG_Buy
 {
 	MSG_STANDARD Header;
@@ -985,7 +928,6 @@ struct MSG_Buy
 	int Coin;
 };
 
-constexpr auto MSG_Sell_Opcode = 0x37A;
 struct MSG_Sell
 {
 	MSG_STANDARD Header;
@@ -994,9 +936,6 @@ struct MSG_Sell
 	short MyPos;
 };
 
-constexpr auto MSG_Attack_Multi_Opcode = 0x367;
-constexpr auto MSG_Attack_One_Opcode = 0x39D;
-constexpr auto MSG_Attack_Two_Opcode = 0x39E;
 
 struct MSG_Attack
 {
@@ -1075,7 +1014,6 @@ struct PARTY
 	char Name[16];
 };
 
-constexpr auto MSG_REQParty_Opcode = 0x37F;
 struct MSG_REQParty
 {
 	MSG_STANDARD Header;
@@ -1089,7 +1027,6 @@ struct MSG_AddParty
 	PARTY Party;
 };
 
-constexpr auto MSG_CNFParty2_Opcode = 0x3AB;
 struct MSG_CNFParty2
 {
 	MSG_STANDARD Header;
@@ -1097,7 +1034,6 @@ struct MSG_CNFParty2
 	char LeaderName[16];
 };
 
-constexpr auto MSG_ApplyBonus_Opcode = 0x277;
 struct MSG_ApplyBonus
 {
 	MSG_STANDARD Header;
@@ -1106,7 +1042,6 @@ struct MSG_ApplyBonus
 	unsigned short TargetID;
 };
 
-constexpr auto MSG_ReqBuy_Opcode = 0x398;
 struct MSG_ReqBuy
 {
 	MSG_STANDARD Header;
@@ -1171,7 +1106,6 @@ struct MSG_HellBuy
 	int Coin;
 };
 
-constexpr auto MSG_UpdateItem_Opcode = 0x374;
 struct MSG_UpdateItem
 {
 	MSG_STANDARD Header;
@@ -1235,7 +1169,6 @@ struct MSG_LongMessagePanel
 	char Line[4][128];
 };
 
-constexpr auto MSG_DropItem_Opcode = 0x272;
 struct MSG_DropItem
 {
 	MSG_STANDARD Header;
@@ -1287,7 +1220,6 @@ struct MSG_RMBShopList
 	int Tax;
 };
 
-constexpr auto MSG_GetItem_Opcode = 0x270;
 struct MSG_GetItem
 {
 	MSG_STANDARD Header;

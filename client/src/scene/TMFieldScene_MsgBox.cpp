@@ -104,7 +104,7 @@ int TMFieldScene::OnMsgBoxEvent(unsigned int idwControlID, unsigned int idwEvent
 
 		MSG_STANDARDPARM stDelayStart{};
 		stDelayStart.Header.ID = m_pMyHuman->m_dwID;
-		stDelayStart.Header.Type = 942;
+		stDelayStart.Header.Type = MSG_DelayStart_Opcode;
 		stDelayStart.Parm = 2;
 		SendOneMessage((char*)&stDelayStart, sizeof(stDelayStart));
 	}
@@ -198,7 +198,7 @@ int TMFieldScene::OnMsgBoxEvent(unsigned int idwControlID, unsigned int idwEvent
 	{
 		MSG_STANDARDPARM stGuildDep{};
 		stGuildDep.Header.ID = m_pMyHuman->m_dwID;
-		stGuildDep.Header.Type = 652;
+		stGuildDep.Header.Type = MSG_Deprivate_Opcode;
 		stGuildDep.Parm = m_pMessageBox->m_dwArg;
 		SendOneMessage((char*)&stGuildDep, sizeof(stGuildDep));
 		m_pPGTPanel->SetVisible(0);
@@ -209,7 +209,7 @@ int TMFieldScene::OnMsgBoxEvent(unsigned int idwControlID, unsigned int idwEvent
 		MSG_STANDARDPARM2 stParam{};
 
 		stParam.Header.ID = m_pMyHuman->m_dwID;
-		stParam.Header.Type = 3598;
+		stParam.Header.Type = MSG_War_Opcode;
 		stParam.Parm1 = m_pMyHuman->m_usGuild;
 		stParam.Parm2 = m_pMessageBox->m_dwArg;
 		SendOneMessage((char*)&stParam, sizeof(stParam));
@@ -221,7 +221,7 @@ int TMFieldScene::OnMsgBoxEvent(unsigned int idwControlID, unsigned int idwEvent
 		MSG_STANDARDPARM2 stParam{};
 
 		stParam.Header.ID = m_pMyHuman->m_dwID;
-		stParam.Header.Type = 3602;
+		stParam.Header.Type = MSG_GuildAlly_Opcode;
 		stParam.Parm1 = m_pMyHuman->m_usGuild;
 		stParam.Parm2 = m_pMessageBox->m_dwArg;
 		SendOneMessage((char*)&stParam, sizeof(stParam));
@@ -241,7 +241,7 @@ int TMFieldScene::OnMsgBoxEvent(unsigned int idwControlID, unsigned int idwEvent
 		{
 			MSG_STANDARDPARM stParam{};
 			stParam.Header.ID = g_pObjectManager->m_dwCharID;
-			stParam.Header.Type = 656;
+			stParam.Header.Type = MSG_ReqTeleport_Opcode;
 			stParam.Parm = 0;
 			SendOneMessage((char*)&stParam, sizeof(stParam));
 		}
@@ -262,7 +262,7 @@ int TMFieldScene::OnMsgBoxEvent(unsigned int idwControlID, unsigned int idwEvent
 	{
 		MSG_STANDARDPARM2 stQuest{};
 
-		stQuest.Header.Type = 927;
+		stQuest.Header.Type = MSG_ReqRanking_Opcode;
 		stQuest.Header.ID = m_pMyHuman->m_dwID;
 		stQuest.Parm1 = m_pMessageBox->m_dwArg;
 		stQuest.Parm2 = 4;
@@ -335,7 +335,7 @@ int TMFieldScene::OnMsgBoxEvent(unsigned int idwControlID, unsigned int idwEvent
 	{
 		MSG_STANDARDPARM stRemoveParty{};
 
-		stRemoveParty.Header.Type = 894;
+		stRemoveParty.Header.Type = MSG_RemoveParty_Opcode;
 		stRemoveParty.Header.ID = m_pMyHuman->m_dwID;
 		stRemoveParty.Parm = m_pMessageBox->m_dwArg;
 		SendOneMessage((char*)&stRemoveParty, sizeof(stRemoveParty));
@@ -346,7 +346,7 @@ int TMFieldScene::OnMsgBoxEvent(unsigned int idwControlID, unsigned int idwEvent
 		MSG_STANDARDPARM2 stParam{};
 
 		stParam.Header.ID = g_pObjectManager->m_dwCharID;
-		stParam.Header.Type = 655;
+		stParam.Header.Type = MSG_ChallangeConfirm_Opcode;
 		stParam.Parm1 = m_dwTID;
 		stParam.Parm2 = 0;
 		SendOneMessage((char*)&stParam, sizeof(stParam));
@@ -489,7 +489,7 @@ int TMFieldScene::OnMsgBoxEvent(unsigned int idwControlID, unsigned int idwEvent
 			MSG_Sell stSell{};
 
 			stSell.Header.ID = m_pMyHuman->m_dwID;
-			stSell.Header.Type = 724;
+			stSell.Header.Type = MSG_CombineItemExtracao_Opcode;
 			stSell.MyType = m_sDestType;
 			stSell.MyPos = m_sDestPos;
 

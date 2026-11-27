@@ -1346,7 +1346,7 @@ int TMSelectCharScene::OnPacketEvent(unsigned int dwCode, char* buf)
 
 	switch (pStd->Type)
 	{
-	case 0x3B4:
+	case MSG_SendArchEffect_Opcode:
 	{
 		MSG_STANDARDPARM2* pParm2 = reinterpret_cast<MSG_STANDARDPARM2*>(pStd);
 		int nIndex = pParm2->Parm1;
@@ -1367,7 +1367,7 @@ int TMSelectCharScene::OnPacketEvent(unsigned int dwCode, char* buf)
 		}
 	}
 	return 1;
-	case 0xFDE:
+	case MSG_CharPassword_Opcode:
 	{
 		MSG_CHARPASSWORD* pCnfNewChar = reinterpret_cast<MSG_CHARPASSWORD*>(pStd);
 

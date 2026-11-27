@@ -990,7 +990,7 @@ int TMFieldScene::OnControl_InputOk(unsigned int idwControlID, unsigned int idwE
 		{
 			MSG_STANDARDPARM stPacket{};
 
-			stPacket.Header.Type = 0xED7;
+			stPacket.Header.Type = MSG_UseDeclarationOfWar_Opcode;
 			stPacket.Header.ID = m_pMyHuman->m_dwID;
 			stPacket.Parm = static_cast<int>(nInputValue);
 			SendOneMessage((char*)&stPacket, sizeof(stPacket));
@@ -1648,7 +1648,7 @@ int TMFieldScene::OnControl_PlayerMenu643(unsigned int idwControlID, unsigned in
 	auto pTradePanel = m_pTradePanel;
 	if (!g_pObjectManager->m_stTrade.OpponentID || !pTradePanel || pTradePanel->IsVisible() != 1)
 	{
-		g_pObjectManager->m_stTrade.Header.Type = 0x383;
+		g_pObjectManager->m_stTrade.Header.Type = MSG_Trade_Opcode;
 		g_pObjectManager->m_stTrade.Header.ID = m_pMyHuman->m_dwID;
 		g_pObjectManager->m_stTrade.OpponentID = m_dwOpID;
 		SendOneMessage((char*)&g_pObjectManager->m_stTrade, 156);
@@ -1744,7 +1744,7 @@ int TMFieldScene::OnControl_PlayerMenu639(unsigned int idwControlID, unsigned in
 	if (m_pPGTOver)
 	{
 		MSG_STANDARDPARM2 stParm2{};
-		stParm2.Header.Type = 0x39F;
+		stParm2.Header.Type = MSG_ReqRanking_Opcode;
 		stParm2.Header.ID = m_pMyHuman->m_dwID;;
 		stParm2.Parm1 = m_pPGTOver->m_dwID;
 
@@ -2139,7 +2139,7 @@ int TMFieldScene::OnControl_AutoTrade667(unsigned int idwControlID, unsigned int
 	}
 
 	auto pButtonRun = (SButton*)m_pControlContainer->FindControl(667u);
-	m_stAutoTrade.Header.Type = 919;
+	m_stAutoTrade.Header.Type = MSG_AutoTrade_Opcode;
 	m_stAutoTrade.TargetID = m_pMyHuman->m_dwID;
 	SendOneMessage((char*)&m_stAutoTrade, sizeof(m_stAutoTrade));
 
@@ -3039,7 +3039,7 @@ int TMFieldScene::OnControl_ChatListOpen(unsigned int idwControlID, unsigned int
 	if (!m_pChatListPanel->IsVisible())
 	{
 		MSG_STANDARDPARM stParm{};
-		stParm.Header.Type = 0x37E;
+		stParm.Header.Type = MSG_RemoveParty_Opcode;
 		stParm.Header.ID = m_pMyHuman->m_dwID;
 		stParm.Parm = 0;
 
@@ -3063,7 +3063,7 @@ int TMFieldScene::OnControl_TradeCheck(unsigned int idwControlID, unsigned int i
 		MSG_Trade stTrade{};
 
 		memcpy(&stTrade, &g_pObjectManager->m_stTrade, sizeof(stTrade));
-		stTrade.Header.Type = 0x383;
+		stTrade.Header.Type = MSG_Trade_Opcode;
 		SendOneMessage((char*)&stTrade, sizeof(stTrade));
 
 		m_dwLastCheckTime = g_pApp->m_pTimerManager->GetServerTime();

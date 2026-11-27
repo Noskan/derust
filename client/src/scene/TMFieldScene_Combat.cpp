@@ -2004,7 +2004,7 @@ int TMFieldScene::MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int d
 				int nSize = sizeof(MSG_AttackOne);
 				if (pMobData->Class == 3 && pMobData->LearnedSkill[0] & 0x200000)
 				{
-					stAttack.Header.Type = 926;
+					stAttack.Header.Type = MSG_Attack_Two_Opcode;
 					nSize = sizeof(MSG_AttackTwo);
 				}
 				if (pMobData->Class == 3 && pMobData->LearnedSkill[0] & 0x40)

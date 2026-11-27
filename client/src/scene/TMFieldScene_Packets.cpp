@@ -74,13 +74,13 @@ int TMFieldScene::OnPacketEvent(unsigned int dwCode, char* buf)
 		return OnPacketAction(pStd);
 	case 0x1C1:
 		return OnPacketREQArray(pStd);
-	case 0x333:
+	case MSG_MessageChat_Opcode:
 		return OnPacketMessageChat(reinterpret_cast<MSG_MessageChat*>(pStd));
 	case 0x105:
 		return OnPacketMessageChat_Index(reinterpret_cast<MSG_MessageChat*>(pStd));
 	case 0x106:
 		return OnPacketMessageChat_Param(pStd);
-	case 0x334:
+	case MSG_MessageWhisper_Opcode:
 		return OnPacketMessageWhisper(reinterpret_cast<MSG_MessageWhisper*>(pStd));
 	case 0x7B1:
 		return OnPacketLongMessagePanel(reinterpret_cast<MSG_LongMessagePanel*>(pStd));
@@ -88,87 +88,87 @@ int TMFieldScene::OnPacketEvent(unsigned int dwCode, char* buf)
 		return OnPacketReqSummon(reinterpret_cast<MSG_ReqSummon*>(pStd));
 	case 0x3B3:
 		return OnPacketCancelSummon(pStd);
-	case 0x3A3:
+	case MSG_SoundEffect_Opcode:
 		return OnPacketSoundEffect(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
-	case 0x116:
+	case MSG_CNFCharacterLogout_Opcode:
 		return OnPacketCNFCharacterLogout(pStd);
-	case 0x52A:
+	case MSG_DBCNFServerChange_Opcode:
 		return OnPacketCNFRemoveServer(reinterpret_cast<MSG_CNFRemoveServer*>(pStd));
-	case 0x10A:
+	case MSG_CNFAccountLogin_Opcode:
 		return OnPacketCNFAccountLogin(reinterpret_cast<MSG_CNFRemoveServerLogin*>(pStd));
-	case 0x114:
+	case MSG_CNFCharacterLogin_Opcode:
 		return OnPacketCNFCharacterLogin(reinterpret_cast<MSG_CNFCharacterLogin*>(pStd));
-	case 0x3E8:
+	case MSG_RepurchaseItems_Opcode:
 		return OnPacketUndoSellItem(reinterpret_cast<MSG_RepurchaseItems*>(pStd));
-	case 0x39B:
+	case MSG_ItemSold_Opcode:
 		return OnPacketItemSold(reinterpret_cast<MSG_STANDARDPARM2*>(pStd));
-	case 0x339:
+	case MSG_UpdateCargoCoin_Opcode:
 		return OnPacketUpdateCargoCoin(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
-	case 0x18B:
+	case MSG_UpdateWeather_Opcode:
 		return OnPacketWeather(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
-	case 0x26E:
+	case MSG_CreateItem_Opcode:
 		return OnPacketCreateItem(reinterpret_cast<MSG_CreateItem*>(pStd));
-	case 0x175:
+	case MSG_CNFDropItem_Opcode:
 		return OnPacketCNFDropItem(reinterpret_cast<MSG_CNFDropItem*>(pStd));
-	case 0x171:
+	case MSG_CNFGetItem_Opcode:
 		return OnPacketCNFGetItem(reinterpret_cast<MSG_CNFGetItem*>(pStd));
-	case 0x374:
+	case MSG_UpdateItem_Opcode:
 		return OnPacketUpdateItem(reinterpret_cast<MSG_UpdateItem*>(pStd));
-	case 0x16F:
+	case MSG_DecayItem_Opcode:
 		return OnPacketRemoveItem(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
 	case 0x1D0:
 		g_pObjectManager->m_RMBShopOpen = 1;
 		return OnPacketShopList(pStd);
 		break;
-	case 0x379:
+	case MSG_Buy_Opcode:
 		return OnPacketBuy(pStd);
 		break;
-	case 0x338:
+	case MSG_CNFMobKill_Opcode:
 		return OnPacketCNFMobKill(reinterpret_cast<MSG_CNFMobKill*>(pStd));
 		break;
-	case 0x37F:
+	case MSG_REQParty_Opcode:
 		return OnPacketREQParty(reinterpret_cast<MSG_REQParty*>(pStd));
 		break;
-	case 0x37D:
+	case MSG_CNFAddParty_Opcode:
 		return OnPacketAddParty(reinterpret_cast<MSG_AddParty*>(pStd));
 		break;
-	case 0x37E:
+	case MSG_RemoveParty_Opcode:
 		return OnPacketRemoveParty(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
 		break;
-	case 0x292:
+	case MSG_SetHpMode_Opcode:
 		return OnPacketSetHpMode(reinterpret_cast<MSG_SetHpMode*>(pStd));
 		break;
-	case 0x18D:
+	case MSG_ReqChallange_Opcode:
 		return OnPacketReqChallange(pStd);
 		break;
-	case 0x378:
+	case MSG_SetShortSkill_Opcode:
 		return OnPacketSetShortSkill(reinterpret_cast<MSG_SetShortSkill*>(pStd));
 		break;
 	case 0x19C:
 		return OnPacketClearMenu(pStd);
 		break;
-	case 0x3A7:
+	case MSG_CombineComplete_Opcode:
 		return OnPacketCombineComplete(pStd);
 		break;
-	case 0x3AC:
+	case MSG_SendCastleState_Opcode:
 		return OnPacketCastleState(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
 		break;
-	case 0x3A1:
+	case MSG_StartTime_Opcode:
 		return OnPacketStartTime(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
 		break;
-	case 0x3B0:
+	case MSG_MobLeft_Opcode:
 		return OnPacketRemainCount(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
 		break;
-	case 0x3A8:
+	case MSG_SendWarInfo_Opcode:
 		return OnPacketWarInfo(reinterpret_cast<MSG_STANDARDPARM3*>(pStd));
 		break;
-	case 0x3A4:
+	case MSG_GuildDisable_Opcode:
 		return OnPacketGuildDisable(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
 		break;
-	case 0x3A2:
+	case MSG_EnvEffect_Opcode:
 		return OnPacketEnvEffect(pStd);
 		break;
-	case 0x3BB:
+	case MSG_MobCount_Opcode:
 		return OnPacketRemainNPCCount(reinterpret_cast<MSG_STANDARDPARM*>(pStd));
 		break;
 	case 0x1BF:
@@ -204,7 +204,7 @@ int TMFieldScene::OnPacketEvent(unsigned int dwCode, char* buf)
 	case 0x1C2:
 		return OnPacketItemPrice(reinterpret_cast<MSG_STANDARDPARM2*>(pStd));
 		break;
-	case 0xDC3:
+	case MSG_CNFCapsuleInfo_Opcode:
 		return OnPacketCapsuleInfo(reinterpret_cast<MSG_CAPSULEINFO*>(pStd));
 		break;
 	case 0x3CF:
@@ -213,7 +213,7 @@ int TMFieldScene::OnPacketEvent(unsigned int dwCode, char* buf)
 	case 0x3D0:
 		return OnPacketRunQuest12Count(reinterpret_cast<MSG_STANDARDPARM2*>(pStd));
 		break;
-	case 0x3AE:
+	case MSG_DelayStart_Opcode:
 		return OnPacketDelayQuit((MSG_STANDARDPARM*)pStd);
 		break;
 	}

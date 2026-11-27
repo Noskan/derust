@@ -129,7 +129,7 @@ int TMFieldScene::FrameMove(unsigned int dwServerTime)
 	{
 		MSG_STANDARD stStandard;
 		stStandard.ID = g_pObjectManager->m_dwCharID;
-		stStandard.Type = 0x289;
+		stStandard.Type = MSG_Recall_Opcode;
 		SendOneMessage((char*)&stStandard, 12);
 		m_dwLastDeadTime = 0;
 	}
@@ -809,7 +809,7 @@ if (!g_bCastleWar2)
 			
 			MSG_STANDARDPARM dst{};
 			dst.Header.ID = g_pObjectManager->m_dwCharID;
-			dst.Header.Type = 0x291;
+			dst.Header.Type = MSG_ChangeCity_Opcode;
 			dst.Parm = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
 
 			if (dst.Parm < 4)
@@ -1022,7 +1022,7 @@ else
 		{
 			MSG_STANDARDPARM stParam{};
 			stParam.Header.ID = g_pObjectManager->m_dwCharID;
-			stParam.Header.Type = 0x291;
+			stParam.Header.Type = MSG_ChangeCity_Opcode;
 			stParam.Parm = BASE_GetVillage((int)m_pMyHuman->m_vecPosition.x, (int)m_pMyHuman->m_vecPosition.y);
 			m_nVillage = nVillage;
 
@@ -1722,7 +1722,7 @@ int TMFieldScene::TimeDelay(unsigned int dwServerTime)
 		{
 			MSG_STANDARD stStandard{};
 			stStandard.ID = g_pObjectManager->m_dwCharID;
-			stStandard.Type = 0x215;
+			stStandard.Type = MSG_CharacterLogout_Opcode;
 			SendOneMessage((char*)&stStandard, sizeof(stStandard));
 			m_dwLastLogout = 0;
 			return 1;

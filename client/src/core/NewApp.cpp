@@ -1276,7 +1276,7 @@ HRESULT NewApp::MsgProc(HWND hWnd, DWORD uMsg, DWORD wParam, int lParam)
 				g_dwStartQuitGameTime = m_pTimerManager->GetServerTime();
 				MSG_STANDARDPARM stDelayStart{};
 				stDelayStart.Header.ID = g_pCurrentScene->m_pMyHuman->m_dwID;
-				stDelayStart.Header.Type = 942;
+				stDelayStart.Header.Type = MSG_DelayStart_Opcode;
 				stDelayStart.Parm = 0;
 
 				g_pSocketManager->SendOneMessage((char*)&stDelayStart, sizeof(stDelayStart));

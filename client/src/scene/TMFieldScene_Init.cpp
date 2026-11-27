@@ -730,9 +730,9 @@ int TMFieldScene::InitializeScene()
 	memset(&g_pObjectManager->m_stCombineItem, 0, sizeof(g_pObjectManager->m_stCombineItem));
 	memset(&g_pObjectManager->m_stCombineItem4, 0, sizeof(g_pObjectManager->m_stCombineItem4));
 	g_pObjectManager->m_stCombineItem.Header.ID = g_pObjectManager->m_dwCharID;
-	g_pObjectManager->m_stCombineItem.Header.Type = 0x3A6;
+	g_pObjectManager->m_stCombineItem.Header.Type = MSG_CombineItem_Opcode;
 	g_pObjectManager->m_stCombineItem4.Header.ID = g_pObjectManager->m_dwCharID;
-	g_pObjectManager->m_stCombineItem4.Header.Type = 0x3C0;
+	g_pObjectManager->m_stCombineItem4.Header.Type = MSG_CombineItemTiny_Opcode;
 
 	for (int i = 0; i < 15; ++i)
 		g_pObjectManager->m_stTrade.CarryPos[i] = -1;

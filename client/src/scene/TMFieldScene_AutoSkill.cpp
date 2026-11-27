@@ -432,7 +432,7 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 	}
 
 	MSG_Attack stAttack{};
-	stAttack.Header.Type = 871;
+	stAttack.Header.Type = MSG_Attack_Multi_Opcode;
 	stAttack.Header.ID = m_pMyHuman->m_dwID;
 	stAttack.AttackerID = m_pMyHuman->m_dwID;
 	stAttack.PosX = (int)m_pMyHuman->m_vecPosition.x;

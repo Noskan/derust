@@ -47,7 +47,7 @@ SIDES = OrderedDict(
     ),
     client=dict(
         label="cliente",
-        headers=["shared/protocol/GameStructs.h", "client/src/common/Basedef.h", "client/src/common/Structures.h"],
+        headers=["shared/protocol/Opcodes.h", "shared/protocol/GameStructs.h", "client/src/common/Basedef.h", "client/src/common/Structures.h"],
         includes=["core/pch.h", "common/Basedef.h", "common/Structures.h"],
         incs=["shared", "client/src"], extra=["-D_MBCS"],
         sources=["client/src"],
@@ -77,8 +77,7 @@ RULE_NOTES = {
 # Pacotes que seguem na tabela mas já foram conferidos à mão: por que ficam como estão.
 PACKET_NOTES = {
     0x10A: "o cliente só lê `MSG_CNFRemoveServerLogin` já em campo, depois da troca de servidor (0x52A), que o servidor não implementa; na tela de login lê `MSG_CNFAccountLogin`, que bate",
-    0x3B4: "o cliente lê só `Parm1`, que o servidor envia",
-    0x363: "bug do cliente: na loja (0x363) ele lê a cidadania pelo layout de `MSG_CreateMob`, no byte 228, que é `Desc[0]`; o servidor envia `Desc` ali, como o cliente exige, e a cidadania em 252",
+    0x363: "o handler do cliente faz cast para `MSG_CreateMob` e para `MSG_CreateMobTrade`; o mapa só vê o primeiro. Na loja (0x363), o cliente lê a cidadania de `MSG_CreateMobTrade::Server` (byte 252), onde o servidor a envia; antes lia o byte 228 (`Desc[0]`), um erro da reconstrução corrigido",
 }
 
 

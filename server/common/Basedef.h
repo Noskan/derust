@@ -397,6 +397,7 @@
 
 #pragma region Structures
 
+#include "protocol/Opcodes.h"	// MSG_X_Opcode do cliente; ProtocolLayoutCheck.cpp confere os _MSG_X
 #include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_SCORE, STRUCT_MOB, STRUCT_SELCHAR, STRUCT_ITEMLIST e outras (iguais nos dois lados)
 
 /// @brief Dados extras de evolução (Arch/Celestial/SubCelestial), quests e contadores temporais (536 bytes em Win32).
