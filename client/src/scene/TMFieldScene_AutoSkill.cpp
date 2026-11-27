@@ -451,6 +451,26 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 	stAttack.SkillParm = 0;
 	stAttack.Motion = -1;
 
+	if (AutoSkillUse_AreaTargetType5(vec, nSpecForce, pOver, cSkillIndex, stAttack, nReturnValue))
+		return true;
+
+	if (AutoSkillUse_SendAttack(dwServerTime, nSpecForce, cSkillIndex, stAttack, nReturnValue))
+		return true;
+	if (AutoSkillUse_Skill29Party(dwServerTime, nSpecForce, cSkillIndex, stAttack, nReturnValue))
+		return true;
+	if (AutoSkillUse_Skill27(dwServerTime, nSpecForce, pOver, cSkillIndex, stAttack, nReturnValue))
+		return true;
+	if (cSkillIndex != 85)
+		{ nReturnValue = 0; return true; }
+}
+	return false;
+}
+
+/// Monta o ataque das skills de `TargetType` 5 com os alvos em volta.
+/// @note Extraído de `TMFieldScene::AutoSkillUse_CastSelfOrArea` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::AutoSkillUse_AreaTargetType5(D3DXVECTOR3& vec, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue)
+{
 	if (g_pSpell[(unsigned char)cSkillIndex].TargetType == 5)
 	{
 		stAttack.FlagLocal = 0;
@@ -687,16 +707,6 @@ if (!TarType || TarType == 3 || TarType == 4 || TarType == 5 || TarType == 6)
 		stAttack.TargetX = nSX;
 		stAttack.TargetY = nSY;
 	}
-
-	if (AutoSkillUse_SendAttack(dwServerTime, nSpecForce, cSkillIndex, stAttack, nReturnValue))
-		return true;
-	if (AutoSkillUse_Skill29Party(dwServerTime, nSpecForce, cSkillIndex, stAttack, nReturnValue))
-		return true;
-	if (AutoSkillUse_Skill27(dwServerTime, nSpecForce, pOver, cSkillIndex, stAttack, nReturnValue))
-		return true;
-	if (cSkillIndex != 85)
-		{ nReturnValue = 0; return true; }
-}
 	return false;
 }
 

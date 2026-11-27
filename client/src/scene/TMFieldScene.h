@@ -354,6 +354,7 @@ private:
 	/// @name Etapas com retorno antecipado extraídas de AutoSkillUse (Fase 3)
 	/// @{
 	bool AutoSkillUse_CastSelfOrArea(D3DXVECTOR3& vec, unsigned int& dwServerTime, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& TarType, int& nReturnValue);
+	bool AutoSkillUse_AreaTargetType5(D3DXVECTOR3& vec, int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, MSG_Attack& stAttack, int& nReturnValue);
 	void AutoSkillUse_CollectSelfAreaTargets(char& cSkillIndex, MSG_Attack& stAttack, int& nTargetIndex, TMHuman*& pNode, float& fMyAngle, int& nMastery, int& nMobCount);
 	bool AutoSkillUse_AreaCenterOnTarget(TMHuman*& pOver, char& cSkillIndex, int& nSX, int& nSY, int& nReturnValue);
 	bool AutoSkillUse_AreaRangeCheck(int& nSpecForce, TMHuman*& pOver, char& cSkillIndex, int& nSX, int& nSY, int& nDistanceFromMe, int& nReturnValue);
