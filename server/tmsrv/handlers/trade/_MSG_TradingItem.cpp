@@ -149,7 +149,12 @@ void Exec_MSG_TradingItem(int conn, char *pMsg)
 		SrcPlace = 1;
 	}
 
+	// A troca leva o item de um lado para o outro, então as duas posições do inventário precisam
+	// estar liberadas (bolsa em Carry[60]/[61]). O cliente recusa nos dois lados (SGrid_Input).
 	if (m->DestPlace == ITEM_PLACE_CARRY && !BASE_CarryUsable(pMob[conn].MOB.Carry, m->DestSlot))
+		return;
+
+	if (m->SrcPlace == ITEM_PLACE_CARRY && !BASE_CarryUsable(pMob[conn].MOB.Carry, m->SrcSlot))
 		return;
 
 	if (DestItem == NULL || SrcItem == NULL)

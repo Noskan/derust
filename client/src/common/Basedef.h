@@ -1070,6 +1070,9 @@ struct MSG_ShopList
 constexpr auto MSG_CloseShop_Opcode = 0x196;
 
 constexpr auto MSG_SwapItem_Opcode = 0x376;
+/// @brief Troca de posição de item (0x376). Apesar dos nomes, `Sour*` é a posição onde o item é solto e
+/// `Dest*` a posição de onde ele saiu (SGrid_Input.cpp, SGrid_Trade.cpp); no servidor são
+/// `DestPlace/DestSlot` e `SrcPlace/SrcSlot`.
 struct MSG_SwapItem
 {
 	MSG_STANDARD Header;
