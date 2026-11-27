@@ -707,7 +707,7 @@ LABEL_59:
 					sm.AttackerID = idx;
 					sm.SkillIndex = 33;
 
-					int calc = 500 + rand()%100 + (pMob[idx].extra.ClassMaster == MORTAL ||  pMob[idx].extra.ClassMaster == MORTAL ? Level : Level + MAX_CLEVEL) + AffectLevel;
+					int calc = 500 + W2Rand()%100 + (pMob[idx].extra.ClassMaster == MORTAL ||  pMob[idx].extra.ClassMaster == MORTAL ? Level : Level + MAX_CLEVEL) + AffectLevel;
 
 					sm.Dam[0].TargetID = alvo1;
 					sm.Dam[0].Damage = -1;
@@ -1016,7 +1016,7 @@ LABEL_59:
 					sm.AttackerID = idx;
 					sm.SkillIndex = 52;
 
-					int calc = 5000 + rand()%100 + (pMob[idx].extra.ClassMaster == MORTAL ||  pMob[idx].extra.ClassMaster == MORTAL ? Level : Level + MAX_CLEVEL) + AffectLevel;
+					int calc = 5000 + W2Rand()%100 + (pMob[idx].extra.ClassMaster == MORTAL ||  pMob[idx].extra.ClassMaster == MORTAL ? Level : Level + MAX_CLEVEL) + AffectLevel;
 
 					sm.Dam[0].TargetID = alvo1;
 					sm.Dam[0].Damage = -1;

@@ -193,7 +193,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 					}
 				}
 
-				int _rd = rand() % 115;
+				int _rd = W2Rand() % 115;
 
 				if (_rd > 100)
 					_rd -= 15;
@@ -354,7 +354,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 				}
 			}
 
-			int _rd = rand() % 115;
+			int _rd = W2Rand() % 115;
 
 			if (_rd > 100)
 				_rd -= 15;
@@ -442,7 +442,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 #pragma region Pedras Arch
 		if(dest->sIndex >= 1752 && dest->sIndex <= 1759)
 		{
-			int _rd = rand() % 115;
+			int _rd = W2Rand() % 115;
 
 			if (_rd > 100)
 				_rd -= 15;
@@ -645,7 +645,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		if(sanc >= 9 && sanc <= REF_14 && Vol == 5 && m->DestPos == 8 && g_pItemList[dest->sIndex].nPos == 256)
 		{
 			int RateSucess = 15;
-			int _rand = rand() % 100;
+			int _rand = W2Rand() % 100;
 
 			int ref = sanc;
 
@@ -776,7 +776,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 
 		int OriLacto = Vol - 4;
 		int RateSucess = item->sIndex != 4141 ? BASE_GetSuccessRate(dest, Vol - 4) : BASE_GetSuccessRate(dest, 2);
-		int _rand = rand() % 100;
+		int _rand = W2Rand() % 100;
 
 		int ItemGrade = BASE_GetItemAbility(dest, EF_ITEMLEVEL);
 
@@ -819,7 +819,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 			{
 				dest->stEffect[2].cEffect = 84;
 
-				int incurand = rand() & 0x80000003;
+				int incurand = W2Rand() & 0x80000003;
 
 				if (incurand < 0)
 					incurand = ((incurand - 1) | 0xFC) + 1;
@@ -834,7 +834,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 
 					dest->stEffect[0].sValue = 20000;
 					dest->stEffect[1].cEffect = 1;
-					dest->stEffect[1].cValue = rand() % 20 + 10;
+					dest->stEffect[1].cValue = W2Rand() % 20 + 10;
 					dest->stEffect[2].cEffect = 30;
 					dest->stEffect[2].cValue = 1;
 
@@ -868,7 +868,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 			else
 				memset(item, 0, sizeof(STRUCT_ITEM));
 
-			if (rand() % 4 <= 2)
+			if (W2Rand() % 4 <= 2)
 			{
 				if (OriLacto == 1)
 					++sancsucess;
@@ -880,7 +880,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 			{
 				dest->stEffect[2].cEffect = 84;
 
-				int incu = rand() & 0x80000003;
+				int incu = W2Rand() & 0x80000003;
 				if (incu < 0)
 					incu = ((incu - 1) | 0xFC) + 1;
 
@@ -932,7 +932,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		int Level = pMob[conn].MOB.BaseScore.Level;
 		int maxlevel = pMob[conn].extra.ClassMaster == MORTAL || pMob[conn].extra.ClassMaster == ARCH ? MAX_LEVEL : MAX_CLEVEL;
 
-		if (Level >= maxlevel || Level < 0 || rand() % 2)
+		if (Level >= maxlevel || Level < 0 || W2Rand() % 2)
 		{
 			int sFace = pMob[conn].MOB.Equip[0].sIndex / 10;
 
@@ -1056,7 +1056,7 @@ bool UseItem_PotionsAndRefine(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 
 					if (Grade > 0 && Grade < 4)
 					{
-						int _rand = rand() % 100;
+						int _rand = W2Rand() % 100;
 						int chance = 50;
 						if (_rand <= 50)
 						{

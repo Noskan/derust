@@ -414,7 +414,7 @@ uint64_t CaseCurrentScore()
 uint64_t CaseCombatFormulas()
 {
 	Lcg r(7); Hash h;
-	std::srand(12345);
+	W2Srand(12345);
 	for (int i = 0; i < kSamples; ++i)
 	{
 		int dam = r.Range(-200, 20000), ac = r.Range(0, 5000), combat = r.Range(0, 30);

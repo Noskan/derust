@@ -444,9 +444,9 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 			if ((DoubleCritical & 2) != 0)
 			{
 				if (idx < MAX_USER)
-					dam = (((rand() % 2) + 13) * dam) / 10;
+					dam = (((W2Rand() % 2) + 13) * dam) / 10;
 				else
-					dam = (((rand() % 2) + 15) * dam) / 10;
+					dam = (((W2Rand() % 2) + 15) * dam) / 10;
 			}
 
 			int Ac = pMob[idx].MOB.CurrentScore.Ac;
@@ -456,7 +456,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 
 			dam = BASE_GetDamage((int)dam, Ac, master);
 
-			if (i == 0 && m->Size >= sizeof(MSG_AttackTwo) && pMob[conn].MOB.Class == 3 && (pMob[conn].MOB.LearnedSkill[0] & 0x200000) && (rand() % 4) == 0)
+			if (i == 0 && m->Size >= sizeof(MSG_AttackTwo) && pMob[conn].MOB.Class == 3 && (pMob[conn].MOB.LearnedSkill[0] & 0x200000) && (W2Rand() % 4) == 0)
 			{
 				int skilldam = (pMob[conn].MOB.CurrentScore.Special[3] + pMob[conn].MOB.CurrentScore.Str);
 
@@ -843,7 +843,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 				int targetLevel = pMob[idx].MOB.CurrentScore.Level;
 				int level = pMob[conn].MOB.CurrentScore.Level;
 
-				int Rand = rand() % 100;
+				int Rand = W2Rand() % 100;
 
 				if (idx < MAX_USER)
 				{
@@ -851,7 +851,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 
 					if (Rand > chance)
 					{
-						int burnmp = ((pMob[idx].MOB.CurrentScore.Mp + 1) / 100) * (10 + rand() % 10);
+						int burnmp = ((pMob[idx].MOB.CurrentScore.Mp + 1) / 100) * (10 + W2Rand() % 10);
 
 						if (burnmp > pMob[idx].MOB.CurrentScore.Mp)
 							pMob[idx].MOB.CurrentScore.Mp = 0;
@@ -936,7 +936,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 				if (_chance > 50)
 					_chance = 50;
 
-				if (rand() % 100 >= _chance)
+				if (W2Rand() % 100 >= _chance)
 					break;
 
 				MSG_Action sm_act;
@@ -1024,7 +1024,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 // region Renascimento 
 			else if (skillnum == 31)
 			{
-				int hp = (rand() % 10 + 10) * ((pMob[conn].MOB.CurrentScore.MaxHp + 1) / 100);
+				int hp = (W2Rand() % 10 + 10) * ((pMob[conn].MOB.CurrentScore.MaxHp + 1) / 100);
 
 				pMob[conn].MOB.CurrentScore.Mp = 0;
 				pUser[conn].ReqMp = 0;
@@ -1033,7 +1033,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 
 				SendSetHpMp(conn);
 
-				if ((rand() % 100) < 70)
+				if ((W2Rand() % 100) < 70)
 				{
 					pMob[idx].MOB.CurrentScore.Hp = hp;
 					pUser[idx].NumError = 0;
@@ -1176,7 +1176,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 
 				if (affectresist >= 1 && affectresist <= 4)
 				{
-					int random = rand() % 100;
+					int random = W2Rand() % 100;
 
 					if (random > pMob[idx].MOB.RegenMP + affectresist + difLevel)
 						SameLeaderGuild = 0;
@@ -1238,7 +1238,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 #pragma region Book Ressureição
 			if (pMob[conn].MOB.CurrentScore.Hp == 0 && skillnum == 99)
 			{
-				int rev = rand() % 115;
+				int rev = W2Rand() % 115;
 
 				if (rev > 100)
 					rev -= 15;
@@ -1253,7 +1253,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 					SendEtc(conn);
 				}
 
-				int hp = (rand() % 50 + 1) * ((pMob[conn].MOB.CurrentScore.MaxHp + 1) / 100);
+				int hp = (W2Rand() % 50 + 1) * ((pMob[conn].MOB.CurrentScore.MaxHp + 1) / 100);
 
 				pMob[conn].MOB.CurrentScore.Hp = hp;
 				pUser[conn].NumError = 0;
@@ -1405,7 +1405,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 				if (skillnum == 79 || skillnum == 22)
 					parryretn = 30 * parryretn / 100;
 
-				int rd = rand() % 1000 + 1;
+				int rd = W2Rand() % 1000 + 1;
 
 				if (rd < parryretn)
 				{
@@ -1449,7 +1449,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 
 		if ((pMob[conn].MOB.Rsv & RSV_FROST) != 0)
 		{
-			if (rand() % 2 == 0)
+			if (W2Rand() % 2 == 0)
 			{
 				int skind2 = pMob[conn].MOB.CurrentScore.Special[1];
 
@@ -1463,7 +1463,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 
 		if ((pMob[conn].MOB.Rsv & RSV_DRAIN) != 0)
 		{
-			if (rand() % 2 == 0)
+			if (W2Rand() % 2 == 0)
 			{
 				int skind2 = pMob[conn].MOB.CurrentScore.Special[1];
 
@@ -1632,7 +1632,7 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 			LinkMountHp(idx);
 
 #pragma region Joia Abs
-		if (pMob[conn].HpAbs != 0 && (rand() % 2) == 0 && dam >= 1)
+		if (pMob[conn].HpAbs != 0 && (W2Rand() % 2) == 0 && dam >= 1)
 		{
 			int RecHP = (int)((dam * pMob[conn].HpAbs + 1) / 100);
 

@@ -254,7 +254,7 @@ int  CMob::BattleProcessor()
 	
 	int BaseInt = MOB.BaseScore.Int;
 	
-	if (BaseInt < rand() % 100)
+	if (BaseInt < W2Rand() % 100)
 	{
 		return 0x010000;
 	}
@@ -283,7 +283,7 @@ int  CMob::BattleProcessor()
 	}
 	if (dis <= Range)
 	{
-		int Rand = rand() % 100;
+		int Rand = W2Rand() % 100;
 
 		if (Range >= 4 && dis <= 4 && Rand > BaseDex)
 			return 256;
@@ -879,15 +879,15 @@ void CMob::GetTargetPosDistance(int tz)
 	NextY = LastY;
 
 	if (pMob[tz].TargetX > LastX)
-		NextX = NextX - (1 + rand() % 2);
+		NextX = NextX - (1 + W2Rand() % 2);
 
 	else if (pMob[tz].TargetX < LastX)
-		NextX = NextX + (1 + rand() % 2);
+		NextX = NextX + (1 + W2Rand() % 2);
 
 	if (pMob[tz].TargetY > LastY)
-		NextY = NextY - (1 + rand() % 2);
+		NextY = NextY - (1 + W2Rand() % 2);
 	else if (pMob[tz].TargetY < LastY)
-		NextY = NextY + (1 + rand() % 2);
+		NextY = NextY + (1 + W2Rand() % 2);
 
 	GetEmptyMobGrid(0, &NextX, &NextY);
 
@@ -939,8 +939,8 @@ void CMob::GetRandomPos()
 
 	LastX = TargetX;
 	LastY = TargetY;
-	NextX = LastX + rand() % 5 - 3;
-	NextY = LastY + rand() % 5 - 3;
+	NextX = LastX + W2Rand() % 5 - 3;
+	NextY = LastY + W2Rand() % 5 - 3;
 
 	GetEmptyMobGrid(0, &NextX, &NextY);
 
@@ -966,8 +966,8 @@ void CMob::GetRandomPos()
 
 	if (i == -1 || Route[0] == 0)
 	{
-		NextX = TargetX + rand() % 5 - 3;
-		NextY = TargetY + rand() % 5 - 3;
+		NextX = TargetX + W2Rand() % 5 - 3;
+		NextY = TargetY + W2Rand() % 5 - 3;
 
 		Route[0] = 0;
 	}

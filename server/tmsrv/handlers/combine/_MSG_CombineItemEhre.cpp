@@ -106,7 +106,7 @@ void Exec_MSG_CombineItemEhre(int conn, char *pMsg)
 	ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
 	ItemLog("*** ------------------- ***", pUser[conn].AccountName, pUser[conn].IP);
 
-	int _rand = rand() % 115;
+	int _rand = W2Rand() % 115;
 	if (_rand >= 100)
 		_rand -= 15;
 

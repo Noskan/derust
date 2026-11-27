@@ -663,183 +663,183 @@ int GetTeleportPosition(int conn, int *x, int *y)
 
 	if (xv == 2116 && yv == 2100) // Armia to Noatum	
 	{
-		*x = 1044 + rand() % 3;
-		*y = 1724 + rand() % 3;
+		*x = 1044 + W2Rand() % 3;
+		*y = 1724 + W2Rand() % 3;
 
 		Charge = 700;
 	}
 	else if (xv == 2480 && yv == 1716) // Azran to Noatum
 	{
-		*x = 1044 + rand() % 3;
-		*y = 1716 + rand() % 3;
+		*x = 1044 + W2Rand() % 3;
+		*y = 1716 + W2Rand() % 3;
 
 		Charge = 700;
 	}
 	else if (xv == 2456 && yv == 2016) // Erion to Noatum
 	{
-		*x = 1044 + rand() % 3;
-		*y = 1708 + rand() % 3;
+		*x = 1044 + W2Rand() % 3;
+		*y = 1708 + W2Rand() % 3;
 
 		Charge = 700;
 	}
 	else if (xv == 1044 && yv == 1724) // Noatum to Armia
 	{
-		*x = 2116 + rand() % 3;
-		*y = 2100 + rand() % 3;
+		*x = 2116 + W2Rand() % 3;
+		*y = 2100 + W2Rand() % 3;
 	}
 	else if (xv == 1044 && yv == 1716) // Noatum to Azran
 	{
-		*x = 2480 + rand() % 3;
-		*y = 1716 + rand() % 3;
+		*x = 2480 + W2Rand() % 3;
+		*y = 1716 + W2Rand() % 3;
 	}
 	else if (xv == 1044 && yv == 1708) // Noatum to Erion
 	{
-		*x = 2456 + rand() % 3;
-		*y = 2016 + rand() % 3;
+		*x = 2456 + W2Rand() % 3;
+		*y = 2016 + W2Rand() % 3;
 	}
 	else if (xv == 1048 && yv == 1764) // Noatum guild area to Noatum siege war area
 	{
-		*x = 1100 + rand() % 3;
-		*y = 1712 + rand() % 3;
+		*x = 1100 + W2Rand() % 3;
+		*y = 1712 + W2Rand() % 3;
 	}
 	else if (xv == 1052 && yv == 1708) // Noatum to Karden
 	{
-		*x = 3650 + rand() % 3;
-		*y = 3110 + rand() % 3;
+		*x = 3650 + W2Rand() % 3;
+		*y = 3110 + W2Rand() % 3;
 	}
 	else if (xv == 2140 && yv == 2068) // Armia to Armia Field
 	{
-		*x = 2588 + rand() % 3;
-		*y = 2096 + rand() % 3;
+		*x = 2588 + W2Rand() % 3;
+		*y = 2096 + W2Rand() % 3;
 	}
 	else if (xv == 2468 && yv == 1716) // Azran to Azran Field, near cape quest
 	{
-		*x = 2248 + rand() % 3;
-		*y = 1556 + rand() % 3;
+		*x = 2248 + W2Rand() % 3;
+		*y = 1556 + W2Rand() % 3;
 	}
 	else if (xv == 2364 && yv == 2284) // Armia Field to Dungeon 1st Floor
 	{
-		*x = 144 + rand() % 3;
-		*y = 3788 + rand() % 3;
+		*x = 144 + W2Rand() % 3;
+		*y = 3788 + W2Rand() % 3;
 	}
 	else if (xv == 144 && yv == 3788) // Dungeon 1st floor to Armia Field
 	{
-		*x = 2364 + rand() % 3;
-		*y = 2284 + rand() % 3;
+		*x = 2364 + W2Rand() % 3;
+		*y = 2284 + W2Rand() % 3;
 	}
 	else if (xv == 2668 && yv == 2156) // Armia Field to Dungeon 1st Floor (other locations)
 	{
-		*x = 148 + rand() % 2;
-		*y = 3774 + rand() % 2;
+		*x = 148 + W2Rand() % 2;
+		*y = 3774 + W2Rand() % 2;
 	}
 	else if (xv == 144 && yv == 3772) // Dungeon 1st floor to Armia Field (other locations)
 	{
-		*x = 2668 + rand() % 3;
-		*y = 2156 + rand() % 3;
+		*x = 2668 + W2Rand() % 3;
+		*y = 2156 + W2Rand() % 3;
 	}
 	else if (xv == 148 && yv == 3780) // Dungeon 1st floor to Dungeon 2nd floor
 	{
-		*x = 1004 + rand() % 3;
-		*y = 4028 + rand() % 3;
+		*x = 1004 + W2Rand() % 3;
+		*y = 4028 + W2Rand() % 3;
 	}
 	else if (xv == 144 && yv == 3780) // Dungeon 1st floor to Dungeon 2nd floor
 	{
-		*x = 1004 + rand() % 3;
-		*y = 4028 + rand() % 3;
+		*x = 1004 + W2Rand() % 3;
+		*y = 4028 + W2Rand() % 3;
 	}
 	else if (xv == 1004 && yv == 4028) // Dungeon 2nd floor to Dungeon 1st Floor
 	{
-		*x = 148 + rand() % 3;
-		*y = 3780 + rand() % 3;
+		*x = 148 + W2Rand() % 3;
+		*y = 3780 + W2Rand() % 3;
 	}
 	else if (xv == 408 && yv == 4072) // Dungeon 1st floor to Dungeon 2nd floor
 	{
-		*x = 1004 + rand() % 3;
-		*y = 4064 + rand() % 3;
+		*x = 1004 + W2Rand() % 3;
+		*y = 4064 + W2Rand() % 3;
 	}
 	else if (xv == 1004 && yv == 4064) // Dungeon 2nd floor to Dungeon 1st floor
 	{
-		*x = 408 + rand() % 3;
-		*y = 4072 + rand() % 3;
+		*x = 408 + W2Rand() % 3;
+		*y = 4072 + W2Rand() % 3;
 	}
 	else if (xv == 744 && yv == 3820) // Dungeon 1st floor to Dungeon 3rd floor
 	{
-		*x = 1004 + rand() % 3;
-		*y = 3992 + rand() % 3;
+		*x = 1004 + W2Rand() % 3;
+		*y = 3992 + W2Rand() % 3;
 	}
 	else if (xv == 1004 && yv == 3992) // Dungeon 3rd floor to Dugeon 1st floor
 	{
-		*x = 744 + rand() % 3;
-		*y = 3820 + rand() % 3;
+		*x = 744 + W2Rand() % 3;
+		*y = 3820 + W2Rand() % 3;
 	}
 	else if (xv == 680 && yv == 4076) // Dungeon 2nd floor to Dungeon 3rd floor
 	{
-		*x = 916 + rand() % 3;
-		*y = 3820 + rand() % 3;
+		*x = 916 + W2Rand() % 3;
+		*y = 3820 + W2Rand() % 3;
 	}
 	else if (xv == 916 && yv == 3820) // Dungeon 3rd floor to Dungeon 2nd floor
 	{
-		*x = 680 + rand() % 3;
-		*y = 4076 + rand() % 3;
+		*x = 680 + W2Rand() % 3;
+		*y = 4076 + W2Rand() % 3;
 	}
 	else if (xv == 876 && yv == 3872) // Dungeon 2nd floor to Dungeon 3rd floor
 	{
-		*x = 932 + rand() % 3;
-		*y = 3820 + rand() % 3;
+		*x = 932 + W2Rand() % 3;
+		*y = 3820 + W2Rand() % 3;
 	}
 	else if (xv == 932 && yv == 3820) // Dungeon 3rd floor to Dungeon 2nd floor
 	{
-		*x = 876 + rand() % 3;
-		*y = 3872 + rand() % 3;
+		*x = 876 + W2Rand() % 3;
+		*y = 3872 + W2Rand() % 3;
 	}
 	else if (xv == 188 && yv == 188) // War area to Azran
 	{
-		*x = 2548 + rand() % 3;
-		*y = 1740 + rand() % 3;
+		*x = 2548 + W2Rand() % 3;
+		*y = 1740 + W2Rand() % 3;
 	}
 	else if (xv == 2548 && yv == 1740) // Azran to vale
 	{
 		if (pMob[conn].MOB.Equip[13].sIndex == 3916)
 		{
-			*x = 2281 + rand() % 3;
-			*y = 3688 + rand() % 3;
+			*x = 2281 + W2Rand() % 3;
+			*y = 3688 + W2Rand() % 3;
 		}
 	}
 	else if (xv == 1824 && yv == 1772) // Azran Field to Underworld
 	{
-		*x = 1172 + rand() % 3;
-		*y = 4080 + rand() % 3;
+		*x = 1172 + W2Rand() % 3;
+		*y = 4080 + W2Rand() % 3;
 	}
 	else if (xv == 1172 && yv == 4080) // Underworld to Azran Field
 	{
-		*x = 1824 + rand() % 3;
-		*y = 1772 + rand() % 3;
+		*x = 1824 + W2Rand() % 3;
+		*y = 1772 + W2Rand() % 3;
 	}
 	else if (xv == 1516 && yv == 3996) // Underworld 1st floor to Underworld 2nd floor
 	{
-		*x = 1304 + rand() % 3;
-		*y = 3816 + rand() % 3;
+		*x = 1304 + W2Rand() % 3;
+		*y = 3816 + W2Rand() % 3;
 	}
 	else if (xv == 1304 && yv == 3816) // Underworld 2nd floor to Underworld 1st floor
 	{
-		*x = 1516 + rand() % 3;
-		*y = 3996 + rand() % 3;
+		*x = 1516 + W2Rand() % 3;
+		*y = 3996 + W2Rand() % 3;
 	}
 	else if (xv == 2452 && yv == 1716) // Azran 2nd teleport to Azran field
 	{
-		*x = 1969 + rand() % 3;
-		*y = 1711 + rand() % 3;
+		*x = 1969 + W2Rand() % 3;
+		*y = 1711 + W2Rand() % 3;
 	}
 	else if (xv == 2452 && yv == 1988) // Erion teleport to Azran field
 	{
-		*x = 1989 + rand() % 3;
-		*y = 1755 + rand() % 3;
+		*x = 1989 + W2Rand() % 3;
+		*y = 1755 + W2Rand() % 3;
 	}
 
 	else if (xv == 3648 && yv == 3108) // Karden teleport to Noatum
 	{
-		*x = 1054 + rand() % 3;
-		*y = 1710 + rand() % 3;
+		*x = 1054 + W2Rand() % 3;
+		*y = 1710 + W2Rand() % 3;
 	}
 
 	else if (xv == 1056 && yv == 1724) // Noatum to RvR - Deserto
@@ -848,20 +848,20 @@ int GetTeleportPosition(int conn, int *x, int *y)
 		{
 			if (pMob[conn].MOB.Clan == 7)//BLUE
 			{
-				*x = 1061 + rand() % 3;
-				*y = 2129 + rand() % 3;
+				*x = 1061 + W2Rand() % 3;
+				*y = 2129 + W2Rand() % 3;
 			}
 			else if (pMob[conn].MOB.Clan == 8)//RED
 			{
-				*x = 1237 + rand() % 3;
-				*y = 1966 + rand() % 3;
+				*x = 1237 + W2Rand() % 3;
+				*y = 1966 + W2Rand() % 3;
 			}
 		}
 
 		else
 		{
-			*x = 1164 + rand() % 3;
-			*y = 1720 + rand() % 3;
+			*x = 1164 + W2Rand() % 3;
+			*y = 1720 + W2Rand() % 3;
 		}
 	}
 
@@ -869,8 +869,8 @@ int GetTeleportPosition(int conn, int *x, int *y)
 	{
 		pMob[conn].extra.KefraTicket--;
 
-		*x = 2364 + rand() % 3;
-		*y = 3906 + rand() % 3;
+		*x = 2364 + W2Rand() % 3;
+		*y = 3906 + W2Rand() % 3;
 
 
 		sprintf(temp, g_pMessageStringTable[_DN_CHANGE_COUNT], pMob[conn].extra.KefraTicket);
@@ -880,21 +880,21 @@ int GetTeleportPosition(int conn, int *x, int *y)
 	//Deserto - Kefra
 	else if(xv == 2364 && yv == 3924 && KefraLive != 0)
 	{
-		*x = 3250 + rand() % 3;
-		*y = 1703 + rand() % 3;
+		*x = 3250 + W2Rand() % 3;
+		*y = 1703 + W2Rand() % 3;
 	}
 
 	//Kefra - Deserto
 	else if(xv == 1312 && yv == 1900)
 	{
-		*x = 2366 + rand() % 2;
-		*y = 4073 + rand() % 2;
+		*x = 2366 + W2Rand() % 2;
+		*y = 4073 + W2Rand() % 2;
 	}
 
 	else if(xv == 2364 && yv == 4072)
 	{
-		*x = 1314 + rand() % 2;
-		*y = 1900 + rand() % 2;
+		*x = 1314 + W2Rand() % 2;
+		*y = 1900 + W2Rand() % 2;
 	}
 	return Charge;
 }
@@ -1312,7 +1312,7 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 
 	sm->SkillParm = 0;
 	sm->SkillIndex = -1;
-	sm->Motion = rand() % 3 + 4;
+	sm->Motion = W2Rand() % 3 + 4;
 
 	int special = 0;
 	int special2 = 0;
@@ -1379,7 +1379,7 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 		if (special2)
 		{
 			sm->Motion = 4;
-			int _rand = rand() % 4;
+			int _rand = W2Rand() % 4;
 
 			switch (special2)
 			{
@@ -1453,7 +1453,7 @@ void GetAttack(int mob, int target, MSG_AttackOne *sm)
 				break;
 			}
 		}
-		int rand_ = rand() % 100;
+		int rand_ = W2Rand() % 100;
 		if (pMob[mob].MOB.ShortSkill[3] != 255 && rand_ >= 25 && rand_ <= 64)
 		{
 			int skillb3 = pMob[mob].MOB.ShortSkill[3];
@@ -1602,7 +1602,7 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 
 	sm->SkillParm = 0;
 	sm->SkillIndex = -1;
-	sm->Motion = rand() % 3 + 4;
+	sm->Motion = W2Rand() % 3 + 4;
 
 	for(int i = 0; i < MAX_TARGET; i++)
 	{
@@ -1677,7 +1677,7 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 			if (special2)
 			{
 				sm->Motion = 4;
-				int _rand = rand() % 4;
+				int _rand = W2Rand() % 4;
 
 				switch (special2)
 				{
@@ -1751,7 +1751,7 @@ void GetAttackArea(int mob, MSG_Attack *sm)
 					break;
 				}
 			}
-			int rand_ = rand() % 100;
+			int rand_ = W2Rand() % 100;
 			if (pMob[mob].MOB.ShortSkill[3] != 255 && rand_ >= 25 && rand_ <= 64)
 			{
 				int skillb3 = pMob[mob].MOB.ShortSkill[3];

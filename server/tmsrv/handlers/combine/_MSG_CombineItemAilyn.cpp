@@ -89,7 +89,7 @@ void Exec_MSG_CombineItemAilyn(int conn, char *pMsg)
 	ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
 	ItemLog("*** ------------------- ***", pUser[conn].AccountName, pUser[conn].IP);
 
-	int _rand = rand() % 115;
+	int _rand = W2Rand() % 115;
 	if (_rand >= 100)
 		_rand -= 15;
 
@@ -98,7 +98,7 @@ void Exec_MSG_CombineItemAilyn(int conn, char *pMsg)
 
 	if (_rand <= combine || LOCALSERVER)
 	{
-		if (rand() % 1 == 0)
+		if (W2Rand() % 1 == 0)
 		{
 			ipos1 = m->InvenPos[0];
 			ipos2 = m->InvenPos[1];

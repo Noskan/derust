@@ -460,7 +460,7 @@ int BASE_GetDamage(int dam, int ac, int combat)
 
 	int delta = 12 - combat;
 
-	int rnd = rand() % delta + combat + 99;
+	int rnd = W2Rand() % delta + combat + 99;
 
 	tdam = (long long)rnd * tdam / 100;
 
@@ -492,7 +492,7 @@ int BASE_GetSkillDamage(int dam, int ac, int combat)
 		combat = 15;
 
 	int delta = 21 - combat;
-	int rnd = rand() % delta + combat + 90;
+	int rnd = W2Rand() % delta + combat + 90;
 
 	tdam = (tdam * rnd) / 100;
 
@@ -1926,7 +1926,7 @@ int BASE_GetAccuracyRate(STRUCT_SCORE *att)
 int BASE_GetDoubleCritical(STRUCT_MOB *mob, unsigned short *sProgress, unsigned short *cProgress, unsigned char *bDoubleCritical)
 {
 	// Regra do cliente. O servidor não reduzia cProgress a 0..1023 (o teste `& 0x3FF < 0` nunca era
-	// verdadeiro), e g_pHitRate[*cProgress] lia fora da tabela; o crítico usava rand().
+	// verdadeiro), e g_pHitRate[*cProgress] lia fora da tabela; o crítico usava W2Rand().
 	*bDoubleCritical = 0;
 
 	if (!cProgress)

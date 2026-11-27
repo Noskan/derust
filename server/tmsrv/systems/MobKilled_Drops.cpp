@@ -85,7 +85,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									if (tmob < MAX_USER)
 										continue;
 
-									int itemrand = rand() % 60;
+									int itemrand = W2Rand() % 60;
 
 									STRUCT_ITEM *KefraItem = &pMob[target].MOB.Carry[itemrand];
 
@@ -389,7 +389,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									STRUCT_ITEM item;
 									memset(&item, 0, sizeof(STRUCT_ITEM));
 
-									int _rand = rand() % 14;
+									int _rand = W2Rand() % 14;
 
 									if (_rand == 0)
 										item.sIndex = 419;
@@ -410,10 +410,10 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									STRUCT_ITEM item;
 									memset(&item, 0, sizeof(STRUCT_ITEM));
 
-									int _rand = rand() % 14;
+									int _rand = W2Rand() % 14;
 
 									if (_rand == 0)
-										item.sIndex = 421 + (rand() % 7);
+										item.sIndex = 421 + (W2Rand() % 7);
 
 									else if (_rand == 1)
 										item.sIndex = 419;
@@ -424,7 +424,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 
 										if (pHeightGrid[AlvoY][AlvoX] > -40 && pHeightGrid[AlvoY][AlvoX] < 36)
 											PutItem(conn, &item);
-										//CreateItem(AlvoX, AlvoY, &item, rand() % 4, 1);
+										//CreateItem(AlvoX, AlvoY, &item, W2Rand() % 4, 1);
 									}
 								}
 // endregion
@@ -434,7 +434,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									STRUCT_ITEM item;
 									memset(&item, 0, sizeof(STRUCT_ITEM));
 
-									int _rand = rand() % 7;
+									int _rand = W2Rand() % 7;
 
 									if (_rand == 0)
 										item.sIndex = 1106;
@@ -454,7 +454,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 
 										if (pHeightGrid[AlvoY][AlvoX] > -40 && pHeightGrid[AlvoY][AlvoX] < 36)
 											PutItem(conn, &item);
-										//CreateItem(AlvoX, AlvoY, &item, rand() % 4, 1);
+										//CreateItem(AlvoX, AlvoY, &item, W2Rand() % 4, 1);
 									}
 								}
 // region Pesas
@@ -739,7 +739,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 #pragma region Pista Nv0 Lich_Crunt
 								if (GenerateID == RUNEQUEST_LV0_LICH1 || GenerateID == RUNEQUEST_LV0_LICH2)
 								{
-									int _rand = rand() % 100;
+									int _rand = W2Rand() % 100;
 
 									if (_rand < 20)
 									{
@@ -762,7 +762,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										STRUCT_ITEM Runa;
 										memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-										Runa.sIndex = PistaRune[0][rand() % 4];
+										Runa.sIndex = PistaRune[0][W2Rand() % 4];
 
 										if (partyleader > 0 && partyleader < MAX_USER)
 											PutItem(partyleader, &Runa);
@@ -774,7 +774,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 											if (pUser[partymember].Mode != USER_PLAY)
 												continue;
 
-											Runa.sIndex = PistaRune[0][rand() % 4];
+											Runa.sIndex = PistaRune[0][W2Rand() % 4];
 											PutItem(partymember, &Runa);
 										}
 
@@ -847,7 +847,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									STRUCT_ITEM Runa;
 									memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-									Runa.sIndex = PistaRune[2][rand() % 5];
+									Runa.sIndex = PistaRune[2][W2Rand() % 5];
 
 									if (partyleader > 0 && partyleader < MAX_USER)
 										PutItem(partyleader, &Runa);
@@ -859,7 +859,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										if (pUser[partymember].Mode != USER_PLAY)
 											continue;
 
-										Runa.sIndex = PistaRune[2][rand() % 5];
+										Runa.sIndex = PistaRune[2][W2Rand() % 5];
 										PutItem(partymember, &Runa);
 									}
 
@@ -881,7 +881,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 								{
 									Pista[3].Party[0].MobCount = 1;
 
-									GenerateMob(RUNEQUEST_LV3_MOB_BOSS_INITIAL + rand() % 7, 0, 0);
+									GenerateMob(RUNEQUEST_LV3_MOB_BOSS_INITIAL + W2Rand() % 7, 0, 0);
 								}
 #pragma endregion
 #pragma region Pista Nv4 Labirinto
@@ -963,7 +963,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									STRUCT_ITEM Runa;
 									memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-									Runa.sIndex = PistaRune[4][rand() % 3];
+									Runa.sIndex = PistaRune[4][W2Rand() % 3];
 
 									if (partyleader > 0 && partyleader < MAX_USER)
 										PutItem(partyleader, &Runa);
@@ -975,7 +975,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										if (pUser[partymember].Mode != USER_PLAY)
 											continue;
 
-										Runa.sIndex = PistaRune[4][rand() % 3];
+										Runa.sIndex = PistaRune[4][W2Rand() % 3];
 										PutItem(partymember, &Runa);
 									}
 
@@ -1005,7 +1005,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									STRUCT_ITEM Runa;
 									memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-									Runa.sIndex = PistaRune[5][rand() % 6];
+									Runa.sIndex = PistaRune[5][W2Rand() % 6];
 
 									if (partyleader > 0 && partyleader < MAX_USER)
 										PutItem(partyleader, &Runa);
@@ -1017,7 +1017,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										if (pUser[partymember].Mode != USER_PLAY)
 											continue;
 
-										Runa.sIndex = PistaRune[5][rand() % 6];
+										Runa.sIndex = PistaRune[5][W2Rand() % 6];
 										PutItem(partymember, &Runa);
 									}
 
@@ -1058,7 +1058,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									STRUCT_ITEM Runa;
 									memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-									Runa.sIndex = PistaRune[6][rand() % 8];
+									Runa.sIndex = PistaRune[6][W2Rand() % 8];
 
 									if (partyleader > 0 && partyleader < MAX_USER)
 										PutItem(partyleader, &Runa);
@@ -1070,7 +1070,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 										if (pUser[partymember].Mode != USER_PLAY)
 											continue;
 
-										Runa.sIndex = PistaRune[6][rand() % 8];
+										Runa.sIndex = PistaRune[6][W2Rand() % 8];
 										PutItem(partymember, &Runa);
 									}
 
@@ -1124,11 +1124,11 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 							else if (pMob[target].MOB.BaseScore.Level < 50)
 								UNKGOLD = 9;
 
-							UNKGOLD = rand() % (UNKGOLD+1);
+							UNKGOLD = W2Rand() % (UNKGOLD+1);
 
 							if (MobCoin && UNKGOLD == 0)
 							{
-								MobCoin = 4 * (rand() % (((MobCoin + 1) / 4)+1) + (MobCoin + 1) / 4 + MobCoin);
+								MobCoin = 4 * (W2Rand() % (((MobCoin + 1) / 4)+1) + (MobCoin + 1) / 4 + MobCoin);
 
 								if (MobCoin > 2000)
 									MobCoin = 2000;
@@ -1143,7 +1143,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 							}
 #pragma endregion
 #pragma region Drop Evento em todos os mobs
-							if (evOn && evStartIndex && evEndIndex && evItem && evRate && evCurrentIndex < evEndIndex && rand() % evRate == 0)
+							if (evOn && evStartIndex && evEndIndex && evItem && evRate && evCurrentIndex < evEndIndex && W2Rand() % evRate == 0)
 							{
 								STRUCT_ITEM item;
 								memset(&item, 0, sizeof(STRUCT_ITEM));
@@ -1157,7 +1157,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 									item.stEffect[1].cEffect = 63;
 									item.stEffect[1].cValue = evCurrentIndex;
 									item.stEffect[2].cEffect = 59;
-									item.stEffect[2].cValue = rand();
+									item.stEffect[2].cValue = W2Rand();
 
 									sprintf(temp, g_pMessageStringTable[_SSD_S_get_S_D], pMob[conn].MOB.MobName, g_pItemList[evItem].Name, evCurrentIndex);
 								}
@@ -1263,7 +1263,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 								if (droprate <= 0)
 									droprate = 0;
 								else
-									droprate = rand() % droprate;
+									droprate = W2Rand() % droprate;
 
 								if (droprate == 0 || i == 11)
 								{
@@ -1331,7 +1331,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 							}
 #pragma endregion
 #pragma region Quest Amuleto mistico
-							if (conn < MAX_USER && (pMob[target].MOB.Equip[0].sIndex == 239 || pMob[target].MOB.Equip[0].sIndex == 241) && !(rand() % 20))
+							if (conn < MAX_USER && (pMob[target].MOB.Equip[0].sIndex == 239 || pMob[target].MOB.Equip[0].sIndex == 241) && !(W2Rand() % 20))
 							{
 								if (pMob[conn].extra.QuestInfo.Mortal.TerraMistica == 1)
 								{
@@ -1386,7 +1386,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 #pragma region Pista +3 - Kalintz_Mago
 							if (GenerateID >= RUNEQUEST_LV3_MOB_BOSS_INITIAL && GenerateID <= RUNEQUEST_LV3_MOB_BOSS_END && Pista[3].Party[0].LeaderID != 0 && Pista[3].Party[0].MobCount != 0)
 							{
-								GenerateMob(RUNEQUEST_LV3_MOB_BOSS_INITIAL + rand() % 7, 0, 0);
+								GenerateMob(RUNEQUEST_LV3_MOB_BOSS_INITIAL + W2Rand() % 7, 0, 0);
 
 								int leader = pMob[conn].Leader;
 

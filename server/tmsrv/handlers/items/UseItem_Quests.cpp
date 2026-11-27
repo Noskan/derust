@@ -527,10 +527,10 @@ lbl_a_noparty:
 			pMob[conn].extra.NT--;
 
 		if((pMob[conn].MOB.HomeTownX/128) == 9 && (pMob[conn].MOB.HomeTownY/128) == 1)
-			DoTeleport(conn, pMob[conn].MOB.HomeTownX+rand()%1, pMob[conn].MOB.HomeTownY+rand()%1);
+			DoTeleport(conn, pMob[conn].MOB.HomeTownX+W2Rand()%1, pMob[conn].MOB.HomeTownY+W2Rand()%1);
 
 		else
-			DoTeleport(conn, PesaAPosStandard[0][0]+rand()%1, PesaAPosStandard[0][1]+rand()%1);
+			DoTeleport(conn, PesaAPosStandard[0][0]+W2Rand()%1, PesaAPosStandard[0][1]+W2Rand()%1);
 
 		SendClientSignalParm(conn, ESCENE_FIELD, _MSG_StartTime, NigthTime);
 
@@ -552,9 +552,9 @@ lbl_a_noparty:
 				}
 
 				if((pMob[partyconn].MOB.HomeTownX/128) == 9 && (pMob[partyconn].MOB.HomeTownY/128) == 1)
-					DoTeleport(partyconn, pMob[partyconn].MOB.HomeTownX+rand()%1, pMob[partyconn].MOB.HomeTownY+rand()%1);
+					DoTeleport(partyconn, pMob[partyconn].MOB.HomeTownX+W2Rand()%1, pMob[partyconn].MOB.HomeTownY+W2Rand()%1);
 				else
-				DoTeleport(partyconn, PesaAPosStandard[i][0]+rand()%1, PesaAPosStandard[i][1]+rand()%1);
+				DoTeleport(partyconn, PesaAPosStandard[i][0]+W2Rand()%1, PesaAPosStandard[i][1]+W2Rand()%1);
 
 				SendClientSignalParm(partyconn, ESCENE_FIELD, _MSG_StartTime, NigthTime);
 			}
@@ -644,7 +644,7 @@ lbl_a_noparty:
 				GenerateMob(i, 0, 0);
 			}
 
-			GenerateMob(SECRET_ROOM_N_BOSS_INITIAL + rand() % 1, 0, 0);
+			GenerateMob(SECRET_ROOM_N_BOSS_INITIAL + W2Rand() % 1, 0, 0);
 		}
 
 		else if (cartaindex == 0)
@@ -655,7 +655,7 @@ lbl_a_noparty:
 				GenerateMob(i, 0, 0);
 			}
 
-			GenerateMob(SECRET_ROOM_M_BOSS_INITIAL + rand() % 1, 0, 0);
+			GenerateMob(SECRET_ROOM_M_BOSS_INITIAL + W2Rand() % 1, 0, 0);
 		}
 		else
 		{//Carta A
@@ -665,7 +665,7 @@ lbl_a_noparty:
 				GenerateMob(i, 0, 0);
 			}
 
-			GenerateMob(SECRET_ROOM_A_BOSS_INITIAL + rand() % 1, 0, 0);
+			GenerateMob(SECRET_ROOM_A_BOSS_INITIAL + W2Rand() % 1, 0, 0);
 		}
 		if (amount > 1)
 			BASE_SetItemAmount(item, amount - 1);
@@ -1229,7 +1229,7 @@ lbl_a_noparty:
 
 					pMob[conn].extra.Fame -= 500;
 
-					int _rand = rand()%115;
+					int _rand = W2Rand()%115;
 
 					if(_rand > 100)
 						_rand -= 15;
@@ -1342,7 +1342,7 @@ lbl_a_noparty:
 			return true;
 		}
 
-		int _rand = rand()%115;
+		int _rand = W2Rand()%115;
 
 		if(_rand > 100)
 			_rand -= 15;

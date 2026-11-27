@@ -231,7 +231,7 @@ LABEL_BUY1:
 			ItemMob->stEffect[1].cValue = GuildCounter;
 
 			ItemMob->stEffect[2].cEffect = 59;
-			ItemMob->stEffect[2].cValue = rand();
+			ItemMob->stEffect[2].cValue = W2Rand();
 
 			int GCount = GuildCounter + (ServerIndex << 12);
 

@@ -813,14 +813,14 @@ void CFileDB::InitAccountList(int idx)
 
 int  CFileDB::GetEncPassword(int idx, int *Enc)
 {
-	Enc[0] = rand() % 900 + 100;
-	Enc[1] = rand() % 900 + 100;
-	Enc[2] = rand() % 900 + 100;
-	Enc[3] = rand() % 900 + 100;
-	Enc[4] = rand() % 900 + 100;
-	Enc[5] = rand() % 900 + 100;
-	Enc[6] = rand() % 900 + 100;
-	Enc[7] = rand() % 900 + 100;
+	Enc[0] = W2Rand() % 900 + 100;
+	Enc[1] = W2Rand() % 900 + 100;
+	Enc[2] = W2Rand() % 900 + 100;
+	Enc[3] = W2Rand() % 900 + 100;
+	Enc[4] = W2Rand() % 900 + 100;
+	Enc[5] = W2Rand() % 900 + 100;
+	Enc[6] = W2Rand() % 900 + 100;
+	Enc[7] = W2Rand() % 900 + 100;
 
 	return FALSE;
 }

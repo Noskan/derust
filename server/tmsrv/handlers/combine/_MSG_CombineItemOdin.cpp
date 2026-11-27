@@ -114,7 +114,7 @@ void Exec_MSG_CombineItemOdin(int conn, char *pMsg)
 	ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
 	ItemLog("*** ------------------- ***", pUser[conn].AccountName, pUser[conn].IP);
 
-	int _rand = rand() % 115;
+	int _rand = W2Rand() % 115;
 	if (_rand >= 100)
 		_rand -= 15;
 
@@ -276,7 +276,7 @@ void Exec_MSG_CombineItemOdin(int conn, char *pMsg)
 
 				if(rate <= 9)//Tentou com secretas
 				{
-					if(rand()%1 == 0)
+					if(W2Rand()%1 == 0)
 					{
 						if(protect == 2)
 						{

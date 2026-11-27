@@ -713,8 +713,8 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			 sprintf(tmp, "sys,wsa_acceptadmin %d.%d.%d.%d <%d>", cIP[0], cIP[1], cIP[2], cIP[3], User);
 			 Log(tmp, "-system", 0);
 
-			 pAdmin[User].Encode1 = rand() % 10000;
-			 pAdmin[User].Encode2 = rand() % 10000;
+			 pAdmin[User].Encode1 = W2Rand() % 10000;
+			 pAdmin[User].Encode2 = W2Rand() % 10000;
 			 
 			 MSG_NPIDPASS sm;
 			 memset(&sm, 0, sizeof(MSG_NPIDPASS));

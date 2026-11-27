@@ -136,7 +136,7 @@ bool UseItem_ExtractionsAndSpecials(int conn, MSG_UseItem* m, STRUCT_ITEM* item,
 
 		dest->sIndex += 30;
 								
-		dest->stEffect[1].cValue = rand() % 20 + dest->stEffect[1].cEffect;
+		dest->stEffect[1].cValue = W2Rand() % 20 + dest->stEffect[1].cEffect;
 		dest->stEffect[1].cEffect = 0;
 		dest->stEffect[2].cValue = 0;
 								 
@@ -227,7 +227,7 @@ bool UseItem_ExtractionsAndSpecials(int conn, MSG_UseItem* m, STRUCT_ITEM* item,
 			SendItem(conn, m->SourType, m->SourPos, item);
 			return true;
 		}
-		dest->stEffect[1].cValue += rand() % 2 + 1;
+		dest->stEffect[1].cValue += W2Rand() % 2 + 1;
 
 		sprintf(temp, "useitem,restaurador %d - (%d,%d,%d)", dest->sIndex, item->stEffect[1].cEffect, item->stEffect[1].cValue, item->stEffect[2].cValue);
 									

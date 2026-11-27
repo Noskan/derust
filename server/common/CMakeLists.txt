@@ -4,11 +4,13 @@ add_library(w2pp_common STATIC
   BaseCombat.cpp
   BaseLoaders.cpp
   CPSock.cpp
+  Platform.cpp
   ProtocolLayoutCheck.cpp
   Basedef.h
   BasedefInternal.h
   CPSock.h
   ItemEffect.h
+  Platform.h
 )
 
 target_include_directories(w2pp_common

@@ -58,7 +58,7 @@ void BASE_WriteSkillBin()
 		fwrite(g_pSpell, sizeof(STRUCT_SPELL), MAX_SPELL_LIST , fp);
 
 		int sum = BASE_GetSum2((char*)g_pSpell, size);
-		int nRand = rand();
+		int nRand = W2Rand();
 
 		fwrite(&nRand, sizeof(nRand), 1 , fp);
 		fclose(fp);
@@ -106,7 +106,7 @@ void BASE_WriteItemList(int nItemList)
 
 	int sum = BASE_GetSum2((char*)g_pItemList, size);
 
-	int nRand = rand();
+	int nRand = W2Rand();
 
 	if(nItemList == 0)
 	{

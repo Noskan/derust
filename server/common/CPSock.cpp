@@ -532,7 +532,7 @@ BOOL CPSock::AddMessage(char *pMsg, int Size)
 		return FALSE;
 	}
 	
-	unsigned char iKeyWord  =	rand()%256;
+	unsigned char iKeyWord  =	W2Rand()%256;
 	unsigned char KeyWord	=	pKeyWord[iKeyWord * 2];
 	unsigned char CheckSum	=	0;
 	pSMsg->Size				=	Size;

@@ -79,7 +79,7 @@ void CReadFiles::UpdateConnection()
 		if (UserConnection[i] < pUser[i].Count)
 			UserConnection[i] = pUser[i].Count;
 
-		fprintf(fp, "%d\n", ((4 * pUser[i].Count / 3) + rand() % 4));
+		fprintf(fp, "%d\n", ((4 * pUser[i].Count / 3) + W2Rand() % 4));
 	}
 
 	fclose(fp);

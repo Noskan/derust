@@ -133,7 +133,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 	int v38 = 59;
     int v37 = 0;
     int v36 = 0;
-    int v35 = rand() % 101;
+    int v35 = W2Rand() % 101;
     int v34 = 100;
 
     if ( a3 )
@@ -250,7 +250,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
         }
         break;
     }
-    int v33 = rand() % 100;
+    int v33 = W2Rand() % 100;
     if ( a3 )
       v33 = 2 * v33 / 3;
     int v32 = 100;
@@ -451,7 +451,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
         break;
     }
     int v28 = 0;
-    v35 = rand() % 100;
+    v35 = W2Rand() % 100;
     if ( lvdif )
     {
       switch ( lvdif )
@@ -595,7 +595,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
         if ( !LOBYTE(Dest->stEffect[1].sValue) )
         {
 			Dest->stEffect[1].cEffect = 59;
-          int v4 = rand() & 0x8000007F;
+          int v4 = W2Rand() & 0x8000007F;
           if ( v4 < 0 )
             v4 = ((unsigned __int8)(v4 - 1) | 0x80) + 1;
 		  Dest->stEffect[1].cValue = v4;
@@ -614,7 +614,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
     }
     g_dLevel1 = v28;
     int v27 = 0;
-    v33 = rand() % 100;
+    v33 = W2Rand() % 100;
     if ( lvdif )
     {
       switch ( lvdif )
@@ -760,7 +760,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
       if ( !LOBYTE(Dest->stEffect[2].sValue) )
       {
         Dest->stEffect[2].cEffect = 59;
-        int v5 = rand() & 0x8000007F;
+        int v5 = W2Rand() & 0x8000007F;
         if ( v5 < 0 )
           v5 = ((unsigned __int8)(v5 - 1) | 0x80) + 1;
 		Dest->stEffect[2].cValue = v5;
@@ -775,7 +775,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 
     if ( !LOBYTE(Dest->stEffect[0].sValue) )
     {
-      int v26 = rand() % 100;
+      int v26 = W2Rand() % 100;
       if ( a3 )
         v26 /= 2;
       int v25 = 1;
@@ -819,20 +819,20 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
             if ( v26 >= v22 )
             {
 				Dest->stEffect[0].cEffect = 59;
-              int v6 = rand() & 0x8000007F;
+              int v6 = W2Rand() & 0x8000007F;
               if ( v6 < 0 )
                 v6 = ((unsigned __int8)(v6 - 1) | 0x80) + 1;
 			  Dest->stEffect[0].cValue = v6;
             }
             else
             {
-              int v20 = rand() % 10;
+              int v20 = W2Rand() % 10;
               int v19 = g_pBonusType[v20];
               int v18 = lvdif;
               int v17 = g_pBonusValue[v20][lvdif][0];
               int v16 = g_pBonusValue[v20][lvdif][1];
               int v15 = v16 + 1 - v17;
-              int v14 = rand() % v15 + v17;
+              int v14 = W2Rand() % v15 + v17;
               Dest->stEffect[0].cEffect = v19;
               Dest->stEffect[0].cValue = v14;
             }
@@ -855,7 +855,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
         Dest->stEffect[0].cValue = 2;
         if ( add2 > 2 )
         {
-          int v21 = rand() % 100;
+          int v21 = W2Rand() % 100;
           switch ( add2 )
           {
             case 3:
@@ -969,7 +969,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
         break;
       case 0x4E:
         Dest->stEffect[0].cEffect = 78;
-        int v11 = rand() % 4 + g_pItemList[ItemId].stEffect[i].sValue;
+        int v11 = W2Rand() % 4 + g_pItemList[ItemId].stEffect[i].sValue;
         if ( v11 > 9 )
           v11 = 9;
         Dest->stEffect[0].cValue = v11;
@@ -981,17 +981,17 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
     if ( !Dest->stEffect[0].cEffect )
     {
       Dest->stEffect[0].cEffect = 59;
-      Dest->stEffect[0].cValue = rand();
+      Dest->stEffect[0].cValue = W2Rand();
     }
     if ( !Dest->stEffect[1].cEffect)
     {
       Dest->stEffect[1].cEffect = 59;
-      Dest->stEffect[01].cValue = rand();
+      Dest->stEffect[01].cValue = W2Rand();
     }
     if ( !Dest->stEffect[2].cEffect)
     {
       Dest->stEffect[2].cEffect = 59;
-      Dest->stEffect[2].cValue = rand();
+      Dest->stEffect[2].cValue = W2Rand();
     }
   }
   if ( Dest->sIndex >= 447 && Dest->sIndex <= 450
@@ -1000,17 +1000,17 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
     if ( !Dest->stEffect[0].cEffect )
     {
       Dest->stEffect[0].cEffect = 59;
-      Dest->stEffect[0].cValue = rand();
+      Dest->stEffect[0].cValue = W2Rand();
     }
     if ( !Dest->stEffect[1].cEffect)
     {
       Dest->stEffect[1].cEffect = 59;
-      Dest->stEffect[01].cValue = rand();
+      Dest->stEffect[01].cValue = W2Rand();
     }
     if ( !Dest->stEffect[2].cEffect)
     {
       Dest->stEffect[2].cEffect = 59;
-      Dest->stEffect[2].cValue = rand()%256;
+      Dest->stEffect[2].cValue = W2Rand()%256;
     }
   }
 }
@@ -1022,7 +1022,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 
 	if(nPos == 2)//Elmo
 	{
-		int _rand = rand()%25;
+		int _rand = W2Rand()%25;
 
 		if(Dest->stEffect[0].cEffect == EF_SANC)
 		{
@@ -1030,7 +1030,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 
 			if (sanc < 6)
 			{
-				sanc += rand() % 2;
+				sanc += W2Rand() % 2;
 
 				if (sanc >= 6)
 					sanc = 6;
@@ -1041,7 +1041,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 		else 
 		{
 			Dest->stEffect[0].cEffect = EF_SANC;
-			Dest->stEffect[0].cValue = rand()%2;
+			Dest->stEffect[0].cValue = W2Rand()%2;
 		}
 		Dest->stEffect[1].cEffect = g_pBonusValue3[_rand][0];
 		Dest->stEffect[1].cValue = g_pBonusValue3[_rand][1];
@@ -1052,7 +1052,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 	//Peito calça
 	if(nPos == 4 || nPos == 8)
 	{
-		int _rand = rand()%48;
+		int _rand = W2Rand()%48;
 
 		if(Dest->stEffect[0].cEffect == EF_SANC)
 		{
@@ -1060,7 +1060,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 
 			if (sanc < 6)
 			{
-				sanc += rand() % 2;
+				sanc += W2Rand() % 2;
 
 				if (sanc >= 6)
 					sanc = 6;
@@ -1071,7 +1071,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 		else 
 		{
 			Dest->stEffect[0].cEffect = EF_SANC;
-			Dest->stEffect[0].cValue = rand()%2;
+			Dest->stEffect[0].cValue = W2Rand()%2;
 		}
 
 		Dest->stEffect[1].cEffect = g_pBonusValue2[_rand][0];
@@ -1084,7 +1084,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 	//Luva
 	if(nPos == 16)
 	{
-		int _rand = rand()%30;
+		int _rand = W2Rand()%30;
 
 		if(Dest->stEffect[0].cEffect == EF_SANC)
 		{
@@ -1092,7 +1092,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 
 			if (sanc < 6)
 			{
-				sanc += rand() % 2;
+				sanc += W2Rand() % 2;
 
 				if (sanc >= 6)
 					sanc = 6;
@@ -1103,7 +1103,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 		else 
 		{
 			Dest->stEffect[0].cEffect = EF_SANC;
-			Dest->stEffect[0].cValue = rand()%2;
+			Dest->stEffect[0].cValue = W2Rand()%2;
 		}
 
 		Dest->stEffect[1].cEffect = g_pBonusValue4[_rand][0];
@@ -1116,7 +1116,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 	//Bota
 	if(nPos == 32)
 	{
-		int _rand = rand()%30;
+		int _rand = W2Rand()%30;
 
 		if(Dest->stEffect[0].cEffect == EF_SANC)
 		{
@@ -1124,7 +1124,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 
 			if (sanc < 6)
 			{
-				sanc += rand() % 2;
+				sanc += W2Rand() % 2;
 
 				if (sanc >= 6)
 					sanc = 6;
@@ -1135,7 +1135,7 @@ void SetItemBonus2(STRUCT_ITEM *Dest)
 		else 
 		{
 			Dest->stEffect[0].cEffect = EF_SANC;
-			Dest->stEffect[0].cValue = rand()%2;
+			Dest->stEffect[0].cValue = W2Rand()%2;
 		}
 
 		Dest->stEffect[1].cEffect = g_pBonusValue5[_rand][0];
@@ -1609,13 +1609,13 @@ void Combine(int conn, int item, int PrizeItem)
 	Prize.sIndex = PrizeItem;
 
 	Prize.stEffect[0].cEffect = 59;
-	Prize.stEffect[0].cValue = rand() % 100;
+	Prize.stEffect[0].cValue = W2Rand() % 100;
 
 	Prize.stEffect[1].cEffect = 59;
-	Prize.stEffect[1].cValue = rand() % 100;
+	Prize.stEffect[1].cValue = W2Rand() % 100;
 
 	Prize.stEffect[2].cEffect = 59;
-	Prize.stEffect[2].cValue = rand() % 50 + 50;
+	Prize.stEffect[2].cValue = W2Rand() % 50 + 50;
 
 	int i = 0;
 
@@ -1637,7 +1637,7 @@ void Combine(int conn, int item, int PrizeItem)
 	}
 
 	else
-		CreateItem(pMob[conn].TargetX, pMob[conn].TargetY, &Prize, rand() % 4, 1);
+		CreateItem(pMob[conn].TargetX, pMob[conn].TargetY, &Prize, W2Rand() % 4, 1);
 }
 
 /// Evolui/ajusta nivel de item conforme tabela configurada.

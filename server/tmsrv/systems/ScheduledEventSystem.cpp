@@ -50,7 +50,7 @@
 ///
 /// As coordenadas do jogador são alinhadas à grade de 4x4 (`& 0xFFFC`) e comparadas com
 /// `PistaBalrogPortalPos`; o destino é sorteado entre as salas de `PistaBalrogPos`
-/// (`rand() % 3`) e todo o grupo (`Pista[5].Party[x]`) é levado junto via DoTeleport().
+/// (`W2Rand() % 3`) e todo o grupo (`Pista[5].Party[x]`) é levado junto via DoTeleport().
 /// Chamado uma vez por segundo para cada usuário (`bb` em 1..MAX_USER-1).
 void ProcessRuneQuestPortals(int bb)
 {
@@ -66,7 +66,7 @@ void ProcessRuneQuestPortals(int bb)
 				if (pMob[Pista[5].Party[x].LeaderID].Leader != -1 && pMob[Pista[5].Party[x].LeaderID].Leader)
 					continue;
 
-				int _rd = rand()%3;
+				int _rd = W2Rand()%3;
 
 				int tx = 2100;
 				int ty = 2100;
@@ -431,7 +431,7 @@ void ProcessScheduledWorldEvents()
 					GenerateMob(RUNEQUEST_LV2_MOB_BOSS, 0, 0);
 
 				if(s == 4)
-					Pista[s].Party[t].MobCount = 8 + rand()%8;
+					Pista[s].Party[t].MobCount = 8 + W2Rand()%8;
 
 				if(s == 4 && t == 0)
 				{
@@ -475,7 +475,7 @@ void ProcessScheduledWorldEvents()
 				SendScore(x);
 			}
 
-			DoTeleport(x, 3294, rand()%1 == 0 ? 1701 : 1686);
+			DoTeleport(x, 3294, W2Rand()%1 == 0 ? 1701 : 1686);
 		}
 
 		//Pista +1 - Torre
@@ -488,7 +488,7 @@ void ProcessScheduledWorldEvents()
 				STRUCT_ITEM Runa;
 				memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-				Runa.sIndex = PistaRune[1][rand()%5];
+				Runa.sIndex = PistaRune[1][W2Rand()%5];
 
 				if (Pista[1].Party[0].LeaderID > 0 && Pista[1].Party[0].LeaderID < MAX_USER)
 					PutItem(Pista[1].Party[0].LeaderID, &Runa);
@@ -500,7 +500,7 @@ void ProcessScheduledWorldEvents()
 					if (pUser[partymember].Mode != USER_PLAY)
 						continue;
 
-					Runa.sIndex = PistaRune[1][rand()%5];
+					Runa.sIndex = PistaRune[1][W2Rand()%5];
 					PutItem(partymember, &Runa);
 				}
 
@@ -526,7 +526,7 @@ void ProcessScheduledWorldEvents()
 				STRUCT_ITEM Runa;
 				memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-				Runa.sIndex = PistaRune[1][rand()%5];
+				Runa.sIndex = PistaRune[1][W2Rand()%5];
 
 				if (Pista[1].Party[1].LeaderID > 0 && Pista[1].Party[1].LeaderID < MAX_USER)
 					PutItem(Pista[1].Party[1].LeaderID, &Runa);
@@ -538,7 +538,7 @@ void ProcessScheduledWorldEvents()
 					if (pUser[partymember].Mode != USER_PLAY)
 						continue;
 
-					Runa.sIndex = PistaRune[1][rand()%5];
+					Runa.sIndex = PistaRune[1][W2Rand()%5];
 					PutItem(partymember, &Runa);
 				}
 
@@ -564,7 +564,7 @@ void ProcessScheduledWorldEvents()
 				STRUCT_ITEM Runa;
 				memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-				Runa.sIndex = PistaRune[1][rand()%5];
+				Runa.sIndex = PistaRune[1][W2Rand()%5];
 
 				if (Pista[1].Party[2].LeaderID > 0 && Pista[1].Party[2].LeaderID < MAX_USER)
 					PutItem(Pista[1].Party[0].LeaderID, &Runa);
@@ -576,7 +576,7 @@ void ProcessScheduledWorldEvents()
 					if (pUser[partymember].Mode != USER_PLAY)
 						continue;
 
-					Runa.sIndex = PistaRune[1][rand()%5];
+					Runa.sIndex = PistaRune[1][W2Rand()%5];
 					PutItem(partymember, &Runa);
 				}
 
@@ -604,7 +604,7 @@ void ProcessScheduledWorldEvents()
 				STRUCT_ITEM Runa;
 				memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-				Runa.sIndex = PistaRune[3][rand()%5];
+				Runa.sIndex = PistaRune[3][W2Rand()%5];
 
 				if (Pista[3].Party[0].LeaderID > 0 && Pista[3].Party[0].LeaderID < MAX_USER)
 					PutItem(Pista[3].Party[0].LeaderID, &Runa);
@@ -616,7 +616,7 @@ void ProcessScheduledWorldEvents()
 					if (pUser[partymember].Mode != USER_PLAY)
 						continue;
 
-					Runa.sIndex = PistaRune[3][rand()%5];
+					Runa.sIndex = PistaRune[3][W2Rand()%5];
 					PutItem(partymember, &Runa);
 				}
 
@@ -642,7 +642,7 @@ void ProcessScheduledWorldEvents()
 				STRUCT_ITEM Runa;
 				memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-				Runa.sIndex = PistaRune[3][rand()%5];
+				Runa.sIndex = PistaRune[3][W2Rand()%5];
 
 				if (Pista[3].Party[1].LeaderID > 0 && Pista[3].Party[1].LeaderID < MAX_USER)
 					PutItem(Pista[3].Party[1].LeaderID, &Runa);
@@ -654,7 +654,7 @@ void ProcessScheduledWorldEvents()
 					if (pUser[partymember].Mode != USER_PLAY)
 						continue;
 
-					Runa.sIndex = PistaRune[3][rand()%5];
+					Runa.sIndex = PistaRune[3][W2Rand()%5];
 					PutItem(partymember, &Runa);
 				}
 
@@ -682,7 +682,7 @@ void ProcessScheduledWorldEvents()
 				STRUCT_ITEM Runa;
 				memset(&Runa, 0, sizeof(STRUCT_ITEM));
 
-				Runa.sIndex = PistaRune[3][rand()%5];
+				Runa.sIndex = PistaRune[3][W2Rand()%5];
 
 				if (Pista[3].Party[2].LeaderID > 0 && Pista[3].Party[2].LeaderID < MAX_USER)
 					PutItem(Pista[3].Party[2].LeaderID, &Runa);
@@ -694,7 +694,7 @@ void ProcessScheduledWorldEvents()
 					if (pUser[partymember].Mode != USER_PLAY)
 						continue;
 
-					Runa.sIndex = PistaRune[3][rand()%5];
+					Runa.sIndex = PistaRune[3][W2Rand()%5];
 					PutItem(partymember, &Runa);
 				}
 

@@ -60,7 +60,7 @@ void Exec_MSG_CombineItemExtracao(int conn, char *pMsg)
 	if (i == MAX_CARRY - 4)
 		return;
 		
-	int _rnd = rand()%115;
+	int _rnd = W2Rand()%115;
 
 	if(_rnd > 100)
 		_rnd -= 15;

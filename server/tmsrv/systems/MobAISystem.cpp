@@ -462,7 +462,7 @@ void ProcessMobCombatTick(int Sec4, int Sec16)
 				if (sm.SkillIndex == 79 || sm.SkillIndex == 22)
 					parryretn = 30 * parryretn / 100;
 
-				int rd = rand() % 1000 + 1;
+				int rd = W2Rand() % 1000 + 1;
 
 				if (rd < parryretn)
 				{

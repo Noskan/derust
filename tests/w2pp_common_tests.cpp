@@ -233,7 +233,7 @@ void TestCombatHelpers()
 	score.AttackRun = static_cast<unsigned char>(0xF4);
 	CHECK(BASE_GetSpeed(&score) == 4);
 
-	std::srand(12345);
+	W2Srand(12345);
 	CHECK(BASE_GetDamage(10, 1000, 0) >= 1);
 	CHECK(BASE_GetDamage(500, 100, 10) > BASE_GetDamage(100, 100, 0));
 }

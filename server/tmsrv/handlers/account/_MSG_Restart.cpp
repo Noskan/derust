@@ -31,10 +31,10 @@ void Exec_MSG_Restart(int conn, char *pMsg)
 		SendSetHpMp(conn);
 
 		if(pMob[conn].TargetX >= 1017 && pMob[conn].TargetX <= 1290 && pMob[conn].TargetY >= 1911 && pMob[conn].TargetY <= 2183 && pMob[conn].MOB.Clan == 7)
-			DoTeleport(conn, 1061+ rand()%3, 2129+rand()%3);
+			DoTeleport(conn, 1061+ W2Rand()%3, 2129+W2Rand()%3);
 			
 		else if(pMob[conn].TargetX >= 1017 && pMob[conn].TargetX <= 1290 && pMob[conn].TargetY >= 1911 && pMob[conn].TargetY <= 2183 && pMob[conn].MOB.Clan == 8)
-			DoTeleport(conn, 1237+ rand()%3, 1966+rand()%3);
+			DoTeleport(conn, 1237+ W2Rand()%3, 1966+W2Rand()%3);
 			
 		else
 			DoRecall(conn);

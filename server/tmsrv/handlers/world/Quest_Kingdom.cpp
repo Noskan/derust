@@ -793,7 +793,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 		Item.sIndex = 1726;
 		Item.stEffect[0].cEffect = 43;
-		Item.stEffect[0].cValue = rand()%4;
+		Item.stEffect[0].cValue = W2Rand()%4;
 
 		PutItem(conn, &Item);
 
@@ -839,7 +839,7 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 				SendItem(conn, ITEM_PLACE_CARRY, x, &pMob[conn].MOB.Carry[x]);
 
-				int _rand = rand() % 1000;
+				int _rand = W2Rand() % 1000;
 
 				STRUCT_ITEM Item;
 
@@ -983,18 +983,18 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
         {
             if (_Level >= 80 )
             {
-				_ItemID = rand() % 4 + 559;
+				_ItemID = W2Rand() % 4 + 559;
 				_ItemType = 0;
             }
             else
             {
-				_ItemID = rand() % 4 + 555;
+				_ItemID = W2Rand() % 4 + 555;
 				_ItemType = 1;
             }
         }
         else
         {
-            _ItemID = rand() % 4 + 551;
+            _ItemID = W2Rand() % 4 + 551;
             _ItemType = 1;
         }
 
@@ -1003,20 +1003,20 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 
 		Item.sIndex = _ItemID;
 
-		int _rd = rand()%10;
+		int _rd = W2Rand()%10;
 
 		int bonustype = g_pBonusType[_rd];
 
 		int bonusvalue1 = g_pBonusValue[_rd][_ItemType][0];
 		int bonusvalue2 = g_pBonusValue[_rd][_ItemType][1];
 		int fvalue = bonusvalue2 + 1 - bonusvalue1;
-		int tvalue = rand() % fvalue + bonusvalue1;
+		int tvalue = W2Rand() % fvalue + bonusvalue1;
 
 		Item.stEffect[0].cEffect = 43;
 
 		for (int z = 1; z <= 2; ++z )
         {
-            int rd_ = rand() % 8;
+            int rd_ = W2Rand() % 8;
 
             if (rd_)
             {
@@ -1024,44 +1024,44 @@ bool HandleQuest_Kingdom(int conn, int npcIndex, int confirm, int npcMode, int n
 				{
 				case 1:
 					Item.stEffect[z].cEffect = 2;
-					Item.stEffect[z].cValue = rand() % 21 + 5;
+					Item.stEffect[z].cValue = W2Rand() % 21 + 5;
 					break;
 
 				case 2:
 					Item.stEffect[z].cEffect = 26;
-					Item.stEffect[z].cValue = rand() % 11 + 5;
+					Item.stEffect[z].cValue = W2Rand() % 11 + 5;
 					break;
 
 				case 3:
 					Item.stEffect[z].cEffect = 5;
-					Item.stEffect[z].cValue = rand() % 51 + 20;
+					Item.stEffect[z].cValue = W2Rand() % 51 + 20;
 					break;
 				
 				case 4:
 					Item.stEffect[z].cEffect = 60;
-					Item.stEffect[z].cValue = rand() % 7 + 2;
+					Item.stEffect[z].cValue = W2Rand() % 7 + 2;
 					break;
 				
 				case 5:
 					Item.stEffect[z].cEffect = 7;
-					Item.stEffect[z].cValue = rand() % 16 + 5;
+					Item.stEffect[z].cValue = W2Rand() % 16 + 5;
 					break;
 				
 				case 6:
 					Item.stEffect[z].cEffect = 8;
-					Item.stEffect[z].cValue = rand() % 16 + 5;
+					Item.stEffect[z].cValue = W2Rand() % 16 + 5;
 					break;
 				
 				case 7:
 					Item.stEffect[z].cEffect = 9;
-					Item.stEffect[z].cValue = rand() % 16 + 5;
+					Item.stEffect[z].cValue = W2Rand() % 16 + 5;
 					break;
 				}
             }
             else
             {
 				Item.stEffect[z].cEffect = 4;
-				Item.stEffect[z].cValue = rand() % 41 + 20;
+				Item.stEffect[z].cValue = W2Rand() % 41 + 20;
             }
         }
 

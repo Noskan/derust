@@ -1221,7 +1221,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		pUser[conn].cSock.SendOneMessage((char*)&sm, sizeof(MSG_CNFDeleteCharacter));
 
-		sprintf(temp, "../../Common/ImportItem/%d%d%d%d%d", LastCapsule, rand()%255, rand()%255, rand()%255, rand()%255);
+		sprintf(temp, "../../Common/ImportItem/%d%d%d%d%d", LastCapsule, W2Rand()%255, W2Rand()%255, W2Rand()%255, W2Rand()%255);
 		
 		FILE *fp = fopen(temp, "a+");
 		fprintf(fp, "%s %d %d %d %d %d %d %d", pAccountList[Idx].File.Info.AccountName, 3443, 59, LastCapsule/256, 59,(LastCapsule - ((LastCapsule/256)*256)), 0, 0);

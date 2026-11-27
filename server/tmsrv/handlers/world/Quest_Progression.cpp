@@ -64,7 +64,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 						int vit = BASE_GetItemAbility(&pMob[conn].MOB.Equip[14], 79);
 
-						vit -= rand() % 3;
+						vit -= W2Rand() % 3;
 
 						if (vit > 0)
 						{
@@ -187,7 +187,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 							pMob[conn].QuestFlag = 1;
 
-							DoTeleport(conn, 2398 + rand() % 5 - 3, 2105 + rand() % 5 - 3);
+							DoTeleport(conn, 2398 + W2Rand() % 5 - 3, 2105 + W2Rand() % 5 - 3);
 
 							sprintf(temp, "etc,quest256 ticket coveiro name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
 							Log(temp, "-system", 0);
@@ -231,7 +231,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 							}
 							pMob[conn].QuestFlag = 2;
 
-							DoTeleport(conn, 2234 + rand() % 5 - 3, 1714 + rand() % 5 - 3);
+							DoTeleport(conn, 2234 + W2Rand() % 5 - 3, 1714 + W2Rand() % 5 - 3);
 
 							sprintf(temp, "etc,quest256 ticket jardineiro name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
 							Log(temp, "-system", 0);
@@ -275,7 +275,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 						}
 						pMob[conn].QuestFlag = 3;
 
-						DoTeleport(conn, 464 + rand() % 5 - 3, 3902 + rand() % 5 - 3);
+						DoTeleport(conn, 464 + W2Rand() % 5 - 3, 3902 + W2Rand() % 5 - 3);
 
 						sprintf(temp, "etc,quest256 ticket kaizen name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
 						Log(temp, "-system", 0);
@@ -319,7 +319,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 						}
 						pMob[conn].QuestFlag = 4;
 
-						DoTeleport(conn, 668 + rand() % 5 - 3, 3756 + rand() % 5 - 3);
+						DoTeleport(conn, 668 + W2Rand() % 5 - 3, 3756 + W2Rand() % 5 - 3);
 
 						sprintf(temp, "etc,quest256 ticket hidra name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
 						Log(temp, "-system", 0);
@@ -363,7 +363,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 						}
 						pMob[conn].QuestFlag = 5;
 
-						DoTeleport(conn, 1322 + rand() % 5 - 3, 4041 + rand() % 5 - 3);
+						DoTeleport(conn, 1322 + W2Rand() % 5 - 3, 4041 + W2Rand() % 5 - 3);
 
 						sprintf(temp, "etc,quest256 ticket elfos name:%s level:%d", pMob[conn].MOB.MobName, pMob[conn].MOB.BaseScore.Level);
 						Log(temp, "-system", 0);
@@ -391,12 +391,12 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 							if (price == 1000000)
 							{
 								pMob[conn].MOB.Coin -= 1000000;
-								pMob[conn].MOB.Equip[13].sIndex = rand() % 3 + 448;
+								pMob[conn].MOB.Equip[13].sIndex = W2Rand() % 3 + 448;
 							}
 							else
 							{
 								pMob[conn].MOB.Coin -= 5000000;
-								pMob[conn].MOB.Equip[13].sIndex = rand() % 3 + 693;
+								pMob[conn].MOB.Equip[13].sIndex = W2Rand() % 3 + 693;
 							}
 
 							SendItem(conn, ITEM_PLACE_EQUIP, 13, &pMob[conn].MOB.Equip[13]);
@@ -732,7 +732,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 
 		BASE_ClearItem(&pMob[conn].MOB.Carry[i]);
 
-		int rd = rand() % 3;
+		int rd = W2Rand() % 3;
 
 		if (rd == 0)
 		{
@@ -770,7 +770,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 			break;
 		}
 
-		DoTeleport(conn, 2245 + rand() % 5 - 3, 1576 + rand() % 5 - 3);
+		DoTeleport(conn, 2245 + W2Rand() % 5 - 3, 1576 + W2Rand() % 5 - 3);
 
 		sprintf(temp, "etc,quest_aprendiz1 npcteleport name:%s conn:%d", pMob[conn].MOB.MobName, conn);
 		Log(temp, "-system", 0);
@@ -842,7 +842,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 		sprintf(temp, "etc,quest_molar1 npcteleport name:%s conn:%d", pMob[conn].MOB.MobName, conn);
 		Log(temp, "-system", 0);
 
-		DoTeleport(conn, 817 + rand() % 5 - 3, 4062 + rand() % 5 - 3);
+		DoTeleport(conn, 817 + W2Rand() % 5 - 3, 4062 + W2Rand() % 5 - 3);
 	} break;
 #pragma endregion
 #pragma region QUEST_CAPAREAL
@@ -860,7 +860,7 @@ bool HandleQuest_Progression(int conn, int npcIndex, int confirm, int npcMode, i
 			break;
 		}
 
-		DoTeleport(conn, 1740 + rand() % 5 - 3, 1725 + rand() % 5 - 3);
+		DoTeleport(conn, 1740 + W2Rand() % 5 - 3, 1725 + W2Rand() % 5 - 3);
 
 		sprintf(temp, "etc,questreal npcteleport name:%s conn:%d", pMob[conn].MOB.MobName, conn);
 		Log(temp, "-system", 0);

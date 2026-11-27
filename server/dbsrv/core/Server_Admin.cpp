@@ -744,10 +744,10 @@ int ProcessAdminMessage(int conn, char *msg)
 
 			SendAdminMessage(conn, 0, temp);
 			/*
-			sm.account.Info.AccountPass[0] = rand() % 24 + 'A';
-			sm.account.Info.AccountPass[1] = rand() % 24 + 'A';
-			sm.account.Info.AccountPass[2] = rand() % 24 + 'A';
-			sm.account.Info.AccountPass[3] = rand() % 24 + 'A';
+			sm.account.Info.AccountPass[0] = W2Rand() % 24 + 'A';
+			sm.account.Info.AccountPass[1] = W2Rand() % 24 + 'A';
+			sm.account.Info.AccountPass[2] = W2Rand() % 24 + 'A';
+			sm.account.Info.AccountPass[3] = W2Rand() % 24 + 'A';
 			sm.account.Info.AccountPass[4] = 0;
 			*/
 			pAdmin[conn].cSock.SendOneMessage((char*)&sm, sizeof(MSG_NPAccountInfo));
@@ -899,7 +899,7 @@ int ProcessAdminMessage(int conn, char *msg)
 			time(&now);
 			when = *localtime(&now);
 
-			sprintf(name, "%02d%02d%04d%02d%02d%02d%02d", when.tm_mday, when.tm_mon, when.tm_year+1900, when.tm_hour, when.tm_min, when.tm_sec, rand()%255);
+			sprintf(name, "%02d%02d%04d%02d%02d%02d%02d", when.tm_mday, when.tm_mon, when.tm_year+1900, when.tm_hour, when.tm_min, when.tm_sec, W2Rand()%255);
 			sprintf(filename, "../../Common/ImportDonate/%s", name);
 
 			FILE *fp = fopen(filename, "wt");

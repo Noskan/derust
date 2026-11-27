@@ -353,7 +353,11 @@ void CaseEquipCargoTrade()
 void CaseCombat()
 {
 	Lcg r(4);
+#ifdef DIV_SERVER
+	W2Srand(1234);	// o servidor usa W2Rand (common/Platform.h), o mesmo algoritmo do rand() do CRT
+#else
 	std::srand(1234);
+#endif
 	for (int n = 0; n < kSamples; ++n)
 	{
 		STRUCT_MOB mob = RandomMob(r);

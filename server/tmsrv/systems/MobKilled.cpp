@@ -194,7 +194,7 @@ void MobKilled(int target, int conn, int PosX, int PosY)
 				if (ProcessMobKilledExp(target, conn, Leader))
 				{
 					int GenerateIndex = pMob[target].GenerateIndex;
-					int DieSay = rand() % 4;
+					int DieSay = W2Rand() % 4;
 
 					if (GenerateIndex >= 0 && mNPCGen.pList[GenerateIndex].DieAction[DieSay][0] && pMob[target].Leader == 0)
 						SendChat(target, mNPCGen.pList[GenerateIndex].DieAction[DieSay]);

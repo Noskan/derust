@@ -849,36 +849,36 @@ void ProcessMinTimer()
 				
 				if (MinuteGenerate >= 500 && MinuteGenerate < 1000)
 				{
-					mNPCGen.pList[i].MinuteGenerate = rand() % 500 + 500;
+					mNPCGen.pList[i].MinuteGenerate = W2Rand() % 500 + 500;
 
 					continue;
 				}
 
 				if (MinuteGenerate >= 1000 && MinuteGenerate < 2000)
 				{
-					mNPCGen.pList[i].MinuteGenerate = rand() % 1000 + 1000;
+					mNPCGen.pList[i].MinuteGenerate = W2Rand() % 1000 + 1000;
 
 					continue;
 				}
 
 				if (MinuteGenerate >= 2000 && MinuteGenerate < 3800)
 				{
-					mNPCGen.pList[i].MinuteGenerate = rand() % 1800 + 2000;
+					mNPCGen.pList[i].MinuteGenerate = W2Rand() % 1800 + 2000;
 
 					continue;
 				}
 
 				if (MinuteGenerate >= 3800)
 				{
-					mNPCGen.pList[i].MinuteGenerate = rand() % 1000 + 3800;
+					mNPCGen.pList[i].MinuteGenerate = W2Rand() % 1000 + 3800;
 
 					if (DUNGEONEVENT)
 					{
-						int RndPos = rand() % 30;
+						int RndPos = W2Rand() % 30;
 						int dpX = DungeonPos[RndPos][0];
 						int dpY = DungeonPos[RndPos][1];
 
-						int RndL = rand() % 5 + 5;
+						int RndL = W2Rand() % 5 + 5;
 
 						for (int j = 0; j < RndL; j++)
 						{
@@ -886,11 +886,11 @@ void ProcessMinTimer()
 
 							memset(&PrizeItem, 0, sizeof(STRUCT_ITEM));
 
-							PrizeItem.sIndex = DungeonItem[rand() % 10];
+							PrizeItem.sIndex = DungeonItem[W2Rand() % 10];
 
 							SetItemBonus(&PrizeItem, 0, 0, 0);
 
-							int rnd = rand() % 4;
+							int rnd = W2Rand() % 4;
 
 							CreateItem(dpX, dpY, &PrizeItem, rnd, 1);
 						}
@@ -903,7 +903,7 @@ void ProcessMinTimer()
 #pragma endregion
 	MinCounter++;
 
-	int rndWeather = rand() % 1200;
+	int rndWeather = W2Rand() % 1200;
 
 	if (ForceWeather == -1)
 	{

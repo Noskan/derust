@@ -468,7 +468,7 @@ DiretoReset:
 				pMob[conn].GetCurrentScore(conn);
 				SendScore(conn);
 
-				DoTeleport(conn, 2454 + rand() % 3, 1843 + rand() % 3);
+				DoTeleport(conn, 2454 + W2Rand() % 3, 1843 + W2Rand() % 3);
 
 				sprintf(temp, "etc,kibita limit of soul mortal name:%s conn:%d", pMob[conn].MOB.MobName, conn);
 				Log(temp, "-system", 0);
@@ -579,7 +579,7 @@ DiretoReset:
 				STRUCT_ITEM Item;
 				memset(&Item, 0, sizeof(STRUCT_ITEM));
 
-				int _rd = rand()%100;
+				int _rd = W2Rand()%100;
 
 				if(_rd < 25)
 					Item.sIndex = 413;

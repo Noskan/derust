@@ -183,7 +183,7 @@ void Exec_MSG_Action(int conn, char *pMsg)
 
 		if(partyleader != conn || conn != Pista[2].Party[0].LeaderID && conn != Pista[2].Party[1].LeaderID && conn != Pista[2].Party[2].LeaderID)
 		{
-			int rd = rand()%3;
+			int rd = W2Rand()%3;
 			DoTeleport(conn, PistaPos[2][rd][0], PistaPos[2][rd][1]);
 			return;
 		}

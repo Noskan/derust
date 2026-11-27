@@ -376,8 +376,8 @@ int CreateMob(char *MobName, int PosX, int PosY, char *folder, int Type)
 	{
 		if(pMob[tmob].MOB.Equip[0].sIndex != 220 && pMob[tmob].MOB.Equip[0].sIndex != 219 && pMob[tmob].MOB.Equip[0].sIndex != 358)
 		{
-			pMob[tmob].SegmentListX[i] = PosX + rand()%5 - 2;
-			pMob[tmob].SegmentListY[i] = PosY + rand()%5 - 2;
+			pMob[tmob].SegmentListX[i] = PosX + W2Rand()%5 - 2;
+			pMob[tmob].SegmentListY[i] = PosY + W2Rand()%5 - 2;
 		}
 
 		else 
@@ -495,7 +495,7 @@ void GenerateMob(int index, int PosX, int PosY)
 			return;
 		}
 
-		int reloc = rand() % segx + segy;
+		int reloc = W2Rand() % segx + segy;
 		if (reloc < 0 || reloc >= mNPCGen.NumList)
 			Log("err,wrong index relocation", "-system", 0);
 
@@ -514,7 +514,7 @@ void GenerateMob(int index, int PosX, int PosY)
 		qmob = 1;
 	}
 
-	MinGroup += rand() % qmob;
+	MinGroup += W2Rand() % qmob;
 
 	if (mNPCGen.pList[nindex].CurrentNumMob >= mNPCGen.pList[nindex].MaxNumMob)
 		return;
@@ -568,10 +568,10 @@ void GenerateMob(int index, int PosX, int PosY)
 			if (mNPCGen.pList[index].SegmentRange[i])
 			{
 				pMob[tmob].SegmentListX[i] = mNPCGen.pList[index].SegmentListX[i]
-					- mNPCGen.pList[index].SegmentRange[i] + (rand() % (mNPCGen.pList[index].SegmentRange[i] + 1));
+					- mNPCGen.pList[index].SegmentRange[i] + (W2Rand() % (mNPCGen.pList[index].SegmentRange[i] + 1));
 
 				pMob[tmob].SegmentListY[i] = mNPCGen.pList[index].SegmentListY[i]
-					- mNPCGen.pList[index].SegmentRange[i] + (rand() % (mNPCGen.pList[index].SegmentRange[i] + 1));
+					- mNPCGen.pList[index].SegmentRange[i] + (W2Rand() % (mNPCGen.pList[index].SegmentRange[i] + 1));
 			}
 			else
 			{
@@ -644,7 +644,7 @@ void GenerateMob(int index, int PosX, int PosY)
 
 	memset(pMob[tmob].EnemyList, 0, sizeof(pMob[tmob].EnemyList));
 
-	if (pMob[tmob].MOB.Clan == 1 && rand() % 10 == 1)
+	if (pMob[tmob].MOB.Clan == 1 && W2Rand() % 10 == 1)
 		pMob[tmob].MOB.Clan = 2;
 
 	int mobslot = GetEmptyMobGrid(tmob, &pMob[tmob].SegmentListX[0], &pMob[tmob].SegmentListY[0]);
@@ -756,8 +756,8 @@ void GenerateMob(int index, int PosX, int PosY)
 		{
 			for (int k = 0; k < MAX_SEGMENT; k++)
 			{
-				pMob[tempmob].SegmentListX[k] = PosX + rand() % 5 - 2;
-				pMob[tempmob].SegmentListY[k] = PosY + rand() % 5 - 2;
+				pMob[tempmob].SegmentListX[k] = PosX + W2Rand() % 5 - 2;
+				pMob[tempmob].SegmentListY[k] = PosY + W2Rand() % 5 - 2;
 			}
 		}
 
@@ -784,7 +784,7 @@ void GenerateMob(int index, int PosX, int PosY)
 
 		memset(pMob[tempmob].EnemyList, 0, sizeof(pMob[tempmob].EnemyList));
 
-		if (pMob[tempmob].MOB.Clan == 1 && rand() % 10 == 1)
+		if (pMob[tempmob].MOB.Clan == 1 && W2Rand() % 10 == 1)
 			pMob[tempmob].MOB.Clan = 2;
 
 		int mslot = GetEmptyMobGrid(tempmob, &pMob[tempmob].SegmentListX[0], &pMob[tempmob].SegmentListY[0]);
@@ -975,7 +975,7 @@ void SetBattle(int mob, int target)
 			
 
 			int generateindex = pMob[mob].GenerateIndex;
-			int say = rand() % 4;
+			int say = W2Rand() % 4;
 
 			if (generateindex < 0 || generateindex >= MAX_NPCGENERATOR)
 				return;
@@ -989,7 +989,7 @@ void SetBattle(int mob, int target)
 /// Executa logica de ataque de mob/NPC (fisico, skill ou area).
 void MobAttack(int attacker, MSG_Attack sm)
 {
-	int _rd = rand()%100;
+	int _rd = W2Rand()%100;
 
 	if(sm.SkillIndex == 109)
 	{
@@ -1016,7 +1016,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 		Target = sm.Dam[i].TargetID;
 
 		if(skillbase != 109)
-			sm.Dam[i].Damage = 500 + rand()%200;
+			sm.Dam[i].Damage = 500 + W2Rand()%200;
 
 		sm.SkillIndex = skillbase;
 
@@ -1060,7 +1060,7 @@ void MobAttack(int attacker, MSG_Attack sm)
 			if (sm.SkillIndex == 79 || sm.SkillIndex == 22)
 				parryretn = 30 * parryretn / 100;
 
-			int rd = rand() % 1000 + 1;
+			int rd = W2Rand() % 1000 + 1;
 
 			if (rd < parryretn)
 			{

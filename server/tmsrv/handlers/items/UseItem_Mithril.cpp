@@ -474,13 +474,13 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 		}
 
 		if(territorio == 0)
-			DoTeleport(conn, (3639 + rand()%5 - 3), (3639 + rand()%5 - 3));
+			DoTeleport(conn, (3639 + W2Rand()%5 - 3), (3639 + W2Rand()%5 - 3));
 
 		else if(territorio == 1)
-			DoTeleport(conn, (3782 + rand()%5 - 3), (3527 + rand()%5 - 3));
+			DoTeleport(conn, (3782 + W2Rand()%5 - 3), (3527 + W2Rand()%5 - 3));
 
 		else
-			DoTeleport(conn, (3911 + rand()%5 - 3), (3655 + rand()%5 - 3));
+			DoTeleport(conn, (3911 + W2Rand()%5 - 3), (3655 + W2Rand()%5 - 3));
 
 		sprintf(temp, "useitem,territorio ticket used %d", territorio);
 		ItemLog(temp, pUser[conn].AccountName, pUser[conn].IP);
@@ -688,7 +688,7 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 		}
 
 		int RateSucess = 18;
-		int _rand = rand() % 115;
+		int _rand = W2Rand() % 115;
 		if(_rand > 100)
 			_rand -= 15;
 
@@ -726,7 +726,7 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 
 		else
 		{
-			if((rand()%7) == 0)
+			if((W2Rand()%7) == 0)
 			{
 				for(int i = 0; i < 3; i++)
 				{
@@ -818,7 +818,7 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 		}
 
 		int RateSucess = 18;
-		int _rand = rand() % 115;
+		int _rand = W2Rand() % 115;
 		if(_rand > 100)
 			_rand -= 15;
 
@@ -856,7 +856,7 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 
 		else
 		{
-			if((rand()%7) == 0)
+			if((W2Rand()%7) == 0)
 			{
 				for(int i = 0; i < 3; i++)
 				{
@@ -968,7 +968,7 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 
 
 		int RateSucess = 50;
-		int _rand = rand() % 115;
+		int _rand = W2Rand() % 115;
 		if(_rand > 100)
 			_rand -= 15;
 
@@ -1005,7 +1005,7 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 
 		else
 		{
-			if((rand()%7) == 0)
+			if((W2Rand()%7) == 0)
 			{
 				for(int i = 0; i < 3; i++)
 				{
@@ -1097,7 +1097,7 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 
 		int RateSucess = 18;
 		
-		int _rand = rand() % 115;
+		int _rand = W2Rand() % 115;
 		
 		if(_rand > 100)
 			_rand -= 15;
@@ -1136,7 +1136,7 @@ bool UseItem_GemsAndMithril(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int Vol
 
 		else
 		{
-			if((rand()%7) == 0)
+			if((W2Rand()%7) == 0)
 			{
 				for(int i = 0; i < 3; i++)
 				{

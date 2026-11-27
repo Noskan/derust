@@ -639,15 +639,15 @@ void ClearAreaTeleport(int x1, int y1, int x2, int y2, int tx, int ty)
 			SendScore(i);
 		}
 		/*
-		if(rand()%1 == 0)
-			tx -= rand()%3;
+		if(W2Rand()%1 == 0)
+			tx -= W2Rand()%3;
 		else
-			tx += rand()%3;
+			tx += W2Rand()%3;
 
-		if(rand()%1 == 0)
-			ty -= rand()%3;
+		if(W2Rand()%1 == 0)
+			ty -= W2Rand()%3;
 		else
-			ty += rand()%3;
+			ty += W2Rand()%3;
 */
 		DoTeleport(i, tx, ty);
 	}
@@ -776,7 +776,7 @@ void SetColoseumDoor2(int state)
 /// Gera os monstros da rodada do Coliseu a partir do InitID.
 void GenerateColoseum(int InitID)
 {
-	int MaxSpawn = 4 + rand() % 4;
+	int MaxSpawn = 4 + W2Rand() % 4;
 
 	for (int i = 0; i < MaxSpawn; i++)
 		GenerateMob(InitID, 0, 0);
@@ -1102,7 +1102,7 @@ void GuildProcess()
 						BASE_ClearItem(&item);
 						item.sIndex = BRItem;
 
-						int create = CreateItem(2621, 1726, &item, rand()%4, 1);
+						int create = CreateItem(2621, 1726, &item, W2Rand()%4, 1);
 						sprintf(temp, "etc,britem created %d/%d", BRItem, create);
 						Log(temp, "-system", 0);
 					}
@@ -1586,8 +1586,8 @@ void DoRecall(int conn)
 	int y = pMob[conn].MOB.HomeTownY;
 	int CityID = (pMob[conn].MOB.Merchant & 0xC0) >> 6;
 
-	x = rand() % 15 + g_pGuildZone[CityID].CitySpawnX;
-	y = rand() % 15 + g_pGuildZone[CityID].CitySpawnY;
+	x = W2Rand() % 15 + g_pGuildZone[CityID].CitySpawnX;
+	y = W2Rand() % 15 + g_pGuildZone[CityID].CitySpawnY;
 
 	int Guild = pMob[conn].MOB.Guild;
 
@@ -1607,8 +1607,8 @@ void DoRecall(int conn)
 
 	if(pMob[conn].extra.ClassMaster == MORTAL && pMob[conn].MOB.CurrentScore.Level < FREEEXP)
 	{
-		x = 2112 + rand()%5 - 3;
-		y = 2042 + rand()%5 - 3;
+		x = 2112 + W2Rand()%5 - 3;
+		y = 2042 + W2Rand()%5 - 3;
 	}
 
 	int tret = GetEmptyMobGrid(conn, &x, &y);

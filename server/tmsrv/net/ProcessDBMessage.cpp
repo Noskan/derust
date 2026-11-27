@@ -843,8 +843,8 @@ void ProcessDBMessage(char *Msg)
 
 										 int CityID = (pMob[conn].MOB.Merchant & 0xC0) >> 6;
 
-										 tx = g_pGuildZone[CityID].CitySpawnX + rand() % 15;
-										 ty = g_pGuildZone[CityID].CitySpawnY + rand() % 15;
+										 tx = g_pGuildZone[CityID].CitySpawnX + W2Rand() % 15;
+										 ty = g_pGuildZone[CityID].CitySpawnY + W2Rand() % 15;
 
 										 int MobGuild = pMob[conn].MOB.Guild;
 										 int MobCLS = pMob[conn].MOB.Class;
@@ -873,8 +873,8 @@ void ProcessDBMessage(char *Msg)
 
 										 if (pMob[conn].MOB.BaseScore.Level < FREEEXP && pMob[conn].extra.ClassMaster == MORTAL)
 										 {
-											 tx = 2112 + rand() % 5 - 2;
-											 ty = 2042 + rand() % 5 - 2;
+											 tx = 2112 + W2Rand() % 5 - 2;
+											 ty = 2042 + W2Rand() % 5 - 2;
 										 }
 
 										 int ret = GetEmptyMobGrid(conn, &tx, &ty);

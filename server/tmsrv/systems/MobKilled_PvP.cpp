@@ -157,7 +157,7 @@ void ProcessMobKilledPvP(int target, int conn, MSG_CNFMobKill& sm)
 				item.sIndex = 431;
 				SetItemBonus(&item, 0, 0, 0);
 
-				CreateItem(pMob[target].TargetX, pMob[target].TargetY, &item, rand() % 4, 1);
+				CreateItem(pMob[target].TargetX, pMob[target].TargetY, &item, W2Rand() % 4, 1);
 			}
 		}
 
@@ -229,14 +229,14 @@ void ProcessMobKilledPvP(int target, int conn, MSG_CNFMobKill& sm)
 					if (pMob[target].MOB.Clan == 7)
 					{
 						pMob[target].MOB.CurrentScore.Hp = 2;
-						DoTeleport(target, 1061 + rand() % 2, 2129 + rand() % 2);
+						DoTeleport(target, 1061 + W2Rand() % 2, 2129 + W2Rand() % 2);
 						RvRRedPoint++;
 					}
 
 					else if (pMob[target].MOB.Clan == 8)
 					{
 						pMob[target].MOB.CurrentScore.Hp = 2;
-						DoTeleport(target, 1237 + rand() % 2, 1966 + rand() % 2);
+						DoTeleport(target, 1237 + W2Rand() % 2, 1966 + W2Rand() % 2);
 						RvRBluePoint++;
 					}
 				}
@@ -277,7 +277,7 @@ void ProcessMobKilledPvP(int target, int conn, MSG_CNFMobKill& sm)
 
 						for (int i = 0; i < MAX_CARRY - 1; i++)
 						{
-							if (rand() % 5)
+							if (W2Rand() % 5)
 								continue;
 
 							STRUCT_ITEM *ItemLose = &pMob[target].MOB.Carry[i];
@@ -291,7 +291,7 @@ void ProcessMobKilledPvP(int target, int conn, MSG_CNFMobKill& sm)
 							if (ItemLose->sIndex == 446)
 								continue;
 
-							int create = CreateItem(pMob[target].TargetX, pMob[target].TargetY, ItemLose, rand() % 4);
+							int create = CreateItem(pMob[target].TargetX, pMob[target].TargetY, ItemLose, W2Rand() % 4);
 
 							if (create >= MAX_ITEM || create <= 0)
 								continue;
@@ -324,7 +324,7 @@ void ProcessMobKilledPvP(int target, int conn, MSG_CNFMobKill& sm)
 
 							killed_numitem++;
 
-							if (rand() % 2 && killed_numitem < killed_loseitem)
+							if (W2Rand() % 2 && killed_numitem < killed_loseitem)
 								continue;
 						}
 					}
@@ -336,11 +336,11 @@ void ProcessMobKilledPvP(int target, int conn, MSG_CNFMobKill& sm)
 							killed_loseitem = 1;
 
 
-						int drop = rand() % killed_loseitem;
+						int drop = W2Rand() % killed_loseitem;
 
 						while (!drop)
 						{
-							int slot = rand() % 14 + 1;
+							int slot = W2Rand() % 14 + 1;
 							if (slot != 12)
 							{
 								STRUCT_ITEM *ItemLose = &pMob[target].MOB.Equip[slot];
@@ -348,7 +348,7 @@ void ProcessMobKilledPvP(int target, int conn, MSG_CNFMobKill& sm)
 								{
 									if (ItemLose->sIndex != 446)
 									{
-										int create = CreateItem(pMob[target].TargetX, pMob[target].TargetY, ItemLose, rand() % 4);
+										int create = CreateItem(pMob[target].TargetX, pMob[target].TargetY, ItemLose, W2Rand() % 4);
 										if (create > 0 && create < 5000)
 										{
 											if (BASE_NeedLog(ItemLose, 0))
