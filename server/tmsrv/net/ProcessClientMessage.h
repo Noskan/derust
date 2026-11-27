@@ -78,6 +78,7 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg);
 void Exec_MSG_CharacterLogin(int conn, char *pMsg);
 void Exec_MSG_CharacterLogout(int conn, char *pMsg);
 void Exec_MSG_DeleteCharacter(int conn, char *pMsg);
+void Exec_MSG_ReqTransper(int conn, char *pMsg);
 void Exec_MSG_CreateCharacter(int conn, char *pMsg);
 void Exec_MSG_AccountSecure(int conn, char *pMsg);
 void Exec_MSG_MessageChat(int conn, char *pMsg);

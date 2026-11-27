@@ -81,6 +81,10 @@ void  ProcessClientMessage(int conn, char *pMsg, BOOL isServer)
 		Exec_MSG_DeleteCharacter(conn, pMsg);
 		break;
 
+	case _MSG_ReqTransper:
+		Exec_MSG_ReqTransper(conn, pMsg);
+		break;
+
 	case _MSG_CreateCharacter:
 		Exec_MSG_CreateCharacter(conn, pMsg);
 		break;
