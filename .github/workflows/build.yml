@@ -8,6 +8,7 @@ on:
       - "fix/**"
       - "test/**"
       - "port/**"
+      - "tools/**"
   pull_request:
     branches:
       - main
