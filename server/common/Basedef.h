@@ -397,7 +397,7 @@
 
 #pragma region Structures
 
-#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_TREASURE, STRUCT_DAM, STRUCT_SPELL (iguais nos dois lados)
+#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_TREASURE, STRUCT_DAM, STRUCT_SPELL, STRUCT_AFFECT (iguais nos dois lados)
 
 /// @brief Atributos de combate, defesa, HP/MP, pontos base e maestrias de um mob/personagem (48 bytes).
 struct STRUCT_SCORE
@@ -590,14 +590,6 @@ struct STRUCT_MOBEXTRA
 	}DonateInfo;
 
 	int EMPTY[9];
-};
-
-struct STRUCT_AFFECT
-{
-	unsigned char Type;
-	unsigned char Level;	// Nome do cliente; antes `Value` (mesmo byte)
-	unsigned short Value;	// Nome do cliente; antes `Level` (mesmos bytes). Bits das joias no tipo 8
-	unsigned int Time;
 };
 
 struct STRUCT_LEVELBONUS

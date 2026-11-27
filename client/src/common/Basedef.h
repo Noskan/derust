@@ -93,7 +93,7 @@ struct STRUCT_SCORE
 	unsigned short Special[4];
 };
 
-#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_TREASURE, STRUCT_DAM, STRUCT_SPELL (iguais nos dois lados)
+#include "protocol/GameStructs.h"	// STRUCT_ITEM, STRUCT_TREASURE, STRUCT_DAM, STRUCT_SPELL, STRUCT_AFFECT (iguais nos dois lados)
 
 struct STRUCT_SELCHAR
 {
@@ -144,14 +144,6 @@ struct STRUCT_MOB
 	{
 		return this->LearnedSkill[0] & 0x40000000;
 	}
-};
-
-struct STRUCT_AFFECT
-{
-	char Type;
-	char Level;
-	short Value;
-	int Time;
 };
 
 struct STRUCT_MYBONUSEFFECT
