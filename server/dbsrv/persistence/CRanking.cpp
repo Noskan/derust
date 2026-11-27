@@ -157,7 +157,7 @@ int RankingSystem::readAccountsInDir(char *dir)
 
 				strcpy(tmp, dir);
 				tmp[strlen(dir) - 1] = '\0';
-				sprintf(tmp, "%s%s", tmp, fileName);
+				strcat(tmp, fileName);
 
 				errno = 0;
 

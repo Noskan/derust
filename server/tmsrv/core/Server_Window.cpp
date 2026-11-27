@@ -212,8 +212,8 @@ void DrawConfig(int wb)
 		{
 			STRUCT_ITEM *item = &tr->Target[k];
 
-			sprintf(String, "%s  %-4d %2d %2d %2d %2d   ",
-				String, item->sIndex, item->stEffect[0].cEffect, item->stEffect[0].cValue, item->stEffect[1].cEffect, item->stEffect[1].cValue);
+			sprintf(String + strlen(String), "  %-4d %2d %2d %2d %2d   ",
+				item->sIndex, item->stEffect[0].cEffect, item->stEffect[0].cValue, item->stEffect[1].cEffect, item->stEffect[1].cValue);
 		}
 		len = strlen(String);
 

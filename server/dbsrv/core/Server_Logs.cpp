@@ -89,7 +89,7 @@ void Log(char *str1, char *str2, unsigned int ip)
 		sprintf(LogTemp, "[%02d/%02d/%04d][%02d:%02d:%02d] IP: %d.%d.%d.%d", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec, cIP[0], cIP[1], cIP[2], cIP[3]);
 	else
 		sprintf(LogTemp, "[%02d/%02d/%04d][%02d:%02d:%02d] ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
-	sprintf(LogTemp, "%s %s %s \n", LogTemp, str2, str1);
+	sprintf(LogTemp + strlen(LogTemp), " %s %s \n", str2, str1);
 
 	if (fLogFile)
 		fprintf(fLogFile, LogTemp);
@@ -165,7 +165,7 @@ void DayLog_ReadAccountInDir(char *dir, FILE *log)
 
 				strcpy(tmp, dir);
 				tmp[strlen(dir) - 1] = '\0';
-				sprintf(tmp, "%s%s", tmp, fileName);
+				strcat(tmp, fileName);
 
 				errno = 0;
 				FILE* fs;
@@ -234,7 +234,7 @@ void DayLog_ItemLog()
 
 		sprintf(Temp, "[%02d/%02d/%04d][%02d:%02d:%02d] ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 
-		sprintf(Temp, "%s ItemID:%d ItemName:%s ItemNum:%d \n", Temp, i, g_pItemList[i].Name, ItemDayLog[i].Num);
+		sprintf(Temp + strlen(Temp), " ItemID:%d ItemName:%s ItemNum:%d \n", i, g_pItemList[i].Name, ItemDayLog[i].Num);
 
 		if (fp)
 			fprintf(fp, Temp);
