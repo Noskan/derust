@@ -182,6 +182,46 @@ if (pAttacker)
 		}
 	}
 	// Maybe the skills names are wrong rsrs.
+	if (PacketAttack_AnimateAttacker(pAttack, pAttacker, pTarget, fHeight, nReturnValue))
+		return true;
+}
+else
+{
+	bool bFind = false;
+	for (int i = 0; i < 13; i++)
+	{
+		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+			break;
+
+		if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+			break;
+
+		if (pAttack->Dam[i].TargetID = m_pMyHuman->m_dwID)
+		{
+			bFind = true;
+			break;
+		}
+	}
+
+	if (bFind || pAttack->SkillIndex > 55 && pAttack->SkillIndex > 63)
+	{
+		TMVector2 vecAttackerPos{ (float)pAttack->PosX + 0.5f, (float)pAttack->PosY + 0.5f };
+
+		MSG_STANDARDPARM stParm{};
+		stParm.Header.ID = g_pObjectManager->m_dwCharID;
+		stParm.Header.Type = MSG_REQMobByID_Opcode;
+		stParm.Parm = pAttack->AttackerID;
+		SendOneMessage((char*)&stParm, sizeof(stParm));
+	}
+}
+	return false;
+}
+
+/// Anima o atacante e dispara os efeitos da skill (o próprio jogador só com `FlagLocal` ou `Motion` 254).
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::PacketAttack_AnimateAttacker(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget, float& fHeight, int& nReturnValue)
+{
 	if (pAttacker != m_pMyHuman || pAttack->FlagLocal == 1 && pAttacker == m_pMyHuman || !pAttack->FlagLocal && 
 		pAttacker == m_pMyHuman && (unsigned char)pAttack->Motion == 254)
 	{
@@ -380,36 +420,6 @@ if (pAttacker)
 			PacketAttack_Skill116Effect(pAttack, pAttacker);
 		}
 	}
-}
-else
-{
-	bool bFind = false;
-	for (int i = 0; i < 13; i++)
-	{
-		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-			break;
-
-		if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-			break;
-
-		if (pAttack->Dam[i].TargetID = m_pMyHuman->m_dwID)
-		{
-			bFind = true;
-			break;
-		}
-	}
-
-	if (bFind || pAttack->SkillIndex > 55 && pAttack->SkillIndex > 63)
-	{
-		TMVector2 vecAttackerPos{ (float)pAttack->PosX + 0.5f, (float)pAttack->PosY + 0.5f };
-
-		MSG_STANDARDPARM stParm{};
-		stParm.Header.ID = g_pObjectManager->m_dwCharID;
-		stParm.Header.Type = MSG_REQMobByID_Opcode;
-		stParm.Parm = pAttack->AttackerID;
-		SendOneMessage((char*)&stParm, sizeof(stParm));
-	}
-}
 	return false;
 }
 
