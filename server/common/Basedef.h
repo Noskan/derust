@@ -473,7 +473,7 @@ struct STRUCT_MOBEXTRA
 
 		STRUCT_SCORE   BaseScore;    // The base score of the mob 
 
-		long LearnedSkill; // The skills the mob learned, divided into four categories (00 _ 00 _ 00 _ 00)
+		int LearnedSkill; // int de 32 bits (era long, que tem 8 bytes no Linux 64 bits). The skills the mob learned, divided into four categories (00 _ 00 _ 00 _ 00)
 
 
 		unsigned short ScoreBonus;   // The points the mob can use to increase score (Str, Int, Dex, Con)
@@ -487,12 +487,12 @@ struct STRUCT_MOBEXTRA
 		char EMPTY[30];
 	}SaveCelestial[2];
 
-	time_t LastNT;
+	long long LastNT;	// time_t de 64 bits, gravado no arquivo da conta (largura fixa nos dois sistemas)
 	int NT;
 
 	int KefraTicket;
 
-	time_t DivineEnd;
+	long long DivineEnd;	// time_t de 64 bits
 
 	unsigned int Hold;
 
@@ -504,7 +504,7 @@ struct STRUCT_MOBEXTRA
 
 	struct
 	{
-		time_t LastTime;
+		long long LastTime;	// time_t de 64 bits
 		int Count;
 	}DonateInfo;
 

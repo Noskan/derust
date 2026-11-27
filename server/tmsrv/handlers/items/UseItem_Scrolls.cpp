@@ -292,7 +292,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		if (dest->sIndex >= 2360 && dest->sIndex < 2390)
 		{
 			int rate = BASE_GetGrowthRate(dest);
-			int _rand = rand() % 101;
+			int _rand = W2Rand() % 101;
 								
 			if (_rand > rate)
 			{
@@ -315,7 +315,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 				else
 					memset(item, 0, 8);
 
-				if (!(rand() % 5) && dest->stEffect[1].cEffect > 0)
+				if (!(W2Rand() % 5) && dest->stEffect[1].cEffect > 0)
 					dest->stEffect[1].cEffect--;
 
 				ProcessAdultMount(conn, 0);
@@ -341,7 +341,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		{
 			dest->sIndex += 30;
 								
-			dest->stEffect[1].cValue = rand() % 20 + dest->stEffect[1].cEffect;
+			dest->stEffect[1].cValue = W2Rand() % 20 + dest->stEffect[1].cEffect;
 			dest->stEffect[1].cEffect = 0;
 			dest->stEffect[2].cValue = 0;
 								 
@@ -393,7 +393,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 #pragma region Fogos de Artificio
 	if (Vol == 19)
 	{
-		SendEmotion(conn, 100, rand()%5);
+		SendEmotion(conn, 100, W2Rand()%5);
 
 		if (amount > 1)
 			BASE_SetItemAmount(item, amount - 1);
@@ -484,7 +484,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		}
 		else if (Sala == 9)
 		{
-			int _rand = rand() % 10;
+			int _rand = W2Rand() % 10;
 								 
 			if (_rand < 4)
 				GenerateMob(WATER_M_INITIAL + 8, 0, 0);
@@ -678,7 +678,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		}
 		else if (Sala == 9)
 		{
-			int _rand = rand() % 10;
+			int _rand = W2Rand() % 10;
 
 			if (_rand < 4)
 				GenerateMob(WATER_N_INITIAL + 8, 0, 0);
@@ -783,7 +783,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 		}
 		else if (Sala == 9)
 		{
-			int _rand = rand() % 10;
+			int _rand = W2Rand() % 10;
 
 			if (_rand < 4)
 				GenerateMob(WATER_A_INITIAL + 8, 0, 0);
@@ -821,7 +821,7 @@ bool UseItem_MountsAndScrolls(int conn, MSG_UseItem* m, STRUCT_ITEM* item, int V
 			return true;
 		}
 
-		time(&pMob[conn].extra.DivineEnd);
+		pMob[conn].extra.DivineEnd = time(NULL);
 
 		if (Vol == 64)//7DD
 			pMob[conn].extra.DivineEnd += 60 * 60 * 24 * 8;
