@@ -1198,7 +1198,9 @@ int BASE_CanEquip(STRUCT_ITEM *item, STRUCT_SCORE *score, int Pos, int Class, ST
 		break;
 	}
 
-	if (!((BASE_GetItemAbility(item, EF_CLASS) >> Class / 10) & 1))
+	// O x86 usa só os 5 bits baixos da contagem de deslocamento; a máscara explícita dá o mesmo
+	// resultado sem comportamento indefinido quando Class / 10 passa de 31.
+	if (!((BASE_GetItemAbility(item, EF_CLASS) >> ((Class / 10) & 31)) & 1))
 	{
 		if (trans <= 5)
 			return FALSE;

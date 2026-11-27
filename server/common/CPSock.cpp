@@ -387,12 +387,17 @@ char* CPSock::ReadMessage(int *ErrorCode, int *ErrorType)
 		return 0;
 
 	//	Check full message arrived
-	unsigned short	Size		= *((unsigned short *) (pRecvBuffer + nProcPosition)); 
+	// Os campos do cabeçalho podem estar em qualquer endereço do buffer: lidos com memcpy, que
+	// não exige alinhamento (o cast para unsigned int* é comportamento indefinido).
+	unsigned short	Size;
+	memcpy(&Size, pRecvBuffer + nProcPosition, sizeof(Size));
 	unsigned char	iKeyWord	= *((unsigned char  *) (pRecvBuffer + nProcPosition + 2));
 	unsigned char	KeyWord		= pKeyWord[iKeyWord * 2];
 	unsigned char	CheckSum	= *((unsigned char  *) (pRecvBuffer + nProcPosition + 3));
-	unsigned int	SockType	= *((unsigned int	*) (pRecvBuffer + nProcPosition + 4));
-	unsigned int	SockID		= *((unsigned int	*) (pRecvBuffer + nProcPosition + 6));
+	unsigned int	SockType;
+	memcpy(&SockType, pRecvBuffer + nProcPosition + 4, sizeof(SockType));
+	unsigned int	SockID;
+	memcpy(&SockID, pRecvBuffer + nProcPosition + 6, sizeof(SockID));
 
 	if(Size > MAX_MESSAGE_SIZE || Size < sizeof(HEADER)) 
 	{	
