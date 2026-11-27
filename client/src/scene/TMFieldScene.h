@@ -392,6 +392,7 @@ private:
 	void PacketAttack_Skill45Effect(MSG_Attack*& pAttack, TMHuman*& pTarget);
 	void PacketAttack_Skill34FairyEffect(TMHuman*& pAttacker);
 	void PacketAttack_Skill32FairyEffect(TMHuman*& pAttacker);
+	void PacketAttack_Skill36Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget);
 	void PacketAttack_SwingEffect(MSG_Attack*& pAttack, TMHuman*& pAttacker);
 	void PacketAttack_PrepareEffectEvent(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMHuman*& pTarget);
 	void PacketAttack_Skill41Targets(MSG_Attack*& pAttack, TMHuman*& pAttacker);
