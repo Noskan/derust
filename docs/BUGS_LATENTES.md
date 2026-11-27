@@ -56,6 +56,17 @@ mesmo desenho do `TMItem::Render` corrigido abaixo, onde a intenção (`dwColor[
 fica clara. Aqui não há leitura fora dos limites, e a cor exibida hoje é determinística; corrigir
 muda o visual no inventário, então fica como decisão separada.
 
+### Rodapé do `ItemList.bin` gravado pelo servidor (não corrigido)
+
+O `BASE_ReadItemList` do cliente em Release só aceita o `ItemList.bin` cujos 4 últimos bytes
+valem `0x1343B16`. O `BASE_WriteItemList` do servidor, que regrava o `Common/ItemList.bin` a
+partir do `itemlist.csv` em todo boot, põe ali um `W2Rand()`. O checksum de verdade vai para o
+`../ItemCSum.h`. Por isso um `ItemList.bin` gerado pelo servidor não serve para o cliente sem
+corrigir o rodapé. O `tools/w2_bin_csv.py` mostra o rodapé que encontra. Corrigir significa
+decidir qual lado está certo: o cliente reconstruído pode ter trocado o checksum calculado
+(`sum`, hoje "Not being used") pelo rodapé lido. Essa decisão fica para quando houver um patch de
+cliente gerado a partir do servidor.
+
 ## Corrigidos
 
 | Onde | Defeito | Correção |

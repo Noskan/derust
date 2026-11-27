@@ -48,6 +48,13 @@ python3 tools/linux_warning_check.py --build-dir build/linux   # avisos do gcc c
 python3 tools/linux_deploy.py /srv/w2 --bin build/linux        # árvore da produção e unidades do systemd
 ```
 
+Dados do jogo: [`tools/w2_bin_csv.py`](tools/w2_bin_csv.py) converte os `.bin` do cliente nos `.csv` que o servidor lê. Depois de escrever o csv, o script o relê imitando o leitor do servidor e lista campo a campo o que o servidor leria diferente do binário (por exemplo um nome com espaço, um efeito sem nome no `ItemEffect.h` ou o `ForceDamage` da skill, que o csv não tem). O teste de jogo confere essa imitação contra o `ItemList.bin` que o próprio servidor grava.
+
+```bash
+python3 tools/w2_bin_csv.py itemlist <cliente>/ItemList.bin -o Common/itemlist.csv   # aplica o ExtraItem.bin ao lado
+python3 tools/w2_bin_csv.py skilldata <cliente>/SkillData.bin -o Common/SkillData.csv
+```
+
 Para verificar localmente as fronteiras de `#include`:
 
 ```bash
