@@ -144,6 +144,14 @@ SOCKET CPSock::StartListen(HWND hWnd, int ip, int port, int WSA)
 	local_sin.sin_addr.s_addr	= ip;		//INADDR_ANY;
 	local_sin.sin_port			= htons((unsigned short int)port);       
 
+#ifndef _WIN32
+	// Linux: sem SO_REUSEADDR, o bind falha enquanto houver conexões em TIME_WAIT na porta (cerca de
+	// 60 s depois de derrubar o servidor), e reiniciar logo em seguida não sobe. O Windows aceita
+	// esse bind sem a opção, e nele SO_REUSEADDR deixaria outro processo tomar a porta.
+	int reuse = 1;
+	setsockopt(tSock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse));
+#endif
+
 	if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
 	{	
 		MessageBox(hWnd, "Binding fail", "ERROR", MB_OK);

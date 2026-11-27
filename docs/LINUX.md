@@ -39,6 +39,7 @@ O LoginClient roda no wine. O teste fica sendo um cliente Windows jogando contra
   - `GetMessage` espera com `poll()` pelos sockets registrados com `WSAAsyncSelect` e pelos timers de `SetTimer`. Cada evento vira a mensagem que o Windows entregaria: `WSA_*` com o socket em `wParam` e o evento em `lParam`, ou `WM_TIMER`. As mensagens são despachadas ao mesmo `MainWndProc`.
 - **Sockets.**
   - `WSAAsyncSelect` deixa o socket não bloqueante, como no Winsock.
+  - `CPSock::StartListen` liga `SO_REUSEADDR` só fora do Windows. Sem ela, o servidor não sobe por cerca de 60 s depois de derrubado, enquanto houver conexões em TIME_WAIT na porta. No Windows o `bind` já passa nesse caso, e a opção deixaria outro processo tomar a porta.
   - Quando um socket de dados fica legível, o laço espia um byte (`MSG_PEEK`): 0 bytes vira `FD_CLOSE` e dados viram `FD_READ`. O Winsock entrega nessa mesma ordem. `CPSock::Receive` não trata `recv() == 0` como fechamento, porque no Windows o fechamento chega como `FD_CLOSE`.
 - **Arquivos.**
   - `_open`/`_read`/`_write`, `_findfirst` e `FindFirstFile` funcionam sobre POSIX.
