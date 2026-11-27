@@ -67,9 +67,33 @@ Fora da camada, o que já deixava o comportamento igual:
 
 - **Mensagens.** Toda `MessageBox` vira uma linha `[título] texto` no stderr. Guarde o stderr num log, por exemplo pelo journal do systemd.
 - **Encerramento.** `SIGTERM` e `SIGINT` chegam como `WM_CLOSE`, o mesmo caminho de fechar a janela no Windows. As perguntas de confirmação recebem a resposta afirmativa, e os servidores gravam guildas, configuração e logs antes de sair.
-- **Painel.** O painel da janela não existe. Os comandos do menu (no TMSrv: recarregar configuração, guildas e mobs, salvar tudo, reiniciar; no DBSrv: desligar) ainda não têm equivalente no Linux.
+- **Painel e menu.** O painel da janela não existe. Os comandos do menu vão pelo FIFO de controle (próxima seção).
+
+## Comandos do menu
+
+Cada servidor cria, no próprio diretório, um FIFO `control.fifo` com permissão 0600: só o usuário que roda o servidor escreve nele. A variável `W2_CONTROL` troca o caminho. Cada linha escrita no FIFO é o nome de um item do menu da janela, sem o `&`, sem espaços e sem diferença de maiúsculas, ou o id dele. A linha vira o `WM_COMMAND` que o clique no menu mandaria, então o código que roda é o mesmo do Windows.
+
+```bash
+echo saveall > TMSRV/Run/control.fifo
+echo help    > TMSRV/Run/control.fifo   # lista os comandos no stderr
+```
+
+| Servidor | Comando | O que faz |
+|---|---|---|
+| TMSrv | `saveall` | grava todos os personagens no DBSrv (`SaveAll`) |
+| TMSrv | `readgameconfig` | relê o `gameconfig.txt` (`ReadConfig`) |
+| TMSrv | `readguild` | relê as guildas (`CReadFiles::ReadGuild`) |
+| TMSrv | `readguildname` | relê os nomes de guilda (`BASE_InitializeGuildName`) |
+| TMSrv | `reloadmob` | relê o `NPCGener.txt` (`ReadNPCGenerator`) |
+| TMSrv | `reboot` | começa a contagem de desligamento (`ServerDown = 1`) |
+| TMSrv | `exit` | encerra, como `SIGTERM` |
+| DBSrv | `reloadmobbase` | relê os personagens-base de `BaseMob/` |
+| DBSrv | `exit` | encerra, como `SIGTERM` |
+
+O servidor ecoa cada comando no stderr (`controle: SaveAll (9003)`). Um nome desconhecido também aparece no stderr, junto com a lista. Com o servidor parado, ninguém lê o FIFO e o `echo` fica esperando. Use `timeout 5 sh -c 'echo saveall > control.fifo'` num script.
+
+A camada monta a lista de comandos a partir do `AppendMenu` de cada servidor. Um item novo no menu passa a ser aceito sem mudança na camada.
 
 ## Pendências
 
-- Os comandos do menu da janela, para quem opera o servidor no Linux.
 - Os avisos do gcc nativo ainda não têm linha de base. Hoje são 41 e nenhum é bug: casts de `HMENU` para o menu, que não existe no Linux, `int*` no lugar de `socklen_t*`, que tem o mesmo tamanho, e `NULL` comparado com inteiros.
