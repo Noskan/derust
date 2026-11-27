@@ -377,53 +377,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 116)
 		{
-			TMVector3 vecTarget{};
-			TMVector3 vecStart{};
-			pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
-			
-			for (int i = 0; i < 13; i++)
-			{
-				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-				if (pMultiTarget)
-				{
-					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-						pMultiTarget->m_fHeight - 5.0f,
-						pMultiTarget->m_vecPosition.y);
-
-					vecStart = vecTarget;
-					vecStart.y = 10.0f;
-
-					auto pMeteor = new TMSkillMeteorStorm(vecStart, 
-						vecTarget,
-						3, 
-						0);
-
-					m_pEffectContainer->AddChild(pMeteor);
-				}
-			}
-
-			for (int i = -3; i < 3; i++)
-			{
-				for (int j = -3; j < 3; j++)
-				{
-					auto pBill = new TMEffectBillBoard(193,
-						4000,
-						2.0f,
-						2.0f,
-						2.0f,
-						0.001f,
-						1,
-						80);
-
-					pBill->m_bStickGround = i % 2;
-					pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x,
-						pAttacker->m_fHeight,
-						(float)((float)j * 2.0f) + pAttacker->m_vecPosition.y);
-					pBill->SetColor(0xFF777799);
-
-					m_pEffectContainer->AddChild(pBill);
-				}
-			}
+			PacketAttack_Skill116Effect(pAttack, pAttacker);
 		}
 	}
 }
@@ -809,6 +763,59 @@ void TMFieldScene::PacketAttack_Skill115Effect(MSG_Attack*& pAttack, TMHuman*& p
 	int ran = rand() % 10;
 
 	PacketAttack_Skill115Quake(pAttacker, ran);
+}
+
+/// Efeitos da skill 116 no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill116Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker)
+{
+	TMVector3 vecTarget{};
+	TMVector3 vecStart{};
+	pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
+	
+	for (int i = 0; i < 13; i++)
+	{
+		auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+		if (pMultiTarget)
+		{
+			vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+				pMultiTarget->m_fHeight - 5.0f,
+				pMultiTarget->m_vecPosition.y);
+
+			vecStart = vecTarget;
+			vecStart.y = 10.0f;
+
+			auto pMeteor = new TMSkillMeteorStorm(vecStart, 
+				vecTarget,
+				3, 
+				0);
+
+			m_pEffectContainer->AddChild(pMeteor);
+		}
+	}
+
+	for (int i = -3; i < 3; i++)
+	{
+		for (int j = -3; j < 3; j++)
+		{
+			auto pBill = new TMEffectBillBoard(193,
+				4000,
+				2.0f,
+				2.0f,
+				2.0f,
+				0.001f,
+				1,
+				80);
+
+			pBill->m_bStickGround = i % 2;
+			pBill->m_vecPosition = TMVector3(((float)i * 2.0f) + pAttacker->m_vecPosition.x,
+				pAttacker->m_fHeight,
+				(float)((float)j * 2.0f) + pAttacker->m_vecPosition.y);
+			pBill->SetColor(0xFF777799);
+
+			m_pEffectContainer->AddChild(pBill);
+		}
+	}
 }
 
 /// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
