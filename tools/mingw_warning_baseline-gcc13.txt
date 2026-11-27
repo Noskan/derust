@@ -25,7 +25,6 @@
 1 shadow client/src/ui/SGrid_Tooltip.cpp
 4 shadow client/src/world/TMGround_Render.cpp
 1 shadow server/common/BaseCombat.cpp
-1 shadow server/common/BaseItem.cpp
 1 shadow server/common/BaseLoaders.cpp
 12 shadow server/dbsrv/core/CReadFiles.cpp
 1 shadow server/dbsrv/core/Server.cpp
