@@ -1192,7 +1192,7 @@ void ProcessDBMessage(char *Msg)
 
 											  CharLogOut(conn);
 
-											  SendClientSignalParm(conn, ESCENE_FIELD, _MSG_SendArchEffect, m->Parm);
+											  SendClientSignalParm2(conn, ESCENE_FIELD, _MSG_SendArchEffect, m->Parm, 0);	// MSG_STANDARDPARM2 no cliente
 
 											  sprintf(temp, "etc,arch create name:%s slot:%d", pMob[conn].MOB.MobName, m->Parm);
 											  Log(temp, pUser[conn].AccountName, pUser[conn].IP);

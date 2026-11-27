@@ -521,7 +521,7 @@ DiretoReset:
 				sprintf(temp, "etc,learned limit of soul mortal name:%s conn:%d", pMob[conn].MOB.MobName, conn);
 				Log(temp, "-system", 0);
 
-				SendClientSignalParm(conn, ESCENE_FIELD, _MSG_SendArchEffect, pUser[conn].Slot);
+				SendClientSignalParm2(conn, ESCENE_FIELD, _MSG_SendArchEffect, pUser[conn].Slot, 0);	// MSG_STANDARDPARM2 no cliente
 				break;
 			}
 		}

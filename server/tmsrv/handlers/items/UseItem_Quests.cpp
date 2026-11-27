@@ -878,7 +878,8 @@ lbl_a_noparty:
 
 		CharLogOut(conn);
 
-		SendClientSignalParm(conn, ESCENE_FIELD, _MSG_SendArchEffect, pUser[conn].Slot);
+		// O cliente (TMSelectCharScene) lê este pacote como MSG_STANDARDPARM2; só usa Parm1, a vaga.
+		SendClientSignalParm2(conn, ESCENE_FIELD, _MSG_SendArchEffect, pUser[conn].Slot, 0);
 
 		return true;
 	}
