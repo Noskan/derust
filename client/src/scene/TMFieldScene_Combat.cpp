@@ -1766,42 +1766,10 @@ int TMFieldScene::MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int d
 	if (m_stAutoTrade.TargetID == m_pMyHuman->m_dwID)
 		return 0;
 
-	if (pOver)
 	{
-		if (pOver->m_nClass == 66 && pOver->m_cShadow == 1 && !m_pMyHuman->m_JewelGlasses)
-			return 0;
-		if (pOver->m_bParty == 1)
-			return 0;
-		if (pOver->m_usGuild && (m_pMyHuman->m_usGuild == pOver->m_usGuild || g_pObjectManager->m_usAllyGuild == pOver->m_usGuild))
-			return 0;
-		if (pOver->m_dwID > 0 && pOver->m_dwID < 1000 && (!pOver->IsInPKZone() || !m_pMyHuman->IsInPKZone()))
-			return 0;
-		if (m_pMyHuman->m_cCantAttk)
-			return 0;
-
-		if (!TMFieldScene::m_bPK && pOver->m_cSummons == 1)
-		{
-			bool SameMantua = false;
-			if (m_pMyHuman->m_cMantua > 0 && m_pMyHuman->m_cMantua == pOver->m_cMantua)
-				SameMantua = true;
-
-			if (pOver->m_usGuild && g_pObjectManager->m_usWarGuild != pOver->m_usGuild && !g_bCastleWar)
-			{
-				if (g_pObjectManager->m_usWarGuild != pOver->m_usGuild)
-					return 0;
-
-				if (m_pMyHuman->m_cMantua == pOver->m_cMantua && !pOver->IsInCastleZone())
-					return 0;
-			}
-
-			if (!pOver->m_usGuild)
-			{
-				if (!g_bCastleWar)
-					return 1;
-				if (SameMantua)
-					return 0;
-			}
-		}
+		int nReturnValue = 0;
+		if (MobAttack_RejectTarget(pOver, nReturnValue))
+			return nReturnValue;
 	}
 	if (pOver && pOver->m_bMouseOver == 1)
 	{
@@ -2195,6 +2163,51 @@ int TMFieldScene::MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int d
 
 	m_pMouseOverHuman = nullptr;
 	return GetItemFromGround(dwServerTime) == 1;
+}
+
+/// Recusa os alvos que não podem ser atacados (sombra, membro do grupo, mesma guilda ou aliada e outros casos).
+/// @note Extraído de `TMFieldScene::MobAttack` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::MobAttack_RejectTarget(TMHuman*& pOver, int& nReturnValue)
+{
+	if (pOver)
+	{
+		if (pOver->m_nClass == 66 && pOver->m_cShadow == 1 && !m_pMyHuman->m_JewelGlasses)
+			{ nReturnValue = 0; return true; }
+		if (pOver->m_bParty == 1)
+			{ nReturnValue = 0; return true; }
+		if (pOver->m_usGuild && (m_pMyHuman->m_usGuild == pOver->m_usGuild || g_pObjectManager->m_usAllyGuild == pOver->m_usGuild))
+			{ nReturnValue = 0; return true; }
+		if (pOver->m_dwID > 0 && pOver->m_dwID < 1000 && (!pOver->IsInPKZone() || !m_pMyHuman->IsInPKZone()))
+			{ nReturnValue = 0; return true; }
+		if (m_pMyHuman->m_cCantAttk)
+			{ nReturnValue = 0; return true; }
+
+		if (!TMFieldScene::m_bPK && pOver->m_cSummons == 1)
+		{
+			bool SameMantua = false;
+			if (m_pMyHuman->m_cMantua > 0 && m_pMyHuman->m_cMantua == pOver->m_cMantua)
+				SameMantua = true;
+
+			if (pOver->m_usGuild && g_pObjectManager->m_usWarGuild != pOver->m_usGuild && !g_bCastleWar)
+			{
+				if (g_pObjectManager->m_usWarGuild != pOver->m_usGuild)
+					{ nReturnValue = 0; return true; }
+
+				if (m_pMyHuman->m_cMantua == pOver->m_cMantua && !pOver->IsInCastleZone())
+					{ nReturnValue = 0; return true; }
+			}
+
+			if (!pOver->m_usGuild)
+			{
+				if (!g_bCastleWar)
+					{ nReturnValue = 1; return true; }
+				if (SameMantua)
+					{ nReturnValue = 0; return true; }
+			}
+		}
+	}
+	return false;
 }
 
 int TMFieldScene::MobMove(D3DXVECTOR3 vec, unsigned int dwServerTime)
