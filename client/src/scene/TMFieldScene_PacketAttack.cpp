@@ -244,16 +244,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 3) // Perseguição
 		{
-			if (pAttacker)
-			{
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-				vecPos.y -= 0.5f;
-
-				auto pHoly = new TMSkillHolyTouch(vecPos, 1);
-
-				if (pHoly && m_pEffectContainer)
-					m_pEffectContainer->AddChild(pHoly);
-			}
+			PacketAttack_Skill3Effect(pAttacker);
 		}
 		else if (pAttack->SkillIndex == 5) // Fanatismo
 		{
@@ -711,6 +702,22 @@ else
 	}
 }
 	return false;
+}
+
+/// Efeitos da skill 3 (Perseguição) no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill3Effect(TMHuman*& pAttacker)
+{
+	if (pAttacker)
+	{
+		TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+		vecPos.y -= 0.5f;
+
+		auto pHoly = new TMSkillHolyTouch(vecPos, 1);
+
+		if (pHoly && m_pEffectContainer)
+			m_pEffectContainer->AddChild(pHoly);
+	}
 }
 
 /// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
