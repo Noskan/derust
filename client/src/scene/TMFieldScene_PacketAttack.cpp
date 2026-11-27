@@ -252,17 +252,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 45) // Arma Mágica
 		{
-			float fY = (float)pAttack->TargetY + 0.5f;
-			TMVector3 vecTarget{ (float)pAttack->TargetX + 0.5f, (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, fY)) * 0.1f, fY };
-
-			if (pTarget)
-				vecTarget = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 1.0f, pTarget->m_vecPosition.y);
-
-			auto pParticle = new TMEffectParticle(vecTarget, 0, 20, 0.1f, 0, 1, 56, 1.0f, 1, TMVector3(0.0f, 0.0f, 0.0f), 1000);
-			if (pParticle && m_pEffectContainer)
-				m_pEffectContainer->AddChild(pParticle);
-
-			GetSoundAndPlay(158, 0, 0);
+			PacketAttack_Skill45Effect(pAttack, pTarget);
 		}
 		else if (pAttack->SkillIndex == 34 && (unsigned char)pAttack->Motion == 254) // Relampago
 		{
@@ -725,6 +715,23 @@ void TMFieldScene::PacketAttack_Skill5Effect(TMHuman*& pAttacker)
 
 		GetSoundAndPlay(151, 0, 0);
 	}
+}
+
+/// Efeitos da skill 45 (Arma Mágica) no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill45Effect(MSG_Attack*& pAttack, TMHuman*& pTarget)
+{
+	float fY = (float)pAttack->TargetY + 0.5f;
+	TMVector3 vecTarget{ (float)pAttack->TargetX + 0.5f, (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, fY)) * 0.1f, fY };
+
+	if (pTarget)
+		vecTarget = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 1.0f, pTarget->m_vecPosition.y);
+
+	auto pParticle = new TMEffectParticle(vecTarget, 0, 20, 0.1f, 0, 1, 56, 1.0f, 1, TMVector3(0.0f, 0.0f, 0.0f), 1000);
+	if (pParticle && m_pEffectContainer)
+		m_pEffectContainer->AddChild(pParticle);
+
+	GetSoundAndPlay(158, 0, 0);
 }
 
 /// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
