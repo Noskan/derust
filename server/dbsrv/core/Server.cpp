@@ -230,7 +230,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if(handle == -1)
 	{
-		MessageBoxA(hWndMain, "no TransKnight file", "BOOTING ERROR", MB_OK);
+		ServerAlert("no TransKnight file", "BOOTING ERROR");
 
 		return FALSE;
 	}
@@ -245,7 +245,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if(handle == -1)
 	{
-		MessageBoxA(hWndMain, "no Foema file", "BOOTING ERROR", MB_OK);
+		ServerAlert("no Foema file", "BOOTING ERROR");
 
 		return FALSE;
 	}
@@ -259,7 +259,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if(handle == -1)
 	{
-		MessageBoxA(hWndMain, "no BeastMaster file", "BOOTING ERROR", MB_OK);
+		ServerAlert("no BeastMaster file", "BOOTING ERROR");
 
 		return FALSE;
 	}
@@ -273,7 +273,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	if(handle == -1)
 	{
-		MessageBoxA(hWndMain, "no Huntress file", "BOOTING ERROR", MB_OK);
+		ServerAlert("no Huntress file", "BOOTING ERROR");
 
 		return FALSE;
 	}
@@ -353,8 +353,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	*/
     if(ServerIndex == -1)
     {	
-		MessageBox(hWndMain, "Can't get Server Group Index LocalIP:", "", MB_OK|MB_SYSTEMMODAL);
-		MessageBox(hWndMain, "Can't get Server Group Index TestServerIP:", g_pServerList[i][0], MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("Can't get Server Group Index LocalIP:", "");
+		ServerAlert("Can't get Server Group Index TestServerIP:", g_pServerList[i][0]);
 
 	   return TRUE;
     }
@@ -379,7 +379,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		if(ret == NULL)
 		{	
-			MessageBox(hWndMain, "there's redirect.txt but can't connect", "BOOTING ERROR", NULL);
+			ServerAlert("there's redirect.txt but can't connect", "BOOTING ERROR");
 			return FALSE;		
 		}	
 		else
@@ -890,7 +890,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 				if (handle == -1)
 				{
-					MessageBoxA(hWndMain, "no TransKnight file", "BOOTING ERROR", MB_OK);
+					ServerAlert("no TransKnight file", "BOOTING ERROR");
 
 					return FALSE;
 				}
@@ -905,7 +905,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 				if (handle == -1)
 				{
-					MessageBoxA(hWndMain, "no Foema file", "BOOTING ERROR", MB_OK);
+					ServerAlert("no Foema file", "BOOTING ERROR");
 
 					return FALSE;
 				}
@@ -919,7 +919,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 				if (handle == -1)
 				{
-					MessageBoxA(hWndMain, "no BeastMaster file", "BOOTING ERROR", MB_OK);
+					ServerAlert("no BeastMaster file", "BOOTING ERROR");
 
 					return FALSE;
 				}
@@ -933,7 +933,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 				if (handle == -1)
 				{
-					MessageBoxA(hWndMain, "no Huntress file", "BOOTING ERROR", MB_OK);
+					ServerAlert("no Huntress file", "BOOTING ERROR");
 
 					return FALSE;
 				}

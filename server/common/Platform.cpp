@@ -1,5 +1,7 @@
 #include "common/Platform.h"
 
+#include <cstdio>
+
 namespace
 {
 unsigned int g_RandState = 1;
@@ -14,4 +16,10 @@ int W2Rand()
 void W2Srand(unsigned int seed)
 {
 	g_RandState = seed;
+}
+
+void ServerAlert(const char* text, const char* caption)
+{
+	std::fprintf(stderr, "[%s] %s\n", caption ? caption : "", text ? text : "");
+	std::fflush(stderr);
 }

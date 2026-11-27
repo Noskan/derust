@@ -141,7 +141,7 @@ int ReadConfig()
 	
 	if(fp == NULL) 
 	{ 
-		MessageBox(hWndMain, "cant find Config.txt", "BOOTING ERROR", NULL);
+		ServerAlert("cant find Config.txt", "BOOTING ERROR");
 
 		return FALSE; 
 	}

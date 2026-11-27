@@ -52,7 +52,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (fp == NULL)
 	{
-		MessageBox(hWndMain, "no gameconfig.txt, server will generate default setting.", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("no gameconfig.txt, server will generate default setting.", "Error");
 
 		ConfigReady = 1;
 
@@ -69,7 +69,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(tmp, "Drop Item Event Settings:\n"))
 	{
-		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line1", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game-server generated gameconfig.txt - Line1", "Error");
 
 		fclose(fp);
 
@@ -89,7 +89,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(parm[0], "evindex") || strcmp(parm[1], "evdelete") || strcmp(parm[2], "evon") || strcmp(parm[3], "evitem") || strcmp(parm[4], "evrate") || strcmp(parm[5], "evstart"))
 	{
-		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line2", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game-server generated gameconfig.txt - Line2", "Error");
 
 		fclose(fp);
 
@@ -98,7 +98,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (value[0] == -1 || value[1] == -1 || value[2] == -1 || value[3] == -1 || value[4] == -1 || value[5] == -1 || value[6] == -1 || value[7] == -1)
 	{
-		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line2", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game-server generated gameconfig.txt - Line2", "Error");
 
 		fclose(fp);
 
@@ -119,7 +119,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(tmp, "Etc Event Settings:\n"))
 	{
-		MessageBox(hWndMain, "not game server generated gameconfig.txt - Line3", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game server generated gameconfig.txt - Line3", "Error");
 
 		fclose(fp);
 
@@ -139,7 +139,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(parm[0], "double") || strcmp(parm[1], "deadpoint") || strcmp(parm[2], "dungeonevent") || strcmp(parm[3], "statsapphire"))
 	{
-		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line4", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game-server generated gameconfig.txt - Line4", "Error");
 
 		fclose(fp);
 
@@ -148,7 +148,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (value[0] == -1 || value[1] == -1 || value[2] == -1 || value[3] == -1)
 	{
-		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line4", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game-server generated gameconfig.txt - Line4", "Error");
 
 		fclose(fp);
 
@@ -165,7 +165,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(tmp, "Billing Settings:\n"))
 	{
-		MessageBox(hWndMain, "not game server generated gameconfig.txt - Line5", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game server generated gameconfig.txt - Line5", "Error");
 
 		fclose(fp);
 
@@ -185,7 +185,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(parm[0], "billmode") || strcmp(parm[1], "freeexp"))
 	{
-		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line6", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game-server generated gameconfig.txt - Line6", "Error");
 
 		fclose(fp);
 
@@ -194,7 +194,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (value[0] == -1 || value[1] == -1)
 	{
-		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line6", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game-server generated gameconfig.txt - Line6", "Error");
 
 		fclose(fp);
 
@@ -215,7 +215,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(tmp, "Item Drop Bonus Settings:\n"))
 	{
-		MessageBox(hWndMain, "not game server generated gameconfig.txt - Line7", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game server generated gameconfig.txt - Line7", "Error");
 
 		return;
 	}
@@ -228,7 +228,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 	{
 		if (value[k] < 0 || value[k] > 9999)
 		{
-			MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line8", "Error", MB_OK | MB_SYSTEMMODAL);
+			ServerAlert("not game-server generated gameconfig.txt - Line8", "Error");
 
 			fclose(fp);
 
@@ -247,7 +247,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 	{
 		if (value[k] < 0 || value[k] > 9999)
 		{
-			MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line9", "Error", MB_OK | MB_SYSTEMMODAL);
+			ServerAlert("not game-server generated gameconfig.txt - Line9", "Error");
 
 			fclose(fp);
 
@@ -268,7 +268,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 	{
 		if (value[k] < 0 || value[k] > 9999)
 		{
-			MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line10", "Error", MB_OK | MB_SYSTEMMODAL);
+			ServerAlert("not game-server generated gameconfig.txt - Line10", "Error");
 
 			fclose(fp);
 
@@ -288,7 +288,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 	{
 		if (value[k] < 0 || value[k] > 9999)
 		{
-			MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line11", "Error", MB_OK | MB_SYSTEMMODAL);
+			ServerAlert("not game-server generated gameconfig.txt - Line11", "Error");
 
 			fclose(fp);
 
@@ -304,7 +304,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(tmp, "Treasure Settings:\n"))
 	{
-		MessageBox(hWndMain, "not game server generated gameconfig.txt - Line12", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game server generated gameconfig.txt - Line12", "Error");
 
 		fclose(fp);
 
@@ -353,7 +353,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(tmp, "Etc Settings:\n"))
 	{
-		MessageBox(hWndMain, "not game server generated gameconfig.txt - Line13", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game server generated gameconfig.txt - Line13", "Error");
 
 		fclose(fp);
 
@@ -373,7 +373,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (strcmp(parm[0], "partydif") || strcmp(parm[1], "kefrastatus") || strcmp(parm[2], "GTorreHour") || strcmp(parm[3], "RVRHour") || strcmp(parm[4], "DropItem") || strcmp(parm[5], "BRHour") || strcmp(parm[6], "maxNightmare") || strcmp(parm[7], "PotionDelay"))
 	{
-		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line13", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game-server generated gameconfig.txt - Line13", "Error");
 
 		fclose(fp);
 
@@ -382,7 +382,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 	if (value[0] == -1 || value[1] == -1 || value[2] == -1 || value[3] == -1 || value[4] == -1 || value[5] == -1 || value[6] == -1 || value[7] == -1)
 	{
-		MessageBox(hWndMain, "not game-server generated gameconfig.txt - Line13", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("not game-server generated gameconfig.txt - Line13", "Error");
 
 		fclose(fp);
 
@@ -409,7 +409,7 @@ void ReadLevelItemConfig(void)
 
 	if (fp == NULL)
 	{
-		MessageBox(hWndMain, "no LevelItem.txt", "Error", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("no LevelItem.txt", "Error");
 
 		return;
 	}

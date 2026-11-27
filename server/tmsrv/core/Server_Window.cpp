@@ -367,7 +367,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		fclose(fp);
 	}
 	else
-		MessageBox(hWndMain, "Não foi possivel encontrar o arquivo LocalIP.txt", "Erro ao iniciar", NULL);
+		ServerAlert("Não foi possivel encontrar o arquivo LocalIP.txt", "Erro ao iniciar");
 
 	int r1 = 0, r2 = 0, r3 = 0, r4 = 0;
 
@@ -400,7 +400,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	if (DBServerAddress[0] == 0)
 	{
-		MessageBox(hWndMain, "Não foi possivel pegar o ServerGroup. LocalIP.txt / ServerList.txt", "Erro ao iniciar", MB_OK | MB_SYSTEMMODAL);
+		ServerAlert("Não foi possivel pegar o ServerGroup. LocalIP.txt / ServerList.txt", "Erro ao iniciar");
 
 		return TRUE;
 	}
@@ -414,7 +414,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	if (ret == NULL)
 	{
 		Log("erro, Não foi possivel se conectar a DBServer", "-system", 0);
-		MessageBox(hWndMain, "Não foi possivel se conectar a DBServer", "Erro ao iniciar", NULL);
+		ServerAlert("Não foi possivel se conectar a DBServer", "Erro ao iniciar");
 
 		return FALSE;
 	}

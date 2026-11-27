@@ -697,7 +697,7 @@ void CReadFiles::ReadGuildInfo()
 
 	if (handle == -1)
 	{
-		MessageBoxA(hWndMain, "no GuildInfo file", "BOOTING ERROR", MB_OK);
+		ServerAlert("no GuildInfo file", "BOOTING ERROR");
 
 		return;
 	}
@@ -714,7 +714,7 @@ void CReadFiles::WriteGuildInfo()
 
 	if (handle == -1)
 	{
-		MessageBoxA(hWndMain, "no GuildInfo file", "BOOTING ERROR", MB_OK);
+		ServerAlert("no GuildInfo file", "BOOTING ERROR");
 
 		return;
 	}

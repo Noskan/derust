@@ -134,7 +134,7 @@ SOCKET CPSock::StartListen(HWND hWnd, int ip, int port, int WSA)
 
 	if(tSock == INVALID_SOCKET) 
 	{	
-		MessageBox(hWnd, "Initialize socket fail", "ERROR", MB_OK);
+		ServerAlert("Initialize socket fail", "ERROR");
 
 		return FALSE;
 	}
@@ -154,7 +154,7 @@ SOCKET CPSock::StartListen(HWND hWnd, int ip, int port, int WSA)
 
 	if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
 	{	
-		MessageBox(hWnd, "Binding fail", "ERROR", MB_OK);
+		ServerAlert("Binding fail", "ERROR");
 		closesocket(tSock);
 
 		return FALSE;
@@ -162,7 +162,7 @@ SOCKET CPSock::StartListen(HWND hWnd, int ip, int port, int WSA)
 
 	if(listen(tSock, MAX_PENDING_CONNECTS) < 0)
 	{	
-		MessageBox(hWnd, "Listen fail", "ERROR", MB_OK);
+		ServerAlert("Listen fail", "ERROR");
 		closesocket(tSock);
 
 		return FALSE;
@@ -170,7 +170,7 @@ SOCKET CPSock::StartListen(HWND hWnd, int ip, int port, int WSA)
 
 	if(WSAAsyncSelect(tSock, hWnd, WSA, FD_ACCEPT) > 0)
 	{	
-		MessageBox (hWnd, "WSAAsyncSelect fail", "ERROR", MB_OK);
+		ServerAlert("WSAAsyncSelect fail", "ERROR");
 		closesocket(tSock);
 
 		return FALSE;
@@ -205,7 +205,7 @@ SOCKET CPSock::ConnectServer(char *HostAddr, int Port, int ip, int WSA)
 
 	if(tSock == INVALID_SOCKET) 
     {	
-		MessageBox(NULL, "Initialize socket fail", "ERROR", MB_OK);
+		ServerAlert("Initialize socket fail", "ERROR");
 		return 0;
 	}
 	
@@ -225,7 +225,7 @@ SOCKET CPSock::ConnectServer(char *HostAddr, int Port, int ip, int WSA)
 
 			if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
 			{	
-				MessageBox(NULL, "Binding fail", "ERROR", MB_OK);
+				ServerAlert("Binding fail", "ERROR");
 				closesocket(tSock);
 
 				return 0;
@@ -297,7 +297,7 @@ SOCKET CPSock::ConnectBillServer(char *HostAddr, int Port, int ip, int WSA)
 
 			if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
 			{	
-				MessageBox (NULL, "Binding fail", "ERROR", MB_OK);	
+				ServerAlert("Binding fail", "ERROR");	
 				closesocket(tSock);
 
 				return 0;
