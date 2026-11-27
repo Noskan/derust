@@ -282,41 +282,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 55) // Aura Bestial
 		{
-			TMVector3 vecPos;
-			if (pTarget)
-			{
-				vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 0.2f, pTarget->m_vecPosition.y);
-
-				auto pJudgement = new TMSkillJudgement(vecPos, 3, 0.1f);
-				if (pJudgement)
-					m_pEffectContainer->AddChild(pJudgement);
-			}
-			else
-			{
-				float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
-				vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fY + 0.2f, (float)pAttack->TargetY + 0.5f);
-			}
-
-			for (int i = 0; i < 13; i++)
-			{
-				if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-					break;
-
-				if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-					break;
-
-				auto pOwner = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-				if (pOwner)
-				{
-					auto pEffect = new TMEffectStart(TMVector3(pOwner->m_vecPosition.x, pOwner->m_fHeight + 0.5f, pOwner->m_vecPosition.y), 5, pOwner);
-
-					if (pEffect)
-					{
-						pEffect->m_dwLifeTime = 2000;
-						m_pEffectContainer->AddChild(pEffect);
-					}
-				}
-			}
+			PacketAttack_Skill55Effect(pAttack, pTarget);
 		}
 		else if (pAttack->SkillIndex == 76) // Imunidade
 		{
@@ -759,6 +725,47 @@ void TMFieldScene::PacketAttack_Skill30Or23Effect(MSG_Attack*& pAttack, TMHuman*
 		auto pJudgement = new TMSkillJudgement(vecPos, nType, 0.1f);
 		if (pJudgement)
 			m_pEffectContainer->AddChild(pJudgement);
+	}
+}
+
+/// Efeitos da skill 55 (Aura Bestial) no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill55Effect(MSG_Attack*& pAttack, TMHuman*& pTarget)
+{
+	TMVector3 vecPos;
+	if (pTarget)
+	{
+		vecPos = TMVector3(pTarget->m_vecPosition.x, pTarget->m_fHeight + 0.2f, pTarget->m_vecPosition.y);
+
+		auto pJudgement = new TMSkillJudgement(vecPos, 3, 0.1f);
+		if (pJudgement)
+			m_pEffectContainer->AddChild(pJudgement);
+	}
+	else
+	{
+		float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX + 0.5f, (float)pAttack->TargetY + 0.5f)) * 0.1f;
+		vecPos = TMVector3((float)pAttack->TargetX + 0.5f, fY + 0.2f, (float)pAttack->TargetY + 0.5f);
+	}
+
+	for (int i = 0; i < 13; i++)
+	{
+		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+			break;
+
+		if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+			break;
+
+		auto pOwner = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+		if (pOwner)
+		{
+			auto pEffect = new TMEffectStart(TMVector3(pOwner->m_vecPosition.x, pOwner->m_fHeight + 0.5f, pOwner->m_vecPosition.y), 5, pOwner);
+
+			if (pEffect)
+			{
+				pEffect->m_dwLifeTime = 2000;
+				m_pEffectContainer->AddChild(pEffect);
+			}
+		}
 	}
 }
 
