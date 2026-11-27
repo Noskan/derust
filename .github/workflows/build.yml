@@ -1,4 +1,4 @@
-name: Build (Windows Win32 MSVC)
+name: Build (Windows Win32 MSVC, Linux x86_64)
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
       - "refactor/**"
       - "fix/**"
       - "test/**"
+      - "port/**"
   pull_request:
     branches:
       - main
@@ -74,6 +75,31 @@ jobs:
         timeout-minutes: 10
         run: python3 tools/server_boot_smoke.py "$RUNNER_TEMP/mingw" --keep "$RUNNER_TEMP/server_boot" --require-login
 
+      # Servidores Linux nativos (server/compat) com AddressSanitizer e UBSan, que abortam no
+      # primeiro erro: os testes e o mesmo teste de jogo, com o LoginClient.exe acima (um cliente
+      # Windows no wine) contra DBSrv e TMSrv nativos.
+      - name: Build native Linux servers with ASan/UBSan
+        run: |
+          cmake -S . -B "$RUNNER_TEMP/linux-asan" -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+          cmake --build "$RUNNER_TEMP/linux-asan" --parallel 4
+          mkdir -p "$RUNNER_TEMP/linux-bin"
+          cp "$RUNNER_TEMP/linux-asan/server/dbsrv/DBSrv" "$RUNNER_TEMP/linux-asan/server/tmsrv/TMSrv" "$RUNNER_TEMP/mingw/LoginClient.exe" "$RUNNER_TEMP/linux-bin/"
+
+      - name: Run the tests with ASan/UBSan
+        env:
+          ASAN_OPTIONS: detect_leaks=0
+          UBSAN_OPTIONS: print_stacktrace=1
+        run: ctest --test-dir "$RUNNER_TEMP/linux-asan" --output-on-failure
+
+      - name: Boot native DBSrv + TMSrv with ASan/UBSan and log in with the Windows client
+        timeout-minutes: 10
+        env:
+          ASAN_OPTIONS: detect_leaks=0
+          UBSAN_OPTIONS: print_stacktrace=1
+        run: python3 tools/server_boot_smoke.py "$RUNNER_TEMP/linux-bin" --keep "$RUNNER_TEMP/server_boot_linux" --require-login
+
       - name: Upload server boot logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -82,7 +108,34 @@ jobs:
           path: |
             ${{ runner.temp }}/server_boot/*/srv/*/Log/
             ${{ runner.temp }}/server_boot/*/srv/*/wine.log
+            ${{ runner.temp }}/server_boot_linux/*/srv/*/Log/
+            ${{ runner.temp }}/server_boot_linux/*/srv/*/stderr.log
           if-no-files-found: ignore
+
+  linux-native:
+    name: Linux x86_64 native (gcc, Release)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # O build que vai para a hospedagem: DBSrv e TMSrv nativos, sem o cliente (DirectX 9).
+      - name: Configure and build (Release)
+        run: |
+          cmake -S . -B build/linux -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/linux --parallel 4
+
+      - name: Run unit tests
+        run: ctest --test-dir build/linux --output-on-failure
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: derust-linux-x86_64
+          path: |
+            build/linux/server/dbsrv/DBSrv
+            build/linux/server/tmsrv/TMSrv
 
   build-windows:
     name: MSVC Win32 (${{ matrix.config }})

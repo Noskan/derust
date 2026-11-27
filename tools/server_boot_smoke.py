@@ -33,13 +33,18 @@ Antes, um autoteste sobe o DBSrv sem o SkillData.csv e exige que a MessageBox se
 garante que o detector funciona na plataforma em uso (desligue com --no-self-test).
 
 Plataformas:
-  - Linux: wine (32 bits) e Xvfb, porque as janelas dos servidores pedem um display e o driver
+  - Linux nativo (o diretório tem DBSrv e TMSrv ELF, do build CMake no Linux): executa os
+    binários direto. A MessageBox da camada server/compat escreve "[título] texto" no stderr,
+    que vai para <dir>/stderr.log; o encerramento é por SIGTERM, que a camada transforma em
+    WM_CLOSE. O LoginClient.exe continua rodando no wine: é um cliente Windows contra
+    servidores Linux.
+  - Linux com os .exe: wine (32 bits) e Xvfb, porque as janelas dos servidores pedem um display e o driver
     `null` do wine não serve para isso em todas as versões. Usa um prefixo do wine próprio,
     dentro do diretório de trabalho, para ligar o canal relay sem mexer no do usuário.
   - Windows: executa os .exe direto (é como o CI testa os builds MSVC). As MessageBox são lidas
     das janelas de diálogo do processo; exceções encerram o processo (sem janela do WER).
 
-Uso: python3 tools/server_boot_smoke.py <dir com DBSrv.exe e TMSrv.exe> [--keep DIR] [--settle S]
+Uso: python3 tools/server_boot_smoke.py <dir com DBSrv e TMSrv (.exe ou ELF)> [--keep DIR] [--settle S]
        [--login-client EXE] [--require-login]
 """
 
@@ -135,7 +140,7 @@ def local_ips():
     return ips or ["127.0.0.1"]
 
 
-def build_tree(work, exe_dir):
+def build_tree(work, exe_dir, suffix):
     """Monta <work>/Common e <work>/srv/{DBSrv,TMSrv}: os servidores abrem ../../Common."""
     common = work / "Common"
     db = work / "srv" / "DBSrv"
@@ -153,7 +158,7 @@ def build_tree(work, exe_dir):
                  "Settings/MobMerc.txt", "Settings/CastleQuest.txt"):
         zero_file(common / name, 0)
 
-    shutil.copy(exe_dir / "DBSrv.exe", db)
+    shutil.copy(exe_dir / ("DBSrv" + suffix), db)
     (db / "Config.txt").write_text("Sapphire 8\nLastCapsule 0\n")
     zero_file(db / "AttributeMap.dat", 1024 * 1024)
     (db / "BaseMob").mkdir()
@@ -165,13 +170,13 @@ def build_tree(work, exe_dir):
             (db / kind / first).mkdir(parents=True)
     (common / "ImportUser").mkdir()
 
-    shutil.copy(exe_dir / "TMSrv.exe", tm)
+    shutil.copy(exe_dir / ("TMSrv" + suffix), tm)
     # O gameconfig.txt é o que o próprio TMSrv grava quando não o encontra (DrawConfig).
     # Com DropItem 1, para o teste de jogo soltar item no chão.
     config = (DATA / "gameconfig.txt").read_text()
     assert config.count("DropItem 0") == 1
     (tm / "gameconfig.txt").write_text(config.replace("DropItem 0", "DropItem 1"))
-    (tm / "LocalIP.txt").write_text(ips[0] + "\n")
+    (tm / "localip.txt").write_text(ips[0] + "\n")  # o nome que o TMSrv abre (no Linux a caixa conta)
     zero_file(tm / "AttributeMap.dat", 1024 * 1024)
     zero_file(tm / "heightmap.dat", 4096 * 4096)  # MAX_GRIDY * MAX_GRIDX
     for name in ("NPCGener.txt", "LevelItem.txt"):
@@ -378,6 +383,57 @@ class NativeHost:
         pass
 
 
+class LinuxHost:
+    """Linux nativo: DBSrv e TMSrv do build CMake. A MessageBox de server/compat/w2_win32.cpp
+    escreve "[título] texto" no stderr do processo, gravado em <dir>/stderr.log. Um SIGTERM
+    vira WM_CLOSE, o mesmo caminho de fechar a janela no Windows (grava e encerra). O
+    LoginClient.exe é um programa Windows e roda no wine."""
+
+    def __init__(self, work, need_wine):
+        self.wine = WineHost(work) if need_wine else None
+
+    def start(self, name, cwd):
+        log = cwd / "stderr.log"
+        proc = subprocess.Popen([str(cwd / name)], cwd=cwd, stdout=subprocess.DEVNULL, stderr=open(log, "wb"))
+        return Server(self, name, proc, log)
+
+    def problems(self, server):
+        text = server.log.read_bytes().decode("utf-8", "replace") if server.log.exists() else ""
+        out = [f'{server.name}: MessageBox "{l}"' for l in text.splitlines() if l.startswith("[")]
+        code = server.proc.poll()
+        if code is not None and code < 0:
+            out.append(f"{server.name}: terminou pelo sinal {-code}")
+        return out
+
+    def run(self, exe, args, cwd, timeout):
+        if Path(exe).suffix.lower() == ".exe":
+            return self.wine.run(exe, args, cwd, timeout)
+        return subprocess.run([str(exe), *args], cwd=cwd, capture_output=True, text=True,
+                              errors="replace", timeout=timeout)
+
+    def stop(self, servers, graceful=False):
+        """graceful: SIGTERM, que a camada entrega como WM_CLOSE; os dois servidores gravam
+        (guildas, configuração, logs) e saem com código 0."""
+        problems = []
+        for s in reversed(servers):
+            if graceful and s.proc.poll() is None:
+                s.proc.send_signal(signal.SIGTERM)
+                try:
+                    code = s.proc.wait(timeout=30)
+                    if code != 0:
+                        problems.append(f"{s.name}: saiu com código {code} após SIGTERM")
+                except subprocess.TimeoutExpired:
+                    problems.append(f"{s.name}: não terminou 30s após SIGTERM")
+            if s.proc.poll() is None:
+                s.proc.kill()
+            s.proc.wait(timeout=20)
+        return problems
+
+    def close(self):
+        if self.wine:
+            self.wine.close()
+
+
 class Server:
     def __init__(self, host, name, proc, log):
         self.host, self.name, self.proc, self.log = host, name, proc, log
@@ -403,7 +459,7 @@ def wait_port(port, host, servers, timeout):
 
 
 def prepare(work, exe_dir):
-    db_dir, tm_dir, game_host = build_tree(work, exe_dir)
+    db_dir, tm_dir, game_host = build_tree(work, exe_dir, exe_suffix(exe_dir))
     for d in (db_dir, tm_dir):
         (d / "Log").mkdir()  # StartLog grava em .\\Log\\, que os servidores não criam
     return db_dir, tm_dir, game_host
@@ -517,11 +573,16 @@ def boot(host, work, exe_dir, args):
     return problems
 
 
+def exe_suffix(exe_dir):
+    """".exe" para os binários Windows, "" para os do build Linux."""
+    return "" if os.name != "nt" and (exe_dir / "DBSrv").is_file() and (exe_dir / "TMSrv").is_file() else ".exe"
+
+
 def main():
     # O console do Windows (cp1252) estraga os acentos das mensagens.
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser()
-    ap.add_argument("exe_dir", help="diretório com DBSrv.exe e TMSrv.exe")
+    ap.add_argument("exe_dir", help="diretório com DBSrv e TMSrv (.exe, ou ELF do build Linux)")
     ap.add_argument("--keep", help="diretório de trabalho a manter (padrão: temporário)")
     ap.add_argument("--settle", type=float, default=15, help="segundos com os dois no ar (padrão 15)")
     ap.add_argument("--timeout", type=float, default=90, help="espera máxima por cada porta (padrão 90)")
@@ -531,7 +592,8 @@ def main():
     args = ap.parse_args()
 
     exe_dir = Path(args.exe_dir).resolve()
-    for exe in ("DBSrv.exe", "TMSrv.exe"):
+    suffix = exe_suffix(exe_dir)
+    for exe in ("DBSrv" + suffix, "TMSrv" + suffix):
         if not (exe_dir / exe).exists():
             raise SystemExit(f"falta {exe_dir / exe}")
     client = Path(args.login_client).resolve() if args.login_client else exe_dir / "LoginClient.exe"
@@ -555,8 +617,15 @@ def main():
     else:
         work = Path(tempfile.mkdtemp(prefix="server_boot_"))
 
-    host = NativeHost(work) if os.name == "nt" else WineHost(work)
-    print(f"plataforma: {'Windows nativo' if os.name == 'nt' else 'wine + Xvfb'}")
+    if os.name == "nt":
+        host, platform = NativeHost(work), "Windows nativo"
+    elif suffix == "":
+        need_wine = bool(args.login_client) and Path(args.login_client).suffix.lower() == ".exe"
+        host = LinuxHost(work, need_wine)
+        platform = "Linux nativo" + (" (LoginClient no wine + Xvfb)" if need_wine else "")
+    else:
+        host, platform = WineHost(work), "wine + Xvfb"
+    print(f"plataforma: {platform}")
     try:
         problems = [] if args.no_self_test else self_test(host, work / "selftest", exe_dir, args.timeout)
         if not problems:
