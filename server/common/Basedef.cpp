@@ -1383,29 +1383,6 @@ void BASE_ApplyAttribute(char *pHeight, int size)
 	}
 }
 
-void BASE_InitModuleDir()
-{
-	char String[256];
-	
-	GetModuleFileName(NULL, String, 256);
-
-	int len = strlen(String);
-
-	len--;
-
-	for(int i = len; i > 0; i--)
-	{
-		if(String[i] == '\\' || String[i] == '/')
-		{
-			String[i] = 0;
-
-			break;
-		}
-	}
-
-	SetCurrentDirectory(String);	
-}
-
 int BASE_GetSum(char * p ,int size)
 {
 	int sum = 0;
@@ -1681,7 +1658,9 @@ int IsClearString3(char *str, int nTarget)
 	if(str == NULL)
 		return TRUE;
 
-	char *pNextRightChar = CharNext(&str[nTarget]);
+	// CharNext no código de página de um byte (1252): o próximo caractere, ou o próprio
+	// terminador. A checagem só falha quando str[nTarget] é o fim do texto.
+	char *pNextRightChar = str[nTarget] ? &str[nTarget + 1] : &str[nTarget];
 
 	if	(str+nTarget+1 != pNextRightChar)
 		return FALSE;

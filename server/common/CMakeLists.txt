@@ -5,12 +5,14 @@ add_library(w2pp_common STATIC
   BaseLoaders.cpp
   CPSock.cpp
   Platform.cpp
+  System.cpp
   ProtocolLayoutCheck.cpp
   Basedef.h
   BasedefInternal.h
   CPSock.h
   ItemEffect.h
   Platform.h
+  System.h
 )
 
 target_include_directories(w2pp_common

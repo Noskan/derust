@@ -1375,7 +1375,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 		Log(temp, pAccountList[Idx].File.Info.AccountName, 0);
 
 		sprintf(temp, "./capsule/%d", index);
-		DeleteFileA(temp);
+		unlink(temp);
 
 
 		MSG_CNFNewCharacter sm;

@@ -30,6 +30,7 @@
 #include <time.h>
 
 #include "core/CReadFiles.h"
+#include "common/System.h"
 #include "persistence/CFileDB.h"
 #include "net/CUser.h"
 #include "core/Server.h"
@@ -133,12 +134,12 @@ void CReadFiles::ImportItem()
 	char filename[256];
 	char movefile[256];
 	char *getret;
-	struct _finddata_t c_file;
+	W2FindData c_file;
 	FILE *fp;
 
 	sprintf(temp, IMPORT_ITEM_PATH);
 
-	int hFindFile = _findfirst(temp, &c_file);
+	int hFindFile = W2FindFirst(temp, &c_file);
 
 	if (hFindFile == -1)
 		return;
@@ -154,7 +155,7 @@ void CReadFiles::ImportItem()
 
 		if (c_file.name[0] == '.')
 		{
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -169,7 +170,7 @@ void CReadFiles::ImportItem()
 
 		if (fp == NULL)
 		{
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -186,11 +187,11 @@ void CReadFiles::ImportItem()
 		{
 			fclose(fp);
 
-			MoveFile(filename, movefile);
+			W2MoveFile(filename, movefile);
 
 			Log(filename, "-IMPORT no contents", 0);
 
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -208,11 +209,11 @@ void CReadFiles::ImportItem()
 
 		if (Index < 0 || Index >= MAX_ITEMLIST || Eff1 < 0 || Eff2 < 0 || Eff3 < 0 || Eff1 > 255 || Eff2 > 255 || Eff3 > 255)
 		{
-			MoveFile(filename, movefile);
+			W2MoveFile(filename, movefile);
 
 			Log(filename, "-IMPORT no contents", 0);
 
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -269,11 +270,11 @@ void CReadFiles::ImportItem()
 		if (!hread)
 		{
 			if (!RunTimeSent)
-				MoveFile(filename, movefile);
+				W2MoveFile(filename, movefile);
 
 			Log(filename, "-IMPORT no account", 0);
 
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -309,18 +310,18 @@ void CReadFiles::ImportItem()
 
 		if (Pos == -1)
 		{
-			int iret = MoveFile(filename, movefile);
+			int iret = W2MoveFile(filename, movefile);
 
 			if (!iret)
 			{
-				int err = GetLastError();
+				int err = errno;
 
 				Log(temp, "-IMPORT no space, move failed", 0);
 			}
 
 			Log(temp, "-IMPORT no space, file moved to err", 0);
 
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -338,10 +339,10 @@ void CReadFiles::ImportItem()
 			Log(filename, "-IMPORT ITEM SUCCESS - ACCOUNT SAVE FAIL", 0);
 
 			if (!RunTimeSent)
-				MoveFile(filename, movefile);
+				W2MoveFile(filename, movefile);
 
 
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -355,11 +356,11 @@ void CReadFiles::ImportItem()
 
 		Log(filename, log, 0);
 
-		ret = DeleteFile(filename);
+		ret = (unlink(filename) == 0);
 
 		if (!ret)
 		{
-			ret = MoveFile(filename, movefile);
+			ret = W2MoveFile(filename, movefile);
 
 			if (ret)
 				Log(filename, "-IMPORT ITEM SUCCESS - FILE MOVED [WORNING]", 0);
@@ -367,14 +368,14 @@ void CReadFiles::ImportItem()
 				Log(filename, "-IMPORT ITEM SUCCESS - FILE NOT DELETED!!!!!!!! [WORNING]", 0);
 		}
 
-		if (_findnext(hFindFile, &c_file) != 0)
+		if (W2FindNext(hFindFile, &c_file) != 0)
 			break;
 		continue;
 
 	}
 
 	if (hFindFile != -1)
-		_findclose(hFindFile);
+		W2FindClose(hFindFile);
 }
 
 void CReadFiles::ImportUser()
@@ -382,10 +383,10 @@ void CReadFiles::ImportUser()
 	FILE *fp = NULL;
 
 	char temp[128];
-	struct _finddata_t c_file;
+	W2FindData c_file;
 
 	sprintf(temp, IMPORT_USER_PATH);
-	int hFindFile = _findfirst(temp, &c_file);
+	int hFindFile = W2FindFirst(temp, &c_file);
 
 	if (hFindFile == -1)
 		return;
@@ -407,7 +408,7 @@ void CReadFiles::ImportUser()
 
 		if (c_file.name[0] == '.')
 		{
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret == 0)
 				continue;
@@ -420,7 +421,7 @@ void CReadFiles::ImportUser()
 
 		if (fp == NULL)
 		{
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -434,7 +435,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -448,7 +449,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -465,7 +466,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -479,7 +480,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -494,7 +495,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -507,7 +508,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -522,7 +523,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -534,7 +535,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -546,7 +547,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -558,7 +559,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -570,7 +571,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -589,7 +590,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -603,7 +604,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -622,7 +623,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -636,7 +637,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -655,7 +656,7 @@ void CReadFiles::ImportUser()
 		{
 			fclose(fp);
 
-			if (_findnext(hFindFile, &c_file) == 0)
+			if (W2FindNext(hFindFile, &c_file) == 0)
 				continue;
 			else
 				break;
@@ -677,16 +678,16 @@ void CReadFiles::ImportUser()
 		int ret = cFileDB.AddAccount(id, pass, name, ssn1, ssn2, email, tel, addr, bonus);
 
 		if (ret != 0)
-			ret = DeleteFile(filename);
+			ret = (unlink(filename) == 0);
 
-		if (_findnext(hFindFile, &c_file) == 0)
+		if (W2FindNext(hFindFile, &c_file) == 0)
 			continue;
 		else
 			break;
 	}
 
 	if (fp != NULL)
-		_findclose(hFindFile);
+		W2FindClose(hFindFile);
 }
 
 void CReadFiles::ReadGuildInfo()
@@ -729,12 +730,12 @@ void CReadFiles::ImportDonate()
 	char filename[256];
 	char movefile[256];
 	char *getret;
-	struct _finddata_t c_file;
+	W2FindData c_file;
 	FILE *fp;
 
 	sprintf(temp, IMPORT_DONATE_PATH);
 
-	int hFindFile = _findfirst(temp, &c_file);
+	int hFindFile = W2FindFirst(temp, &c_file);
 
 	if (hFindFile == -1)
 		return;
@@ -756,7 +757,7 @@ void CReadFiles::ImportDonate()
 
 		if (fp == NULL)
 		{
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -773,11 +774,11 @@ void CReadFiles::ImportDonate()
 		{
 			fclose(fp);
 
-			MoveFile(filename, movefile);
+			W2MoveFile(filename, movefile);
 
 			Log(filename, "-IMPORT no contents", 0);
 
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -795,11 +796,11 @@ void CReadFiles::ImportDonate()
 
 		if (Donate < 0)
 		{
-			MoveFile(filename, movefile);
+			W2MoveFile(filename, movefile);
 
 			Log(filename, "-IMPORT no contents", 0);
 
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -845,11 +846,11 @@ void CReadFiles::ImportDonate()
 		if (!hread)
 		{
 			if (!RunTimeSent)
-				MoveFile(filename, movefile);
+				W2MoveFile(filename, movefile);
 
 			Log(filename, "-IMPORT no account", 0);
 
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -868,10 +869,10 @@ void CReadFiles::ImportDonate()
 			Log(filename, "-IMPORT DONATE SUCCESS - ACCOUNT SAVE FAIL", 0);
 
 			if (!RunTimeSent)
-				MoveFile(filename, movefile);
+				W2MoveFile(filename, movefile);
 
 
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -885,11 +886,11 @@ void CReadFiles::ImportDonate()
 
 		Log(filename, log, 0);
 
-		ret = DeleteFile(filename);
+		ret = (unlink(filename) == 0);
 
 		if (!ret)
 		{
-			ret = MoveFile(filename, movefile);
+			ret = W2MoveFile(filename, movefile);
 
 			if (ret)
 				Log(filename, "-IMPORT DONATE SUCCESS - FILE MOVED [WARNING]", 0);
@@ -897,14 +898,14 @@ void CReadFiles::ImportDonate()
 				Log(filename, "-IMPORT DONATE SUCCESS - FILE NOT DELETED!!!!!!!! [WARNING]", 0);
 		}
 
-		if (_findnext(hFindFile, &c_file) != 0)
+		if (W2FindNext(hFindFile, &c_file) != 0)
 			break;
 		continue;
 
 	}
 
 	if (hFindFile != -1)
-		_findclose(hFindFile);
+		W2FindClose(hFindFile);
 }
 
 void CReadFiles::UpdateUser()
@@ -912,12 +913,12 @@ void CReadFiles::UpdateUser()
 	char temp[128];
 	char filename[128];
 	char *ret;
-	struct _finddata_t c_file;
+	W2FindData c_file;
 	FILE *fp;
 
 	sprintf(temp, UPDATE_USER_PATH, ServerIndex);
 
-	int hFindFile = _findfirst(temp, &c_file);
+	int hFindFile = W2FindFirst(temp, &c_file);
 
 	if (hFindFile == -1)
 		return;
@@ -929,7 +930,7 @@ void CReadFiles::UpdateUser()
 
 		if (c_file.name[0] == '.')
 		{
-			int ret = _findnext(hFindFile, &c_file);
+			int ret = W2FindNext(hFindFile, &c_file);
 
 			if (ret != 0)
 				break;
@@ -951,7 +952,7 @@ void CReadFiles::UpdateUser()
 			{
 				fclose(fp);
 
-				int ret = _findnext(hFindFile, &c_file);
+				int ret = W2FindNext(hFindFile, &c_file);
 
 				if (ret != 0)
 					break;
@@ -966,7 +967,7 @@ void CReadFiles::UpdateUser()
 			{
 				fclose(fp);
 
-				int ret = _findnext(hFindFile, &c_file);
+				int ret = W2FindNext(hFindFile, &c_file);
 
 				if (ret != 0)
 					break;
@@ -983,7 +984,7 @@ void CReadFiles::UpdateUser()
 			{
 				fclose(fp);
 
-				int ret = _findnext(hFindFile, &c_file);
+				int ret = W2FindNext(hFindFile, &c_file);
 
 				if (ret != 0)
 					break;
@@ -997,7 +998,7 @@ void CReadFiles::UpdateUser()
 			{
 				fclose(fp);
 
-				int ret = _findnext(hFindFile, &c_file);
+				int ret = W2FindNext(hFindFile, &c_file);
 
 				if (ret != 0)
 					break;
@@ -1016,28 +1017,28 @@ void CReadFiles::UpdateUser()
 
 			if (ret)
 			{
-				ret = DeleteFile(filename);
+				ret = (unlink(filename) == 0);
 
 				sprintf(temp, "AccountName:%s AccountPass:%s filename:%s", id, pass, filename);
 				Log(temp, "-UPDATE USER SUCCESS - FILE DELETED [WARNING]", 0);
 			}
 			else
 			{
-				ret = DeleteFile(filename);
+				ret = (unlink(filename) == 0);
 
 				sprintf(temp, "AccountName:%s AccountPass:%s filename:%s", id, pass, filename);
 				Log(temp, "-UPDATE USER FAIL - FILE DELETED [WARNING]", 0);
 			}
 		}
 
-		int ret = _findnext(hFindFile, &c_file);
+		int ret = W2FindNext(hFindFile, &c_file);
 
 		if (ret != 0)
 			break;
 	} while (1);
 
 	if (hFindFile != -1)
-		_findclose(hFindFile);
+		W2FindClose(hFindFile);
 }
 
 void CReadFiles::WriteRanking()

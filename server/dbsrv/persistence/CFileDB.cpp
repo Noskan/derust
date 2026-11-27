@@ -463,7 +463,7 @@ int CFileDB::DeleteCharacter(char *ch, char *account)
 
 	sprintf(temp, "./char/%s/%s", First, check);
 
-	int ret = DeleteFileA(temp);
+	int ret = unlink(temp) == 0;
 
 	return ret;
 }

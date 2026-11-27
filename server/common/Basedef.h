@@ -2190,7 +2190,6 @@ int  BASE_GetDistance(int x1, int y1, int x2, int y2);
 //void BASE_GetHitPosition		(int,int,int *,int *,char *)
 //void BASE_GetHitPosition2		(int,int,int *,int *,char *)
 void BASE_WriteInitItem();
-int  BASE_ReadInitItem();
 void BASE_InitializeInitItem();
 void BASE_InitializeSkill();
 int  IsClearString3(char *str, int nTarget);

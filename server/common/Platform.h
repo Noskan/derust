@@ -7,6 +7,16 @@
 ///        Linux (arquivos, diretórios, laço de eventos e sockets) fica em System.h, EventLoop.h e
 ///        CPSock.h.
 
+/// O código original usa o BOOL do Win32 (um int) com TRUE e FALSE, inclusive em funções que
+/// devolvem também -1 (CPSock::Receive): ficam como tipos do projeto.
+typedef int BOOL;
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 /// @brief Mesmo algoritmo e mesmo intervalo (0..0x7FFF) do W2Rand() do CRT da Microsoft, com a
 ///        mesma semente inicial (1). O W2Rand() da glibc gera outra sequência com RAND_MAX
 ///        2147483647, o que mudaria chances de drop, refinação e dano no Linux. O estado é

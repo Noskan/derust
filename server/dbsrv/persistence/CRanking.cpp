@@ -18,6 +18,7 @@
 */
 
 #include "persistence/CRanking.h"
+#include "common/System.h"
 #include "net/CUser.h"
 #include "core/Server.h"
 #include "core/CReadFiles.h"
@@ -117,42 +118,46 @@ void RankingSystem::loadRanking()
 */
 int RankingSystem::readAccountsInDir(char *dir)
 {
-	HANDLE handle;
-	WIN32_FIND_DATA win32_find_data;
+	int handle;
+	W2FindData findData;
 
 	int entryCount = 0;
 
 	char tmp[1024];
 
-	handle = FindFirstFile(dir, &win32_find_data);
+	handle = W2FindFirst(dir, &findData);
 
-	if (handle == INVALID_HANDLE_VALUE)
+	if (handle == -1)
 	{
 		// TODO: Error: can't read initial file
 	}
 	else
 	{
-		while (FindNextFile(handle, &win32_find_data))
+		while (W2FindNext(handle, &findData) == 0)
 		{
-			char *fileName = win32_find_data.cFileName;
+			char *fileName = findData.name;
 
 			if (!strncmp(fileName, ".", 1))
 				continue;
 
-			if (win32_find_data.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY)
+			if (findData.isDir)
 			{
 				sprintf(tmp, "./account/%s/*", fileName);
 				entryCount += readAccountsInDir(tmp);
 			}
 			else
 			{
-				SYSTEMTIME fWriteTime;
-				SYSTEMTIME sysTime;
-				FileTimeToSystemTime(&win32_find_data.ftLastWriteTime, &fWriteTime);
-				GetLocalTime(&sysTime);
+				// Data da última gravação em UTC (como o FileTimeToSystemTime do original) e a
+				// data local de agora.
+				struct tm fWriteTime;
+				struct tm sysTime;
+				time_t writeTime = (time_t)findData.writeTime;
+				time_t nowTime = time(NULL);
+				gmtime_r(&writeTime, &fWriteTime);
+				localtime_r(&nowTime, &sysTime);
 
 				// Only use active accounts 
-				if (fWriteTime.wYear != sysTime.wYear || fWriteTime.wMonth < sysTime.wMonth - 1)
+				if (fWriteTime.tm_year != sysTime.tm_year || fWriteTime.tm_mon < sysTime.tm_mon - 1)
 					continue;
 
 				strcpy(tmp, dir);
@@ -162,7 +167,7 @@ int RankingSystem::readAccountsInDir(char *dir)
 				errno = 0;
 
 				FILE* fs;
-				fopen_s(&fs, tmp, "rb");
+				fs = fopen(tmp, "rb");
 
 				if (fs != NULL)
 				{
@@ -209,7 +214,7 @@ int RankingSystem::readAccountsInDir(char *dir)
 		}
 	}
 
-	FindClose(handle);
+	W2FindClose(handle);
 
 	return entryCount;
 }
