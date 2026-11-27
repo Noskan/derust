@@ -57,6 +57,8 @@ O monorepo reúne o servidor e o cliente C++ do *With Your Destiny (WYD)* sob um
 | `client/src/resources/` | `TMProject` | Recursos Win32 (`TMProject.rc`, `Resource.h`, ícones e cursores). |
 | `client/docs/` | — | Notas históricas do cliente (`Files Name.txt`). |
 
+O cliente lê os recursos visuais do WYD Global no formato dele (listas de textura de 528 bytes, `MeshList.txt` até 3148, `object.bin` com 4096 máscaras); o protocolo e as tabelas compartilhadas com o servidor seguem o 7662. Ver [`DADOS_GLOBAL.md`](DADOS_GLOBAL.md).
+
 | [`tools/check_boundaries.py`](../tools/check_boundaries.py) | — | Verificador automático de fronteiras de dependência entre módulos. |
 | [`tests/`](../tests/CMakeLists.txt) | `w2pp_common_tests` (CTest) | Suíte de testes unitários para funções puras e layout binário de `w2pp_common`. |
 

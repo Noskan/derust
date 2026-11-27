@@ -73,6 +73,17 @@ padrão, o mesmo que o servidor grava. Então a ferramenta oficial também põe 
 reforça que a checagem contra `0x1343B16` do cliente reconstruído não é a regra original, mas o
 Global é de uma versão mais nova que a do cliente-alvo, então a evidência não é conclusiva.
 
+### Conferência do `cdata.bin` que nunca passa (não corrigido)
+
+O construtor de `TMGround` (`client/src/world/TMGround.cpp`) soma o `cdata.bin` num `int` e, na
+cena de campo, compara com `5855606140`, constante maior que 32 bits: a comparação nunca é
+igual e, se valesse, mostraria "DataFile Error" e fecharia o cliente. Hoje ela não dispara porque
+a conferência só roda no primeiro `TMGround` criado (`m_bFirst`), e as cenas de seleção de
+servidor e de personagem criam um antes do campo. A constante provavelmente perdeu os bits altos
+(ou ganhou) na reconstrução; o valor de 32 bits original não é conhecido, e o `cdata.bin`
+regenerado pela `tools/global_client_data.py` não teria a soma do original de qualquer jeito.
+Fica registrado para quem mudar a ordem das cenas.
+
 ## Corrigidos
 
 | Onde | Defeito | Correção |
@@ -99,6 +110,14 @@ Global é de uma versão mais nova que a do cliente-alvo, então a evidência n�
 | `client/src/render/DXUtil.cpp`, `CArrayList` | `delete[]` de `void*` (alocado como `BYTE[]`) | `delete[] static_cast<BYTE*>(m_pData)`. Sem mudança |
 | `client/src/gameplay/MrItemMix.cpp` | A cópia do item exigido no painel de mistura usava `sizeof(pstItem)` (4 de 8 bytes) e perdia os efeitos 1 e 2 | `sizeof(*pstItem)`. **Muda o item exibido** (passa a mostrar todos os efeitos) |
 | `client/src/common/BaseItem.cpp`, `BASE_ClearItem` | `memset(item, 0, sizeof(item))` zerava 4 de 8 bytes | `sizeof(*item)`. O único chamador é `BASE_CanTrade`, sem chamadores; os hashes `ItemSancAndColor` e `EquipCarryTrade` da caracterização foram regravados |
+| `client/src/render/TextureManager.cpp` (`GetUITexture`, `GetEffectTexture`, `GetModelTexture`, `GetEnvTexture`, `GetDynamicTexture`, marcas de guilda, conjuntos de UI) | Guardas `nIndex > MAX_*` aceitavam `nIndex == MAX_*` e liam uma posição além do fim | `nIndex >= MAX_*`. O índice igual ao limite vale como textura inexistente |
+| `client/src/render/MeshManager.cpp`, `InitMeshManager` | Gravava `m_stCommonMesh[nIndex]` sem conferir o índice lido do `MeshList.txt`; o do WYD Global vai até 3148, além das 3048 entradas | Índice fora da tabela vai para o log e é ignorado; a tabela passou a 4096 (docs/DADOS_GLOBAL.md) |
+| `client/src/scene/ObjectManager.cpp`, `InitCurseList` | A contagem lida do `curse.bin` ia direto para o `new[]` e para o laço: com o arquivo do Global, `bad_array_new_length` derrubava o cliente | Contagem que não cabe no tamanho do arquivo deixa a lista vazia (com log) |
+| `client/src/scene/TMSelectServerScene.cpp`, botão Conectar | `g_nServerCountList[nIndexN - selecionado - 1]` usava a contagem do grupo no lugar do total de grupos: com um grupo real selecionado lia `g_nServerCountList[-1]`, e o Conectar recusava com "Selecione o canal e o servidor" | Mesmo mapeamento do clique na lista de grupos (`nMaxGroupN - selecionado - 1`), com índice conferido. **Muda o comportamento**: o Conectar passa a funcionar nos grupos reais |
+| `client/src/scene/TMSelectServerScene.cpp` (3×) e `TMFieldScene_UI.cpp` (2×), página de status | `sscanf_s` com `"%d\\n..."` (barra invertida literal no formato) só lia o primeiro número; os outros canais ficavam com o valor inicial | `BASE_ParseUserCount` lê a página inteira e põe a linha k (canal k + 1, como o DBSrv grava) em `nUserCount[k + 1]`. Teste: `CheckUserCountPage` em `tests/tmproject_characterization_tests.cpp`. **Muda o comportamento**: canais ausentes da página aparecem indisponíveis |
+| `client/src/audio/DirShow.cpp`, `CleanGraph` | Contava os filtros com `while (SUCCEEDED(Skip(1)))`, que não termina (`Skip` devolve `S_FALSE`, que é sucesso, no fim da lista), e liberava cada filtro em laço até a contagem zerar. Com música ligada, a entrada no campo derrubava o cliente (medição com os dados do Global) | Recolhe os filtros com `Next` até não vir `S_OK` (no máximo 32) e dá um `Release` por filtro, o da referência que o `Next` entregou |
+| `client/src/render/CMesh.cpp`, armas 2889..2901, 2906..2909 e 2912..2923 | Usava `pMesh->m_pVB` sem conferir: a malha que não carregou (textura fora da lista) tem buffers nulos e o `Lock` derrubava o cliente na seleção de personagem | Malha nula, sem buffers ou com textura fora da lista sai pelo mesmo `return 1` das falhas do dispositivo |
+| `client/src/scene/TMScene.cpp`, `LogMsgCriticalError` | Lia `m_pMyHuman` sem conferir; o erro de dados críticos do `TMGround` pode vir antes de o personagem existir, e o relatório derrubava o cliente | Sem personagem, o relatório vai com ID e posição 0 |
 
 As correções das funções `BASE_*` só mudam o resultado para entradas fora do domínio do jogo
 (a única correção com efeito visível com dados válidos é a cor do `TMItem::Render`): os hashes de
