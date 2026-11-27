@@ -595,38 +595,6 @@ struct STRUCT_ITEMLOG
 	int	Num;
 };
 
-struct STRUCT_GUILDZONE
-{
-	int ChargeGuild;
-	int ChallangeGuild;
-
-	int GuildSpawnX;
-	int GuildSpawnY;
-
-	int CitySpawnX;
-	int CitySpawnY;
-
-	int CityLimitX1;
-	int CityLimitY1;
-	int CityLimitX2;
-	int CityLimitY2;
-
-	int WarAreaX1;
-	int WarAreaY1;
-	int WarAreaX2;
-	int WarAreaY2;
-
-	int ChargeWarSpawnX;
-	int ChargeWarSpawnY;
-
-	int ChallangeWarSpawnX;
-	int ChallangeWarSpawnY;
-
-	int CityTax;
-	int Clan;
-	int Victory;
-};
-
 struct STRUCT_ACCOUNTINFO
 {
 	char AccountName[ACCOUNTNAME_LENGTH];
@@ -2241,6 +2209,8 @@ int  BASE_VisualAnctCode(STRUCT_ITEM *Item);
 
 void BASE_SetItemDate(STRUCT_ITEM *Item, int day);
 int  BASE_CheckItemDate(STRUCT_ITEM *Item);
+void BASE_SetItemDateAt(STRUCT_ITEM *Item, int day, const struct tm *now);
+int  BASE_CheckItemDateAt(STRUCT_ITEM *Item, const struct tm *now);
 void BASE_CheckFairyDate(STRUCT_ITEM *Item);
 
 #pragma endregion

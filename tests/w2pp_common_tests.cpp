@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 
 namespace
 {
@@ -52,6 +53,7 @@ void TestProtocolSizes()
 	CHECK(sizeof(STRUCT_MOBEXTRA) == 536);
 	CHECK(sizeof(STRUCT_RANKING) == 52);
 	CHECK(sizeof(STRUCT_ACCOUNTFILE) == 8640);
+	CHECK(sizeof(STRUCT_GUILDZONE) == 84);
 }
 
 /// @brief Testa leitura e gravação de refinação (EF_SANC, +10..+15, tinturas 116..125 e montarias).
@@ -400,6 +402,70 @@ void TestStringAndChecksum()
 	CHECK(BASE_GetSum(buf1, 15) != BASE_GetSum(buf2, 15));
 }
 
+/// @brief Monta a data local `dia/mes/ano` (mês de 1 a 12) ao meio-dia.
+struct tm MakeDay(int day, int month, int year)
+{
+	struct tm when{};
+	when.tm_mday = day;
+	when.tm_mon = month - 1;
+	when.tm_year = year - 1900;
+	when.tm_hour = 12;
+	when.tm_isdst = -1;
+	return when;
+}
+
+/// @brief Lê a validade gravada nos efeitos do item como ddmmaa (ano com dois dígitos).
+int StoredDate(const STRUCT_ITEM& item)
+{
+	return item.stEffect[0].cValue * 10000 + item.stEffect[1].cValue * 100 + item.stEffect[2].cValue;
+}
+
+/// @brief Testa a validade dos itens temporários com datas fixas.
+void TestItemDate()
+{
+	STRUCT_ITEM item{};
+
+	// 30 dias a partir de 31/01/2026 dão 02/03/2026; a versão anterior gravava o dia 32.
+	struct tm day31 = MakeDay(31, 1, 2026);
+	BASE_SetItemDateAt(&item, 30, &day31);
+	CHECK(item.stEffect[0].cEffect == EF_WDAY);
+	CHECK(item.stEffect[1].cEffect == EF_WMONTH);
+	CHECK(item.stEffect[2].cEffect == EF_YEAR);
+	CHECK(StoredDate(item) == 20326);
+
+	// Virada de ano e prazo curto: com menos de 30 dias a versão anterior não avançava o mês.
+	struct tm dec15 = MakeDay(15, 12, 2026);
+	BASE_SetItemDateAt(&item, 30, &dec15);
+	CHECK(StoredDate(item) == 140127);
+	struct tm jun28 = MakeDay(28, 6, 2026);
+	BASE_SetItemDateAt(&item, 7, &jun28);
+	CHECK(StoredDate(item) == 50726);
+
+	// Vence a partir do próprio dia gravado (20/03/2026).
+	BASE_ClearItem(&item);
+	item.stEffect[0].cEffect = EF_WDAY;
+	item.stEffect[0].cValue = 20;
+	item.stEffect[1].cEffect = EF_WMONTH;
+	item.stEffect[1].cValue = 3;
+	item.stEffect[2].cEffect = EF_YEAR;
+	item.stEffect[2].cValue = 26;
+
+	struct tm before = MakeDay(19, 3, 2026);
+	struct tm same = MakeDay(20, 3, 2026);
+	struct tm nextMonth = MakeDay(1, 4, 2026); // a versão anterior só vencia em maio
+	struct tm nextYear = MakeDay(25, 2, 2027);
+	struct tm lastYear = MakeDay(25, 12, 2025);
+	CHECK(BASE_CheckItemDateAt(&item, &before) == 0);
+	CHECK(BASE_CheckItemDateAt(&item, &same) == 1);
+	CHECK(BASE_CheckItemDateAt(&item, &nextMonth) == 1);
+	CHECK(BASE_CheckItemDateAt(&item, &nextYear) == 1);
+	CHECK(BASE_CheckItemDateAt(&item, &lastYear) == 0);
+
+	// Item sem data conta como vencido, como antes.
+	STRUCT_ITEM noDate{};
+	CHECK(BASE_CheckItemDateAt(&noDate, &before) == 1);
+}
+
 } // namespace
 
 int main()
@@ -414,6 +480,7 @@ int main()
 	TestCarryBags();
 	TestOutOfDomainInputs();
 	TestStringAndChecksum();
+	TestItemDate();
 
 	if (g_failures != 0)
 	{

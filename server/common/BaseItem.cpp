@@ -1730,56 +1730,62 @@ int BASE_VisualAnctCode(STRUCT_ITEM *Item)
 	return kType[value % 4] << 4;
 }
 
-/// Grava data de expiracao (em dias a partir de hoje) nos efeitos do item.
-void BASE_SetItemDate(STRUCT_ITEM *Item, int day)
+/// Grava nos efeitos do item a data de expiração: `now` mais `day` dias.
+///
+/// A conta passa pelo `mktime`, que normaliza o dia, o mês e o ano. A versão anterior somava os dias e
+/// descontava 29 de cabeça: com `day = 30` no dia 31 gravava o dia 32, e com menos de 30 dias o mês não
+/// avançava, o que dava uma data já vencida. O meio-dia evita que a troca do horário de verão mude o dia.
+void BASE_SetItemDateAt(STRUCT_ITEM *Item, int day, const struct tm *now)
 {
-	struct tm when;
-	time_t now;
-	time(&now);
-	when = *localtime(&now);
-
-	int daynext = when.tm_mday + day;
-	int month = day >= 30 ? when.tm_mon + 1 : when.tm_mon;
-	int year = month >= 12 ? when.tm_year+1 : when.tm_year;
-
-
-	if(month >= 12)
-		month = 0;
-
-	if(daynext >= 30)
-		daynext -= 29;
-
-	if(month == 1 && daynext >= 27)
-		daynext -= 26;
+	struct tm when = *now;
+	when.tm_mday += day;
+	when.tm_hour = 12;
+	when.tm_min = 0;
+	when.tm_sec = 0;
+	when.tm_isdst = -1;
+	mktime(&when);
 
 	Item->stEffect[0].cEffect = EF_WDAY;
-	Item->stEffect[0].cValue = daynext;
+	Item->stEffect[0].cValue = when.tm_mday;
 
 	Item->stEffect[1].cEffect = EF_WMONTH;
-	Item->stEffect[1].cValue = month + 1;
+	Item->stEffect[1].cValue = when.tm_mon + 1;
 
 	Item->stEffect[2].cEffect = EF_YEAR;
-	Item->stEffect[2].cValue = year - 100;
+	Item->stEffect[2].cValue = when.tm_year - 100;
+}
+
+/// Grava a data de expiração (em dias a partir de hoje) nos efeitos do item.
+void BASE_SetItemDate(STRUCT_ITEM *Item, int day)
+{
+	time_t now;
+	time(&now);
+	struct tm when = *localtime(&now);
+
+	BASE_SetItemDateAt(Item, day, &when);
+}
+
+/// Diz se o item já venceu em `now`: vence no próprio dia gravado.
+///
+/// O mês fica gravado de 1 a 12 e o `tm_mon` vai de 0 a 11. A versão anterior comparava os dois sem
+/// ajuste no caso "mês seguinte, dia menor", e o item só vencia um mês depois. A comparação agora é a
+/// da data inteira (ano, mês, dia). Um item sem data (efeitos zerados) continua vencido, como antes.
+int BASE_CheckItemDateAt(STRUCT_ITEM *Item, const struct tm *now)
+{
+	const int today = (now->tm_year - 100) * 10000 + (now->tm_mon + 1) * 100 + now->tm_mday;
+	const int end = Item->stEffect[2].cValue * 10000 + Item->stEffect[1].cValue * 100 + Item->stEffect[0].cValue;
+
+	return today >= end ? 1 : 0;
 }
 
 /// Verifica se um item temporario ja expirou.
 int  BASE_CheckItemDate(STRUCT_ITEM *Item)
 {
-	struct tm when;
 	time_t now;
 	time(&now);
-	when = *localtime(&now);
+	struct tm when = *localtime(&now);
 
-	if(when.tm_mday >= Item->stEffect[0].cValue && when.tm_mon >= (Item->stEffect[1].cValue-1) && (when.tm_year-100) >= Item->stEffect[2].cValue)
-		return 1;
-
-	else if(when.tm_mon > Item->stEffect[1].cValue && (when.tm_year-100) >= Item->stEffect[2].cValue)
-		return 1;
-
-	else if((when.tm_year-100) > Item->stEffect[2].cValue)
-		return 1;
-
-	return 0;
+	return BASE_CheckItemDateAt(Item, &when);
 }
 
 /// Valida e limpa validade expirada de fadas.
