@@ -1756,9 +1756,9 @@ if (cSkillIndex == 16 || cSkillIndex == 12 || cSkillIndex == 28)
 /// Inicia ataque basico contra o alvo selecionado ou move ate alcance valido.
 int TMFieldScene::MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int dwServerTime)
 {
-	auto pOver = m_pMouseOverHuman;
+	TMHuman* pOver = m_pMouseOverHuman;
 	int nSpecForce = 0;
-	auto pMobData = &g_pObjectManager->m_stMobData;
+	STRUCT_MOB* pMobData = &g_pObjectManager->m_stMobData;
 
 	if (pMobData && pMobData->LearnedSkill[0] & 0x20000000)
 		nSpecForce = 1;
