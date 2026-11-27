@@ -63,7 +63,7 @@ void BASE_WriteSkillBin()
 		fwrite(&nRand, sizeof(nRand), 1 , fp);
 		fclose(fp);
 
-		FILE *fpCSum = fopen("..\\SkillCSum.h", "wt");
+		FILE *fpCSum = fopen("../SkillCSum.h", "wt");
 
 		if(fpCSum != NULL)
 		{
@@ -117,9 +117,9 @@ void BASE_WriteItemList(int nItemList)
 	FILE* fpCSum = NULL;
 
 	if(nItemList == 0)
-		fpCSum = fopen("..\\ItemCSum.h", "wt");
+		fpCSum = fopen("../ItemCSum.h", "wt");
 	else
-		fpCSum = fopen("..\\ItemCSum.h", "a+");
+		fpCSum = fopen("../ItemCSum.h", "a+");
 
 	if(fpCSum != NULL)
 	{
@@ -611,11 +611,11 @@ int BASE_ReadItemListFile(char *filename, int Build)
 	{	
 		BASE_WriteItemList(1);
 
-		wfp =  fopen("../../Common/extraitem.bin", "wb");
+		wfp =  fopen("../../Common/ExtraItem.bin", "wb");	// mesmo nome que a leitura: no Linux a caixa conta
 
 		if(wfp == NULL)
 		{
-			MessageBox(NULL, "Can't write extraitem.bin", "ERROR", MB_OK);
+			MessageBox(NULL, "Can't write ExtraItem.bin", "ERROR", MB_OK);
 
 			return FALSE;
 		}

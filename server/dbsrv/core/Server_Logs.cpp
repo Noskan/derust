@@ -64,7 +64,7 @@ void StartLog(char *cccc)
 	 time(&now); 
 	 when = *localtime(&now);
 
-	 sprintf(Temp, ".\\Log\\DB_%02d_%02d_%04d_%02d_%02d_%02d_%s.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec, cccc);
+	 sprintf(Temp, "./Log/DB_%02d_%02d_%04d_%02d_%02d_%02d_%s.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec, cccc);
 
    	 fLogFile = fopen(Temp, "a+");
 
@@ -109,7 +109,7 @@ void DayLog_ExpLog()
 	time(&now);
 	when = *localtime(&now);
 
-	sprintf(Temp, ".\\DayLog\\EXP_DB_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+	sprintf(Temp, "./DayLog/EXP_DB_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 
 	fp = fopen(Temp, "a+");
 
@@ -217,7 +217,7 @@ void DayLog_ItemLog()
 	time(&now);
 	when = *localtime(&now);
 
-	sprintf(Temp, ".\\DayLog\\ITEM_DB_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+	sprintf(Temp, "./DayLog/ITEM_DB_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 
 	fp = fopen(Temp, "a+");
 

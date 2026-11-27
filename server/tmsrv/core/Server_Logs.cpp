@@ -54,7 +54,7 @@ void StartLog()
 	time(&now);
 	when = *localtime(&now);
 
-	sprintf(temp, ".\\Log\\TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+	sprintf(temp, "./Log/TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 
 	fLogFile = fopen(temp, "wt");
 
@@ -129,7 +129,7 @@ void StartChatLog()
 	time(&now);
 	when = *localtime(&now);
 
-	sprintf(temp, ".\\chat_log\\TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+	sprintf(temp, "./chat_log/TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 
 	fChatLogFile = fopen(temp, "wt");
 
@@ -168,7 +168,7 @@ void StartItemLog()
 	time(&now);
 	when = *localtime(&now);
 
-	sprintf(temp, ".\\item_log\\TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
+	sprintf(temp, "./item_log/TM_%02d_%02d_%04d_%02d_%02d_%02d.txt", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 
 	fItemLogFile = fopen(temp, "wt");
 
