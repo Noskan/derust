@@ -359,39 +359,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 113)
 		{
-			pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
-			unsigned int dwColor = 0xFF33FF66;
-
-			TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
-
-			auto pShade = new TMShade(70, 118, 1.0f);
-			pShade->SetColor(0xAA660000);
-			pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-			pShade->SetPosition(TMVector2(pAttacker->m_vecPosition.x, pAttacker->m_vecPosition.y));
-			pShade->m_dwLifeTime = 3200;
-			m_pEffectContainer->AddChild(pShade);
-
-			TMVector3 vecTarget{};
-			TMVector3 vecD{};
-			TMVector3 vecPos2{};
-			D3DXVECTOR3 vecDNormal{};
-
-			for (int i = 0; i < 13; i++)
-			{
-				auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-				if (pMultiTarget)
-				{
-					vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
-						pMultiTarget->m_fHeight,
-						pMultiTarget->m_vecPosition.y);
-
-					auto pFreeze = new TMSkillFreezeBlade(vecTarget, 8, 1, 0);
-					m_pEffectContainer->AddChild(pFreeze);
-
-					auto pPoison = new TMSkillPoison(vecTarget, dwColor, 10, 1, 0);
-					m_pEffectContainer->AddChild(pPoison);
-				}
-			}
+			PacketAttack_Skill113Effect(pAttack, pAttacker);
 		}
 		else if (pAttack->SkillIndex == 114)
 		{
@@ -795,6 +763,45 @@ void TMFieldScene::PacketAttack_Skill111Effect(MSG_Attack*& pAttack, TMHuman*& p
 	D3DXVECTOR3 vecDNormal{};
 
 	PacketAttack_Skill111FreezeBlades(pAttack, vecTarget, vecTarget2, vecD);
+}
+
+/// Efeitos da skill 113 no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill113Effect(MSG_Attack*& pAttack, TMHuman*& pAttacker)
+{
+	pAttacker->SetAnimation(ECHAR_MOTION::ECMOTION_ATTACK04, 0);
+	unsigned int dwColor = 0xFF33FF66;
+
+	TMVector3 vecPos{ pAttacker->m_vecPosition.x, pAttacker->m_fHeight + 1.0f, pAttacker->m_vecPosition.y };
+
+	auto pShade = new TMShade(70, 118, 1.0f);
+	pShade->SetColor(0xAA660000);
+	pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+	pShade->SetPosition(TMVector2(pAttacker->m_vecPosition.x, pAttacker->m_vecPosition.y));
+	pShade->m_dwLifeTime = 3200;
+	m_pEffectContainer->AddChild(pShade);
+
+	TMVector3 vecTarget{};
+	TMVector3 vecD{};
+	TMVector3 vecPos2{};
+	D3DXVECTOR3 vecDNormal{};
+
+	for (int i = 0; i < 13; i++)
+	{
+		auto pMultiTarget = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+		if (pMultiTarget)
+		{
+			vecTarget = TMVector3(pMultiTarget->m_vecPosition.x,
+				pMultiTarget->m_fHeight,
+				pMultiTarget->m_vecPosition.y);
+
+			auto pFreeze = new TMSkillFreezeBlade(vecTarget, 8, 1, 0);
+			m_pEffectContainer->AddChild(pFreeze);
+
+			auto pPoison = new TMSkillPoison(vecTarget, dwColor, 10, 1, 0);
+			m_pEffectContainer->AddChild(pPoison);
+		}
+	}
 }
 
 /// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
