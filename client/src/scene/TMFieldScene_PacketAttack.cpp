@@ -319,18 +319,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 107)
 		{
-			if (pTarget && pAttacker)
-			{
-				fHeight = ((float)(TMHuman::m_vecPickSize[pAttacker->m_nSkinMeshType].y	* pAttacker->m_fScale) * 0.69999999f) + pAttacker->m_fHeight;
-				if(pAttacker->m_nSkinMeshType == 8)
-					fHeight = (float)(1.0f * pAttacker->m_fScale) + fHeight;
-
-				TMVector3 vecPos{ pAttacker->m_vecPosition.x, fHeight, pAttacker->m_vecPosition.y };
-
-				auto pEffectSpark = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFFFFAA00, 0xFF554411, 1000, 1.0f, 5, 0.0f);
-
-				m_pEffectContainer->AddChild(pEffectSpark);
-			}
+			PacketAttack_Skill107Effect(pAttacker, pTarget, fHeight);
 		}
 		else if (pAttack->SkillIndex == 109)
 		{
@@ -774,6 +763,24 @@ void TMFieldScene::PacketAttack_Skill99Effect(TMHuman*& pTarget)
 	m_pEffectContainer->AddChild(pShade);
 
 	GetSoundAndPlay(1, 0, 0);
+}
+
+/// Efeitos da skill 107 no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill107Effect(TMHuman*& pAttacker, TMHuman*& pTarget, float& fHeight)
+{
+	if (pTarget && pAttacker)
+	{
+		fHeight = ((float)(TMHuman::m_vecPickSize[pAttacker->m_nSkinMeshType].y	* pAttacker->m_fScale) * 0.69999999f) + pAttacker->m_fHeight;
+		if(pAttacker->m_nSkinMeshType == 8)
+			fHeight = (float)(1.0f * pAttacker->m_fScale) + fHeight;
+
+		TMVector3 vecPos{ pAttacker->m_vecPosition.x, fHeight, pAttacker->m_vecPosition.y };
+
+		auto pEffectSpark = new TMEffectSpark(vecPos, pTarget, TMVector3(0.0f, 0.0f, 0.0f), 0xFFFFAA00, 0xFF554411, 1000, 1.0f, 5, 0.0f);
+
+		m_pEffectContainer->AddChild(pEffectSpark);
+	}
 }
 
 /// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
