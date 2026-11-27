@@ -1593,6 +1593,143 @@ bool TMFieldScene::PacketAttack_ApplyTargets(MSG_Attack*& pAttack, TMHuman*& pAt
 if (g_pSpell[pAttack->SkillIndex].TargetType != 3 && g_pSpell[pAttack->SkillIndex].TargetType != 4 && 
 	g_pSpell[pAttack->SkillIndex].TargetType != 5 && g_pSpell[pAttack->SkillIndex].TargetType != 6)
 {
+	if (PacketAttack_ApplyDirectTargets(pAttack, pAttacker, vecAttackerPos, nClass, dwDelay, nReturnValue))
+		return true;
+}
+else
+{
+	float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY)) * 0.1f;
+	vecTarget = TMVector3((float)pAttack->TargetX, fY, (float)pAttack->TargetY);
+
+	if (pAttacker != m_pMyHuman || !pAttack->FlagLocal && pAttacker == m_pMyHuman)
+	{
+		for (int i = 0; i < 13; i++)
+		{
+			if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
+				break;
+
+			if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
+				break;
+
+			auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
+			if (pTargetHuman)
+			{
+				int nDamageRate = pTargetHuman->m_cDamageRate;
+				if (nDamageRate == 0)
+					nDamageRate = 1;
+
+				if (pAttack->Dam[i].Damage == -3 || pAttack->Dam[i].Damage == -4)
+				{
+					int pX = 0;
+					int pY = 0;
+					if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &pX, &pY))
+					{
+						bool bDrawFront = false;
+						if (g_bHideEffect)
+						{
+							if (pAttacker == m_pMyHuman)
+								bDrawFront = true;
+							if (pTargetHuman == m_pMyHuman)
+								bDrawFront = true;
+						}
+						else
+						{
+							bDrawFront = true;
+						}
+
+						if (bDrawFront)
+						{
+							char szStr[128]{};
+							sprintf(szStr, "miss");
+							auto pFont = new TMFont3(szStr, pX, pY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFFFFFFFF, 2.0f, dwDelay, 1, 1500, 0, 4);
+							m_pExtraContainer->AddChild(pFont);
+						}
+					}
+				}
+				else if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104
+					&& g_pSpell[pAttack->SkillIndex].InstanceType == 6
+					&& (pAttack->Dam[i].Damage >= 0 || pAttack->Dam[i].Damage <= -6))
+				{
+					if (!pAttack->FlagLocal)
+					{
+						if (pTargetHuman->m_stScore.Hp - pAttack->Dam[i].Damage / nDamageRate <= 0)
+							pTargetHuman->m_stScore.Hp = 0;
+						else
+							pTargetHuman->m_stScore.Hp -= pAttack->Dam[i].Damage / nDamageRate;
+						if (pTargetHuman == m_pMyHuman)
+						{
+							if (m_nReqHP - pAttack->Dam[i].Damage <= 0)
+								m_nReqHP = 0;
+							else
+								m_nReqHP -= pAttack->Dam[i].Damage / nDamageRate;
+
+							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+						}
+					}
+
+					int nStartX = 0;
+					int nStartY = 0;
+					PacketAttack_AreaShowHealText(pAttack, pAttacker, dwDelay, i, pTargetHuman, nStartX, nStartY);
+					if (pAttack->AttackerID == m_pMyHuman->m_dwID)
+						SetMyHumanExp(pAttack->CurrentExp, pAttack->FakeExp);
+				}
+				else
+				{
+					PacketAttack_AreaApplyHealHp(pAttack, i, pTargetHuman, nDamageRate);
+
+					pTargetHuman->m_wAttackerID = pAttack->AttackerID;
+
+					int bInScreen = 0;
+					int nTX = 0;
+					int nTY = 0;
+					if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pTargetHuman && pAttacker)
+						bInScreen = BASE_Get3DTo2DPos(
+							(float)(pTargetHuman->m_vecPosition.x * 0.5f) + (float)(pAttacker->m_vecPosition.x * 0.5f),
+							pTargetHuman->m_fHeight - 1.0f,
+							(float)(pTargetHuman->m_vecPosition.y * 0.5f) + (float)(pAttacker->m_vecPosition.y * 0.5f),
+							&nTX,
+							&nTY);
+					else
+						bInScreen = BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nTX, &nTY);
+
+					if (PacketAttack_AreaShowDamage(pAttack, pAttacker, dwDelay, i, pTargetHuman, bInScreen, nTX, nTY, nReturnValue))
+						return true;
+				}
+				if (pTargetHuman->m_stScore.Hp < 0 && !pAttack->FlagLocal)
+				{
+					pTargetHuman->m_stScore.Hp = 0;
+					if (pTargetHuman == m_pMyHuman)
+						memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+
+					m_nReqHP = 0;
+				}
+				if (pTargetHuman->m_stScore.Hp > pTargetHuman->m_stScore.MaxHp && !pAttack->FlagLocal)
+				{
+					pTargetHuman->m_stScore.Hp = pTargetHuman->m_stScore.MaxHp;
+					if (pTargetHuman == m_pMyHuman)
+						memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+				}
+				if (pTargetHuman == m_pMyHuman && !pAttack->FlagLocal)
+				{
+					g_pObjectManager->m_stMobData.CurrentScore.Hp = pTargetHuman->m_stScore.Hp;
+					if (pTargetHuman == m_pMyHuman)
+						memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
+				}
+				pTargetHuman->UpdateScore(0);
+			}
+		}
+	}
+	if (PacketAttack_AreaSkillEffects(pAttack, pAttacker, bomb, vecStart, vecTarget, nReturnValue))
+		return true;
+}
+	return false;
+}
+
+/// Aplica o resultado em cada alvo das skills de alvo direto (`TargetType` fora de 3..6).
+/// @note Extraído de `TMFieldScene::PacketAttack_ApplyTargets` (Fase 3); locais passadas por referência.
+/// @return true se o bloco original executou `return` (valor em `nReturnValue`); false para seguir.
+bool TMFieldScene::PacketAttack_ApplyDirectTargets(MSG_Attack*& pAttack, TMHuman*& pAttacker, TMVector2& vecAttackerPos, int& nClass, unsigned int& dwDelay, int& nReturnValue)
+{
 	for (int i = 0; i < 13; i++)
 	{
 		if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
@@ -1740,133 +1877,6 @@ if (g_pSpell[pAttack->SkillIndex].TargetType != 3 && g_pSpell[pAttack->SkillInde
 			}
 		}
 	}
-}
-else
-{
-	float fY = (float)GroundGetMask(TMVector2((float)pAttack->TargetX, (float)pAttack->TargetY)) * 0.1f;
-	vecTarget = TMVector3((float)pAttack->TargetX, fY, (float)pAttack->TargetY);
-
-	if (pAttacker != m_pMyHuman || !pAttack->FlagLocal && pAttacker == m_pMyHuman)
-	{
-		for (int i = 0; i < 13; i++)
-		{
-			if (pAttack->Header.Type == MSG_Attack_One_Opcode && i >= 1)
-				break;
-
-			if (pAttack->Header.Type == MSG_Attack_Two_Opcode && i >= 2)
-				break;
-
-			auto pTargetHuman = g_pObjectManager->GetHumanByID(pAttack->Dam[i].TargetID);
-			if (pTargetHuman)
-			{
-				int nDamageRate = pTargetHuman->m_cDamageRate;
-				if (nDamageRate == 0)
-					nDamageRate = 1;
-
-				if (pAttack->Dam[i].Damage == -3 || pAttack->Dam[i].Damage == -4)
-				{
-					int pX = 0;
-					int pY = 0;
-					if (BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &pX, &pY))
-					{
-						bool bDrawFront = false;
-						if (g_bHideEffect)
-						{
-							if (pAttacker == m_pMyHuman)
-								bDrawFront = true;
-							if (pTargetHuman == m_pMyHuman)
-								bDrawFront = true;
-						}
-						else
-						{
-							bDrawFront = true;
-						}
-
-						if (bDrawFront)
-						{
-							char szStr[128]{};
-							sprintf(szStr, "miss");
-							auto pFont = new TMFont3(szStr, pX, pY + (int)(RenderDevice::m_fHeightRatio * 80.0f), 0xFFFFFFFF, 2.0f, dwDelay, 1, 1500, 0, 4);
-							m_pExtraContainer->AddChild(pFont);
-						}
-					}
-				}
-				else if (pAttack->SkillIndex >= 0 && pAttack->SkillIndex < 104
-					&& g_pSpell[pAttack->SkillIndex].InstanceType == 6
-					&& (pAttack->Dam[i].Damage >= 0 || pAttack->Dam[i].Damage <= -6))
-				{
-					if (!pAttack->FlagLocal)
-					{
-						if (pTargetHuman->m_stScore.Hp - pAttack->Dam[i].Damage / nDamageRate <= 0)
-							pTargetHuman->m_stScore.Hp = 0;
-						else
-							pTargetHuman->m_stScore.Hp -= pAttack->Dam[i].Damage / nDamageRate;
-						if (pTargetHuman == m_pMyHuman)
-						{
-							if (m_nReqHP - pAttack->Dam[i].Damage <= 0)
-								m_nReqHP = 0;
-							else
-								m_nReqHP -= pAttack->Dam[i].Damage / nDamageRate;
-
-							memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-						}
-					}
-
-					int nStartX = 0;
-					int nStartY = 0;
-					PacketAttack_AreaShowHealText(pAttack, pAttacker, dwDelay, i, pTargetHuman, nStartX, nStartY);
-					if (pAttack->AttackerID == m_pMyHuman->m_dwID)
-						SetMyHumanExp(pAttack->CurrentExp, pAttack->FakeExp);
-				}
-				else
-				{
-					PacketAttack_AreaApplyHealHp(pAttack, i, pTargetHuman, nDamageRate);
-
-					pTargetHuman->m_wAttackerID = pAttack->AttackerID;
-
-					int bInScreen = 0;
-					int nTX = 0;
-					int nTY = 0;
-					if (pTargetHuman->m_nClass == 56 && !pTargetHuman->m_stLookInfo.FaceMesh && pTargetHuman && pAttacker)
-						bInScreen = BASE_Get3DTo2DPos(
-							(float)(pTargetHuman->m_vecPosition.x * 0.5f) + (float)(pAttacker->m_vecPosition.x * 0.5f),
-							pTargetHuman->m_fHeight - 1.0f,
-							(float)(pTargetHuman->m_vecPosition.y * 0.5f) + (float)(pAttacker->m_vecPosition.y * 0.5f),
-							&nTX,
-							&nTY);
-					else
-						bInScreen = BASE_Get3DTo2DPos(pTargetHuman->m_vecPosition.x, pTargetHuman->m_fHeight + 1.0f, pTargetHuman->m_vecPosition.y, &nTX, &nTY);
-
-					if (PacketAttack_AreaShowDamage(pAttack, pAttacker, dwDelay, i, pTargetHuman, bInScreen, nTX, nTY, nReturnValue))
-						return true;
-				}
-				if (pTargetHuman->m_stScore.Hp < 0 && !pAttack->FlagLocal)
-				{
-					pTargetHuman->m_stScore.Hp = 0;
-					if (pTargetHuman == m_pMyHuman)
-						memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-
-					m_nReqHP = 0;
-				}
-				if (pTargetHuman->m_stScore.Hp > pTargetHuman->m_stScore.MaxHp && !pAttack->FlagLocal)
-				{
-					pTargetHuman->m_stScore.Hp = pTargetHuman->m_stScore.MaxHp;
-					if (pTargetHuman == m_pMyHuman)
-						memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-				}
-				if (pTargetHuman == m_pMyHuman && !pAttack->FlagLocal)
-				{
-					g_pObjectManager->m_stMobData.CurrentScore.Hp = pTargetHuman->m_stScore.Hp;
-					if (pTargetHuman == m_pMyHuman)
-						memcpy(&g_pObjectManager->m_stMobData.CurrentScore, &pTargetHuman->m_stScore, sizeof(pTargetHuman->m_stScore));
-				}
-				pTargetHuman->UpdateScore(0);
-			}
-		}
-	}
-	if (PacketAttack_AreaSkillEffects(pAttack, pAttacker, bomb, vecStart, vecTarget, nReturnValue))
-		return true;
-}
 	return false;
 }
 
