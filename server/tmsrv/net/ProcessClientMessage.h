@@ -44,8 +44,6 @@
 
 // Externs
 
-extern HWND hWndMain;
-
 extern int ServerGroup;
 
 extern unsigned int CurrentTime;

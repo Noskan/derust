@@ -359,7 +359,7 @@ void ProcessDBMessage(char *Msg)
 									   {
 										   SendClientMessage(conn, g_pMessageStringTable[_NN_Try_Reconnect]);
 
-										   pUser[conn].cSock.SendMessageA();
+										   pUser[conn].cSock.SendMessage();
 
 										   CloseUser(conn);
 
@@ -375,7 +375,7 @@ void ProcessDBMessage(char *Msg)
 										   {
 											   SendClientMessage(conn, g_pMessageStringTable[_NN_MAC_Block]);
 
-											   pUser[conn].cSock.SendMessageA();
+											   pUser[conn].cSock.SendMessage();
 
 											   CloseUser(conn);
 											   break;
@@ -491,7 +491,7 @@ void ProcessDBMessage(char *Msg)
 												int ID = m->ID;
 
 												SendClientMessage(conn, g_pMessageStringTable[_NN_No_Account_With_That_Name]);
-												pUser[conn].cSock.SendMessageA();
+												pUser[conn].cSock.SendMessage();
 
 												CloseUser(conn);
 
@@ -517,7 +517,7 @@ void ProcessDBMessage(char *Msg)
 												  sprintf(temp, g_pMessageStringTable[_SN_Blocked_Account], "C");
 
 											  SendClientMessage(conn, temp);
-											  pUser[conn].cSock.SendMessageA();
+											  pUser[conn].cSock.SendMessage();
 
 											  CloseUser(conn);
 
@@ -531,7 +531,7 @@ void ProcessDBMessage(char *Msg)
 												int ID = m->ID;
 
 												SendClientMessage(conn, g_pMessageStringTable[_NN_Disabled_Account]);
-												pUser[conn].cSock.SendMessageA();
+												pUser[conn].cSock.SendMessage();
 
 												CloseUser(conn);
 
@@ -557,7 +557,7 @@ void ProcessDBMessage(char *Msg)
 									  int ID = m->ID;
 
 									  SendClientMessage(conn, g_pMessageStringTable[_NN_Only_Once_Per_Day]);
-									  pUser[conn].cSock.SendMessageA();
+									  pUser[conn].cSock.SendMessage();
 
 		} break;
 #pragma endregion
@@ -569,7 +569,7 @@ void ProcessDBMessage(char *Msg)
 											 int ID = m->ID;
 
 											 SendClientMessage(conn, g_pMessageStringTable[_NN_Wrong_Password]);
-											 pUser[conn].cSock.SendMessageA();
+											 pUser[conn].cSock.SendMessage();
 
 											 CloseUser(conn);
 
@@ -1107,7 +1107,7 @@ void ProcessDBMessage(char *Msg)
 
 									  SendClientSignal(m->ID, ESCENE_FIELD + 2, _MSG_AlreadyPlaying);
 
-									  pUser[m->ID].cSock.SendMessageA();
+									  pUser[m->ID].cSock.SendMessage();
 
 									  CloseUser(conn);
 
@@ -1120,7 +1120,7 @@ void ProcessDBMessage(char *Msg)
 
 									SendClientSignal(m->ID, ESCENE_FIELD + 2, _MSG_StillPlaying);
 
-									pUser[m->ID].cSock.SendMessageA();
+									pUser[m->ID].cSock.SendMessage();
 
 									CloseUser(conn);
 
@@ -1304,7 +1304,7 @@ void ProcessDBMessage(char *Msg)
 			m->ID = ESCENE_FIELD;
 
 			pUser[conn].cSock.AddMessage((char*)m, sizeof(MSG_STANDARDPARM));
-			pUser[conn].cSock.SendMessageA();
+			pUser[conn].cSock.SendMessage();
 		} break;
 #pragma endregion
 #pragma region _MSG_DBCNFServerChange

@@ -33,6 +33,7 @@
 
 #include "common/Basedef.h"
 #include "common/CPSock.h"
+#include "common/EventLoop.h"
 
 #include "entities/CItem.h"
 #include "entities/CMob.h"
@@ -41,7 +42,6 @@
 
 
 // Externs
-extern HWND hWndMain;
 
 extern int ServerGroup;
 
@@ -73,9 +73,9 @@ void  ClearCrown(int conn);
 BOOL  AddCrackError(int conn, int val, int Type);
 BOOL  PutItem(int conn, STRUCT_ITEM *item);
 void  GuildZoneReport();
-HFONT__ *  GetAFont();
 void  ReadConfig();
-void  DrawConfig(int wb);
+/// @brief Grava a configuração dos eventos em gameconfig.txt (ver Server_Window.cpp).
+void  WriteGameConfig();
 void  AddFailAccount(char *Account);
 int   CheckFailAccount(char *Account);
 int   IsFree(STRUCT_SELCHAR *sel);
@@ -93,7 +93,8 @@ FILE* WriteHeader(char *fileName);
 void  WriteArmor(FILE *fp);
 void  WriteWeapon(FILE *fp);
 void  BuildList();
-LONG  APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam);
+/// @brief Tratador do laço de eventos (common/EventLoop.h): timers, sockets, comandos, encerramento.
+void  OnServerEvent(const W2Event& ev);
 int   GetUserInArea(int x1, int y1, int x2, int y2, char *MobName);
 void  MountProcess(int conn, STRUCT_ITEM *Mount);
 void  LinkMountHp(int mobConn);
@@ -219,11 +220,6 @@ extern short weapon[32][9];
 extern CPSock BillServerSocket;
 extern char   BillServerAddress[32];
 extern int	   BillServerPort;
-
-extern HWND  hWndMain;
-extern HMENU hMainMenu;
-extern HFONT hFont;
-extern HDC hDC;
 
 extern FILE *fLogFile;
 extern FILE *fChatLogFile;

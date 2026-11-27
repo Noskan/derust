@@ -32,7 +32,7 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 		sprintf(temp, g_pMessageStringTable[_NN_Reconnect]);
 		SendClientMessage(conn, temp);
 
-		pUser[conn].cSock.SendMessageA();
+		pUser[conn].cSock.SendMessage();
 
 		CloseUser(conn);
 		return;
@@ -47,7 +47,7 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 		sprintf(temp, g_pMessageStringTable[_NN_Version_Not_Match_Rerun], APP_VERSION);
 		SendClientMessage(conn, temp);
 
-		pUser[conn].cSock.SendMessageA();
+		pUser[conn].cSock.SendMessage();
 
 		CloseUser(conn);
 		return;
@@ -58,7 +58,7 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 		SendClientMessage(conn, "Login now, wait a moment.");
 
 		CrackLog(conn, " accountlogin");
-		pUser[conn].cSock.SendMessageA(); 
+		pUser[conn].cSock.SendMessage(); 
 		return;
 	}
 
@@ -85,7 +85,7 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 	{
 		SendClientMessage(conn, g_pMessageStringTable[_NN_3_Tims_Wrong_Pass]);
 
-		pUser[conn].cSock.SendMessageA();
+		pUser[conn].cSock.SendMessage();
 		return;
 	}
 

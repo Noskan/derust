@@ -56,7 +56,7 @@ void ReadConfig(void) // TODO : EVERYTHING
 
 		ConfigReady = 1;
 
-		DrawConfig(TRUE);
+		WriteGameConfig();
 
 		return;
 	}

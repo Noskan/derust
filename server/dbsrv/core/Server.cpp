@@ -41,10 +41,6 @@
 #include "persistence/CRanking.h"
 #include "core/CReadFiles.h"
 
-HWND		hWndMain;
-HMENU		hMainMenu;
-HINSTANCE   hInst;
-
 int ServerIndex = -1;
 int CurrentTransInfo = 0;
 int Sapphire = 8;
@@ -91,133 +87,17 @@ CFileDB cFileDB;
 STRUCT_MOB g_pBaseSet[MAX_CLASS];
 STRUCT_ITEMLOG ItemDayLog[MAX_ITEMLIST];
 
-HFONT hFont = NULL;
-HFONT h;
-
-int x = 0;
-int y = 0;
-HDC hDC = NULL;
-
-void TextOutWind(char *str, int color)
+/// Comandos do operador: os itens do menu da janela do Windows, pelo FIFO de controle.
+static void RegisterCommands()
 {
-	char String[1024];
-
-	SetTextColor(hDC, color);
-
-	sprintf(String, str);
-
-	int len = strlen(String);
-
-
-	TextOutA(hDC, x, y, String, len);
-
-	y += 16;
+	W2LoopAddCommand(IDC_EXIT, "Exit");
+	W2LoopAddCommand(IDC_SHUTDOWNNP, "Reload MobBase");
 }
 
-void DrawConfig()
+int main() // Last Updated 19/01/2013
 {
-	x = 0;
-	y = 0;
-
-	h = 0;
-
-	int VERMELHO = 255;
-	int PRETO = 0;
-
-	char String[1024];
-	int len = 0;
-
-	hDC = GetDC(hWndMain);
-
-	if (hDC == NULL)
-		return;
-
-	if (hFont == 0)
-		return;
-
-	if (SelectObject(hDC, hFont) != 0)
-		h = (HFONT)SelectObject(hDC, hFont);
-
-	
-	TextOutWind("Server Zone Status:", VERMELHO);
-
-	for (int i = 0; i < MAX_SERVER; i++)
-	{
-		unsigned char *cIP = (unsigned char *)&(pUser[i].IP);
-
-		sprintf(String, " %d - IP: %3d. %3d. %3d. %3d  Socket: %3d  Guild: %4d %4d %4d %4d %4d  User: %4d    ", i, cIP[0], cIP[1], cIP[2], cIP[3], pUser[i].cSock.Sock, ChargedGuildList[i][0], ChargedGuildList[i][1], ChargedGuildList[i][2], ChargedGuildList[i][3], ChargedGuildList[i][4], pUser[i].Count);
-		TextOutWind(String, PRETO);
-	}
-	
-	TextOutWind("Admin Status:", VERMELHO);
-	for (int i = 0; i < MAX_ADMIN; i++)
-	{
-		unsigned char *cIP = (unsigned char *)&(pAdmin[i].IP);
-
-		sprintf(String, "%2d - IP: %3d. %3d. %3d. %3d  Socket: %3d", i, cIP[0], cIP[1], cIP[2], cIP[3], pAdmin[i].cSock.Sock);
-		TextOutWind(String, PRETO);
-	}
-	
-	if (hFont && h)
-		h = (HFONT)SelectObject(hDC, h);
-
-	ReleaseDC(hWndMain, hDC);
-}
-
-int InitApplication(HANDLE hInstance) // Last updated 15/01/2013
-{
-	WNDCLASS  wc;  
-	
-	wc.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;    
-	wc.lpfnWndProc = (WNDPROC)MainWndProc;  
-	wc.cbClsExtra = 0;  
-	wc.cbWndExtra = 0;                    
-	wc.hIcon = (HICON)LoadIcon ((HINSTANCE)hInstance, "MAINICON");
-	wc.hInstance = (HINSTANCE) hInstance;  
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);  
-	wc.lpszMenuName =  NULL;           
-	wc.lpszClassName = "MainClass"; 
-	
-	if(!RegisterClass(&wc)) 
-		return RegisterClass(&wc);
-
-	return TRUE;
-}
-
-int InitInstance(HANDLE hInstance, int nCmdShow) // Last updated 15/01/2013
-{    
-	hMainMenu = CreateMenu();
-
-	hWndMain = CreateWindow("MainClass",  "DB Server", 
-		WS_OVERLAPPED | WS_CLIPCHILDREN | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,    // Window style. 
-		CW_USEDEFAULT, CW_USEDEFAULT, 800, 600,            // W,H[MenuÇÕÄ¡¸é 480]
-		NULL, hMainMenu, (HINSTANCE)hInstance, NULL);
-
-	if (!hWndMain) 
-		return FALSE;
-
-	ShowWindow(hWndMain, nCmdShow);  
-	UpdateWindow(hWndMain);      
-
-	return TRUE;     
-}
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) // Last Updated 19/01/2013
-{
-	MSG msg;
-
-	UNREFERENCED_PARAMETER(lpCmdLine);
-
-	hInst = hInstance;
-
-	if(!hPrevInstance)
-		if(!InitApplication(hInstance)) 
-			return FALSE;      
-
-	if(!InitInstance(hInstance, nCmdShow)) 
-		return FALSE;
-
+	W2LoopInit();
+	RegisterCommands();
 
 	BASE_InitModuleDir();
     BASE_InitializeBaseDef();
@@ -296,14 +176,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	ReadConfig();
 
-	int ret = ListenSocket.WSAInitialize();
-
-	if(!ret)
-	{
-		Log("err,wsainitialize fail", "-system", 0);
-
-		return FALSE;
-	}
+	int ret = 0;
 
 	BASE_InitializeServerList();
 
@@ -362,8 +235,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	CReadFiles::ImportItem();
 	ReadTrandGuildInfo();
 
-	ListenSocket.StartListen(hWndMain, 0, DB_PORT, WSA_ACCEPT);
-	AdminSocket.StartListen(hWndMain, 0, ADMIN_PORT, WSA_ACCEPTADMIN);
+	ListenSocket.StartListen(0, DB_PORT, NET_ACCEPT);
+	AdminSocket.StartListen(0, ADMIN_PORT, NET_ACCEPTADMIN);
 
 	FILE *fp = fopen("redirect.txt", "rt");
 
@@ -375,7 +248,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		fscanf(fp, "%s %d %s %s", sip, &port, adminclientid, adminclientpass);
 		fclose(fp);
 
-		ret = AdminClient.ConnectServer(sip, port, INADDR_ANY, WSA_READADMINCLIENT);
+		ret = AdminClient.ConnectServer(sip, port, INADDR_ANY, NET_READADMINCLIENT);
 
 		if(ret == NULL)
 		{	
@@ -389,35 +262,29 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		}
 	}
 
-	SetTimer(hWndMain, TIMER_SEC, 1000, NULL); 
+	W2LoopSetTimer(TIMER_SEC, 1000); 
 
 	CReadFiles::ReadGuildInfo();
 
-	while(GetMessage(&msg, NULL, 0, 0))
-	{    
-		TranslateMessage(&msg);
-		DispatchMessage(&msg); 
-	}
-
-	return msg.wParam;  
+	return W2LoopRun(OnServerEvent);
 }
 
-LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
+void OnServerEvent(const W2Event& ev)
 {
-	switch(message)    
+	switch (ev.code)    
 	{
 
-	case WM_TIMER:
+	case W2_EVENT_TIMER:
 		{ 
-			if(wParam == TIMER_SEC) 
+			if(ev.id == TIMER_SEC) 
 				ProcessSecTimer(); 
-			else if(wParam == TIMER_MIN) 
+			else if(ev.id == TIMER_MIN) 
 				ProcessMinTimer(); 
 		} break;
 
-	case WSA_READADMINCLIENT:
+	case NET_READADMINCLIENT:
 		{
-			if(WSAGETSELECTEVENT(lParam) != FD_READ)
+			if(ev.net != W2_NET_READ)
 			{	
 				Log("adminclient close fd read","-system",0);
 
@@ -456,20 +323,20 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			};
 		}	break;
 
-	case WSA_READADMIN:
+	case NET_READADMIN:
 		{
-			int User = GetAdminFromSocket(wParam);  
+			int User = GetAdminFromSocket(ev.fd);  
 
 			if(User == -1)
 			{	
-				closesocket(wParam);
+				W2CloseSocket(ev.fd);
 
 				Log("err, wsa_read unregistered sever socket", "-system", 0);
 
 				break;
 			} 
 
-			if(WSAGETSELECTEVENT(lParam) != FD_READ)
+			if(ev.net != W2_NET_READ)
 			{	
 				char temp[256];
 				sprintf(temp, "admin close fd %d", User);
@@ -536,20 +403,20 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 		} break;
 
-	case WSA_READ:
+	case NET_READ:
 		{
-			int User = GetUserFromSocket(wParam);  
+			int User = GetUserFromSocket(ev.fd);  
 
 			if(User == -1)
 			{	
-				closesocket(wParam);
+				W2CloseSocket(ev.fd);
 
 				Log("err wsa_read unregistered game server socket", "-system", 0);
 
 				break;
 			}
 
-			if(WSAGETSELECTEVENT(lParam) != FD_READ)
+			if(ev.net != W2_NET_READ)
 			{	
 				char temp[256];
 				sprintf(temp, "clo server fd %d", User);
@@ -610,18 +477,18 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 		} break;
 
-	case WSA_ACCEPTADMIN:
+	case NET_ACCEPTADMIN:
 		{
 			 ReadAdmin();
 
-			 if(WSAGETSELECTERROR(lParam))
+			 if(ev.error)
 			 {
 				 Log("err,accept_admin accepting fails", "-system", 0);
 
 				 break;
 			 }
 
-			 TempUser.AcceptUser(AdminSocket.Sock, WSA_READADMIN);
+			 TempUser.AcceptUser(AdminSocket.Sock, NET_READADMIN);
 
 			 unsigned char *cIP = (unsigned char *)&(TempUser.IP);
 			 int User = -1;
@@ -729,15 +596,15 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			 pAdmin[User].cSock.SendOneMessage((char*)&sm, sizeof(MSG_NPIDPASS));
 		} break;
 
-	case WSA_ACCEPT:
+	case NET_ACCEPT:
 		{
-			if(WSAGETSELECTERROR(lParam)) 
+			if(ev.error) 
 			{	
 				Log("err WSAGETSELECTERROR - accepting new client.", "-system", 0);
 				break;
 			}
 
-			TempUser.AcceptUser(ListenSocket.Sock, WSA_READ);
+			TempUser.AcceptUser(ListenSocket.Sock, NET_READ);
 
 			unsigned char *cIP = (unsigned char *)&(TempUser.IP);
 
@@ -854,30 +721,12 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 		} break;
 
-	case WM_CREATE:
+	case W2_EVENT_COMMAND:
 	{
-			HMENU hMenu, hSubMenu;
-			// HICON hIcon, hIconSm;
-
-			hMenu = CreateMenu();
-
-			hSubMenu = CreatePopupMenu();
-			AppendMenu(hSubMenu, MF_STRING, IDC_EXIT, "&Exit");
-			AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&File");
-
-			hSubMenu = CreatePopupMenu();
-			AppendMenu(hSubMenu, MF_STRING, IDC_SHUTDOWNNP, "&Reload MobBase");
-			AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&Sistema");
-
-			SetMenu(hWnd, hMenu);
-	} break;
-
-	case WM_COMMAND:
-	{
-		switch(LOWORD(wParam))
+		switch (ev.id)
 		{
 			case IDC_EXIT:
-				PostMessage(hWnd, WM_CLOSE, 0, 0);
+				W2LoopPostClose();
 			break;
 
 			case IDC_SHUTDOWNNP:
@@ -892,7 +741,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 				{
 					ServerAlert("no TransKnight file", "BOOTING ERROR");
 
-					return FALSE;
+					return;
 				}
 
 				read(handle, &g_pBaseSet[0], sizeof(STRUCT_MOB));
@@ -907,7 +756,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 				{
 					ServerAlert("no Foema file", "BOOTING ERROR");
 
-					return FALSE;
+					return;
 				}
 
 				read(handle, &g_pBaseSet[1], sizeof(STRUCT_MOB));
@@ -921,7 +770,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 				{
 					ServerAlert("no BeastMaster file", "BOOTING ERROR");
 
-					return FALSE;
+					return;
 				}
 
 				read(handle, &g_pBaseSet[2], sizeof(STRUCT_MOB));
@@ -935,7 +784,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 				{
 					ServerAlert("no Huntress file", "BOOTING ERROR");
 
-					return FALSE;
+					return;
 				}
 
 				read(handle, &g_pBaseSet[3], sizeof(STRUCT_MOB));
@@ -951,26 +800,12 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 		}
 	} break;
 
-	case WM_PAINT:
-		PAINTSTRUCT ps;
-		memset(&ps, 0, sizeof(PAINTSTRUCT));
-
-		BeginPaint(hWnd, &ps);
-
-		hFont = CreateFont(12, 0, 0, 0, FW_LIGHT, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Fixedsys"); // |FF_DECORATIVE
-
-		hDC = ps.hdc;
-
-		DrawConfig();
-
-		EndPaint(hWnd, &ps);
-		break; 
-
-	case WM_CLOSE:
+	case W2_EVENT_CLOSE:
 		{	
-			int rret = MessageBox(hWndMain, "Desligando servidor, não se esqueça de salvar as contas !", "Aviso !! Desligando Servidor !!", MB_OKCANCEL | MB_ICONWARNING);
+			// No Windows, uma caixa com OK e Cancelar. Aqui o pedido (SIGTERM/SIGINT ou o comando
+			// Exit) já é a decisão do operador: o texto fica como aviso no stderr.
+			ServerAlert("Desligando servidor, não se esqueça de salvar as contas !", "Aviso !! Desligando Servidor !!");
 
-			if(rret == 1)
 			{
 				WriteConfig();
 
@@ -980,24 +815,13 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 				DayLog_ExpLog();
 				DayLog_ItemLog();
 
-				DefWindowProc(hWnd,message,wParam,lParam);
+				W2LoopQuit(0);
 			}	
 
-			return true;			
+			return;			
 
 		} break;
-
-	case WM_DESTROY:
-		WSACleanup();
-		PostQuitMessage(0);
-		break;
-
-	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
-
 	}
-
-	return 0;
 }
 
 void ProcessClientMessage(int conn, char *msg)
@@ -1032,8 +856,6 @@ void ProcessSecTimer()
 		CReadFiles::ImportItem(); // Once every two minutes
 		CReadFiles::ImportDonate();
 	}
-
-	DrawConfig();
 
 	if(SecCounter % 30 == 0)
 	{

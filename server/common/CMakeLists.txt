@@ -4,12 +4,14 @@ add_library(w2pp_common STATIC
   BaseCombat.cpp
   BaseLoaders.cpp
   CPSock.cpp
+  EventLoop.cpp
   Platform.cpp
   System.cpp
   ProtocolLayoutCheck.cpp
   Basedef.h
   BasedefInternal.h
   CPSock.h
+  EventLoop.h
   ItemEffect.h
   Platform.h
   System.h

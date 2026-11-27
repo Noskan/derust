@@ -87,8 +87,6 @@ void CrackLog(int conn, char *str)
 	strcat(temp, str);
 
 	Log(temp, "-system", 0);
-
-	SetWindowTextA(hWndMain, temp);
 }
 
 void Log(char *str1, char *str2, unsigned int ip)
@@ -114,9 +112,6 @@ void Log(char *str1, char *str2, unsigned int ip)
 
 	if (fLogFile)
 		fprintf(fLogFile, LogTemp);
-
-	SetWindowText(hWndMain, LogTemp);
-	
 }
 
 void StartChatLog()

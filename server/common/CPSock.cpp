@@ -17,12 +17,19 @@
 *   Contact at:
 */
 
-#include <Windows.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include "common/CPSock.h"
 #include "common/Basedef.h"
+#include "common/EventLoop.h"
 
 int ConnectPort = 0;
 
@@ -45,7 +52,6 @@ unsigned char pKeyWord[512] = { // 7.xx keys
 	0xd7, 0x8f, 0x05, 0x7d, 0x0d, 0x34, 0x8f, 0x7d, 0xad, 0x87, 0xe9, 0x7c, 0x85, 0x80, 0x85, 0x79, 0x8a, 0xc3, 0xe7, 0xa5, 0xe8, 0x6b, 0x0d, 0x74, 0x10, 0x73, 0x33, 0x17, 0x0d, 0x37, 0x21, 0x19
 };
 //Server.cpp
-extern HWND			hWndMain;
 extern unsigned int CurrentTime;
 extern unsigned int LastSendTime;
 void   Log (char *String1, char *String2 , unsigned int ip);
@@ -90,7 +96,7 @@ BOOL CPSock::CloseSocket()
 	Init             = 0;
 
     if (Sock != 0) 
-		closesocket(Sock);
+		W2CloseSocket(Sock);
 
 	Sock = 0;
 
@@ -99,40 +105,21 @@ BOOL CPSock::CloseSocket()
 
 /////////////////////////////////////////////////////////////////////////
 //
-//                       WSAInitialize   
-//
-// WSA initialization
-// Server, all clients are executed once the first
-/////////////////////////////////////////////////////////////////////////
-
-
-BOOL CPSock::WSAInitialize()
-{    
-	WSADATA WSAData;
-
-     if (WSAStartup(MAKEWORD(1,1), &WSAData) != 0) 
-		 return FALSE;
-
- 	 return TRUE;
-}
-
-/////////////////////////////////////////////////////////////////////////
-//
 //							StartListen
 //
 // Listening socket (LSock) Listen to begin with.
-// Connection should be connected to the WSA_ACCEPT.
+// Connection should be connected to the NET_ACCEPT channel.
 // If successful LSock, a failure FALSE (0) is returned.
 /////////////////////////////////////////////////////////////////////////
 
-SOCKET CPSock::StartListen(HWND hWnd, int ip, int port, int WSA)
+int CPSock::StartListen(int ip, int port, int channel)
 {      
 	   
-	SOCKADDR_IN	local_sin;
+	sockaddr_in	local_sin;
 	char		Temp[256];
-	SOCKET		tSock = socket(AF_INET, SOCK_STREAM, 0);
+	int			tSock = socket(AF_INET, SOCK_STREAM, 0);
 
-	if(tSock == INVALID_SOCKET) 
+	if(tSock == -1) 
 	{	
 		ServerAlert("Initialize socket fail", "ERROR");
 
@@ -144,18 +131,15 @@ SOCKET CPSock::StartListen(HWND hWnd, int ip, int port, int WSA)
 	local_sin.sin_addr.s_addr	= ip;		//INADDR_ANY;
 	local_sin.sin_port			= htons((unsigned short int)port);       
 
-#ifndef _WIN32
-	// Linux: sem SO_REUSEADDR, o bind falha enquanto houver conexões em TIME_WAIT na porta (cerca de
-	// 60 s depois de derrubar o servidor), e reiniciar logo em seguida não sobe. O Windows aceita
-	// esse bind sem a opção, e nele SO_REUSEADDR deixaria outro processo tomar a porta.
+	// Sem SO_REUSEADDR, o bind falha enquanto houver conexões em TIME_WAIT na porta (cerca de 60 s
+	// depois de derrubar o servidor), e reiniciar logo em seguida não sobe.
 	int reuse = 1;
 	setsockopt(tSock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse));
-#endif
 
-	if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
+	if(bind(tSock, (struct sockaddr *)&local_sin, sizeof(local_sin)) == -1)
 	{	
 		ServerAlert("Binding fail", "ERROR");
-		closesocket(tSock);
+		W2CloseSocket(tSock);
 
 		return FALSE;
 	}
@@ -163,15 +147,15 @@ SOCKET CPSock::StartListen(HWND hWnd, int ip, int port, int WSA)
 	if(listen(tSock, MAX_PENDING_CONNECTS) < 0)
 	{	
 		ServerAlert("Listen fail", "ERROR");
-		closesocket(tSock);
+		W2CloseSocket(tSock);
 
 		return FALSE;
 	}
 
-	if(WSAAsyncSelect(tSock, hWnd, WSA, FD_ACCEPT) > 0)
+	if(W2LoopWatch(tSock, channel, W2_NET_ACCEPT) > 0)
 	{	
-		ServerAlert("WSAAsyncSelect fail", "ERROR");
-		closesocket(tSock);
+		ServerAlert("W2LoopWatch fail", "ERROR");
+		W2CloseSocket(tSock);
 
 		return FALSE;
 	}
@@ -181,10 +165,10 @@ SOCKET CPSock::StartListen(HWND hWnd, int ip, int port, int WSA)
 	return tSock;
 }
 
-SOCKET CPSock::ConnectServer(char *HostAddr, int Port, int ip, int WSA)
+int CPSock::ConnectServer(char *HostAddr, int Port, int ip, int channel)
 {      
-	SOCKADDR_IN InAddr;	//Connect
-	SOCKADDR_IN local_sin; // Bind local IP
+	sockaddr_in InAddr;	//Connect
+	sockaddr_in local_sin; // Bind local IP
 
 	memset(&InAddr, 0, sizeof(InAddr));
 	memset(&local_sin,	0,	sizeof(local_sin));
@@ -201,9 +185,9 @@ SOCKET CPSock::ConnectServer(char *HostAddr, int Port, int ip, int WSA)
   	InAddr.sin_family		= AF_INET;
 	InAddr.sin_port			= htons((unsigned short)Port);
 
-	SOCKET tSock = socket(AF_INET, SOCK_STREAM, 0);
+	int tSock = socket(AF_INET, SOCK_STREAM, 0);
 
-	if(tSock == INVALID_SOCKET) 
+	if(tSock == -1) 
     {	
 		ServerAlert("Initialize socket fail", "ERROR");
 		return 0;
@@ -213,40 +197,40 @@ SOCKET CPSock::ConnectServer(char *HostAddr, int Port, int ip, int WSA)
     local_sin.sin_addr.s_addr	= ip;
   	local_sin.sin_port			= 0;      
 
-	if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
+	if(bind(tSock, (struct sockaddr *)&local_sin, sizeof(local_sin)) == -1)
     {	
 		ConnectPort += 10;
 		local_sin.sin_port = htons((unsigned short int)(ConnectPort + 5000));
 
-		if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
+		if(bind(tSock, (struct sockaddr *)&local_sin, sizeof(local_sin)) == -1)
 		{	
 			ConnectPort += 10;
 			local_sin.sin_port = htons((unsigned short int)(ConnectPort + 5000));
 
-			if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
+			if(bind(tSock, (struct sockaddr *)&local_sin, sizeof(local_sin)) == -1)
 			{	
 				ServerAlert("Binding fail", "ERROR");
-				closesocket(tSock);
+				W2CloseSocket(tSock);
 
 				return 0;
 			}
 		}
 	}
 
-	if(tSock == INVALID_SOCKET)	
+	if(tSock == -1)	
 		return 0;
 
-	if(connect(tSock, (PSOCKADDR)&InAddr, sizeof(InAddr)) < 0)       
+	if(connect(tSock, (sockaddr*)&InAddr, sizeof(InAddr)) < 0)       
 	{	
-		closesocket(tSock);
+		W2CloseSocket(tSock);
 		Sock = 0;
 
 		return 0;
 	}
 
-	if(WSAAsyncSelect(tSock, hWndMain, WSA, FD_READ | FD_CLOSE) > 0) 
+	if(W2LoopWatch(tSock, channel, W2_NET_READ | W2_NET_CLOSE) > 0) 
 	{	
-		closesocket(tSock);
+		W2CloseSocket(tSock);
 		Sock = 0;
 
 		return 0;
@@ -262,13 +246,13 @@ SOCKET CPSock::ConnectServer(char *HostAddr, int Port, int ip, int WSA)
 	return tSock;
 }
 
-SOCKET CPSock::ConnectBillServer(char *HostAddr, int Port, int ip, int WSA)
+int CPSock::ConnectBillServer(char *HostAddr, int Port, int ip, int channel)
 {
 	char msg[256];	
 
-	SOCKADDR_IN remote_sin;
-	SOCKADDR_IN local_sin;
-	SOCKET      tSock;
+	sockaddr_in remote_sin;
+	sockaddr_in local_sin;
+	int         tSock;
 
 	nRecvPosition = 0;
 	nSendPosition = 0;
@@ -279,26 +263,26 @@ SOCKET CPSock::ConnectBillServer(char *HostAddr, int Port, int ip, int WSA)
 	
 	tSock = socket(AF_INET, SOCK_STREAM, 0);
 
-	if(tSock == INVALID_SOCKET) 
+	if(tSock == -1) 
 		return 0;
 
 	local_sin.sin_family		= AF_INET;
 	local_sin.sin_addr.s_addr	= ip;
 	local_sin.sin_port			= 0;    
 
-	if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
+	if(bind(tSock, (struct sockaddr *)&local_sin, sizeof(local_sin)) == -1)
 	{	
 		local_sin.sin_port = htons((unsigned short int)(ConnectPort + 6000));
 
-		if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
+		if(bind(tSock, (struct sockaddr *)&local_sin, sizeof(local_sin)) == -1)
 		{	
 			ConnectPort += 10;
 			local_sin.sin_port = htons((unsigned short int)(ConnectPort + 6000));
 
-			if(bind(tSock, (struct sockaddr FAR *)&local_sin, sizeof(local_sin)) == SOCKET_ERROR)
+			if(bind(tSock, (struct sockaddr *)&local_sin, sizeof(local_sin)) == -1)
 			{	
 				ServerAlert("Binding fail", "ERROR");	
-				closesocket(tSock);
+				W2CloseSocket(tSock);
 
 				return 0;
 			}
@@ -314,12 +298,12 @@ SOCKET CPSock::ConnectBillServer(char *HostAddr, int Port, int ip, int WSA)
 	remote_sin.sin_family		 = AF_INET;
 	remote_sin.sin_port			 = htons((unsigned short)Port);  
 
-	if(connect(tSock, (PSOCKADDR)&remote_sin, sizeof(remote_sin)) < 0)       
+	if(connect(tSock, (sockaddr*)&remote_sin, sizeof(remote_sin)) < 0)       
 	{	
 		sprintf(msg, "sock:%d ip:%d.%d.%d.%d port:%d-%d", tSock, ((unsigned char*)&remote_sin.sin_addr)[0], ((unsigned char*)&remote_sin.sin_addr)[1], 
 			((unsigned char*)&remote_sin.sin_addr)[2], ((unsigned char*)&remote_sin.sin_addr)[3], remote_sin.sin_port, Port); 
 
-		closesocket(tSock);
+		W2CloseSocket(tSock);
 		Sock = 0;
 
 		return 0;
@@ -328,9 +312,9 @@ SOCKET CPSock::ConnectBillServer(char *HostAddr, int Port, int ip, int WSA)
 	sprintf(msg, "sock:%d ip:%d.%d.%d.%d port:%d-%d", tSock, ((unsigned char*)&remote_sin.sin_addr)[0], ((unsigned char*)&remote_sin.sin_addr)[1], 
 		((unsigned char*)&remote_sin.sin_addr)[2], ((unsigned char*)&remote_sin.sin_addr)[3], remote_sin.sin_port, Port);
 
-    if(WSAAsyncSelect(tSock, hWndMain, WSA, FD_READ|FD_CLOSE) > 0) 
+    if(W2LoopWatch(tSock, channel, W2_NET_READ | W2_NET_CLOSE) > 0) 
 	{	
-		closesocket(tSock);
+		W2CloseSocket(tSock);
 		Sock = 0;
 
 		return 0;
@@ -346,7 +330,7 @@ BOOL CPSock::Receive()
 	int Rest = RECV_BUFFER_SIZE - nRecvPosition;
 	int tReceiveSize = recv(Sock, (char*)(pRecvBuffer + nRecvPosition), Rest, 0);
 
-	if(tReceiveSize == SOCKET_ERROR || tReceiveSize == Rest)
+	if(tReceiveSize == -1 || tReceiveSize == Rest)
 		return FALSE;
 
 	nRecvPosition = nRecvPosition + tReceiveSize;
@@ -627,7 +611,7 @@ void CPSock::RefreshSendBuffer()
 	nSendPosition -= left;
 }
 
-BOOL CPSock::SendMessageA()
+BOOL CPSock::SendMessage()
 {
 	#ifdef _PACKET_DEBUG
 	char temp[256] = { 0, };
@@ -674,12 +658,12 @@ BOOL CPSock::SendMessageA()
 		int	Left = nSendPosition - nSentPosition;
 		int tSend = send(Sock, pSendBuffer + nSentPosition, Left, 0);
 
-		if	(tSend != SOCKET_ERROR)	
+		if	(tSend != -1)	
 			nSentPosition = nSentPosition + tSend;	// Bytes transmitted
 		else
-			err = WSAGetLastError();	
+			err = errno;	
 
-		if(nSentPosition < nSendPosition || tSend == SOCKET_ERROR)
+		if(nSentPosition < nSendPosition || tSend == -1)
 			continue;
 		else
 		{	
@@ -700,7 +684,7 @@ BOOL CPSock::SendOneMessage(char* Msg, int Size)
 {	
 	AddMessage(Msg, Size);
 
-	BOOL Err = SendMessageA();
+	BOOL Err = SendMessage();
 
 	return Err;
 }

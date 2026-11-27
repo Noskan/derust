@@ -266,7 +266,7 @@ void SyncMulticast(int conn, MSG_STANDARD *m, int bSend)
 			pUser[i].cSock.AddMessage((char*)m, m->Size);
 
 			if (bSend)
-				pUser[i].cSock.SendMessageA();
+				pUser[i].cSock.SendMessage();
 		}
 	}
 }
@@ -280,7 +280,7 @@ void SyncKingdomMulticast(int conn, int Kingdom, MSG_STANDARD *m, int bSend)
 			pUser[i].cSock.AddMessage((char*)m, m->Size);
 
 			if (bSend)
-				pUser[i].cSock.SendMessageA();
+				pUser[i].cSock.SendMessage();
 		}
 	}
 }
@@ -306,7 +306,7 @@ void SendCreateMob(int conn, int otherconn, int bSend)
 		GetCreateMob(otherconn, &sm);
 
 		if (pUser[conn].cSock.AddMessage((char*)&sm, sizeof(MSG_CreateMob)))
-			pUser[conn].cSock.SendMessageA();
+			pUser[conn].cSock.SendMessage();
 
 		return;
 	}
@@ -314,7 +314,7 @@ void SendCreateMob(int conn, int otherconn, int bSend)
 	GetCreateMobTrade(otherconn, &sm2);
 
 	if (pUser[conn].cSock.AddMessage((char*)&sm2, sizeof(MSG_CreateMobTrade)))
-		pUser[conn].cSock.SendMessageA();
+		pUser[conn].cSock.SendMessage();
 }
 
 void SendCreateItem(int conn, int item, int bSend)
@@ -327,7 +327,7 @@ void SendCreateItem(int conn, int item, int bSend)
 	pUser[conn].cSock.AddMessage((char*)&sm, sizeof(MSG_CreateItem));
 
 	if (bSend)
-		pUser[conn].cSock.SendMessageA();
+		pUser[conn].cSock.SendMessage();
 }
 
 void SendChat(int conn, char *Message)
@@ -504,7 +504,7 @@ void SendRemoveMob(int dest, int sour, int Type, int bSend)
 	pUser[dest].cSock.AddMessage((char*)&sm, sizeof(MSG_RemoveMob));
 
 	if (bSend)
-		pUser[dest].cSock.SendMessageA();
+		pUser[dest].cSock.SendMessage();
 }
 
 void SendRemoveItem(int dest, int itemid, int bSend)
@@ -520,7 +520,7 @@ void SendRemoveItem(int dest, int itemid, int bSend)
 	pUser[dest].cSock.AddMessage((char*)&sm_deci, sizeof(MSG_DecayItem));
 
 	if (bSend)
-		pUser[dest].cSock.SendMessageA();
+		pUser[dest].cSock.SendMessage();
 }
 
 void SendAutoTrade(int conn, int otherconn)
@@ -1660,7 +1660,7 @@ void MapaMulticast(int tx, int ty, MSG_STANDARD *m, int bSend)
 			pUser[i].cSock.AddMessage((char*)m, m->Size);
 
 			if (bSend)
-				pUser[i].cSock.SendMessageA();
+				pUser[i].cSock.SendMessage();
 		}
 	}
 }
@@ -1677,7 +1677,7 @@ void SendMessageArea(int x1, int y1, int x2, int y2, MSG_STANDARD *m, int bSend)
 			pUser[i].cSock.AddMessage((char*)m, m->Size);
 
 			if (bSend)
-				pUser[i].cSock.SendMessageA();
+				pUser[i].cSock.SendMessage();
 		}
 	}
 }

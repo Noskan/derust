@@ -39,7 +39,7 @@ void Exec_MSG_CharacterLogin(int conn, char *pMsg)
 			SendClientMessage(conn, temp);
 
 			SendClientSignalParm(conn, 0, 404, 0);
-			pUser[conn].cSock.SendMessageA();
+			pUser[conn].cSock.SendMessage();
 		}
 		else
 		{

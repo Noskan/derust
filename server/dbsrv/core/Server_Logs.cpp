@@ -94,8 +94,6 @@ void Log(char *str1, char *str2, unsigned int ip)
 
 	if (fLogFile)
 		fprintf(fLogFile, LogTemp);
-
-	SetWindowText(hWndMain, LogTemp);
 }
 
 void DayLog_ExpLog()

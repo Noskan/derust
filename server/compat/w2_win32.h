@@ -200,7 +200,6 @@ BOOL TranslateMessage(const MSG*);
 LRESULT DispatchMessage(const MSG* msg);
 BOOL PostMessage(HWND, UINT, WPARAM, LPARAM);
 LRESULT SendMessageA(HWND, UINT, WPARAM, LPARAM);
-#define SendMessage SendMessageA	// como no SDK: CPSock::SendMessage vira CPSock::SendMessageA
 void PostQuitMessage(int code);
 LRESULT DefWindowProc(HWND, UINT, WPARAM, LPARAM);
 

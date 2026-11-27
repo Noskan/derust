@@ -64,7 +64,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 								sprintf(temp, g_pMessageStringTable[_SN_End_Khepra], guildname);
 								SendNotice(temp);
 
-								DrawConfig(TRUE);
+								WriteGameConfig();
 							}
 							
 							else
@@ -73,7 +73,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 								sprintf(temp, g_pMessageStringTable[_SN_End_Khepra], "UoW");
 								SendNotice(temp);
 
-								DrawConfig(TRUE);
+								WriteGameConfig();
 							}
 
 							for (int xx = 2335; xx < 2395; xx++)
@@ -1171,7 +1171,7 @@ void ProcessMobKilledDrops(int target, int conn, int PosX, int PosY, int Generat
 
 								SetItemBonus(&item, pMob[target].MOB.CurrentScore.Level, 0, 0);
 								PutItem(conn, &item);
-								DrawConfig(1);
+								WriteGameConfig();
 							}
 #pragma endregion
 							int target_level = pMob[target].MOB.CurrentScore.Level;

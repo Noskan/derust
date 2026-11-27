@@ -575,7 +575,7 @@ void ProcessImple(int conn, int level, char * str)
 				SendClientMessage(conn, "SET TIMER can't be less than 5 sec");
 				return;
 			}
-			SetTimer(hWndMain, TIMER_MIN, ival1, NULL);
+			W2LoopSetTimer(TIMER_MIN, ival1);
 			SendClientMessage(conn, "SET TIMER");
 		}
 		else if (!strcmp(cmd, "saveall"))
@@ -602,43 +602,43 @@ void ProcessImple(int conn, int level, char * str)
 				}
 				BILLING = ival2;
 				SendClientMessage(conn, "set billing");
-				DrawConfig(1);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "billfree"))
 			{
 				FREEEXP = ival2;
 				SendClientMessage(conn, "SET FREE LEVEL");
-				DrawConfig(1);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "charselbill"))
 			{
 				CHARSELBILL = ival2;
 				SendClientMessage(conn, "SET CHARSELL BILL");
-				DrawConfig(1);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "potioncount"))
 			{
 				POTIONCOUNT = ival2;
 				SendClientMessage(conn, "SET POTIONCOUNT BILL");
-				DrawConfig(1);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "potiondelay"))
 			{
 				PotionDelay = ival2;
 				SendClientMessage(conn, "SET POTIONDELAY");
-				DrawConfig(1);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "partybonus"))
 			{
 				PARTYBONUS = ival2;
 				SendClientMessage(conn, "SET PARTYBONUS");
-				DrawConfig(1);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "guildboard"))
 			{
 				GUILDBOARD = ival2;
 				SendClientMessage(conn, "SET PARTYBONUS");
-				DrawConfig(1);
+				WriteGameConfig();
 			}
 
 		}
@@ -881,7 +881,7 @@ void ProcessImple(int conn, int level, char * str)
 			g_pTreasure[idx].Target[tgt].stEffect[2].cEffect = 0;
 			g_pTreasure[idx].Target[tgt].stEffect[2].cValue = 0;
 
-			DrawConfig(1);
+			WriteGameConfig();
 			SendClientMessage(conn, "+troktarget success");
 		}
 		else if (!strcmp(cmd, "trsource"))
@@ -893,7 +893,7 @@ void ProcessImple(int conn, int level, char * str)
 			}
 			int idx = ival1 - 1;
 			g_pTreasure[idx].Source = ival2;
-			DrawConfig(1);
+			WriteGameConfig();
 			SendClientMessage(conn, "+trsource success");
 		}
 		else if (!strcmp(cmd, "trrate"))
@@ -912,7 +912,7 @@ void ProcessImple(int conn, int level, char * str)
 			int tgt = ival2 - 1;
 
 			g_pTreasure[idx].Rate[tgt] = ival3;
-			DrawConfig(1);
+			WriteGameConfig();
 			SendClientMessage(conn, "+trrate success");
 		}
 		else if (!strcmp(cmd, "statsapphire"))
@@ -924,7 +924,7 @@ void ProcessImple(int conn, int level, char * str)
 			}
 			StatSapphire = ival1;
 			SendClientMessage(conn, "CHANGE STAT SAPPHIRE");
-			DrawConfig(TRUE);
+			WriteGameConfig();
 		}
 		else if (!strcmp(cmd, "battleroyal"))
 		{
@@ -935,7 +935,7 @@ void ProcessImple(int conn, int level, char * str)
 			}
 			BRItem = ival1;
 			SendClientMessage(conn, "CHANGE BATTLE ROYAL REWARD");
-			DrawConfig(TRUE);
+			WriteGameConfig();
 		}
 		else if (!strcmp(cmd, "set"))
 		{
@@ -946,7 +946,7 @@ void ProcessImple(int conn, int level, char * str)
 				sprintf(temp, "item:%d index:%d-%d(%d) rate:1/%d [I:%d D:%d O:%d N:%d]", evItem, evStartIndex, evEndIndex, evCurrentIndex, evRate, evIndex, evDelete, evOn, evNotice);
 				
 				SendClientMessage(conn, temp);
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "evend"))
 			{
@@ -955,7 +955,7 @@ void ProcessImple(int conn, int level, char * str)
 				sprintf(temp, "item:%d index:%d-%d(%d) rate:1/%d [I:%d D:%d O:%d N:%d]", evItem, evStartIndex, evEndIndex, evCurrentIndex, evRate, evIndex, evDelete, evOn, evNotice);
 				
 				SendClientMessage(conn, temp);
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "evitem"))
 			{
@@ -964,7 +964,7 @@ void ProcessImple(int conn, int level, char * str)
 				sprintf(temp, "item:%d index:%d-%d(%d) rate:1/%d [I:%d D:%d O:%d N:%d]", evItem, evStartIndex, evEndIndex, evCurrentIndex, evRate, evIndex, evDelete, evOn, evNotice);
 				
 				SendClientMessage(conn, temp);
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "evrate"))
 			{
@@ -973,7 +973,7 @@ void ProcessImple(int conn, int level, char * str)
 				sprintf(temp, "item:%d index:%d-%d(%d) rate:1/%d [I:%d D:%d O:%d N:%d]", evItem, evStartIndex, evEndIndex, evCurrentIndex, evRate, evIndex, evDelete, evOn, evNotice);
 				
 				SendClientMessage(conn, temp);
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "evindex"))
 			{
@@ -982,7 +982,7 @@ void ProcessImple(int conn, int level, char * str)
 				sprintf(temp, "item:%d index:%d-%d(%d) rate:1/%d [I:%d D:%d O:%d N:%d]", evItem, evStartIndex, evEndIndex, evCurrentIndex, evRate, evIndex, evDelete, evOn, evNotice);
 				
 				SendClientMessage(conn, temp);
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "evdelete"))
 			{
@@ -991,7 +991,7 @@ void ProcessImple(int conn, int level, char * str)
 				sprintf(temp, "item:%d index:%d-%d(%d) rate:1/%d [I:%d D:%d O:%d N:%d]", evItem, evStartIndex, evEndIndex, evCurrentIndex, evRate, evIndex, evDelete, evOn, evNotice);
 			
 				SendClientMessage(conn, temp);
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "evon"))
 			{
@@ -1007,7 +1007,7 @@ void ProcessImple(int conn, int level, char * str)
 				sprintf(temp, "item:%d index:%d-%d(%d) rate:1/%d [I:%d D:%d O:%d N:%d]", evItem, evStartIndex, evEndIndex, evCurrentIndex, evRate, evIndex, evDelete, evOn, evNotice);
 				
 				SendClientMessage(conn, temp);
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "evnotice"))
 			{
@@ -1016,13 +1016,13 @@ void ProcessImple(int conn, int level, char * str)
 				sprintf(temp, "item:%d index:%d-%d(%d) rate:1/%d [I:%d D:%d O:%d N:%d]", evItem, evStartIndex, evEndIndex, evCurrentIndex, evRate, evIndex, evDelete, evOn, evNotice);
 				
 				SendClientMessage(conn, temp);
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "double"))
 			{
 				DOUBLEMODE = ival2;
 				SendClientMessage(conn, "SET DOUBLEMODE");
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "deadpoint"))
 			{
@@ -1033,7 +1033,7 @@ void ProcessImple(int conn, int level, char * str)
 				else
 					SendClientMessage(conn, "SET DEADPOINT 0");
 
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "dungeonevent"))
 			{
@@ -1044,7 +1044,7 @@ void ProcessImple(int conn, int level, char * str)
 				else
 					SendClientMessage(conn, "SET DUNGEON EVENT OFF");
 
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 			else if (!strcmp(sval1, "champ"))
 			{
@@ -1111,7 +1111,7 @@ void ProcessImple(int conn, int level, char * str)
 					return;
 				}
 				SendClientMessage(conn, "SET DROP BONUS");
-				DrawConfig(TRUE);
+				WriteGameConfig();
 			}
 		}
 	}
@@ -1148,7 +1148,7 @@ void ProcessImple(int conn, int level, char * str)
 			fclose(fp);
 			
 			int * pip = (int*)LocalIP;
-			int	ret = BillServerSocket.ConnectBillServer(BillServerAddress, BillServerPort, *pip, WSA_READBILL);
+			int	ret = BillServerSocket.ConnectBillServer(BillServerAddress, BillServerPort, *pip, NET_READBILL);
 			
 			if (ret == NULL)
 			{
@@ -1158,7 +1158,7 @@ void ProcessImple(int conn, int level, char * str)
 
 			BILLING = 3;
 			SendClientMessage(conn, "set connect billing");
-			DrawConfig(1);
+			WriteGameConfig();
 		}
 	}
 	if (level >= 1) ////////////////// 0ÀÌÇÏ¸é ¿©±â µé¾î¿ÀÁö¸¦ ¾Ê´Â´Ù.//////////////////////////////////////////////////////////////
@@ -1730,7 +1730,7 @@ void ProcessImple(int conn, int level, char * str)
 			for(int xx = KEFRA_MOB_INITIAL; xx <= KEFRA_MOB_END; xx++)
 				GenerateMob(xx, 0, 0);
 
-			DrawConfig(TRUE);
+			WriteGameConfig();
 
 			SendClientMessage(conn, "CREATE KEFRA");
 		}
@@ -1739,7 +1739,7 @@ void ProcessImple(int conn, int level, char * str)
 		{
 			PARTY_DIF = ival1;
 
-			DrawConfig(TRUE);
+			WriteGameConfig();
 
 			SendClientMessage(conn, "PARTY DIF");
 		}
@@ -1748,7 +1748,7 @@ void ProcessImple(int conn, int level, char * str)
 		{
 			RvRHour = ival1;
 
-			DrawConfig(TRUE);
+			WriteGameConfig();
 
 			SendClientMessage(conn, "RVR HOUR");
 		}
@@ -1758,7 +1758,7 @@ void ProcessImple(int conn, int level, char * str)
 		{
 			GTorreHour = ival1;
 
-			DrawConfig(TRUE);
+			WriteGameConfig();
 
 			SendClientMessage(conn, "GTorre HOUR");
 		}
@@ -1767,7 +1767,7 @@ void ProcessImple(int conn, int level, char * str)
 		{
 			isDropItem = ival1;
 
-			DrawConfig(TRUE);
+			WriteGameConfig();
 
 			SendClientMessage(conn, "DROP ITEM");
 		}
@@ -1776,7 +1776,7 @@ void ProcessImple(int conn, int level, char * str)
 		{
 			maxNightmare = ival1;
 
-			DrawConfig(TRUE);
+			WriteGameConfig();
 
 			SendClientMessage(conn, "MAXNIGHTMARE");
 		}

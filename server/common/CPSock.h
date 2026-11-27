@@ -20,15 +20,18 @@
 #ifndef _CPSOCK_ // Last updated august 2012
 #define _CPSOCK_ 
 
-#include <Windows.h>
+#include "common/Platform.h"
+#include "common/EventLoop.h"
 
-#define WSA_READ            (WM_USER + 100)
-#define WSA_READDB          (WM_USER + 2) 
-#define WSA_ACCEPT          (WM_USER + 3) 
-#define WSA_READBILL		(WM_USER + 4)
-#define WSA_ACCEPTADMIN     (WM_USER + 5) 
-#define WSA_READADMIN		(WM_USER + 6) 
-#define WSA_READADMINCLIENT	(WM_USER + 7) 
+// Canais dos sockets no laço de eventos (common/EventLoop.h): o código de cada evento de socket.
+// Precisam ser maiores que W2_EVENT_LAST.
+#define NET_READ            200
+#define NET_READDB          102
+#define NET_ACCEPT          103
+#define NET_READBILL		104
+#define NET_ACCEPTADMIN     105
+#define NET_READADMIN		106
+#define NET_READADMINCLIENT	107
 
 #define MAX_PENDING_CONNECTS  8
 
@@ -67,16 +70,15 @@ public:
 	~CPSock();
 
 	BOOL	CloseSocket			();
-	BOOL	WSAInitialize		();
-	SOCKET	StartListen			(HWND hWnd, int ip, int Port, int WSA);
-	SOCKET	ConnectServer		(char *HostAddr, int Port, int ip, int WSA);
-	SOCKET  ConnectBillServer	(char *HostAddr, int Port, int ip, int WSA);
+	int		StartListen			(int ip, int Port, int channel);
+	int		ConnectServer		(char *HostAddr, int Port, int ip, int channel);
+	int     ConnectBillServer	(char *HostAddr, int Port, int ip, int channel);
 
 	BOOL	Receive				();
 	char   *ReadMessage			(int *ErrorCode, int *ErrorType);
 	
 	BOOL	AddMessage			(char *pMsg, int Size);
-	BOOL	SendMessageA		();
+	BOOL	SendMessage			();
 	BOOL	SendOneMessage		(char* Msg, int Size);
 	
 	void	RefreshRecvBuffer	(void);

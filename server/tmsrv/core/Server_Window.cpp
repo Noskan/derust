@@ -18,10 +18,13 @@
 */
 
 /// @file Server_Window.cpp
-/// @brief Ponto de entrada e janela de console do TMSrv: `WinMain`, registro da janela,
-///        laço de mensagens (`MainWndProc`: timers, sockets, menu) e painel de estado (`DrawConfig`).
+/// @brief Ponto de entrada do TMSrv: `main`, os comandos do operador, o tratador do laço de
+///        eventos (`OnServerEvent`: timers, sockets, comandos, encerramento) e a gravação do
+///        gameconfig.txt (`WriteGameConfig`).
 ///
-/// Extraído de `Server.cpp` na Fase 2 (Onda 4) sem alteração de comportamento.
+/// Extraído de `Server.cpp` na Fase 2 (Onda 4). Era a janela do servidor no Windows: o laço de
+/// mensagens virou o de common/EventLoop.h, e o painel de estado, que só desenhava o que o
+/// gameconfig.txt grava, saiu.
 
 #include <Windows.h>
 #include <stdio.h>
@@ -45,131 +48,41 @@
 #include "core/CReadFiles.h"
 #include "systems/CWarTower.h"
 
-HFONT__ *GetAFont()
-{
-	return 0;
-}
-
-void DrawConfig(int wb)
+void WriteGameConfig()
 {
 	if (ConfigReady == 0)
 		return;
 
-	int x = 0;
-	int y = 0;
-	HFONT h = 0;
-	
-	int color = 255;
-	int backcolor = 0;
-
 	char String[4096];
-	int len = 0;
 
-	hDC = GetDC(hWndMain);
+	FILE *fp = fopen("gameconfig.txt", "w+");
 
-	if (hDC == NULL)
+	if (fp == NULL)
 		return;
-
-	if (hFont == 0)
-		return;
-
-	if (SelectObject(hDC, hFont) != 0)
-		h = (HFONT)SelectObject(hDC, hFont);
-
-	FILE *fp = NULL;
-
-	if (wb)
-		fp = fopen("gameconfig.txt", "w+");
-
-	SetTextColor(hDC, color);
 
 	sprintf(String, "Drop Item Event Settings:");
-	len = strlen(String);
-
-	TextOutA(hDC, x, y, String, len);
-
-	y += 16;
-
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	SetTextColor(hDC, backcolor);
+	fprintf(fp, "%s\n", String);
 
 	sprintf(String,"   evindex %d   evdelete %d   evon %d   evitem %d   evrate %d   evstart %d %d %d %d",
 		evIndex, evDelete, evOn, evItem, evRate, evStartIndex, evCurrentIndex, evEndIndex, evNotice);
-	
-	len = strlen(String);
-
-	TextOutA(hDC, x, y, String, len);
-
-	y += 16;
-
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	SetTextColor(hDC, color);
+	fprintf(fp, "%s\n", String);
 
 	sprintf(String, "Etc Event Settings:");
+	fprintf(fp, "%s\n", String);
 
-	len = strlen(String);
-	TextOutA(hDC, x, y, String, len);
-
-	y += 16;
-
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	SetTextColor(hDC, backcolor);
 	sprintf(String, "   double %d   deadpoint %d   dungeonevent %d   statsapphire %d    battleroyal %d",
 		DOUBLEMODE, DEADPOINT, DUNGEONEVENT, StatSapphire, BRItem);
-	
-	len = strlen(String);
-	
-	TextOutA(hDC, x, y, String, len);
-
-	y += 16;
-
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	SetTextColor(hDC, color);
+	fprintf(fp, "%s\n", String);
 
 	sprintf(String, "Billing Settings:");
-
-	len = strlen(String);
-	TextOutA(hDC, x, y, String, len);
-
-	y += 16;
-
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	SetTextColor(hDC, backcolor);
+	fprintf(fp, "%s\n", String);
 
 	sprintf(String, "   billmode %d   freeexp %d   charselbill %d    potioncount %d   partybonus %d   guildboard %d",
 		BILLING, FREEEXP, CHARSELBILL, POTIONCOUNT, PARTYBONUS, GUILDBOARD);
-	
-	len = strlen(String);
-	TextOutA(hDC, x, y, String, len);
-
-	y += 16;
-
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	SetTextColor(hDC, color);
+	fprintf(fp, "%s\n", String);
 
 	sprintf(String, "Item Drop Bonus Settings:");
-
-	len = strlen(String);
-	TextOutA(hDC, x, y, String, len);
-	
-	y += 16;
-
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	SetTextColor(hDC, backcolor);
+	fprintf(fp, "%s\n", String);
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -179,29 +92,12 @@ void DrawConfig(int wb)
 			g_pDropBonus[4 + pos], g_pDropBonus[5 + pos], g_pDropBonus[6 + pos], g_pDropBonus[7 + pos],
 			g_pDropBonus[8 + pos], g_pDropBonus[9 + pos], g_pDropBonus[10 + pos], g_pDropBonus[11 + pos],
 			g_pDropBonus[12 + pos], g_pDropBonus[13 + pos], g_pDropBonus[14 + pos], g_pDropBonus[15 + pos]);
-
-		len = strlen(String);
-		TextOutA(hDC, x, y, String, len);
-
-		y += 16;
-
-		if (wb)
-			fprintf(fp, "%s\n", String);
+		fprintf(fp, "%s\n", String);
 	}
 
-	SetTextColor(hDC, color);
-
 	sprintf(String, "Treasure Settings:");
-	len = strlen(String);
-	
-	TextOutA(hDC, x, y, String, len);
-	y += 16;
+	fprintf(fp, "%s\n", String);
 
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	SetTextColor(hDC, backcolor);
-	
 	for (int j = 0; j < 8; j++)
 	{
 		STRUCT_TREASURE *tr = &g_pTreasure[j];
@@ -215,112 +111,39 @@ void DrawConfig(int wb)
 			sprintf(String + strlen(String), "  %-4d %2d %2d %2d %2d   ",
 				item->sIndex, item->stEffect[0].cEffect, item->stEffect[0].cValue, item->stEffect[1].cEffect, item->stEffect[1].cValue);
 		}
-		len = strlen(String);
+		fprintf(fp, "%s\n", String);
 
-		TextOutA(hDC, x, y, String, len);
-		y += 16;
-
-		if (wb)
-			fprintf(fp, "%s\n", String);
-		
 		sprintf(String, "       %-5d                %-5d                %-5d                %-5d                %-5d",
 			tr->Rate[0], tr->Rate[1], tr->Rate[2], tr->Rate[3], tr->Rate[4]);
-		
-		len = strlen(String);
-		TextOutA(hDC, x, y, String, len);
-		y += 16;
-		if (wb)
-			fprintf(fp, "%s\n", String);
+		fprintf(fp, "%s\n", String);
 	}
 
-	SetTextColor(hDC, color);
-
 	sprintf(String, "Etc Settings:");
+	fprintf(fp, "%s\n", String);
 
-	len = strlen(String);
-	TextOutA(hDC, x, y, String, len);
-
-	y += 16;
-
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	SetTextColor(hDC, backcolor);
 	sprintf(String, "   partydif %d   kefrastatus %d   GTorreHour %d    RVRHour %d    DropItem %d   BRHour %d   maxNightmare %d   PotionDelay %d",
 		PARTY_DIF, KefraLive, GTorreHour, RvRHour, isDropItem, BRHour, maxNightmare, PotionDelay);
+	fprintf(fp, "%s\n", String);
 
-	len = strlen(String);
-
-	TextOutA(hDC, x, y, String, len);
-
-	y += 16;
-
-	if (wb)
-		fprintf(fp, "%s\n", String);
-
-	if (hFont && h)
-		h = (HFONT)SelectObject(hDC, h);
-	
-	ReleaseDC(hWndMain, hDC);
-
-	if (wb)
-		fclose(fp);
+	fclose(fp);
 }
 
-BOOL InitApplication(HANDLE hInstance)
+/// Comandos do operador: os itens do menu da janela do Windows, pelo FIFO de controle.
+static void RegisterCommands()
 {
-	WNDCLASS  wc;
-
-	wc.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;
-
-	wc.lpfnWndProc = (WNDPROC)MainWndProc;
-	wc.cbClsExtra = 0;
-	wc.cbWndExtra = 0;
-	wc.hIcon = (HICON)LoadIcon((HINSTANCE)hInstance, "MAINICON");
-	wc.hInstance = (HINSTANCE)hInstance;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-	wc.lpszMenuName = NULL;
-	wc.lpszClassName = "MainClass";
-
-	if (!RegisterClass(&wc))
-		return RegisterClass(&wc);
-
-	return TRUE;
+	W2LoopAddCommand(IDC_EXIT, "Exit");
+	W2LoopAddCommand(IDC_MOBRELOAD, "ReloadMob");
+	W2LoopAddCommand(IDC_REBOOT, "Reboot");
+	W2LoopAddCommand(IDC_SAVEALL, "SaveAll");
+	W2LoopAddCommand(IDC_READGUILD, "ReadGuild");
+	W2LoopAddCommand(IDC_READGUILDNAME, "ReadGuildName");
+	W2LoopAddCommand(IDC_READGAMECONFIG, "ReadGameConfig");
 }
 
-BOOL InitInstance(HANDLE hInstance, int nCmdShow)
+int main()
 {
-	hMainMenu = CreateMenu();
-	hWndMain = CreateWindow("MainClass", "Game Server",
-		WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN,    // Window style. 
-		CW_USEDEFAULT, CW_USEDEFAULT, 900, 600,            // W,H[MenuÇÕÄ¡¸é 480]
-		NULL, hMainMenu, (HINSTANCE)hInstance, NULL);
-
-	if (!hWndMain)
-		return (FALSE);
-
-	ShowWindow(hWndMain, nCmdShow);
-	UpdateWindow(hWndMain);
-
-	return TRUE;
-}
-
-BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
-{
-	MSG msg;
-
-
-	UNREFERENCED_PARAMETER(lpCmdLine);
-
-	if (!hPrevInstance)
-	if (!InitApplication(hInstance))
-		return FALSE;
-
-	if (!InitInstance(hInstance, nCmdShow))
-		return FALSE;
-
-	hFont = CreateFont(12, 0, 0, 0, FW_LIGHT, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEVICE_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, "Fixedsys"); // |FF_DECORATIVE
+	W2LoopInit();
+	RegisterCommands();
 
 	BASE_InitModuleDir();
 	BASE_InitializeHitRate();
@@ -335,22 +158,13 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	ConfigReady = 1;
 
-	DrawConfig(0);
-
 	memset(g_pGuildWar, 0, sizeof(g_pGuildWar));
 	memset(g_pGuildAlly, 0, sizeof(g_pGuildAlly));
 	memset(GuildInfo, 0, sizeof(GuildInfo));
 	memset(pMac, 0, sizeof(pMac));
 	memset(pMobMerc, 0, sizeof(pMobMerc));
 
-	int ret = ListenSocket.WSAInitialize();
-
-	if (!ret)
-	{
-		Log("erro,não foi possivel iniciar a seguinte função : WSAInitialize", "-system", 0);
-
-		return FALSE;
-	}
+	int ret = 0;
 
 	Reboot();
 
@@ -409,7 +223,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 
 	int *pip = (int*)LocalIP;
 
-	ret = DBServerSocket.ConnectServer(DBServerAddress, 7514, *pip, WSA_READDB);
+	ret = DBServerSocket.ConnectServer(DBServerAddress, 7514, *pip, NET_READDB);
 
 	if (ret == NULL)
 	{
@@ -450,7 +264,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	{
 		int *pip2 = (int*)LocalIP;
 
-		ret = BillServerSocket.ConnectBillServer(BillServerAddress, BillServerPort, *pip2, WSA_READBILL);
+		ret = BillServerSocket.ConnectBillServer(BillServerAddress, BillServerPort, *pip2, NET_READBILL);
 
 		if (ret == NULL)
 		{
@@ -478,10 +292,10 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	// CEncampment::ReadCamp();
 	CCastleZakum::ReadCastleQuest();
 
-	SetTimer(hWndMain, TIMER_SEC, 500, NULL);
-	SetTimer(hWndMain, TIMER_MIN, 12000, NULL);
+	W2LoopSetTimer(TIMER_SEC, 500);
+	W2LoopSetTimer(TIMER_MIN, 12000);
 
-	ListenSocket.StartListen(hWndMain, *pip, GAME_PORT, WSA_ACCEPT);
+	ListenSocket.StartListen(*pip, GAME_PORT, NET_ACCEPT);
 
 	GuildZoneReport();
 
@@ -497,13 +311,7 @@ BOOL WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	//mNPCGen.DropList();
 	//mNPCGen.LevelList();
 
-	while (GetMessage(&msg, NULL, 0, 0))
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
-	}
-
-	return	msg.wParam;
+	return W2LoopRun(OnServerEvent);
 }
 
 void BuildList()
@@ -511,22 +319,22 @@ void BuildList()
 
 }
 
-LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
+void OnServerEvent(const W2Event& ev)
 {
-	switch (message)
+	switch (ev.code)
 	{
 
-	case WM_TIMER:
+	case W2_EVENT_TIMER:
 	{
-		if (wParam == TIMER_SEC)
+		if (ev.id == TIMER_SEC)
 			ProcessSecTimer();
-		else if (wParam == TIMER_MIN)
+		else if (ev.id == TIMER_MIN)
 			ProcessMinTimer();
 	} break;
 
-	case WSA_READBILL:
+	case NET_READBILL:
 	{
-		if (WSAGETSELECTEVENT(lParam) != FD_READ)
+		if (ev.net != W2_NET_READ)
 		{
 			Log("err Billing Connection lost.", "-system", 0);
 
@@ -535,7 +343,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 			Log("err,billing disconnected.", "-system", 0);
 
-			return TRUE;
+			return;
 		}
 
 		int ret = BillServerSocket.Receive();
@@ -547,12 +355,12 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			BillServerSocket.CloseSocket();
 			BillCounter = 360;
 
-			return TRUE;
+			return;
 		}
 
 		if (ret == FALSE)
 		{
-			ret = WSAGetLastError();
+			ret = errno;
 
 			sprintf(temp, "err,socket %d %d-%d-%d", ret, BillServerSocket.nRecvPosition, BillServerSocket.nProcPosition, BillServerSocket.nSendPosition);
 
@@ -605,10 +413,10 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 	}  break;
 
-	case WSA_READDB:
+	case NET_READDB:
 	{
-		int t = WSAGETSELECTEVENT(lParam);
-		if (WSAGETSELECTEVENT(lParam) != FD_READ)
+		int t = ev.net;
+		if (ev.net != W2_NET_READ)
 		{
 			Log("err wsareaddb fail", "-system", 0);
 
@@ -620,7 +428,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			{
 				int *pip = (int*)LocalIP;
 
-				ret = DBServerSocket.ConnectServer(DBServerAddress, DBServerPort, *pip, WSA_READDB);
+				ret = DBServerSocket.ConnectServer(DBServerAddress, DBServerPort, *pip, NET_READDB);
 
 				if (ret != NULL)
 					break;
@@ -632,15 +440,15 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			{
 				Log("reconnect DB fail.", "-system", 0);
 
-				PostQuitMessage(NULL);
+				W2LoopQuit(0);
 
-				return TRUE;
+				return;
 
 			}
 
 			W2SleepMs(200);
-			PostQuitMessage(NULL);
-			return TRUE;
+			W2LoopQuit(0);
+			return;
 		}
 
 		if (DBServerSocket.Receive() == FALSE)
@@ -655,7 +463,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			{
 				int *pip = (int*)LocalIP;
 
-				ret = DBServerSocket.ConnectServer(DBServerAddress, DBServerPort, *pip, WSA_READDB);
+				ret = DBServerSocket.ConnectServer(DBServerAddress, DBServerPort, *pip, NET_READDB);
 
 				if (ret != NULL)
 					break;
@@ -667,13 +475,13 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			{
 				Log("reconnect DB fail.", "-system", 0);
 
-				PostQuitMessage(NULL);
+				W2LoopQuit(0);
 
-				return TRUE;
+				return;
 
 			}
-			PostQuitMessage(NULL);
-			return TRUE;
+			W2LoopQuit(0);
+			return;
 
 		}
 
@@ -712,17 +520,17 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 	} break;
 
-	case  WSA_READ:
+	case  NET_READ:
 	{
-		int User = GetUserFromSocket(wParam);
+		int User = GetUserFromSocket(ev.fd);
 		if (User == 0)
 		{
-			closesocket(wParam);
+			W2CloseSocket(ev.fd);
 
 			break;
 		}
 
-		if (WSAGETSELECTEVENT(lParam) != FD_READ)
+		if (ev.net != W2_NET_READ)
 		{
 			sprintf(temp, "clo,fd %d-%d", pUser[User].Mode, pMob[User].Mode);
 			Log(temp, pUser[User].AccountName, pUser[User].IP);
@@ -735,7 +543,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 		if (ret == FALSE)
 		{
-			ret = WSAGetLastError();
+			ret = errno;
 
 			sprintf(temp, "err,socket %d %d-%d-%d %d-%d", ret, pUser[User].cSock.nRecvPosition, pUser[User].cSock.nProcPosition, pUser[User].cSock.nSendPosition, pUser[User].Mode, pMob[User].Mode);
 
@@ -799,9 +607,9 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 	} break;
 
-	case WSA_ACCEPT:
+	case NET_ACCEPT:
 	{
-		if (WSAGETSELECTERROR(lParam) == 0)
+		if (ev.error == 0)
 		{
 
 			int User = GetEmptyUser();
@@ -818,11 +626,11 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 			if (User >= MAX_USER - ADMIN_RESERV)
 			{
 				SendClientMessage(User, g_pMessageStringTable[_NN_Reconnect]);
-				pUser[User].cSock.SendMessageA();
+				pUser[User].cSock.SendMessage();
 
 				CloseUser(User);
 
-				return TRUE;
+				return;
 			}
 
 			if (ServerDown != -1000)
@@ -831,7 +639,7 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 				CloseUser(User);
 
-				return TRUE;
+				return;
 			}
 
 		}
@@ -840,46 +648,12 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 
 	} break;
 
-	case WM_PAINT:
-		PAINTSTRUCT ps;
-		BeginPaint(hWnd, &ps);
-		DrawConfig(0);
-
-		EndPaint(hWnd, &ps);
-		break;
-
-	case WM_CREATE:
+	case W2_EVENT_COMMAND:
 	{
-		HMENU hMenu, hSubMenu;
-		// HICON hIcon, hIconSm;
-
-		hMenu = CreateMenu();
-
-		hSubMenu = CreatePopupMenu();
-		AppendMenu(hSubMenu, MF_STRING, IDC_EXIT, "&Exit");
-		AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&File");
-
-		hSubMenu = CreatePopupMenu();
-		AppendMenu(hSubMenu, MF_STRING, IDC_MOBRELOAD, "&ReloadMob");
-		AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&Mob");
-
-		hSubMenu = CreatePopupMenu();
-		AppendMenu(hSubMenu, MF_STRING, IDC_REBOOT, "&Reboot");
-		AppendMenu(hSubMenu, MF_STRING, IDC_SAVEALL, "&SaveAll");
-		AppendMenu(hSubMenu, MF_STRING, IDC_READGUILD, "&ReadGuild");
-		AppendMenu(hSubMenu, MF_STRING, IDC_READGUILDNAME, "&ReadGuildName");
-		AppendMenu(hSubMenu, MF_STRING, IDC_READGAMECONFIG, "&ReadGameConfig");
-		AppendMenu(hMenu, MF_STRING | MF_POPUP, (UINT)hSubMenu, "&Sistema");
-
-		SetMenu(hWnd, hMenu);
-	} break;
-
-	case WM_COMMAND:
-	{
-		switch (LOWORD(wParam))
+		switch (ev.id)
 		{
 		case IDC_EXIT:
-			PostMessage(hWnd, WM_CLOSE, 0, 0);
+			W2LoopPostClose();
 			break;
 
 		case IDC_MOBRELOAD:
@@ -905,14 +679,14 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 		case IDC_READGAMECONFIG:
 		{
 			ReadConfig();
-			DrawConfig(0);
 		} break;
 		}
 	} break;
-	case WM_CLOSE:
+	case W2_EVENT_CLOSE:
 	{
-		if (MessageBox(hWndMain, "Você realmente deseja desligar o server?", "Aviso!!!", MB_ICONQUESTION | MB_YESNO) == IDNO)
-			break;
+		// No Windows, uma pergunta de confirmação. Aqui o pedido (SIGTERM/SIGINT ou o comando Exit)
+		// já é a decisão do operador: o texto fica como aviso no stderr.
+		ServerAlert("Você realmente deseja desligar o server?", "Aviso!!!");
 
 		if (BILLING != 0)
 		{
@@ -928,24 +702,8 @@ LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam)
 		if (fLogFile)
 			fclose(fLogFile);
 
-		if (hFont)
-		{
-			DeleteObject(hFont);
-			hFont = NULL;
-		}
-
-		DefWindowProc(hWnd, message, wParam, lParam);
+		W2LoopQuit(0);
 
 	} break;
-
-	case WM_DESTROY:
-		WSACleanup();
-		PostQuitMessage(0);
-		break;
-
-	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
-
-	return 0;
 }

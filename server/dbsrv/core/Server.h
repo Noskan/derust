@@ -21,6 +21,7 @@
 #define __SERVER__
 
 #include "persistence/CFileDB.h"
+#include "common/EventLoop.h"
 
 int  ReadTrandGuildInfo(); // Last updated 15/01/2013
 int  WriteTransGuildInfo(); // Last update 15/01/2013
@@ -38,7 +39,8 @@ int  WriteConfig(); // Last updated 15/01/2013
 int  ProcessAdminClientMessage(char *msg); // Last updated 15/01/2013 -
 void ProcessClientMessage(int conn, char *msg); // Last updated 15/01/2013
 
-LONG APIENTRY MainWndProc(HWND hWnd, UINT message, UINT wParam, LONG lParam); // Last updated 21/01/2013
+/// @brief Tratador do laço de eventos (common/EventLoop.h): timers, sockets, comandos, encerramento.
+void OnServerEvent(const W2Event& ev);
 
 void DisableAccount(int conn, char *account, int Year, int YearDay); // Last updated 15/01/2013
 void EnableAccount(int conn, char *account); // Last updated 15/01/2013
@@ -57,17 +59,11 @@ int  GetUserFromSocket(int Sock); // Last updated 15/01/2013
 int  GetAdminFromSocket(int Sock); // Last updated 15/01/2013
 int  GetEmptyUser(); // Last updated 15/01/2013
 
-void DrawConfig();
-
 void DayLog_ReadAccountInDir(char *dir, FILE *log);
 void DayLog_ItemLog();
 
 BOOL file_exists(char *s, ...);
 
-
-extern HWND		hWndMain;
-extern HMENU		hMainMenu;
-extern HINSTANCE   hInst;
 
 extern int ServerIndex;
 extern int CurrentTransInfo;
@@ -115,10 +111,4 @@ extern CFileDB cFileDB;
 extern STRUCT_MOB g_pBaseSet[MAX_CLASS];
 extern STRUCT_ITEMLOG ItemDayLog[MAX_ITEMLIST];
 
-extern HFONT hFont;
-extern HFONT h;
-
-extern int x;
-extern int y;
-extern HDC hDC;
 #endif

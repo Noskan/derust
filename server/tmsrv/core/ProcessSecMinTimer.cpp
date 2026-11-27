@@ -59,14 +59,7 @@ void ProcessSecTimer()
 			{
 				Log("sys,server down complete", "-system", 0);
 
-				if (hFont != 0)
-				{
-					DeleteObject(hFont);
-
-					hFont = NULL;
-				}
-
-				PostQuitMessage(NULL);
+				W2LoopQuit(0);
 
 				return;
 			}
@@ -113,7 +106,7 @@ void ProcessSecTimer()
 
 		if (ServerDown == 120)
 		{
-			SetTimer(hWndMain, TIMER_SEC, 200, 0);
+			W2LoopSetTimer(TIMER_SEC, 200);
 
 			return;
 		}
@@ -141,7 +134,7 @@ lbl_PST1:
 
 			int *pip = (int*)LocalIP;
 
-			int ret = BillServerSocket.ConnectBillServer(BillServerAddress, BillServerPort, *pip, WSA_READBILL);
+			int ret = BillServerSocket.ConnectBillServer(BillServerAddress, BillServerPort, *pip, NET_READBILL);
 
 			CurrentTime = W2TickCount();
 
@@ -205,7 +198,7 @@ lbl_PST1:
 		{
 			if (pUser[bb].cSock.nSendPosition)
 			{
-				BOOL bSend = pUser[bb].cSock.SendMessageA();
+				BOOL bSend = pUser[bb].cSock.SendMessage();
 				if (!bSend)
 				{
 					sprintf(temp, "err,send fail close %d/%d %d/%d",

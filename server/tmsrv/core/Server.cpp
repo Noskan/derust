@@ -251,10 +251,6 @@ CPSock BillServerSocket;
 char   BillServerAddress[32] = { 0, };
 int	   BillServerPort = 0;
 
-HWND  hWndMain;
-HMENU hMainMenu;
-HFONT hFont = NULL;
-
 FILE *fLogFile = NULL;
 FILE *fChatLogFile = NULL;
 FILE *fItemLogFile = NULL;
@@ -434,8 +430,6 @@ int kRanking2X = 195;
 int kRanking2Y = 4082;
 
 int TaxChanged[MAX_GUILDZONE] = { 0, 0, 0, 0, 0 };
-
-HDC hDC;
 
 //////////////////////////////////////
 

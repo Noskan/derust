@@ -16,7 +16,10 @@
 *
 *   Contact at:
 */
-#include <Windows.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
 
 #include "entities/CUser.h"
 #include "core/Server.h"
@@ -50,17 +53,17 @@ CUser::~CUser()
 
 BOOL CUser::AcceptUser(int ListenSocket)
 {
-	SOCKADDR_IN acc_sin; 
+	sockaddr_in acc_sin; 
 	int Size = sizeof(acc_sin);
 
-	int tSock = accept(ListenSocket, (struct sockaddr FAR *)&acc_sin, (int FAR *)&(Size));
+	int tSock = accept(ListenSocket, (struct sockaddr *)&acc_sin, (socklen_t *)&(Size));
 
 	if(tSock < 0) 
 		return FALSE;
 
-	if(WSAAsyncSelect(tSock, hWndMain, WSA_READ, FD_READ | FD_CLOSE ) > 0) 
+	if(W2LoopWatch(tSock, NET_READ, W2_NET_READ | W2_NET_CLOSE) > 0) 
 	{	
-		closesocket(tSock);
+		W2CloseSocket(tSock);
 
 		return FALSE;
 	}
