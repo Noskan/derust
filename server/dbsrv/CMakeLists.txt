@@ -15,11 +15,9 @@ set(DBSRV_SOURCES
   persistence/CFileDB_WorldPackets.cpp
   persistence/CRanking.cpp
   persistence/CRanking.h
-  resources/DBSrv.rc
-  resources/resource.h
 )
 
-add_executable(DBSrv WIN32 ${DBSRV_SOURCES})
+add_executable(DBSrv ${DBSRV_SOURCES})
 
 target_include_directories(DBSrv
   PRIVATE

@@ -17,6 +17,7 @@
 *   Contact at:
 */
 
+#include <errno.h>
 #include "persistence/CRanking.h"
 #include "common/System.h"
 #include "net/CUser.h"

@@ -73,7 +73,7 @@ jobs:
           WINEPREFIX: ${{ runner.temp }}/wineprefix
         run: python3 tools/mingw_check.py --jobs 4 --keep "$RUNNER_TEMP/mingw"
 
-      # Servidores Linux nativos (server/compat) com AddressSanitizer e UBSan, que abortam no
+      # Servidores Linux com AddressSanitizer e UBSan, que abortam no
       # primeiro erro: os testes e o mesmo teste de jogo, com o LoginClient.exe acima (um cliente
       # Windows no wine) contra DBSrv e TMSrv nativos.
       - name: Build native Linux servers with ASan/UBSan

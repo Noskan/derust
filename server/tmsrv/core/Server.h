@@ -19,12 +19,11 @@
 #ifndef __SERVER_H__
 #define	__SERVER_H__
 
-#include <windows.h>
-#include <windowsx.h>
 #include <stdlib.h>
 #include <stdio.h> 
 #include <fcntl.h>
-#include <io.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/timeb.h>
@@ -87,8 +86,6 @@ int   GenerateSummon(int conn, int SummonID, STRUCT_ITEM *sItem, int Num);
 int   CreateMob(char *MobName, int PosX, int PosY, char *folder, int Type); 
 void  GenerateMob(int index, int PosX, int PosY);
 void  RebuildGenerator();
-BOOL  InitApplication(HANDLE hInstance);
-BOOL  InitInstance(HANDLE hInstance, int nCmdShow);
 FILE* WriteHeader(char *fileName);
 void  WriteArmor(FILE *fp);
 void  WriteWeapon(FILE *fp);

@@ -41,8 +41,10 @@ SIDES = OrderedDict(
         incs=["shared", "server", "server/common"], extra=[],
         sources=["server/tmsrv", "server/common"],
         opcode=r"_MSG_\w+|0x[0-9A-Fa-f]+",
-        rules_sources=sorted(str(p.relative_to(ROOT)) for p in (ROOT / "server/common").glob("*.cpp")),
-        rules_libs=["-lws2_32", "-lwinmm"],
+        # Só as fontes portáveis: CPSock, EventLoop e System usam POSIX e não compilam no mingw.
+        rules_sources=sorted(str(p.relative_to(ROOT)) for p in (ROOT / "server/common").glob("*.cpp")
+                             if p.stem not in ("CPSock", "EventLoop", "System")),
+        rules_libs=[],
         common_cpp=sorted((ROOT / "server/common").glob("*.cpp")),
     ),
     client=dict(

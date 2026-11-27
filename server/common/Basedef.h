@@ -22,7 +22,11 @@
 #define _BASEDEF_
 
 #include <time.h>
-#include <Windows.h>
+#include <math.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #pragma region Defines
 

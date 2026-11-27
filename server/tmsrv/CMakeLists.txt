@@ -112,11 +112,9 @@ set(TMSRV_SOURCES
   handlers/world/Quest_Special.cpp
   handlers/world/_MSG_ReqRanking.cpp
   handlers/world/_MSG_ReqTeleport.cpp
-  resources/TMSrv.rc
-  resources/resource.h
 )
 
-add_executable(TMSrv WIN32 ${TMSRV_SOURCES})
+add_executable(TMSrv ${TMSRV_SOURCES})
 
 target_include_directories(TMSrv
   PRIVATE

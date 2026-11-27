@@ -18,18 +18,16 @@
 */
 
 
-#include <windows.h>
-#include <windowsx.h>
 #include <stdlib.h>
 #include <stdio.h> 
 #include <fcntl.h>
-#include <io.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/timeb.h>
 #include <string.h>        
 #include <time.h>
-#include <mbstring.h>
 
 #include "common/Basedef.h"
 #include "common/ItemEffect.h"

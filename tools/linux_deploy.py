@@ -125,7 +125,8 @@ Type=simple
 User={user}
 WorkingDirectory={run}
 ExecStart={run}/{exe}
-# SIGTERM chega ao servidor como WM_CLOSE: grava (guildas, configuração, logs) e sai.
+# SIGTERM é o pedido de encerramento, como fechar a janela no Windows: grava (guildas,
+# configuração, logs) e sai.
 KillSignal=SIGTERM
 TimeoutStopSec=60
 # Reinicia sempre que o processo sair sem um `systemctl stop`: queda, o comando `reboot` ou `exit`

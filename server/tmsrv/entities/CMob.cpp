@@ -16,7 +16,6 @@
 *
 *   Contact at:
 */
-#include <Windows.h>
 
 #include "common/ItemEffect.h"
 

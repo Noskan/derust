@@ -16,13 +16,14 @@
 *
 *   Contact at:
 */
-#include <Windows.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
 #include <math.h>
-#include <io.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
+#include <arpa/inet.h>
 
 #include "common/Basedef.h"
 #include "common/CPSock.h"
@@ -995,7 +996,7 @@ int  GetAngle(int x, int y)
 	if (x == 0 || y == 0)
 		return 0;
 
-	double tangle = atan2((FLOAT)y, (FLOAT)x);
+	double tangle = atan2((float)y, (float)x);
 
 	int angle = (int)((tangle * 3600) / 6.283184);
 
@@ -1010,10 +1011,10 @@ int  GetAngle(int x, int y)
 
 int  GetLength(int x, int y)
 {
-	FLOAT valx = (FLOAT)(x * x);
-	FLOAT valy = (FLOAT)(y * y);
+	float valx = (float)(x * x);
+	float valy = (float)(y * y);
 
-	FLOAT valxy = valx + valy;
+	float valxy = valx + valy;
 
 	if (valxy > 100)
 		return 100;

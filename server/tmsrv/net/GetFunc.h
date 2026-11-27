@@ -20,7 +20,6 @@
 #define __GETFUNC__
 
 #include "common/Basedef.h"
-#include <Windows.h>
 
 int	 GetMatchCombine		(STRUCT_ITEM *item);
 int  GetMatchCombineEhre	(STRUCT_ITEM *Item);

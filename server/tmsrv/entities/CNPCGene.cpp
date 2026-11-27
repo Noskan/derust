@@ -16,7 +16,6 @@
 *
 *   Contact at:
 */
-#include <Windows.h>
 #include <stdio.h>
 #include <string.h>
 #include <string>

@@ -17,11 +17,11 @@
 *   Contact at:
 */
 
-#include <windows.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <io.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <time.h> 

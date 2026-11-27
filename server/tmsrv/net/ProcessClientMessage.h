@@ -18,12 +18,12 @@
 */
 #pragma once
 
-#include <Windows.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
 #include <math.h>
-#include <io.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include "common/Basedef.h"

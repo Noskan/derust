@@ -17,12 +17,12 @@
 *   Contact at:
 */
 
-#include <Windows.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
 #include <math.h>
-#include <io.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include "common/Basedef.h"
@@ -127,7 +127,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 	if ( a3 && lvdif >= 3 )
 		lvdif = 2;
 
-	if (nPos & 0xFE && !LOBYTE(Dest->stEffect[0].sValue) && nPos != 128 )
+	if (nPos & 0xFE && !((unsigned char)(Dest->stEffect[0].sValue)) && nPos != 128 )
 	{
     
 	int v38 = 59;
@@ -588,16 +588,16 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
     v28 += v37;
     if ( a3 && !v28 )
       v28 = 1;
-    if ( LOBYTE(Dest->stEffect[1].sValue) || v28 <= 0 )
+    if ( ((unsigned char)(Dest->stEffect[1].sValue)) || v28 <= 0 )
     {
-      if ( LOBYTE(Dest->stEffect[1].sValue) || v28 > 0 || nPos != 32 )
+      if ( ((unsigned char)(Dest->stEffect[1].sValue)) || v28 > 0 || nPos != 32 )
       {
-        if ( !LOBYTE(Dest->stEffect[1].sValue) )
+        if ( !((unsigned char)(Dest->stEffect[1].sValue)) )
         {
 			Dest->stEffect[1].cEffect = 59;
           int v4 = W2Rand() & 0x8000007F;
           if ( v4 < 0 )
-            v4 = ((unsigned __int8)(v4 - 1) | 0x80) + 1;
+            v4 = ((unsigned char)(v4 - 1) | 0x80) + 1;
 		  Dest->stEffect[1].cValue = v4;
         }
       }
@@ -755,14 +755,14 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
       v27 = addDropBonus;
     if ( a3 && !v27 )
       v27 = 1;
-    if ( v27 <= 0 || LOBYTE(Dest->stEffect[2].sValue) )
+    if ( v27 <= 0 || ((unsigned char)(Dest->stEffect[2].sValue)) )
     {
-      if ( !LOBYTE(Dest->stEffect[2].sValue) )
+      if ( !((unsigned char)(Dest->stEffect[2].sValue)) )
       {
         Dest->stEffect[2].cEffect = 59;
         int v5 = W2Rand() & 0x8000007F;
         if ( v5 < 0 )
-          v5 = ((unsigned __int8)(v5 - 1) | 0x80) + 1;
+          v5 = ((unsigned char)(v5 - 1) | 0x80) + 1;
 		Dest->stEffect[2].cValue = v5;
       }
     }
@@ -773,7 +773,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
     }
     g_dLevel2 = v27;
 
-    if ( !LOBYTE(Dest->stEffect[0].sValue) )
+    if ( !((unsigned char)(Dest->stEffect[0].sValue)) )
     {
       int v26 = W2Rand() % 100;
       if ( a3 )
@@ -821,7 +821,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
 				Dest->stEffect[0].cEffect = 59;
               int v6 = W2Rand() & 0x8000007F;
               if ( v6 < 0 )
-                v6 = ((unsigned __int8)(v6 - 1) | 0x80) + 1;
+                v6 = ((unsigned char)(v6 - 1) | 0x80) + 1;
 			  Dest->stEffect[0].cValue = v6;
             }
             else
@@ -965,7 +965,7 @@ void SetItemBonus(STRUCT_ITEM *Dest, int Level, int a3, int DropBonus)
         break;
       case 0x3D:
         Dest->stEffect[0].cEffect = 61;
-        Dest->stEffect[0].cValue = LOBYTE(g_pItemList[ItemId].stEffect[i].sValue);
+        Dest->stEffect[0].cValue = ((unsigned char)(g_pItemList[ItemId].stEffect[i].sValue));
         break;
       case 0x4E:
         Dest->stEffect[0].cEffect = 78;

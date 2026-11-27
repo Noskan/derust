@@ -33,10 +33,10 @@ Antes, um autoteste sobe o DBSrv sem o SkillData.csv e exige que a MessageBox se
 garante que o detector funciona na plataforma em uso (desligue com --no-self-test).
 
 Os servidores são os binários ELF do build CMake no Linux, executados direto. Os comandos do
-menu da janela vão pelo FIFO de controle (`control.fifo`), conferindo o eco de cada um. A
-MessageBox da camada server/compat escreve "[título] texto" no stderr, que vai para
-<dir>/stderr.log; o encerramento é por SIGTERM, que a camada transforma em WM_CLOSE. O
-LoginClient.exe roda no wine (32 bits, num prefixo próprio, dentro do diretório de trabalho, e
+menu da janela vão pelo FIFO de controle (`control.fifo`), conferindo o eco de cada um. Um
+alerta (ServerAlert, a antiga MessageBox) escreve "[título] texto" no stderr, que vai para
+<dir>/stderr.log; o encerramento é por SIGTERM, que o laço de eventos entrega como o pedido de
+fechar a janela. O LoginClient.exe roda no wine (32 bits, num prefixo próprio, dentro do diretório de trabalho, e
 num Xvfb próprio): é um cliente Windows contra servidores Linux.
 
 Uso: python3 tools/server_boot_smoke.py <dir com DBSrv e TMSrv> [--keep DIR] [--settle S]
@@ -245,10 +245,10 @@ class WineHost:
 
 
 class LinuxHost:
-    """Linux nativo: DBSrv e TMSrv do build CMake. A MessageBox de server/compat/w2_win32.cpp
-    escreve "[título] texto" no stderr do processo, gravado em <dir>/stderr.log. Um SIGTERM
-    vira WM_CLOSE, o mesmo caminho de fechar a janela no Windows (grava e encerra). O
-    LoginClient.exe é um programa Windows e roda no wine."""
+    """Linux nativo: DBSrv e TMSrv do build CMake. ServerAlert (common/Platform.cpp) escreve
+    "[título] texto" no stderr do processo, gravado em <dir>/stderr.log. Um SIGTERM segue o
+    caminho de fechar a janela no Windows (grava e encerra). O LoginClient.exe é um programa
+    Windows e roda no wine."""
 
     def __init__(self, work, need_wine):
         self.wine = WineHost(work) if need_wine else None
@@ -266,7 +266,7 @@ class LinuxHost:
             out.append(f"{server.name}: terminou pelo sinal {-code}")
         return out
 
-    # Comandos do menu da janela pelo FIFO de controle (server/compat): os que não derrubam o
+    # Comandos do menu da janela pelo FIFO de controle (common/EventLoop.h): os que não derrubam o
     # servidor, com o texto que cada um ecoa no stderr. Reboot e Exit encerram e ficam de fora;
     # o encerramento já é conferido pelo SIGTERM.
     CONTROL = {
@@ -308,7 +308,7 @@ class LinuxHost:
                               errors="replace", timeout=timeout)
 
     def stop(self, servers, graceful=False):
-        """graceful: SIGTERM, que a camada entrega como WM_CLOSE; os dois servidores gravam
+        """graceful: SIGTERM, o pedido de encerramento do laço de eventos; os dois servidores gravam
         (guildas, configuração, logs) e saem com código 0."""
         problems = []
         for s in reversed(servers):

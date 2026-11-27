@@ -1,6 +1,6 @@
 # Servidores no Linux
 
-O DBSrv e o TMSrv compilam e rodam nativos no Linux x86_64. O cliente (TMProject, DirectX 9) continua só no Windows. As fontes são as mesmas dos dois lados: no Linux, a camada `server/compat` emula o pequeno subconjunto do Win32 que os servidores usam, e o código do jogo não muda.
+O DBSrv e o TMSrv compilam e rodam só no Linux x86_64. O cliente (TMProject, DirectX 9) continua só no Windows. O código dos servidores veio do Windows; o que era da janela e do Winsock virou o laço de eventos e as chamadas POSIX descritos em [Como os servidores rodam no Linux](#como-os-servidores-rodam-no-linux), sem mudar o comportamento do jogo.
 
 ## Build
 
@@ -10,7 +10,7 @@ cmake --build build/linux --parallel
 ctest --test-dir build/linux --output-on-failure
 ```
 
-Os binários ficam em `build/linux/server/dbsrv/DBSrv` e `build/linux/server/tmsrv/TMSrv`. Fora do Windows o cliente é desligado (`DERUST_BUILD_CLIENT` vale `OFF`).
+Os binários ficam em `build/linux/server/dbsrv/DBSrv` e `build/linux/server/tmsrv/TMSrv`. Fora do Windows o cliente é desligado (`DERUST_BUILD_CLIENT` vale `OFF`), e no Windows os servidores (`DERUST_BUILD_SERVER` vale `OFF` e ligar dá erro).
 
 Com AddressSanitizer e UBSan, como no CI:
 
@@ -59,36 +59,39 @@ Para instalar as unidades:
 sudo cp /srv/w2/systemd/w2-*.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now w2-dbsrv w2-tmsrv
-journalctl -u w2-tmsrv -f        # MessageBox e eco dos comandos
+journalctl -u w2-tmsrv -f        # alertas e eco dos comandos
 ```
 
 Como as unidades se comportam:
-- `systemctl stop` manda `SIGTERM`, que o servidor recebe como `WM_CLOSE`: grava e sai, com até 60 s de prazo.
+- `systemctl stop` manda `SIGTERM`, que o servidor recebe como o pedido de encerramento: grava e sai, com até 60 s de prazo.
 - `Restart=always` reinicia em 5 s sempre que o processo sai sem um `stop`. Isso cobre:
   - uma queda;
   - os comandos `reboot` e `exit` do FIFO de controle (para desligar de vez, use `systemctl stop`);
   - o TMSrv que sai quando não alcança o DBSrv no boot. A unidade dele vem depois da do DBSrv (`After=`), mas o DBSrv pode ainda não estar escutando.
 - `LimitNOFILE=8192`: o padrão de 1024 descritores fica curto para os 1000 jogadores (`MAX_USER`), mais os arquivos e as conexões entre servidores.
 
-## Como a camada funciona
+## Como os servidores rodam no Linux
 
-`server/compat/posix/` tem os cabeçalhos que as fontes incluem (`Windows.h`, `windows.h`, `io.h`, `winsock2.h`, `mbstring.h` e outros). Todos apontam para `server/compat/w2_win32.h`. No Windows esse diretório não entra no build.
+Os servidores rodam só no Linux. O código veio do Windows, e até a branch `refactor/linux-only-servers` uma camada `server/compat` emulava o Win32 por baixo dele. Hoje as fontes usam direto as chamadas do Linux, por três arquivos de `server/common`:
 
-- **Laço de mensagens.**
-  - `RegisterClass` guarda o `MainWndProc`, e `CreateWindow` devolve uma janela fictícia.
-  - `GetMessage` espera com `poll()` pelos sockets registrados com `WSAAsyncSelect` e pelos timers de `SetTimer`. Cada evento vira a mensagem que o Windows entregaria: `WSA_*` com o socket em `wParam` e o evento em `lParam`, ou `WM_TIMER`. As mensagens são despachadas ao mesmo `MainWndProc`.
+- **`EventLoop.h`: laço de eventos.** Faz o papel do laço de mensagens da janela do Windows.
+  - Espera com `poll()` pelos sockets registrados com `W2LoopWatch`, pelo FIFO de controle e pelos timers de `W2LoopSetTimer`, no relógio monotônico.
+  - Cada evento vai para o tratador de cada servidor, `OnServerEvent`, cujos casos são os do antigo `MainWndProc`.
+  - A ordem é a do Windows: a fila esvazia antes da próxima espera, e depois de `W2LoopQuit` o que já estava na fila ainda é entregue.
+  - Os sockets usam os canais `NET_*` de `CPSock.h` (`NET_READ`, `NET_ACCEPT`, `NET_READDB`...), os antigos `WSA_*`.
 - **Sockets.**
-  - `WSAAsyncSelect` deixa o socket não bloqueante, como no Winsock.
-  - `CPSock::StartListen` liga `SO_REUSEADDR` só fora do Windows. Sem ela, o servidor não sobe por cerca de 60 s depois de derrubado, enquanto houver conexões em TIME_WAIT na porta. No Windows o `bind` já passa nesse caso, e a opção deixaria outro processo tomar a porta.
-  - Quando um socket de dados fica legível, o laço espia um byte (`MSG_PEEK`): 0 bytes vira `FD_CLOSE` e dados viram `FD_READ`. O Winsock entrega nessa mesma ordem. `CPSock::Receive` não trata `recv() == 0` como fechamento, porque no Windows o fechamento chega como `FD_CLOSE`.
-- **Arquivos.**
-  - `_open`/`_read`/`_write`, `_findfirst` e `FindFirstFile` funcionam sobre POSIX.
-  - `*.*` casa nomes sem ponto, e `.` e `..` vêm primeiro. Os laços `while (FindNextFile(...))` pulam a primeira entrada contando com isso.
-  - Os handles de busca são números pequenos, porque as fontes guardam o retorno de `_findfirst` num `int`.
-- **Estado da camada.** Fica em estáticos locais. Construtores globais, como o `RankingSystem` do DBSrv, chamam a camada antes de `main`.
-- **Texto.** `_mbschr` e `CharNext` seguem o código de página de um byte (1252) de um Windows ocidental, que é o padrão do CRT ao iniciar.
+  - `W2LoopWatch` deixa o socket não bloqueante, como o `WSAAsyncSelect` fazia.
+  - `CPSock::StartListen` liga `SO_REUSEADDR`. Sem ela, o servidor não sobe por cerca de 60 s depois de derrubado, enquanto houver conexões em TIME_WAIT na porta.
+  - Quando um socket de dados fica legível, o laço espia um byte (`MSG_PEEK`): dados viram `W2_NET_READ`, e 0 bytes ou erro viram um único `W2_NET_CLOSE`, depois dos dados que restavam. O Winsock entregava nessa mesma ordem. `CPSock::Receive` não trata `recv() == 0` como fechamento, porque o fechamento chega como `W2_NET_CLOSE`.
+- **`System.h`: arquivos.**
+  - `W2FindFirst`/`W2FindNext` listam diretórios com `glob()`. `*.*` casa nomes sem ponto, e `.` e `..` vêm primeiro: os laços que pulam a primeira entrada e o limite de 10 entradas do `ImportItem` contam com isso, como no `FindFirstFile`.
+  - `W2MoveFile` falha se o destino existir, como o `MoveFile` (o `rename()` substituiria o destino).
+  - `BASE_InitModuleDir` muda para o diretório do executável, lido de `/proc/self/exe`.
+- **`Platform.h`: o que também compila no Windows.** Fica portável porque a checagem de divergências (`tools/divergence_map.py`) compila as regras de `server/common` com mingw e roda no wine. Tem `W2TickCount`, `W2SleepMs`, `W2StrUpper`, `W2Rand`, `ServerAlert` e os tipos `BOOL`/`TRUE`/`FALSE` que o código usa.
+- **Estado.** Fica em estáticos locais. Construtores globais, como o `RankingSystem` do DBSrv, listam arquivos antes de `main`.
+- **Texto.** O `CharNext` do original avançava um byte no código de página de um Windows ocidental (1252), e o código agora faz isso direto.
 
-Fora da camada, o que já deixava o comportamento igual:
+O que deixa o comportamento igual ao do Windows:
 - **Números aleatórios:** `W2Rand`, em `common/Platform.h`, usa o algoritmo do `rand()` do CRT da Microsoft, com a mesma semente. Chances de drop, refinação e dano são as mesmas.
 - **Arquivos e pacotes:** os campos têm largura fixa. `ProtocolLayoutCheck.cpp` trava os tamanhos e offsets também no Linux x86_64. Os arquivos de conta e os `.bin` são os mesmos nos dois sistemas.
 - **Ponto flutuante:** é SSE2, como no MSVC Win32. `-ffp-contract=off` impede o GCC de fundir multiplicação e soma.
@@ -105,13 +108,14 @@ Fora da camada, o que já deixava o comportamento igual:
   grep -rhoE '"[^"]*\.(txt|csv|bin|dat|h)"' server --include=*.cpp | sort -u
   ```
 
-- **Mensagens.** Toda `MessageBox` vira uma linha `[título] texto` no stderr. Guarde o stderr num log, por exemplo pelo journal do systemd.
-- **Encerramento.** `SIGTERM` e `SIGINT` chegam como `WM_CLOSE`, o mesmo caminho de fechar a janela no Windows. As perguntas de confirmação recebem a resposta afirmativa, e os servidores gravam guildas, configuração e logs antes de sair.
-- **Painel e menu.** O painel da janela não existe. Os comandos do menu vão pelo FIFO de controle (próxima seção).
+- **Mensagens.** O que no Windows era uma `MessageBox` é uma linha `[título] texto` no stderr (`ServerAlert`). Guarde o stderr num log, por exemplo pelo journal do systemd.
+- **Encerramento.** `SIGTERM`, `SIGINT` e o comando `exit` seguem o caminho de fechar a janela no Windows. As perguntas de confirmação de lá ("Você realmente deseja desligar o server?") saem como alerta no stderr: o sinal já é a resposta de quem opera. Os servidores gravam guildas, configuração e logs antes de sair.
+- **Painel e menu.** O painel da janela não existe. Ele só mostrava o que o TMSrv grava no `gameconfig.txt` e, no DBSrv, os servidores e admins conectados. Os comandos do menu vão pelo FIFO de controle (próxima seção).
+- **`gameconfig.txt`.** O TMSrv o regrava a cada mudança de evento feita por um GM e quando não o encontra no boot (`WriteGameConfig`). Até esta branch, no Linux, a gravação era pulada sem aviso: a função antiga desenhava o painel antes de gravar e saía quando a camada não dava onde desenhar. O arquivo gravado agora é idêntico, byte a byte, ao do build Windows.
 
 ## Comandos do menu
 
-Cada servidor cria, no próprio diretório, um FIFO `control.fifo` com permissão 0600: só o usuário que roda o servidor escreve nele. A variável `W2_CONTROL` troca o caminho. Cada linha escrita no FIFO é o nome de um item do menu da janela, sem o `&`, sem espaços e sem diferença de maiúsculas, ou o id dele. A linha vira o `WM_COMMAND` que o clique no menu mandaria, então o código que roda é o mesmo do Windows.
+Cada servidor cria, no próprio diretório, um FIFO `control.fifo` com permissão 0600: só o usuário que roda o servidor escreve nele. A variável `W2_CONTROL` troca o caminho. Cada linha escrita no FIFO é o nome de um item do menu da janela, sem o `&`, sem espaços e sem diferença de maiúsculas, ou o id dele. A linha vira o comando que o clique no menu mandaria, então o código que roda é o mesmo do Windows.
 
 ```bash
 echo saveall > TMSRV/Run/control.fifo
@@ -132,7 +136,7 @@ echo help    > TMSRV/Run/control.fifo   # lista os comandos no stderr
 
 O servidor ecoa cada comando no stderr (`controle: SaveAll (9003)`). Um nome desconhecido também aparece no stderr, junto com a lista. Com o servidor parado, ninguém lê o FIFO e o `echo` fica esperando. Use `timeout 5 sh -c 'echo saveall > control.fifo'` num script.
 
-A camada monta a lista de comandos a partir do `AppendMenu` de cada servidor. Um item novo no menu passa a ser aceito sem mudança na camada.
+Cada servidor registra os seus comandos no início do `main` (`RegisterCommands`, com `W2LoopAddCommand`), com os nomes dos itens do menu do Windows.
 
 ## Pendências
 

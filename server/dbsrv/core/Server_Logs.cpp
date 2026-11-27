@@ -24,19 +24,21 @@
 /// Extraído de `Server.cpp` na Fase 2 (Onda 3) sem alteração de comportamento.
 
 
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-#include <windowsx.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 #include <stdlib.h>
 #include <stdio.h> 
 #include <fcntl.h>
-#include <io.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/timeb.h>
 #include <string.h>        
 #include <time.h>
+#include <errno.h>
 
 #include "common/Basedef.h"
 #include "common/System.h"

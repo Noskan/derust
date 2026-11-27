@@ -26,13 +26,14 @@
 /// mensagens virou o de common/EventLoop.h, e o painel de estado, que só desenhava o que o
 /// gameconfig.txt grava, saiu.
 
-#include <Windows.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <time.h>
 #include <math.h>
-#include <io.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <errno.h>
+#include <sys/socket.h>
 
 #include "common/Basedef.h"
 #include "common/CPSock.h"
