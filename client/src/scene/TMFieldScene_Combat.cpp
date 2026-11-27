@@ -1900,70 +1900,7 @@ int TMFieldScene::MobAttack(unsigned int wParam, D3DXVECTOR3 vec, unsigned int d
 						stAttack.SkillParm = 2;
 					}
 				}
-				if (BASE_GetItemAbility(&pMobData->Equip[6], 21) == 101)
-				{
-					stAttack.SkillIndex = 151;
-					stAttack.SkillParm = 0;
-				}
-				else if (BASE_GetItemAbility(&pMobData->Equip[6], 21) == 102)
-				{
-					stAttack.SkillIndex = 152;
-					if (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh == 871)
-						stAttack.SkillParm = 0;
-					else if (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh == 872)
-						stAttack.SkillParm = 1;
-				}
-				else if (BASE_GetItemAbility(&pMobData->Equip[6], 21) == 103)
-				{
-					stAttack.SkillIndex = 153;
-					switch (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh)
-					{
-					case 873:
-						stAttack.SkillParm = 0;
-						break;
-					case 874:
-						stAttack.SkillParm = 1;
-						break;
-					case 875:
-						stAttack.SkillParm = 2;
-						break;
-					case 876:
-						stAttack.SkillParm = 3;
-						break;
-					case 877:
-						stAttack.SkillParm = 4;
-						break;
-					case 892:
-						stAttack.SkillParm = 5;
-						break;
-					case 907:
-						stAttack.SkillParm = 6;
-						break;
-					case 908:
-						stAttack.SkillParm = 7;
-						break;
-					case 909:
-						stAttack.SkillParm = 8;
-						break;
-					case 37:
-						stAttack.SkillParm = 9;
-						break;
-					case 767:
-						stAttack.SkillParm = 10;
-						break;
-					case 2814:
-						stAttack.SkillParm = 11;
-						break;
-					}
-				}
-				else if (BASE_GetItemAbility(&pMobData->Equip[6], 21) == 104)
-				{
-					stAttack.SkillIndex = 104;
-					if (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh == 878)
-						stAttack.SkillParm = 0;
-					else if (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh == 879)
-						stAttack.SkillParm = 1;
-				}
+				MobAttack_WeaponSkill(pMobData, stAttack);
 
 				if (m_cAutoAttack == 1)
 					m_pTargetHuman = pOver;
@@ -2208,6 +2145,76 @@ bool TMFieldScene::MobAttack_RejectTarget(TMHuman*& pOver, int& nReturnValue)
 		}
 	}
 	return false;
+}
+
+/// Troca o ataque comum pela skill da arma quando o efeito 21 da arma vale 101 a 104.
+/// @note Extraído de `TMFieldScene::MobAttack` (Fase 3); locais passadas por referência.
+void TMFieldScene::MobAttack_WeaponSkill(STRUCT_MOB*& pMobData, MSG_Attack& stAttack)
+{
+	if (BASE_GetItemAbility(&pMobData->Equip[6], 21) == 101)
+	{
+		stAttack.SkillIndex = 151;
+		stAttack.SkillParm = 0;
+	}
+	else if (BASE_GetItemAbility(&pMobData->Equip[6], 21) == 102)
+	{
+		stAttack.SkillIndex = 152;
+		if (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh == 871)
+			stAttack.SkillParm = 0;
+		else if (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh == 872)
+			stAttack.SkillParm = 1;
+	}
+	else if (BASE_GetItemAbility(&pMobData->Equip[6], 21) == 103)
+	{
+		stAttack.SkillIndex = 153;
+		switch (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh)
+		{
+		case 873:
+			stAttack.SkillParm = 0;
+			break;
+		case 874:
+			stAttack.SkillParm = 1;
+			break;
+		case 875:
+			stAttack.SkillParm = 2;
+			break;
+		case 876:
+			stAttack.SkillParm = 3;
+			break;
+		case 877:
+			stAttack.SkillParm = 4;
+			break;
+		case 892:
+			stAttack.SkillParm = 5;
+			break;
+		case 907:
+			stAttack.SkillParm = 6;
+			break;
+		case 908:
+			stAttack.SkillParm = 7;
+			break;
+		case 909:
+			stAttack.SkillParm = 8;
+			break;
+		case 37:
+			stAttack.SkillParm = 9;
+			break;
+		case 767:
+			stAttack.SkillParm = 10;
+			break;
+		case 2814:
+			stAttack.SkillParm = 11;
+			break;
+		}
+	}
+	else if (BASE_GetItemAbility(&pMobData->Equip[6], 21) == 104)
+	{
+		stAttack.SkillIndex = 104;
+		if (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh == 878)
+			stAttack.SkillParm = 0;
+		else if (g_pItemList[pMobData->Equip[6].sIndex].nIndexMesh == 879)
+			stAttack.SkillParm = 1;
+	}
 }
 
 int TMFieldScene::MobMove(D3DXVECTOR3 vec, unsigned int dwServerTime)
