@@ -302,35 +302,7 @@ if (pAttacker)
 		}
 		else if (pAttack->SkillIndex == 99) // Muro de Espinhos
 		{
-			PacketAttack_Skill99TargetImage(pTarget);
-
-			unsigned int dwColor = 0xAAAAAAAA;
-
-			for(int i = -1; i < 2; i++)
-			{
-				auto pEffectMesh = new TMEffectMesh(506, dwColor, 0.0f, 0);
-
-				pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-				pEffectMesh->m_cShine = 1;
-				pEffectMesh->m_dwCycleTime = 3000;
-				pEffectMesh->m_dwLifeTime = 3000;
-				pEffectMesh->m_fScaleH = 1.5f;
-				pEffectMesh->m_fScaleV = 3.0f;
-				pEffectMesh->m_vecPosition = TMVector3(((float)i * 0.2f) + pTarget->m_vecPosition.x, pTarget->m_fHeight - 0.5f, ((float)i * 0.2f) + pTarget->m_vecPosition.y);
-
-				m_pEffectContainer->AddChild(pEffectMesh);
-			}
-
-			auto pShade = new TMShade(4, 118, 1.0f);
-
-			pShade->m_dwLifeTime = 8000;
-			pShade->SetColor(dwColor);
-			pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
-			pShade->SetPosition(TMVector2(pTarget->m_vecPosition.x, pTarget->m_vecPosition.y));
-			
-			m_pEffectContainer->AddChild(pShade);
-
-			GetSoundAndPlay(1, 0, 0);
+			PacketAttack_Skill99Effect(pTarget);
 		}
 		else if (pAttack->SkillIndex == 100) // Ressureição
 		{
@@ -767,6 +739,41 @@ void TMFieldScene::PacketAttack_Skill55Effect(MSG_Attack*& pAttack, TMHuman*& pT
 			}
 		}
 	}
+}
+
+/// Efeitos da skill 99 (Muro de Espinhos) no ataque recebido.
+/// @note Extraído de `TMFieldScene::PacketAttack_Attacker` (Fase 3); locais passadas por referência.
+void TMFieldScene::PacketAttack_Skill99Effect(TMHuman*& pTarget)
+{
+	PacketAttack_Skill99TargetImage(pTarget);
+
+	unsigned int dwColor = 0xAAAAAAAA;
+
+	for(int i = -1; i < 2; i++)
+	{
+		auto pEffectMesh = new TMEffectMesh(506, dwColor, 0.0f, 0);
+
+		pEffectMesh->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+		pEffectMesh->m_cShine = 1;
+		pEffectMesh->m_dwCycleTime = 3000;
+		pEffectMesh->m_dwLifeTime = 3000;
+		pEffectMesh->m_fScaleH = 1.5f;
+		pEffectMesh->m_fScaleV = 3.0f;
+		pEffectMesh->m_vecPosition = TMVector3(((float)i * 0.2f) + pTarget->m_vecPosition.x, pTarget->m_fHeight - 0.5f, ((float)i * 0.2f) + pTarget->m_vecPosition.y);
+
+		m_pEffectContainer->AddChild(pEffectMesh);
+	}
+
+	auto pShade = new TMShade(4, 118, 1.0f);
+
+	pShade->m_dwLifeTime = 8000;
+	pShade->SetColor(dwColor);
+	pShade->m_efAlphaType = EEFFECT_ALPHATYPE::EF_BRIGHT;
+	pShade->SetPosition(TMVector2(pTarget->m_vecPosition.x, pTarget->m_vecPosition.y));
+	
+	m_pEffectContainer->AddChild(pShade);
+
+	GetSoundAndPlay(1, 0, 0);
 }
 
 /// Ataque com `DoubleCritical & 8`: liga o rastro da arma (`m_pSwingEffect`), com a força conforme o tipo de arma.
