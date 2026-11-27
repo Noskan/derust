@@ -14,6 +14,11 @@ Formatos (layout do cliente, conferido por server/common/ProtocolLayoutCheck.cpp
                  e o servidor aplicam cada um por cima do ItemList (índices 1..6499).
   SkillData.bin  248 STRUCT_SPELL de 96 bytes, com XOR 0x5A, mais 4 bytes de rodapé (não conferido).
 
+Também lê o layout do WYD Global atual (ItemList 14500 x 172, extraitem 2 + 172, SkillData
+248 x 104), escolhido pelo tamanho do arquivo, e o leva ao do servidor. Não vão para o csv: os
+itens de índice 6500 em diante, os bits 16+ do nPos, os 28 bytes finais do item e os dois int
+finais da skill. O resumo do que ficou de fora sai no relatório.
+
 Os nomes de efeito do itemlist.csv vêm do ItemEffect.h que o servidor lê em tempo de execução
 (`#define EF_NOME valor`, lido como em BASE_InitializeEffectName). O padrão é o do repositório,
 server/common/ItemEffect.h; passe --effects com o da sua árvore se for outro.
@@ -58,6 +63,17 @@ ITEM_FMT = struct.Struct("<64s8h24hi4h")
 SPELL_FMT = struct.Struct("<12i8s8s8i")
 assert ITEM_FMT.size == 140 and SPELL_FMT.size == 96
 
+# Layout do WYD Global (cliente atual da Raid Hut, medido no patch 749). Os primeiros 132 bytes
+# do item são os nossos (nome, malha, requisitos, 12 efeitos, preço). Depois vêm nUnique e nPos
+# como int (o nPos usa os bits 16 e 17, posições que o nosso short não tem), nExtra e nGrade, e 28
+# bytes sem equivalente aqui. Slots de efeito vazios são (255, 0). A skill é a nossa com dois
+# int a mais no fim (o primeiro costuma ser o índice + 1).
+G_MAX_ITEMLIST = 14500
+G_ITEM_FMT = struct.Struct("<64s8h24hiiihh14h")
+G_SPELL_FMT = struct.Struct("<12i8s8s10i")
+assert G_ITEM_FMT.size == 172 and G_SPELL_FMT.size == 104
+G_EMPTY_EFFECT = 255
+
 ITEM_FIELDS = ["Name", "nIndexMesh", "nIndexTexture", "nIndexVisualEffect", "nReqLvl", "nReqStr",
                "nReqInt", "nReqDex", "nReqCon"] + \
               [f"stEffect[{j}].{f}" for j in range(MAX_STATICEFFECT) for f in ("sEffect", "sValue")] + \
@@ -82,6 +98,43 @@ def xor(data, key):
     return bytes(b ^ key for b in data)
 
 
+def detect_layout(path, layouts):
+    """Escolhe o layout pelo tamanho do arquivo: [(nome, Struct, quantidade)]."""
+    size = Path(path).stat().st_size
+    for name, rec, count in layouts:
+        if size in (rec.size * count, rec.size * count + 4):
+            return name, rec, count
+    return layouts[0]  # read_table explica o erro com o layout do cliente
+
+
+def global_item_to_client(raw, lost):
+    """Registro do Global (172 bytes) -> o do cliente (140), contando o que fica de fora em `lost`."""
+    name, shorts, fx = raw[0], list(raw[1:9]), list(raw[9:33])
+    price, unique, pos, extra, grade = raw[33:38]
+    tail = raw[38:]
+    for j in range(MAX_STATICEFFECT):
+        if fx[2 * j] == G_EMPTY_EFFECT and fx[2 * j + 1] == 0:
+            fx[2 * j] = 0
+    if s16(unique) != unique:
+        lost["nUnique fora de short"] = lost.get("nUnique fora de short", 0) + 1
+    if pos & ~0xFFFF:
+        lost["nPos com os bits 16+ (posições que o servidor não tem)"] = \
+            lost.get("nPos com os bits 16+ (posições que o servidor não tem)", 0) + 1
+    for k, v in enumerate(tail):
+        if v:
+            key = f"campo extra do Global no byte {144 + 2 * k}"
+            lost[key] = lost.get(key, 0) + 1
+    return [name] + shorts + fx + [price, s16(unique), s16(pos), extra, grade]
+
+
+def global_spell_to_client(raw, idx, lost):
+    tail = raw[14:]
+    if tail[8] != idx + 1 or tail[9]:
+        lost["int extra da skill do Global (fora do esperado: índice + 1, 0)"] = \
+            lost.get("int extra da skill do Global (fora do esperado: índice + 1, 0)", 0) + 1
+    return list(raw[:14]) + list(tail[:8])
+
+
 def read_table(path, rec, count, what):
     data = Path(path).read_bytes()
     size = rec.size * count
@@ -100,15 +153,15 @@ def read_table(path, rec, count, what):
     return [list(rec.unpack_from(body, i * rec.size)) for i in range(count)], trailer
 
 
-def apply_extra(items, path):
-    """Aplica o ExtraItem.bin como o cliente e o servidor: blocos de 142 bytes, sem XOR."""
+def apply_extra(items, path, rec=ITEM_FMT):
+    """Aplica o ExtraItem.bin como o cliente e o servidor: blocos de 2 + registro, sem XOR."""
     data = Path(path).read_bytes()
-    step = 2 + ITEM_FMT.size
+    step = 2 + rec.size
     applied = 0
     for off in range(0, len(data) - step + 1, step):
         idx = struct.unpack_from("<h", data, off)[0]
-        if 0 < idx < MAX_ITEMLIST:
-            items[idx] = list(ITEM_FMT.unpack_from(data, off + 2))
+        if 0 < idx < len(items):
+            items[idx] = list(rec.unpack_from(data, off + 2))
             applied += 1
     return applied, len(data) % step
 
@@ -449,19 +502,39 @@ def compare_items(source, parsed):
 # Comandos
 
 def convert_itemlist(bin_path, out, extra=None, effects_path=None, quiet=False):
-    raw, trailer = read_table(bin_path, ITEM_FMT, MAX_ITEMLIST, "ItemList.bin")
-    log = []
+    layout, rec, count = detect_layout(bin_path, [("cliente", ITEM_FMT, MAX_ITEMLIST),
+                                                  ("global", G_ITEM_FMT, G_MAX_ITEMLIST)])
+    raw, trailer = read_table(bin_path, rec, count, "ItemList.bin")
+    log = [] if layout == "cliente" else [
+        f"layout do WYD Global ({count} x {rec.size} bytes), convertido para o do servidor ({MAX_ITEMLIST} x {ITEM_FMT.size})"]
     if trailer is None:
         log.append("ItemList.bin sem os 4 bytes de rodapé")
     elif trailer != ITEMLIST_CLIENT_TRAILER:
         log.append(f"rodapé do ItemList.bin = {trailer:#x}; o cliente em Release só aceita {ITEMLIST_CLIENT_TRAILER:#x}")
     if extra:
-        applied, rest = apply_extra(raw, extra)
+        applied, rest = apply_extra(raw, extra, rec)
         log.append(f"ExtraItem.bin: {applied} item(ns) aplicado(s) por cima do ItemList"
                    + (f" ({rest} byte(s) no fim ignorados)" if rest else ""))
     effects, notes = read_effect_names(effects_path or ROOT / "server/common/ItemEffect.h")
     log += notes
+    if layout == "global":
+        lost = {}
+        beyond = [i for i in range(MAX_ITEMLIST, count) if any(raw[i][1:]) or raw[i][0].strip(b"\0")]
+        if beyond:
+            log.append(f"{len(beyond)} item(ns) com índice {MAX_ITEMLIST}+ (o servidor vai até {MAX_ITEMLIST - 1}), "
+                       f"fora do csv: {beyond[:10]}{'...' if len(beyond) > 10 else ''}")
+        raw = [global_item_to_client(r, lost) for r in raw[:MAX_ITEMLIST]]
+        log += [f"do Global, sem lugar no servidor: {k} em {v} item(ns)" for k, v in sorted(lost.items())]
     source = [(i, item_record(r)) for i, r in enumerate(raw)]
+    unnamed = {}
+    for _, r in source:
+        for j in range(MAX_STATICEFFECT):
+            code, val = r[9 + 2 * j], r[10 + 2 * j]
+            if (code or val) and not (0 <= code < MAX_EFFECTINDEX and effects[code]):
+                unnamed[code] = unnamed.get(code, 0) + 1
+    if unnamed:
+        log.append("efeitos sem nome no ItemEffect.h (código: itens): "
+                   + ", ".join(f"{c}: {n}" for c, n in sorted(unnamed.items())))
     csv, warn = itemlist_to_csv(source, effects)
     Path(out).write_bytes(csv)
     parsed = server_read_itemlist(csv, effects)
@@ -474,8 +547,16 @@ def convert_itemlist(bin_path, out, extra=None, effects_path=None, quiet=False):
 
 
 def convert_skills(bin_path, out, quiet=False):
-    raw, trailer = read_table(bin_path, SPELL_FMT, MAX_SPELL_LIST, "SkillData.bin")
+    layout, rec, count = detect_layout(bin_path, [("cliente", SPELL_FMT, MAX_SPELL_LIST),
+                                                  ("global", G_SPELL_FMT, MAX_SPELL_LIST)])
+    raw, trailer = read_table(bin_path, rec, count, "SkillData.bin")
     log = [] if trailer is not None else ["SkillData.bin sem os 4 bytes de rodapé"]
+    if layout == "global":
+        lost = {}
+        raw = [global_spell_to_client(r, i, lost) for i, r in enumerate(raw)]
+        log.append(f"layout do WYD Global ({count} x {rec.size} bytes), convertido para o do servidor "
+                   f"({MAX_SPELL_LIST} x {SPELL_FMT.size})")
+        log += [f"{k}: {v} skill(s)" for k, v in sorted(lost.items())]
     source = [(i, spell_record(r)) for i, r in enumerate(raw)]
     csv, warn = skills_to_csv(source)
     Path(out).write_bytes(csv)
@@ -488,8 +569,10 @@ def convert_skills(bin_path, out, quiet=False):
 def report(head, log, warn, diffs, quiet):
     if not quiet:
         print(head)
-        for line in log + warn:
+        for line in log + warn[:50]:
             print(f"  {line}")
+        if len(warn) > 50:
+            print(f"  ... e mais {len(warn) - 50} aviso(s)")
         if diffs:
             print(f"  {len(diffs)} campo(s) que o servidor leria diferente do binário:")
             for d in diffs[:200]:
@@ -582,7 +665,29 @@ def selftest():
         if got != want:
             problems.append(f"skill 3: esperava diferenças em {sorted(want)}, veio {sorted(got)}")
 
-        # 5. Tamanho de outra versão: erro claro, sem csv.
+        # 5. Layout do WYD Global: 14500 x 172 e 248 x 104, levados ao do servidor.
+        g = [[b"\0" * 64] + [0] * 8 + [G_EMPTY_EFFECT, 0] * 12 + [0] * 19 for _ in range(G_MAX_ITEMLIST)]
+        fx = [named[0], 7] + [G_EMPTY_EFFECT, 0] * 11
+        g[20] = [b"Global" + b"\0" * 58, 3, 1, 0, 10, 0, 0, 0, 0] + fx + [500, 41, 4, 9, 2] + [0] * 14
+        g[21] = [b"Bit16" + b"\0" * 59, 3, 0, 0, 0, 0, 0, 0, 0] + [G_EMPTY_EFFECT, 0] * 12 + [1, 0, 0x10002, 0, 0] + [5] + [0] * 13
+        g[7000] = [b"Alto" + b"\0" * 60, 1] + [0] * 7 + [G_EMPTY_EFFECT, 0] * 12 + [1, 0, 0, 0, 0] + [0] * 14
+        body = b"".join(G_ITEM_FMT.pack(*r) for r in g)
+        (tmp / "G_ItemList.bin").write_bytes(xor(body, 0x5A) + struct.pack("<i", 0x4823))
+        diffs, _ = convert_itemlist(tmp / "G_ItemList.bin", tmp / "g.csv", quiet=True)
+        lines = (tmp / "g.csv").read_bytes().split(b"\n")
+        want = [b"20,Global,3.1,10.0.0.0.0,41,500,4,9,2," + effects[named[0]] + b",7", b"21,Bit16,3.0,0.0.0.0.0,0,1,2,0,0", b""]
+        if lines != want or diffs:
+            problems.append(f"layout do Global: csv {lines}, diferenças {diffs[:3]}")
+        gs = [[0] * 12 + [b"\0" * 8, b"\0" * 8] + [0] * 8 + [i + 1, 0] for i in range(MAX_SPELL_LIST)]
+        gs[4] = [1] * 12 + [b"\1" * 6 + b"\0\0", b"\2" * 6 + b"\0\0"] + [3] * 7 + [0, 5, 0]
+        body = b"".join(G_SPELL_FMT.pack(*r) for r in gs)
+        (tmp / "G_SkillData.bin").write_bytes(xor(body, 0x5A) + struct.pack("<i", 0x29))
+        diffs, _ = convert_skills(tmp / "G_SkillData.bin", tmp / "gs.csv", quiet=True)
+        lines = (tmp / "gs.csv").read_bytes().split(b"\n")
+        if diffs or lines[0] != b"4,1,1,1,1,1,1,1,1,1,1,1,4,1.1.1.1.1.1,2.2.2.2.2.2,3,3,3,3,3,3,3":
+            problems.append(f"skill do Global: {lines[:1]}, diferenças {diffs[:3]}")
+
+        # 6. Tamanho de outra versão: erro claro, sem csv.
         (tmp / "outro.bin").write_bytes(b"\0" * (7000 * 140 + 4))
         try:
             convert_itemlist(tmp / "outro.bin", tmp / "outro.csv", quiet=True)
