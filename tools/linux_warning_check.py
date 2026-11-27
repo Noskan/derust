@@ -4,6 +4,7 @@
 Compila o projeto com CMake num diretório novo, no Release que vai para a hospedagem, com os
 mesmos avisos acompanhados da checagem mingw (WARN_TRACKED de tools/mingw_check.py:
 sombreamento, não inicializada, fora dos limites, memset/memcpy suspeitos, return ausente...).
+Só esses tipos entram na contagem, mesmo que o gcc da distribuição ligue outros por padrão.
 Compara as contagens por (tipo, arquivo) com tools/linux_warning_baseline-gcc<N>.txt, um arquivo
 por versão principal do gcc. Falha se um arquivo ganhar avisos de algum tipo; se perder, pede
 para regravar a linha de base.
@@ -74,7 +75,10 @@ def main():
         path = Path(m.group("path"))
         if not path.is_absolute():
             path = (build / path).resolve()
-        if ROOT in path.parents:
+        # Só os tipos acompanhados: o gcc de algumas distribuições liga outros por padrão (o do Ubuntu
+        # liga -Wformat-security e, com _FORTIFY_SOURCE, -Wunused-result), e a linha de base deve
+        # significar o mesmo em qualquer uma.
+        if ROOT in path.parents and m.group("flag") in M.WARN_TRACKED:
             warns.add((path.relative_to(ROOT).as_posix(), int(m.group("line")), m.group("flag"), m.group("msg")))
 
     status = M.check_warnings(warns, args.update_warning_baseline, baseline=baseline, header=header)

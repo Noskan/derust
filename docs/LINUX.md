@@ -136,4 +136,5 @@ A camada monta a lista de comandos a partir do `AppendMenu` de cada servidor. Um
 
 ## Pendências
 
+- O gcc 13 do Ubuntu, que liga mais avisos por padrão, aponta 22 `-Wformat-overflow`: `sprintf` que pode passar do tamanho do buffer, a maioria no DBSrv (`CReadFiles.cpp`, `CFileDB.cpp`). Eles ficam fora da linha de base, que só conta os tipos acompanhados, e pedem uma revisão caso a caso, porque um estouro desses num servidor exposto é falha de segurança.
 - A página de status do DBSrv vai para `C:/wamp/www/serv<NN>.htm` (`CReadFiles::UPDATE_CONNECTION_PATH`). No Linux esse caminho não existe e a gravação é pulada, como no Windows sem o wamp.
