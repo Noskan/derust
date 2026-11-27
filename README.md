@@ -8,6 +8,7 @@ Monorepo unificando o servidor (**W2PP**) e o cliente (**TMProject**) do *With Y
   - `server/common/` (`w2pp_common`) — Tipos base, pacotes, socket (`Basedef`, `CPSock`, `ItemEffect`) e trava de layout ABI.
   - `server/dbsrv/` (`DBSrv`) — Servidor de banco de dados em arquivos (`core/`, `persistence/`, `net/`, `resources/`).
   - `server/tmsrv/` (`TMSrv`) — Game server (`core/`, `entities/`, `net/`, `systems/`, `handlers/{account,combat,items,combine,trade,social,world}/`, `resources/`).
+  - `server/compat/` — Só no build Linux: o subconjunto Win32 que os servidores usam (laço de mensagens, sockets, arquivos), emulado sobre POSIX. Ver [`docs/LINUX.md`](docs/LINUX.md).
   - `server/tools/client_patch/` (`ClientPatch_v7662`) — DLL opcional de patch para cliente v7662 (`-DW2PP_BUILD_CLIENT_PATCH=ON`).
 - `shared/protocol/` (`w2_shared`) — Cabeçalhos com a mesma definição nos dois lados (`GameStructs.h`: `STRUCT_ITEM`, `STRUCT_SCORE`, `STRUCT_MOB`, `STRUCT_SELCHAR`, `STRUCT_AFFECT`, `STRUCT_SPELL`, `STRUCT_ITEMLIST` e as tabelas menores); `Opcodes.h`: os opcodes entre cliente e TMSrv com os nomes do cliente, incluídos pelo `common/Basedef.h` do servidor e do cliente.
 - [`client/`](client/README.md) — Cliente C++ DirectX 9 importado de [Noskan/tm-project](https://github.com/Noskan/tm-project), organizado em:
@@ -33,6 +34,16 @@ cmake --build build/win32-msvc --config Release --parallel
 
 # Executar testes unitários (CTest)
 ctest --test-dir build/win32-msvc -C Debug --output-on-failure
+```
+
+## Build (Linux x86_64, servidores)
+
+O DBSrv e o TMSrv também compilam e rodam nativos no Linux. O cliente fica só no Windows. Detalhes, a camada `server/compat` e o que muda para operar estão em [`docs/LINUX.md`](docs/LINUX.md).
+
+```bash
+cmake -S . -B build/linux -DCMAKE_BUILD_TYPE=Release
+cmake --build build/linux --parallel
+ctest --test-dir build/linux --output-on-failure
 ```
 
 Para verificar localmente as fronteiras de `#include`:
