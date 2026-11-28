@@ -222,12 +222,19 @@ int TMFieldScene::OnPacketCNFDropItem(MSG_CNFDropItem* pMsg)
 	}
 	else if (pMsg->SourType == 1)
 	{
-		auto pGridItem = m_pGridInv->PickupAtItem(pMsg->SourPos % 5, pMsg->SourPos / 5);
+		// Inventário paginado (15 posições por página), como em OnPacketSwapItem. A versão anterior
+		// tirava a célula SourPos % 5, SourPos / 5 da página aberta, e o item de outra página continuava
+		// na grade; o ponteiro ia para uma variável local e o item tirado nunca era liberado.
+		if (pMsg->SourPos >= 0 && pMsg->SourPos / 15 < 4 && m_pGridInvList[pMsg->SourPos / 15])
+			pGridItem = m_pGridInvList[pMsg->SourPos / 15]->PickupAtItem(pMsg->SourPos % 15 % 5, pMsg->SourPos % 15 / 5);
 		memset(&g_pObjectManager->m_stMobData.Carry[pMsg->SourPos], 0, sizeof(STRUCT_ITEM));
 	}
 	else if (pMsg->SourType == 2)
 	{
-		pGridItem = static_cast<SGridControl*>(m_pControlContainer->FindControl(65690))->PickupAtItem(pMsg->SourPos % 5, pMsg->SourPos / 5);
+		// Baú paginado (40 posições por página), como na troca de itens (OnPacketSwapItem). A versão
+		// anterior procurava a grade única G_CARGO_GRID (65690), que não existe mais.
+		if (pMsg->SourPos >= 0 && pMsg->SourPos / 40 < 3 && m_pCargoGridList[pMsg->SourPos / 40])
+			pGridItem = m_pCargoGridList[pMsg->SourPos / 40]->PickupAtItem(pMsg->SourPos % 40 % 5, pMsg->SourPos % 40 / 5);
 		memset(&g_pObjectManager->m_stItemCargo[pMsg->SourPos], 0, sizeof(STRUCT_ITEM));
 	}
 
@@ -259,8 +266,11 @@ int TMFieldScene::OnPacketCNFGetItem(MSG_CNFGetItem* pMsg)
 		sprintf(szMoney, "%10d", g_pObjectManager->m_stMobData.Coin);
 		m_pMoney1->m_cComma = 2;
 		m_pMoney1->SetText(szMoney, 0);
-		m_pMoney2->m_cComma = 2;
-		m_pMoney2->SetText(szMoney, 0);
+		if (m_pMoney2)
+		{
+			m_pMoney2->m_cComma = 2;
+			m_pMoney2->SetText(szMoney, 0);
+		}
 
 		sprintf(szMoney, "%10d", g_pObjectManager->m_stMobData.Coin - m_nBet);
 		m_pMoney3->m_cComma = 2;

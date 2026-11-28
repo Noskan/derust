@@ -22,9 +22,23 @@ mundo com esses dados, e dela saiu a decisão de **modelo híbrido** (2026-11-27
 | `Mesh/MeshList.txt` | índices até 3148 | 3048 entradas, sem conferir o índice | `MAX_COMMON_MESH` 4096; índice fora da tabela é registrado no log e ignorado |
 | `object.bin` | 4096 máscaras, mesma cifra e mesma soma | 2048 | `MAX_OBJECT_MASK` 4096; `TMObject::RegisterMask` recusa índice fora da tabela |
 | `curse.bin` | outro formato, sem contagem | contagem + pares de `stCurse` | contagem que não cabe no arquivo deixa a lista vazia em vez de derrubar o cliente |
+| `Env/Field*.trn` (tiles de 12 bytes) | altura, coordenada, coordenada do fundo, reservado, índice do tile (`short`), índice do fundo (`short`), cor; fundos a partir da textura 1024 | índice e coordenada em bytes alternados; fundos a partir da 256 | `FileTileInfo` em `world/TMGround.h`, conferido no desenho do chão do `WYD.exe` do Global |
+| `UI/FieldScene2.bin` | dois painéis a mais (90631 "Battlefield" e a barra 90624), visíveis no arquivo | — | a cena de campo os esconde ao carregar |
 
 `Mesh/BoneAni4.txt` (até o índice 87, limite 100) e `Mesh/ValidIndex.bin` (exatamente
 100 x 186 x 4 bytes) já cabiam e não mudaram.
+
+O `TextureManager` do `WYD.exe` do Global (construtor e leitores) confirma os quatro limites e o
+registro de 528 bytes: a lista do cenário é lida como `0x108000` bytes (2048 x 528).
+
+Com o layout de tile do Global, só 520 dos 507.904 tiles dos mapas (0,1%) e 26 fundos apontam para
+textura que a instalação não traz. Lidos no layout do 7662, eram 124.532 (os "trechos de chão
+brancos" da primeira medição). As tabelas de coordenadas de tile do Global são iguais às do cliente.
+
+O layout de campo do Global não tem 28 dos controles que a cena procura (por exemplo as grades
+únicas `G_INV_GRID` e `G_CARGO_GRID`, já substituídas pelas páginas, e o texto de dinheiro 1041).
+Os usos que não conferiam o ponteiro foram corrigidos (docs/BUGS_LATENTES.md); os demais já
+conferiam.
 
 ## O que a ferramenta converte
 
@@ -65,6 +79,8 @@ o primeiro número.
   na medição. Para testes, prefira o atalho `W2_AUTOLOGIN` (`client/src/core/TMAutoLogin.h`).
 - **Resultado:** com os arquivos visuais crus do Global, a camada da ferramenta e a música ligada,
   o cliente entra no campo, anda e segue estável (sem "CheckSum Error" nem falha de textura no log).
-- **Ainda não investigado:** o painel "Battlefield" aberto ao entrar no campo, que não fecha no
-  botão Fechar; textos "Classe" no lugar de valores; trechos de chão brancos; e as linhas
-  "Invalide Item Class 0" no log.
+- **Painel "Battlefield" e textos "Classe":** eram os painéis só do Global (tabela acima). Os
+  textos "Classe" são o valor padrão (UIString 137) que o cliente do Global troca em tempo de jogo.
+- **"Invalide Item Class 0" no log:** vinha do personagem de teste, criado com o `BaseMob`
+  sintético do `tools/server_boot_smoke.py`, que não tem rosto (`Equip[0]`); a classe sai do
+  `EF_CLASS` do rosto. Os rostos do ItemList do Global têm `EF_CLASS` certo.

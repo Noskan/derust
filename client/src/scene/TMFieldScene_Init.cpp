@@ -593,6 +593,16 @@ int TMFieldScene::InitializeScene()
 {
 	LOG_WRITELOG(">> Init Field Scene::Start\r\n");
 	LoadRC("UI\\FieldScene2.txt");
+
+	// O FieldScene2.bin do WYD Global traz dois painéis que o cliente 7662 não tem: o "Battlefield"
+	// (90631, com o Fechar 90632) e a barra de contagem no topo (90624). Os dois vêm visíveis e só o
+	// cliente do Global os esconde e preenche; aqui ficam escondidos (docs/DADOS_GLOBAL.md).
+	for (unsigned int dwGlobalOnlyPanel : { 90631u, 90624u })
+	{
+		if (SControl* pPanel = m_pControlContainer->FindControl(dwGlobalOnlyPanel))
+			pPanel->SetVisible(0);
+	}
+
 	g_pDevice->m_nHeightShift = 0;
 
 	m_pQuizBG = new SPanel(-9, BASE_ScreenResize(275.0f) / 2.0f, 100.0f, 525.0f, 54.0f, 0x44FFFFFF, RENDERCTRLTYPE::RENDER_IMAGE_STRETCH);

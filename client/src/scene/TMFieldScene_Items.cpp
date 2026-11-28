@@ -524,7 +524,13 @@ char TMFieldScene::FeedMount()
 
 void TMFieldScene::UseTicket(int nCellX, int nCellY)
 {
-	auto pGrid = (SGridControl*)m_pControlContainer->FindControl(65554);
+	// O ticket é usado da página do inventário aberta (SGridControl, evento 38), como os outros itens.
+	// A versão anterior procurava a grade única G_INV_GRID (65554), que não existe mais: o inventário
+	// é paginado em m_pGridInvList.
+	auto pGrid = m_pGridInv;
+	if (!pGrid)
+		return;
+
 	auto pItem = pGrid->GetItem(nCellX, nCellY);
 	if (!pItem)
 		return;
@@ -538,7 +544,14 @@ void TMFieldScene::UseTicket(int nCellX, int nCellY)
 
 	int SourPos = pGrid->CheckPos(pItem->m_pGridControl->m_eItemType);
 	if (SourPos == -1)
-		SourPos = pItem->m_nCellIndexX + 5 * pItem->m_nCellIndexY;
+	{
+		// Mesma conta de SGridControl para os itens de uso (ui/SGrid_Input.cpp): 15 posições por página.
+		int Page = 15 * (pGrid->m_dwControlID - 67072);
+		if (Page < 0 || Page > 45)
+			Page = 0;
+
+		SourPos = Page + pItem->m_nCellIndexX + 5 * pItem->m_nCellIndexY;
+	}
 
 	MSG_UseItem stUseItem{};
 	stUseItem.Header.ID = g_pObjectManager->m_dwCharID;

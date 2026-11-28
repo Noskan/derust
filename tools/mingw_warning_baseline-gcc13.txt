@@ -14,7 +14,6 @@
 3 shadow client/src/scene/TMFieldScene_Input.cpp
 1 shadow client/src/scene/TMFieldScene_MsgBox.cpp
 4 shadow client/src/scene/TMFieldScene_PacketAttack.cpp
-1 shadow client/src/scene/TMFieldScene_PacketItems.cpp
 2 shadow client/src/scene/TMFieldScene_Panels.cpp
 1 shadow client/src/scene/TMObjectContainer.cpp
 1 shadow client/src/scene/TMScene_Packets.cpp
