@@ -141,13 +141,26 @@ public:
 		return true;
 	}
 
-	/// @brief Envia como o cliente: no jogo, Header.ID é o ClientID; o Tick é o relógio, que o
-	/// TMSrv compara com o dele no movimento (os dois rodam na mesma máquina).
+	void SyncServerClock(unsigned int serverTick)
+	{
+		serverClockDelta_ = static_cast<long long>(serverTick + 100u) - static_cast<long long>(timeGetTime());
+		hasServerClock_ = true;
+	}
+
+	unsigned int NowTick() const
+	{
+		if (!hasServerClock_)
+			return timeGetTime();
+		return static_cast<unsigned int>(static_cast<long long>(timeGetTime()) + serverClockDelta_);
+	}
+
+	/// @brief Envia como o cliente: no jogo, Header.ID é o ClientID; o Tick é o relógio sincronizado
+	/// com o servidor após o 0x114.
 	void Send(void* msg, int size)
 	{
 		if (clientId)
 			static_cast<MSG_STANDARD*>(msg)->ID = static_cast<unsigned short>(clientId);
-		CurrentTime = timeGetTime();
+		CurrentTime = NowTick();
 		sock_.SendOneMessage(static_cast<char*>(msg), size);
 	}
 
@@ -232,6 +245,8 @@ private:
 		return true;
 	}
 
+	bool hasServerClock_ = false;
+	long long serverClockDelta_ = 0;
 	std::deque<std::vector<char>> pending_;
 };
 
@@ -284,6 +299,7 @@ bool CheckCharacterLogin(Session& s, const Account& a, InGame& out)
 	out.posX = r.PosX;
 	out.posY = r.PosY;
 	out.mob = mob;
+	s.SyncServerClock(r.Header.Tick);
 	std::printf("   0x114 com %d bytes, \"%.16s\" em %d,%d (ClientID %d)\n", size, mob.MobName, r.PosX, r.PosY, r.ClientID);
 	return true;
 }
@@ -603,10 +619,99 @@ bool Play(Session& sa, InGame& a, const Account& accA, Session& sb, InGame& b)
 		if (!CheckCharacterLogin(sa, accA, again))
 			return false;
 		sa.clientId = again.clientId;
+		a.posX = again.posX;
+		a.posY = again.posY;
 		EXPECT(again.clientId == id, "0x114 ClientID %d na volta, era %d", again.clientId, id);
 		for (int pos : { 0, 5, 35, 50 })
 			EXPECT(again.mob.Carry[pos].sIndex == 0, "0x114 na volta: Carry[%d] com %d (a poção foi gasta)", pos, again.mob.Carry[pos].sIndex);
 		std::printf("   inventário gravado: poção gasta, bolsa em Carry[61]\n");
+	}
+
+	// 14. /day (literal curta em SendClientMessage) e spawn/combate/abate de NPC do NPCGener.txt.
+	{
+		MSG_MessageWhisper w{};
+		w.Header.Type = MSG_MessageWhisper_Opcode;
+		std::snprintf(w.MobName, sizeof(w.MobName), "day");
+		sa.Send(&w, sizeof(w));
+
+		MSG_MessagePanel mp{};
+		auto isDayReply = [](const char* p) {
+			return std::strncmp(reinterpret_cast<const MSG_MessagePanel*>(p)->String, "!#11  2", 7) == 0;
+		};
+		if (!sa.Wait(kTypeMessagePanel, &mp, sizeof(mp), nullptr, isDayReply))
+			return false;
+		std::printf("14. /day respondido pelo servidor\n");
+
+		static MSG_CreateMob alvo;
+		int alvoSize = 0;
+		auto isAlvo = [](const char* p) {
+			const auto* cm = reinterpret_cast<const MSG_CreateMob*>(p);
+			return cm->MobID >= 1000 && std::strncmp(cm->MobName, "AlvoTeste", 16) == 0;
+		};
+		if (!sa.Wait(MSG_CreateMob_Opcode, &alvo, sizeof(alvo), &alvoSize, isAlvo))
+			return false;
+
+		const int goalX = alvo.PosX + (a.posX >= alvo.PosX ? 1 : -1);
+		const int goalY = alvo.PosY;
+		while (a.posX != goalX || a.posY != goalY)
+		{
+			int dx = goalX - a.posX;
+			int dy = goalY - a.posY;
+			if (dx > 4) dx = 4;
+			if (dx < -4) dx = -4;
+			if (dy > 4) dy = 4;
+			if (dy < -4) dy = -4;
+
+			MSG_Action act{};
+			act.Header.Type = MSG_Action_Opcode;
+			act.PosX = static_cast<short>(a.posX);
+			act.PosY = static_cast<short>(a.posY);
+			act.TargetX = static_cast<unsigned short>(a.posX + dx);
+			act.TargetY = static_cast<unsigned short>(a.posY + dy);
+			act.Speed = a.mob.CurrentScore.AttackRun & 0xF;
+			Sleep(1000);
+			sa.Send(&act, sizeof(act));
+			a.posX += dx;
+			a.posY += dy;
+		}
+
+		bool damaged = false;
+		for (int hit = 0; hit < 10 && !damaged; ++hit)
+		{
+			Sleep(1050);
+			MSG_AttackOne atk{};
+			atk.Header.Type = MSG_Attack_One_Opcode;
+			atk.PosX = static_cast<unsigned short>(a.posX);
+			atk.PosY = static_cast<unsigned short>(a.posY);
+			atk.TargetX = static_cast<unsigned short>(alvo.PosX);
+			atk.TargetY = static_cast<unsigned short>(alvo.PosY);
+			atk.AttackerID = static_cast<unsigned short>(a.clientId);
+			atk.Motion = 4;
+			atk.SkillIndex = -1;
+			atk.Dam[0].TargetID = alvo.MobID;
+			atk.Dam[0].Damage = -2;
+			sa.Send(&atk, sizeof(atk));
+
+			static MSG_AttackOne atkEco;
+			auto byAttacker = [&a](const char* p) {
+				const auto* rsp = reinterpret_cast<const MSG_AttackOne*>(p);
+				return rsp->AttackerID == a.clientId && rsp->Dam[0].TargetID == alvo.MobID;
+			};
+			if (!sa.Wait(MSG_Attack_One_Opcode, &atkEco, sizeof(atkEco), nullptr, byAttacker))
+				return false;
+			if (atkEco.Dam[0].Damage > 0)
+				damaged = true;
+		}
+		EXPECT(damaged, "0x39D contra AlvoTeste não causou dano");
+
+		MSG_CNFMobKill mk{};
+		auto isAlvoKill = [](const char* p) {
+			return reinterpret_cast<const MSG_CNFMobKill*>(p)->KilledMob == alvo.MobID;
+		};
+		if (!sa.Wait(MSG_CNFMobKill_Opcode, &mk, sizeof(mk), nullptr, isAlvoKill))
+			return false;
+		EXPECT(mk.Killer == a.clientId, "0x338 Killer %u, esperado %d", mk.Killer, a.clientId);
+		std::printf("   AlvoTeste (MobID %u) abatido (Killer=%u)\n", alvo.MobID, mk.Killer);
 	}
 	return true;
 }

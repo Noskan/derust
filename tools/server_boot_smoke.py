@@ -113,6 +113,22 @@ def synthetic_base_mob(cls):
     return bytes(mob)
 
 
+def synthetic_npc_mob(name, *, level=1, hp=10, maxmp=0, merchant=0, exp=100):
+    """NPC/monstro sintético de 1024 bytes para TMSRV/Run/npc/."""
+    mob = bytearray(SIZEOF_STRUCT_MOB)
+    enc = name.encode("latin-1")[:15]
+    mob[0:len(enc)] = enc
+    mob[16] = 2          # Clan (monstro não agressivo, como Porco)
+    mob[17] = merchant   # Merchant
+    struct.pack_into("<q", mob, 32, exp)
+    for score in (44, 92):
+        struct.pack_into("<h2xii4B4i", mob, score, level, 0, 0, merchant, 1, 0, 0, hp, maxmp, hp, maxmp)
+    # Equip[0].sIndex: rosto de monstro (face = 202 / 10 >= 4). Com 0, BASE_GetCurrentScore trata o
+    # NPC como personagem e recalcula MaxHp a partir de Con = 0.
+    struct.pack_into("<h", mob, 140, 202)
+    return bytes(mob)
+
+
 def zero_file(path, size):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "wb") as f:
@@ -165,9 +181,11 @@ def build_tree(work, exe_dir):
     shutil.copy(ROOT / "server/common/ItemEffect.h", common / "ItemEffect.h")
     (common / "itemlist.csv").write_text(ITEMLIST_CSV)
     for name in ("SkillData.csv", "InitItem.csv", "Guilds.txt", "GuildInfo",
-                 "Settings/SancRate.txt", "Settings/QuestsRate.txt", "Settings/CompRate.txt",
+                 "Settings/QuestsRate.txt", "Settings/CompRate.txt",
                  "Settings/MobMerc.txt", "Settings/CastleQuest.txt"):
         zero_file(common / name, 0)
+    # UTF-8 + CP1252 de Âmago para conferir CReadFiles::ReadSancRate sem sobrescrever PO.
+    (common / "Settings/SancRate.txt").write_bytes(b"PO 0 100\n\xc3\x82mago 0 50\n\xc2mago 1 40\n")
 
     shutil.copy(exe_dir / "DBSrv", db)
     (db / "Config.txt").write_text("Sapphire 8\nLastCapsule 0\n")
@@ -185,8 +203,26 @@ def build_tree(work, exe_dir):
     (tm / "localip.txt").write_text(ips[0] + "\n")  # o nome que o TMSrv abre (no Linux a caixa conta)
     zero_file(tm / "AttributeMap.dat", 1024 * 1024)
     zero_file(tm / "heightmap.dat", 4096 * 4096)  # MAX_GRIDY * MAX_GRIDX
-    for name in ("NPCGener.txt", "LevelItem.txt"):
-        (tm / name).write_bytes(b"")
+    (tm / "LevelItem.txt").write_bytes(b"")
+    (tm / "npc" / "AlvoTeste").write_bytes(synthetic_npc_mob("AlvoTeste", level=1, hp=8, exp=100, merchant=0))
+    (tm / "npc" / "AuraTeste").write_bytes(synthetic_npc_mob("AuraTeste", level=5, hp=50, maxmp=9000, merchant=0))
+    (tm / "npc" / "SegTeste").write_bytes(synthetic_npc_mob("SegTeste", level=2, hp=20, merchant=0))
+    (tm / "npc" / "ImpostoTeste").write_bytes(synthetic_npc_mob("ImpostoTeste", level=5, hp=50, merchant=6))
+    npcgen = (
+        "#\n" * 8
+        + "#\t[8]\n\tMinuteGenerate:\t1\n\tMaxNumMob:\t1\n\tMinGroup:\t1\n\tMaxGroup:\t1\n"
+          "\tRouteType:\t6\n\tStartX:\t2105\n\tStartY:\t2042\n\tLeader:\tAlvoTeste\n"
+        + "#\t[9]\n\tMinuteGenerate:\t1\n\tMaxNumMob:\t1\n\tMinGroup:\t6\n\tMaxGroup:\t6\n"
+          "\tFormation:\t2\n\tRouteType:\t6\n\tStartX:\t1000\n\tStartY:\t1000\n"
+          "\tStartRange:\t2\n\tLeader:\tAuraTeste\n\tFollower:\tSegTeste\n"
+        + "#\t[10]\n\tMinuteGenerate:\t1\n\tMaxNumMob:\t1\n\tMinGroup:\t1\n\tMaxGroup:\t1\n"
+          "\tRouteType:\t3\n\tStartX:\t1050\n\tStartY:\t1000\n\tSegment1X:\t1051\n\tSegment1Y:\t1000\n\tLeader:\tSegTeste\n"
+        + "#\t[11]\n\tMinuteGenerate:\t1\n\tMaxNumMob:\t1\n\tMinGroup:\t1\n\tMaxGroup:\t1\n"
+          "\tRouteType:\t1\n\tStartX:\t1080\n\tStartY:\t1000\n\tSegment1X:\t1081\n\tSegment1Y:\t1000\n\tLeader:\tSegTeste\n"
+        + "#\t[12]\n\tMinuteGenerate:\t1\n\tMaxNumMob:\t1\n\tMinGroup:\t1\n\tMaxGroup:\t1\n"
+          "\tRouteType:\t6\n\tStartX:\t1110\n\tStartY:\t1000\n\tLeader:\tImpostoTeste\n"
+    )
+    (tm / "NPCGener.txt").write_text(npcgen, encoding="ascii")
     for name in summon_names():
         zero_file(tm / "BaseSummon" / name, SIZEOF_STRUCT_MOB)
     return db, tm, ips[0]
