@@ -31,6 +31,9 @@ jobs:
       - name: Self-test the WYD Global client data builder (synthetic data)
         run: python3 tools/global_client_data.py selftest
 
+      - name: Self-test the WYD Global server data builder (synthetic data)
+        run: python3 tools/global_server_data.py selftest
+
   mingw-check:
     name: MinGW i686 Cross Check (Linux + wine)
     runs-on: ubuntu-24.04
