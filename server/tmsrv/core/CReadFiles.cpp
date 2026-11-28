@@ -140,7 +140,7 @@ void CReadFiles::ReadSancRate()
 			g_pSancRate[1][val2] = val3;
 		}
 
-		else if (strcmp(str1, "ÂMAGO") == 0)
+		else if (strcmp(str1, "\xC3\x82MAGO") == 0 || strcmp(str1, "\xC3\xA2MAGO") == 0 || strcmp(str1, "\xC2MAGO") == 0 || strcmp(str1, "\xE2MAGO") == 0 || strcmp(str1, "AMAGO") == 0)
 		{
 			if (val2 < 0 || val2 >= 12)
 			{
@@ -154,7 +154,7 @@ void CReadFiles::ReadSancRate()
 				continue;
 			}
 
-			g_pSancRate[0][val2] = val3;
+			g_pSancRate[2][val2] = val3;
 		}
 
 		else if (strcmp(str1, "PO_A") == 0)
