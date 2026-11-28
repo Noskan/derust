@@ -9,6 +9,7 @@ on:
       - "test/**"
       - "port/**"
       - "tools/**"
+      - "feat/**"
   pull_request:
     branches:
       - main
