@@ -1183,7 +1183,8 @@ void ProcessImple(int conn, int level, char * str)
 
 		if (!strcmp(cmd, "notice"))
 		{
-			memcpy(temp, str + 7, MESSAGE_LENGTH);
+			memset(temp, 0, MESSAGE_LENGTH);
+			strncpy(temp, str + 7, MESSAGE_LENGTH - 1);
 
 			MSG_DBNotice sm_dbn;
 			memset(&sm_dbn, 0, sizeof(MSG_DBNotice));
@@ -1493,7 +1494,8 @@ void ProcessImple(int conn, int level, char * str)
 		else if (!strcmp(cmd, "chiefnotice"))
 		{
 			char temp[256];
-			memcpy(temp, str + 12, MESSAGE_LENGTH);
+			memset(temp, 0, MESSAGE_LENGTH);
+			strncpy(temp, str + 12, MESSAGE_LENGTH - 1);
 
 			SendNoticeChief(temp);
 			SendClientMessage(conn, "CHIEFNOTICE");

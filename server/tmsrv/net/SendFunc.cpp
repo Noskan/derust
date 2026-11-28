@@ -36,7 +36,8 @@ void SendClientMessage(int conn, char *Message)
 	sm_mp.Type = _MSG_MessagePanel;
 	sm_mp.ID = 0;
 
-	memcpy(sm_mp.String, Message, MESSAGE_LENGTH);
+	if (Message)
+		strncpy(sm_mp.String, Message, MESSAGE_LENGTH - 1);
 
 	sm_mp.String[MESSAGE_LENGTH - 1] = 0;
 	sm_mp.String[MESSAGE_LENGTH - 2] = 0;
@@ -186,7 +187,8 @@ void SendClientMessageOk(int conn, char *Message, int Useless1, int Useless2) //
 
 	sm_mbo.Type = _MSG_MessageBoxOk;
 
-	memcpy(sm_mbo.String, Message, MESSAGE_LENGTH);
+	if (Message)
+		strncpy(sm_mbo.String, Message, MESSAGE_LENGTH - 1);
 
 	sm_mbo.Useless1 = Useless1;
 	sm_mbo.Useless2 = Useless2;
@@ -340,7 +342,8 @@ void SendChat(int conn, char *Message)
 	sm.ID = conn;
 	sm.Size = sizeof(MSG_MessageChat);
 
-	memcpy(sm.String, Message, MESSAGE_LENGTH);
+	if (Message)
+		strncpy(sm.String, Message, MESSAGE_LENGTH - 1);
 
 	GridMulticast(pMob[conn].TargetX, pMob[conn].TargetY, (MSG_STANDARD*)&sm, conn);
 }
@@ -1645,7 +1648,8 @@ void SendSay(int mob, char *Message)
 	sm_mc.Size = sizeof(MSG_MessageChat);
 	sm_mc.ID = mob;
 
-	memcpy(sm_mc.String, Message, MESSAGE_LENGTH);
+	if (Message)
+		strncpy(sm_mc.String, Message, MESSAGE_LENGTH - 1);
 	
 
 	GridMulticast(pMob[mob].TargetX, pMob[mob].TargetY, (MSG_STANDARD*)&sm_mc, 0);
