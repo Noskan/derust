@@ -164,9 +164,16 @@ Para desfazer uma conta só, sem restaurar o banco, use as últimas 20 versões 
 
 Na ordem, depois do Postgres e do pgBackRest acima:
 
-1. `python3 tools/linux_deploy.py /srv/derust --w2db <w2db> --user <usuário>`. Ele monta a árvore
-   e gera as units em `/srv/derust/systemd`. O pacote `prometheus-node-exporter` precisa ler
-   `/srv/derust/metrics`, então a árvore não pode ficar numa pasta pessoal fechada.
+1. **Usuário e árvore:** os servidores rodam num usuário de sistema só deles, sem shell e sem
+   sudo. A árvore é dele, e quem opera entra pelo SSH com o próprio usuário:
+   ```bash
+   sudo useradd --system --home-dir /srv/derust --shell /usr/sbin/nologin derust
+   sudo python3 tools/linux_deploy.py /srv/derust --bin <DBSrv e TMSrv> --w2db <w2db> --w2gm <w2gm> --user derust
+   sudo chown -R derust:derust /srv/derust
+   ```
+   Ele monta a árvore e gera as units em `/srv/derust/systemd`. O pacote
+   `prometheus-node-exporter` precisa ler `/srv/derust/metrics`, então a árvore não pode ficar
+   numa pasta pessoal fechada.
 2. `/etc/derust/w2db.env` a partir de `systemd/w2db.env.example` (modo 0600). Coloque também os
    webhooks do Discord em `/etc/derust/`. Com o painel de GM (`--w2gm`), o `/etc/derust/w2gm.env`
    e o Caddy, como em `docs/GM.md`.
@@ -181,7 +188,72 @@ Na ordem, depois do Postgres e do pgBackRest acima:
    painel em `/var/lib/grafana/dashboards/derust/`. O acesso é pelo HTTPS do proxy, como no painel
    de GM.
 
-Só as portas do jogo, 80/443 e 22 ficam abertas; as regras do nftables são do portão do passo 3.
+8. **Firewall e SSH:** veja a seção abaixo.
+
+## Firewall e SSH
+
+`deploy/nftables/derust.nft` deixa entrar só:
+- **8281**, o jogo;
+- **80 e 443**, o Caddy: o painel de GM, o cadastro e o certificado;
+- **22**, o SSH, só com chave.
+
+Fica tudo local: o DBSrv (7514) e a porta de admin dele (8895), o Postgres, o socket do w2db, o
+Prometheus, o Alertmanager, o node_exporter, o `/metrics` do w2db, o Grafana e o `w2gm`. Esses
+serviços já ouvem em 127.0.0.1 ou num Unix socket, e o firewall é a segunda trava. A política é
+descartar o resto, inclusive o encaminhamento.
+
+Por IP, as conexões novas têm limite: na 8281, 5 por segundo com rajada de 20, antes do limite do
+próprio TMSrv (NetGuard); na 22, 10 por minuto. O ICMP passa com limite, e o ICMPv6 de que o
+IPv6 precisa (neighbor discovery, packet too big) passa sempre.
+
+A tabela é só a `inet derust`: carregar o arquivo de novo troca a tabela sem mexer nas de outros
+programas. Para instalar:
+
+```bash
+sudo nft -c -f deploy/nftables/derust.nft          # só confere
+sudo install -m 0644 deploy/nftables/derust.nft /etc/nftables.conf
+sudo systemctl enable --now nftables
+sudo nft list table inet derust
+```
+
+As conexões já abertas continuam, então a sessão de SSH em uso não cai. Se o sshd ouvir em outra
+porta, troque a 22 no arquivo antes. Um firewall do provedor da VPS, se houver, pode repetir a
+mesma lista.
+
+**SSH:** `deploy/ssh/derust.conf` vai em `/etc/ssh/sshd_config.d/`. Ele desliga a senha
+(`PasswordAuthentication`, `KbdInteractiveAuthentication`), aceita só chave
+(`AuthenticationMethods publickey`) e não deixa o root entrar com senha. Antes de instalar,
+confirme numa **segunda sessão** que a sua chave entra:
+
+```bash
+sudo install -m 0644 deploy/ssh/derust.conf /etc/ssh/sshd_config.d/derust.conf
+sudo sshd -t && sudo systemctl reload ssh
+```
+
+## Isolamento das units
+
+As units que ficam no ar (`w2-dbsrv`, `w2-tmsrv`, `w2-w2db` e `w2-w2gm`) têm o mesmo isolamento,
+a lista `HARDENING` de `tools/linux_deploy.py`:
+- **usuário sem privilégios** (`User=`), sem nenhuma capability (`CapabilityBoundingSet=`) e sem
+  como ganhar privilégio (`NoNewPrivileges`, `RestrictSUIDSGID`);
+- **disco só para leitura** (`ProtectSystem=strict`, `ProtectHome=read-only`). Cada unit grava só
+  no que precisa (`ReadWritePaths=`):
+  - DBSrv: o `DBSRV/Run` (contas, personagens, logs, o `control.fifo`), o `Common` (`Import*`,
+    `Error` e a página de status) e a pasta das métricas;
+  - TMSrv: o `TMSRV/Run`, o `Common` e as métricas;
+  - w2db: só o socket em `/run/w2db` (`RuntimeDirectory=`);
+  - w2gm: nada;
+- **`/tmp` e `/dev` próprios**, kernel, cgroups, relógio e hostname protegidos, e os processos
+  dos outros usuários escondidos em `/proc` (`ProtectProc=invisible`);
+- **rede:** só sockets IPv4, IPv6 e Unix (`RestrictAddressFamilies=`). O DBSrv e o w2db não
+  precisam de netlink: o `getaddrinfo` funciona sem ele;
+- **chamadas de sistema:** as de um serviço comum (`@system-service`), menos as privilegiadas e as
+  de recursos (`~@privileged @resources`), só na arquitetura nativa. A memória não pode ser
+  gravável e executável ao mesmo tempo (`MemoryDenyWriteExecute`). Uma chamada fora do filtro
+  devolve `EPERM` (`SystemCallErrorNumber=`) em vez de matar o servidor.
+
+O `systemd-analyze security` dá 1.3 ("OK") às quatro, e o CI falha se alguma passar de 2.0.
+Para ver na VPS: `systemd-analyze security w2-tmsrv`.
 
 ## Testes
 
@@ -202,4 +274,23 @@ Só as portas do jogo, 80/443 e 22 ficam abertas; as regras do nftables são do 
     contas sintéticas, backup completo e diferencial, restauração até um instante (o que veio
     depois dele não está lá), restauração até o fim, `w2db check` nas duas, e o arquivamento
     visto no `/metrics`;
-  - `systemd-analyze verify` em todas as units geradas.
+  - `systemd-analyze verify` em todas as units geradas, e o `systemd-analyze security` da
+    `w2-w2gm` até 2.0;
+  - o `sshd -t` com o `deploy/ssh/derust.conf`, e o `sshd -T` confere que senha e
+    keyboard-interactive estão desligados.
+- **Isolamento das units** (`tools/server_boot_smoke.py --sandbox`): DBSrv, TMSrv e w2db rodam
+  cada um numa unit transitória (`systemd-run`) com as propriedades de `HARDENING` e só a árvore do
+  teste gravável:
+  - no job `mingw-check`, o teste com o w2db, o LoginClient e a duplicação forçada, pelo
+    gerenciador do sistema (`--sandbox system`);
+  - no job `linux-native`, o build Release da hospedagem, sem o login;
+  - fora do CI, `--sandbox user` usa o gerenciador do usuário, sem sudo (com `PrivateUsers=`).
+  O job `linux-native` também confere o `systemd-analyze security` das units dos servidores e do
+  w2db, até 2.0.
+- **Firewall** (`tools/firewall_check.py`, no job `linux-native`): num namespace de rede próprio,
+  com um segundo namespace "de fora" ligado por veth, em IPv4 e IPv6:
+  - de fora, só 22, 80, 443 e 8281 conectam, e as dez portas locais não;
+  - por dentro, todas conectam;
+  - uma rajada na 8281 e na 22 passa do limite por IP, e parte dela cai;
+  - carregar as regras duas vezes deixa uma tabela só.
+  Roda sem root (`unshare -rn`): `python3 tools/firewall_check.py`.

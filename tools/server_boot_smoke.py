@@ -62,8 +62,14 @@ Painel de GM (docs/GM.md), com --w2db:
  15. A conta bloqueada pelo GM (banned_until): o LoginClient no modo `banned` recebe a mensagem de
      conta bloqueada e a conexão fechada, sem o 0x10A, e o DBSrv conta o login recusado.
 
+Com --sandbox, DBSrv, TMSrv e o w2db rodam cada um numa unidade transitória do systemd
+(systemd-run), com o mesmo isolamento das unidades de produção (tools/linux_deploy.py HARDENING)
+e só a árvore do teste gravável: `user` usa o gerenciador do usuário (com PrivateUsers=, para os
+namespaces de montagem), `system` usa o do sistema por sudo (o CI), com User= o usuário atual.
+
 Uso: python3 tools/server_boot_smoke.py <dir com DBSrv e TMSrv> [--keep DIR] [--settle S]
        [--login-client EXE] [--require-login] [--w2db EXE [--pg-bin DIR] [--forced-dupe]]
+       [--sandbox user|system]
 """
 
 import argparse
@@ -98,6 +104,64 @@ BASE_CLASSES = ("TK", "FM", "BM", "HT")  # ordem de g_pBaseSet no DBSrv
 # Contas e personagens do login sintético: A faz o login completo; B entra perto de A para o
 # teste de jogo. As duas usam a mesma senha e a mesma senha numérica.
 LOGIN_ACCOUNT, LOGIN_PASSWORD, LOGIN_NUMERIC = "derust", "senha123", "1234"
+
+
+# O ambiente que vai para dentro da unidade transitória (o resto do ambiente do teste fica de fora,
+# como numa unidade de verdade).
+SANDBOX_ENV = re.compile(r"^(W2_|W2DB_|ASAN_|UBSAN_|LSAN_|DATABASE_URL$|RUST_LOG$|NO_COLOR$|DERUST_)")
+
+
+class SandboxProc:
+    """Como um Popen, mas o processo roda numa unidade transitória (systemd-run --wait --pipe), com
+    as propriedades de isolamento das unidades de produção. Os sinais vão por `systemctl kill`:
+    um SIGTERM no systemd-run só derrubaria o cliente e deixaria a unidade no ar."""
+
+    seq = 0
+
+    def __init__(self, mode, argv, cwd, env, rw_paths, stdout, stderr):
+        SandboxProc.seq += 1
+        self.unit = f"w2smoke-{os.getpid()}-{SandboxProc.seq}-{Path(argv[0]).name}.service"
+        if mode == "user":
+            self.ctl = ["systemctl", "--user"]
+            cmd = ["systemd-run", "--user"]
+            extra = ["PrivateUsers=yes"]
+        else:
+            self.ctl = ["sudo", "-n", "systemctl"]
+            cmd = ["sudo", "-n", "systemd-run"]
+            extra = [f"User={os.getuid()}", f"Group={os.getgid()}"]
+        # O trabalho do teste (e os sockets do w2db e do Postgres) pode estar em /tmp.
+        props = [h for h in linux_deploy.HARDENING if not h.startswith("PrivateTmp=")] + extra
+        props.append("ReadWritePaths=" + " ".join(str(x) for x in rw_paths if Path(x).exists()))
+        cmd += ["--quiet", "--wait", "--pipe", "--collect", f"--unit={self.unit}", f"--working-directory={cwd}"]
+        cmd += [f"--property={x}" for x in props]
+        cmd += [f"--setenv={k}={v}" for k, v in sorted(env.items()) if SANDBOX_ENV.match(k)]
+        self.proc = subprocess.Popen(cmd + ["--", *map(str, argv)], stdin=subprocess.DEVNULL, stdout=stdout,
+                                     stderr=stderr)
+
+    @property
+    def returncode(self):
+        return self.proc.returncode
+
+    def poll(self):
+        return self.proc.poll()
+
+    def wait(self, timeout=None):
+        return self.proc.wait(timeout)
+
+    def send_signal(self, sig):
+        subprocess.run(self.ctl + ["kill", f"--signal={int(sig)}", "--kill-whom=main", self.unit],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def kill(self):
+        subprocess.run(self.ctl + ["stop", self.unit], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if self.proc.poll() is None:
+            self.proc.kill()
+
+
+def spawn(sandbox, argv, cwd, env, rw_paths, stdout, stderr):
+    if sandbox:
+        return SandboxProc(sandbox, argv, cwd, env, rw_paths, stdout, stderr)
+    return subprocess.Popen([str(a) for a in argv], cwd=cwd, stdout=stdout, stderr=stderr, env=env)
 LOGIN_CHAR, LOGIN_CLASS = "Heroi", 1
 LOGIN_ACCOUNT_B, LOGIN_CHAR_B, LOGIN_CLASS_B = "derust2", "Parceiro", 2
 # O /bug do passo 17 do LoginClient (kBugText em tools/login_client/LoginClient.cpp).
@@ -322,8 +386,9 @@ class LinuxHost:
     caminho de fechar a janela no Windows (grava e encerra). O LoginClient.exe é um programa
     Windows e roda no wine."""
 
-    def __init__(self, work, need_wine):
+    def __init__(self, work, need_wine, sandbox=None):
         self.wine = WineHost(work) if need_wine else None
+        self.sandbox = sandbox
         # W2_METRICS_DIR dos servidores (common/Metrics.h), definido no boot.
         self.metrics_dir = None
 
@@ -332,7 +397,8 @@ class LinuxHost:
         env = dict(os.environ)
         if self.metrics_dir is not None:
             env["W2_METRICS_DIR"] = str(self.metrics_dir)
-        proc = subprocess.Popen([str(cwd / name)], cwd=cwd, stdout=subprocess.DEVNULL, stderr=open(log, "wb"), env=env)
+        rw = [cwd, cwd.parent.parent / "Common"] + ([self.metrics_dir] if self.metrics_dir is not None else [])
+        proc = spawn(self.sandbox, [cwd / name], cwd, env, rw, subprocess.DEVNULL, open(log, "wb"))
         return Server(self, name, proc, log)
 
     # Alertas que o teste provoca de propósito (a duplicação forçada): não contam como problema, e o
@@ -585,7 +651,7 @@ class W2Db:
     """Postgres próprio (só Unix socket, sem fsync) e o `w2db serve` em cima dele. Os sockets ficam
     num diretório curto do sistema: o caminho de um Unix socket tem limite de ~107 bytes."""
 
-    def __init__(self, work, exe, pg_bin, timeout=60):
+    def __init__(self, work, exe, pg_bin, timeout=60, sandbox=None):
         self.work, self.exe, self.pg_bin = work, Path(exe), pg_bin
         work.mkdir(parents=True, exist_ok=True)
         self.sock = Path(tempfile.mkdtemp(prefix="w2db_"))
@@ -610,9 +676,9 @@ class W2Db:
             self.metrics_url = f"http://127.0.0.1:{s.getsockname()[1]}/metrics"
         env = dict(os.environ, DATABASE_URL=self.url, RUST_LOG="info", NO_COLOR="1")
         log = open(work / "w2db.log", "wb")
-        self.proc = subprocess.Popen([str(self.exe), "serve", "--socket", str(self.socket), "--metrics-addr",
-                                      self.metrics_url.split("/")[2], "--discord-webhook-file", str(hook_file),
-                                      "--discord-poll-secs", "1"], env=env, stdout=log, stderr=subprocess.STDOUT)
+        self.proc = spawn(sandbox, [self.exe, "serve", "--socket", self.socket, "--metrics-addr",
+                                    self.metrics_url.split("/")[2], "--discord-webhook-file", hook_file,
+                                    "--discord-poll-secs", "1"], work, env, [self.sock], log, subprocess.STDOUT)
         end = time.time() + timeout
         while not self.socket.exists():
             if self.proc.poll() is not None or time.time() > end:
@@ -942,7 +1008,7 @@ def boot(host, work, exe_dir, args):
     host.metrics_dir.mkdir(parents=True, exist_ok=True)
     try:
         if args.w2db:
-            db = W2Db(work / "w2db", args.w2db, find_pg_bin(args.pg_bin))
+            db = W2Db(work / "w2db", args.w2db, find_pg_bin(args.pg_bin), sandbox=args.sandbox)
             (db_dir / "w2db.txt").write_text(f"{db.socket}\n")
         t0 = db_started = time.time()
         servers.append(host.start("DBSrv", db_dir))
@@ -1036,6 +1102,8 @@ def main():
     ap.add_argument("--pg-bin", help="diretório com initdb, pg_ctl e psql (padrão: procura)")
     ap.add_argument("--forced-dupe", action="store_true",
                     help="com --w2db: força uma duplicação numa troca (TMSrv com DERUST_TEST_HOOKS) e exige que seja acusada")
+    ap.add_argument("--sandbox", choices=("user", "system"),
+                    help="roda os servidores e o w2db com o isolamento das unidades de produção (systemd-run)")
     args = ap.parse_args()
     if args.forced_dupe and not args.w2db:
         raise SystemExit("--forced-dupe precisa de --w2db")
@@ -1070,10 +1138,11 @@ def main():
         work = Path(tempfile.mkdtemp(prefix="server_boot_"))
 
     need_wine = bool(args.login_client) and Path(args.login_client).suffix.lower() == ".exe"
-    host = LinuxHost(work, need_wine)
+    host = LinuxHost(work, need_wine, args.sandbox)
     if args.forced_dupe:
         host.expected_alerts.append(r"^\[w2db\] err,w2db 1 dupe suspect\(s\) in " + LOGIN_ACCOUNT.upper() + ",")
-    print("plataforma: Linux nativo" + (" (LoginClient no wine + Xvfb)" if need_wine else ""))
+    print("plataforma: Linux nativo" + (" (LoginClient no wine + Xvfb)" if need_wine else "")
+          + (f" (servidores isolados pelo systemd, gerenciador {args.sandbox})" if args.sandbox else ""))
     try:
         problems = [] if args.no_self_test else self_test(host, work / "selftest", exe_dir, args.timeout)
         if not problems:

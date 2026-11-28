@@ -116,6 +116,53 @@ def fix_case(dest, rel):
     return renamed
 
 
+# Isolamento de todas as unidades que ficam no ar (docs/OPS.md): usuário sem privilégios, sem
+# capability nenhuma, o sistema todo só para leitura (menos ReadWritePaths= e o RuntimeDirectory=),
+# /home só para leitura, /tmp e /dev próprios, só sockets IPv4, IPv6 e Unix, e as chamadas de
+# sistema de um serviço comum. Uma chamada fora do filtro falha com EPERM em vez de matar o
+# processo. tools/server_boot_smoke.py --sandbox roda o jogo com estas mesmas propriedades.
+HARDENING = [
+    "NoNewPrivileges=yes",
+    "CapabilityBoundingSet=",
+    "ProtectSystem=strict",
+    "ProtectHome=read-only",
+    "PrivateTmp=yes",
+    "PrivateDevices=yes",
+    "ProtectKernelTunables=yes",
+    "ProtectKernelModules=yes",
+    "ProtectKernelLogs=yes",
+    "ProtectControlGroups=yes",
+    "ProtectClock=yes",
+    "ProtectHostname=yes",
+    "ProtectProc=invisible",
+    "RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX",
+    "RestrictNamespaces=yes",
+    "RestrictRealtime=yes",
+    "RestrictSUIDSGID=yes",
+    "LockPersonality=yes",
+    "RemoveIPC=yes",
+    "MemoryDenyWriteExecute=yes",
+    "SystemCallArchitectures=native",
+    "SystemCallFilter=@system-service",
+    "SystemCallFilter=~@privileged @resources",
+    "SystemCallErrorNumber=EPERM",
+]
+
+
+def server_rw_paths(exe, dest, metrics):
+    """O que DBSrv e TMSrv gravam: o próprio Run (contas, personagens, logs, control.fifo), o
+    Common (Import*, Error, a página de status) e a pasta das métricas."""
+    run = dest / ("DBSRV/Run" if exe == "DBSrv" else "TMSRV/Run")
+    return [run, dest / "Common", Path(metrics)]
+
+
+def hardening(rw_paths=()):
+    lines = list(HARDENING)
+    if rw_paths:
+        lines.append("ReadWritePaths=" + " ".join(str(p) for p in rw_paths))
+    return "\n".join(lines) + "\n"
+
+
 # Comum às unidades dos processos que ficam no ar.
 SERVICE_COMMON = """Restart=always
 RestartSec=5
@@ -143,7 +190,7 @@ Type=simple
 User={user}
 WorkingDirectory={run}
 ExecStart={exec}
-{env}# SIGTERM é o pedido de encerramento, como fechar a janela no Windows: grava (guildas,
+{env}{hardening}# SIGTERM é o pedido de encerramento, como fechar a janela no Windows: grava (guildas,
 # configuração, logs) e sai.
 KillSignal=SIGTERM
 TimeoutStopSec=60
@@ -175,7 +222,8 @@ ExecStart={run}/w2db serve --socket /run/w2db/w2db.sock
 # O socket fica em /run/w2db, só para o usuário dos servidores.
 RuntimeDirectory=w2db
 RuntimeDirectoryMode=0750
-{common}
+# Só fala com o Postgres, o DBSrv e o Discord: não grava nada além do socket.
+{hardening}{common}
 [Install]
 WantedBy=multi-user.target
 """
@@ -207,29 +255,8 @@ WorkingDirectory={run}
 EnvironmentFile=/etc/derust/w2gm.env
 Environment=NO_COLOR=1
 ExecStart={run}/w2gm serve
-# É a parte que a internet alcança (pelo Caddy): sem privilégios e sem gravar nada no disco.
-NoNewPrivileges=yes
-CapabilityBoundingSet=
-ProtectSystem=strict
-ProtectHome=read-only
-PrivateTmp=yes
-PrivateDevices=yes
-ProtectKernelTunables=yes
-ProtectKernelModules=yes
-ProtectKernelLogs=yes
-ProtectControlGroups=yes
-ProtectClock=yes
-ProtectHostname=yes
-RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-RestrictNamespaces=yes
-RestrictRealtime=yes
-RestrictSUIDSGID=yes
-LockPersonality=yes
-MemoryDenyWriteExecute=yes
-SystemCallArchitectures=native
-SystemCallFilter=@system-service
-SystemCallFilter=~@privileged @resources
-{common}
+# É a parte que a internet alcança (pelo Caddy): não grava nada no disco.
+{hardening}{common}
 [Install]
 WantedBy=multi-user.target
 """
@@ -310,12 +337,15 @@ def write_units(dest, user, w2db=False, metrics=None, pg_user="postgres", w2gm=F
     files = {}
     for name, desc, run, exe, after, wants, env in units:
         files[name] = UNIT.format(path=sysd / name, name=name, desc=desc, run=run, exec=f"{run}/{exe}", user=user,
-                                  after=after, wants=wants, env=env, common=SERVICE_COMMON)
+                                  after=after, wants=wants, env=env, common=SERVICE_COMMON,
+                                  hardening=hardening(server_rw_paths(exe, dest, metrics)))
     if w2db:
-        files["w2-w2db.service"] = W2DB_UNIT.format(user=user, run=dest / "W2DB", common=SERVICE_COMMON)
+        files["w2-w2db.service"] = W2DB_UNIT.format(user=user, run=dest / "W2DB", common=SERVICE_COMMON,
+                                                    hardening=hardening())
         files["w2db.env.example"] = W2DB_ENV.format(user=user)
     if w2gm:
-        files["w2-w2gm.service"] = W2GM_UNIT.format(user=user, run=dest / "W2GM", common=SERVICE_COMMON)
+        files["w2-w2gm.service"] = W2GM_UNIT.format(user=user, run=dest / "W2GM", common=SERVICE_COMMON,
+                                                    hardening=hardening())
         files["w2gm.env.example"] = W2GM_ENV.format(user=user)
     files["w2-notify@.service"] = NOTIFY_UNIT.format(user=user, bin=bindir)
     files["w2-backup@.service"] = BACKUP_UNIT.format(pg_user=pg_user, bin=bindir, metrics=metrics)

@@ -165,7 +165,8 @@ O que difere do plano ou ficou de fora:
   `w2-backup@` grava ao terminar bem.
 - **Postagem pelo w2db:** quem posta os relatos no Discord é o próprio w2db, não o bot da B5,
   porque ele já tem o banco e a fila. O bot da B5 pode assumir essa parte depois.
-- **Faltam o nftables e o usuário sem privilégios** nas units. Os dois são do portão do passo 3.
+- **O nftables e o usuário sem privilégios** nas units ficaram para o portão do passo 3 (feitos,
+  veja abaixo).
 
 ### B5 `feat/community-gm` (depois da B2 e B3)
 
@@ -210,3 +211,19 @@ O que difere do plano:
 B1 a B5 na `main` com o CI verde, e versionados para o passo 3: regras nftables (abertas só 8281,
 80/443 e 22 com chave; 7514, 8895, Postgres e gRPC locais), units do systemd com usuário sem
 privilégios e o roteiro de restauração.
+
+Estado (2026-11-28), branch `feat/step3-gate`:
+- **B1 a B5** estão na `main`, com o CI verde.
+- **Firewall:** `deploy/nftables/derust.nft`. Entram só 8281, 80/443 e 22, com limite de conexões
+  novas por IP na 8281 e na 22; o resto, inclusive 7514, 8895, Postgres, o socket do w2db e as
+  portas de métricas, fica local. O `tools/firewall_check.py` testa com conexões de verdade, num
+  namespace de rede próprio, em IPv4 e IPv6, e roda no CI.
+- **SSH:** `deploy/ssh/derust.conf`, só chave, conferido com `sshd -t` e `sshd -T` no CI.
+- **Units:** todas as que ficam no ar rodam no usuário de sistema `derust`, sem capabilities, com
+  o disco só para leitura menos o que cada uma grava e com filtro de chamadas de sistema
+  (`systemd-analyze security` 1.3). O smoke `--sandbox` sobe o jogo inteiro, com o w2db, o login
+  e a duplicação forçada, dentro dessas mesmas propriedades, no CI.
+- **Restauração:** o roteiro em `docs/OPS.md`, testado pelo `tools/w2db_restore.py selftest`.
+
+Ainda faltam, na VPS: o domínio, os segredos (webhooks, token do bot, bucket do backup) e a
+aplicação do bot no Discord.

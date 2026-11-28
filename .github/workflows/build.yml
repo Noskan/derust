@@ -128,15 +128,16 @@ jobs:
           python3 tools/linux_deploy.py "$RUNNER_TEMP/server_boot_linux/boot" --check-only
 
       # O mesmo teste com as contas no w2db (Postgres): troca de mão dupla conferida pelo serial no
-      # banco e uma duplicação forçada que o w2db tem de acusar.
-      - name: Boot with the accounts in the w2db (Postgres), trade by serial and a forced dupe
+      # banco e uma duplicação forçada que o w2db tem de acusar. DBSrv, TMSrv e w2db rodam em
+      # unidades transitórias do systemd com o isolamento das unidades de produção (--sandbox).
+      - name: Boot with the accounts in the w2db (Postgres), trade by serial and a forced dupe, sandboxed
         timeout-minutes: 10
         env:
           ASAN_OPTIONS: detect_leaks=0
           UBSAN_OPTIONS: print_stacktrace=1
         run: |
           python3 tools/server_boot_smoke.py "$RUNNER_TEMP/linux-bin" --keep "$RUNNER_TEMP/server_boot_w2db" --require-login \
-            --w2db services/target/debug/w2db --forced-dupe
+            --w2db services/target/debug/w2db --forced-dupe --sandbox system
 
       - name: Upload server boot logs on failure
         if: failure()
@@ -180,12 +181,35 @@ jobs:
         run: ctest --test-dir build/linux --output-on-failure
 
       # Monta a árvore de produção com os binários e confere as unidades do systemd geradas (as
-      # do w2db e do backup são conferidas no job ops, que tem o w2db e o pgBackRest).
+      # do w2db e do backup são conferidas no job ops, que tem o w2db e o pgBackRest). O nível de
+      # exposição do `systemd-analyze security` não pode passar de 2.0 (hoje 1.3).
       - name: Deploy tree and verify the systemd units
         run: |
-          python3 tools/linux_deploy.py "$RUNNER_TEMP/deploy" --bin build/linux
-          systemd-analyze verify "$RUNNER_TEMP/deploy/systemd/w2-dbsrv.service" "$RUNNER_TEMP/deploy/systemd/w2-tmsrv.service" \
-            "$RUNNER_TEMP/deploy/systemd/w2-notify@.service"
+          D="$RUNNER_TEMP/deploy"
+          # O binário do w2db não importa aqui (é testado no job w2db): só a unit.
+          install -m 0755 /dev/null "$RUNNER_TEMP/w2db-dummy"
+          python3 tools/linux_deploy.py "$D" --bin build/linux --w2db "$RUNNER_TEMP/w2db-dummy"
+          systemd-analyze verify "$D/systemd/w2-dbsrv.service" "$D/systemd/w2-tmsrv.service" "$D/systemd/w2-notify@.service"
+          # Sem pipe: o código de saída do --threshold é o que reprova.
+          for u in w2-dbsrv w2-tmsrv w2-w2db; do
+            out=$(systemd-analyze security --offline=yes --threshold=20 --no-pager "$D/systemd/$u.service")
+            echo "$out" | tail -1
+          done
+
+      # O build da hospedagem sobe com o isolamento das unidades de produção (systemd-run pelo
+      # gerenciador do sistema): sem o login, que precisa do wine (job mingw-check).
+      - name: Boot the Release servers sandboxed like the production units
+        timeout-minutes: 5
+        run: |
+          mkdir -p "$RUNNER_TEMP/release-bin"
+          cp build/linux/server/dbsrv/DBSrv build/linux/server/tmsrv/TMSrv "$RUNNER_TEMP/release-bin/"
+          python3 tools/server_boot_smoke.py "$RUNNER_TEMP/release-bin" --keep "$RUNNER_TEMP/server_boot_release" --sandbox system
+
+      # As regras do nftables da VPS com conexões de verdade, num namespace de rede próprio.
+      - name: Check the firewall rules (nftables)
+        run: |
+          sudo apt-get -q install -y --no-install-recommends nftables
+          sudo python3 tools/firewall_check.py --nft /usr/sbin/nft
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -332,6 +356,21 @@ jobs:
           runuser -u ci -- python3 /home/ci/derust/tools/w2db_restore.py selftest --w2db /home/ci/w2db \
             --pg-bin /usr/lib/postgresql/17/bin
 
+      # O SSH só com chave (deploy/ssh/derust.conf), conferido pelo próprio sshd.
+      - name: Check the sshd drop-in
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get -q install -y --no-install-recommends openssh-server
+          install -m 0644 deploy/ssh/derust.conf /etc/ssh/sshd_config.d/derust.conf
+          ssh-keygen -A && mkdir -p /run/sshd
+          /usr/sbin/sshd -t
+          /usr/sbin/sshd -T > /tmp/sshd.txt
+          for want in "passwordauthentication no" "kbdinteractiveauthentication no" "permitrootlogin without-password" \
+                      "authenticationmethods publickey"; do
+            grep -qx "$want" /tmp/sshd.txt || { echo "::error::sshd -T sem '$want'"; exit 1; }
+          done
+
       - name: Deploy tree with the w2db and the GM panel and verify every systemd unit
         run: |
           D="$RUNNER_TEMP/deploy"
@@ -342,6 +381,8 @@ jobs:
           # Só o ExecStart precisa existir para o verify; os binários do jogo estão no job linux-native.
           for exe in DBSRV/Run/DBSrv TMSRV/Run/TMSrv; do install -m 0755 /dev/null "$D/$exe"; done
           systemd-analyze verify "$D"/systemd/*.service "$D"/systemd/*.timer
+          out=$(systemd-analyze security --offline=yes --threshold=20 --no-pager "$D/systemd/w2-w2gm.service")
+          echo "$out" | tail -1
 
   # Só o cliente: TMProject, o patch do cliente, os testes do cliente e o LoginClient. Os
   # servidores são só Linux (jobs linux-native e mingw-check).

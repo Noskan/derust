@@ -89,7 +89,7 @@ O primeiro GM é criado com `w2gm gm-add` na própria VPS.
   - `Content-Security-Policy: default-src 'none'; style-src 'self'; form-action 'self'; frame-ancestors 'none'`;
   - `Referrer-Policy: no-referrer`, para o token do cadastro não vazar pelo Referer;
   - `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Cache-Control: no-store` e HSTS.
-- **Unit:** a unit do `w2gm` roda sem privilégios e sem gravar no disco: `NoNewPrivileges`, `ProtectSystem=strict`, filtro de chamadas de sistema `@system-service` e `MemoryDenyWriteExecute`.
+- **Unit:** a unit do `w2gm` roda sem privilégios e sem gravar no disco, com o mesmo isolamento das outras (`docs/OPS.md`, "Isolamento das units"): `NoNewPrivileges`, `ProtectSystem=strict`, filtro de chamadas de sistema `@system-service` e `MemoryDenyWriteExecute`.
 - **Bot:** as respostas são efêmeras e saem sem menções (`allowed_mentions` vazio).
 - **Contas de GM:** argon2id, TOTP de uso único e bloqueio depois de cinco erros seguidos.
 

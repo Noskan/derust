@@ -51,7 +51,7 @@ python3 tools/linux_warning_check.py --build-dir build/linux --update-warning-ba
 `tools/linux_deploy.py` monta a árvore da produção e gera as unidades do systemd:
 
 ```bash
-python3 tools/linux_deploy.py /srv/w2 --bin build/linux --user w2   # ou --bin com o artefato derust-linux-x86_64 do CI
+python3 tools/linux_deploy.py /srv/derust --bin build/linux --user derust   # ou --bin com o artefato derust-linux-x86_64 do CI
 ```
 
 O script:
@@ -69,7 +69,7 @@ Ele não copia os dados do jogo nem cria arquivos de configuração (`localip.tx
 Para instalar as unidades:
 
 ```bash
-sudo cp /srv/w2/systemd/w2-*.service /etc/systemd/system/
+sudo cp /srv/derust/systemd/w2-*.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now w2-dbsrv w2-tmsrv
 journalctl -u w2-tmsrv -f        # alertas e eco dos comandos
@@ -84,6 +84,7 @@ Como as unidades se comportam:
 - `LimitNOFILE=8192`: o padrão de 1024 descritores fica curto para os 1000 jogadores (`MAX_USER`), mais os arquivos e as conexões entre servidores.
 - Numa queda em laço, o intervalo entre reinícios dobra até 5 min (`RestartSteps=`, `RestartMaxDelaySec=`).
 - Cada queda chama `w2-notify@.service` (`OnFailure=`), que avisa no Discord com o motivo e o fim do journal. `LimitCORE=infinity` deixa o core dump para o `systemd-coredump` (`docs/OPS.md`).
+- O servidor roda no usuário de sistema `derust` (`useradd --system`, `docs/OPS.md`), sem capabilities, com o disco só para leitura menos o próprio `Run`, o `Common` e a pasta das métricas (`ReadWritePaths=`), e com filtro de chamadas de sistema. A lista inteira está em "Isolamento das units", no `docs/OPS.md`. O `tools/server_boot_smoke.py --sandbox` sobe o jogo com essas mesmas propriedades.
 
 ## Como os servidores rodam no Linux
 
