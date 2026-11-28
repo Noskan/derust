@@ -934,18 +934,110 @@ pub async fn bind_invite(tx: &mut Transaction<'_, Postgres>, code: &str, account
     Ok(())
 }
 
-pub async fn report_bug(pool: &PgPool, r: &pb::ReportBugRequest) -> Result<i64> {
+/// Relatos de bug por personagem na última hora (além do intervalo entre relatos no TMSrv).
+pub const BUG_LIMIT_PER_HOUR: i64 = 5;
+
+/// Grava o relato do `/bug`. `None` se o personagem já mandou [`BUG_LIMIT_PER_HOUR`] relatos na
+/// última hora.
+pub async fn report_bug(pool: &PgPool, r: &pb::ReportBugRequest) -> Result<Option<i64>> {
     let account = account_id(pool, &r.account_name).await?;
-    Ok(sqlx::query_scalar!(
+    let name = text(&r.character_name);
+    let mut tx = pool.begin().await?;
+    // Dois relatos do mesmo personagem ao mesmo tempo não passam juntos do limite.
+    sqlx::query("SELECT pg_advisory_xact_lock(hashtext('bug_reports'), hashtext($1))")
+        .bind(&name)
+        .execute(&mut *tx)
+        .await?;
+    let recent = sqlx::query_scalar!(
+        r#"SELECT count(*) AS "n!" FROM bug_reports
+           WHERE character_name = $1 AND created_at > now() - interval '1 hour'"#,
+        name
+    )
+    .fetch_one(&mut *tx)
+    .await?;
+    if recent >= BUG_LIMIT_PER_HOUR {
+        return Ok(None);
+    }
+    let id = sqlx::query_scalar!(
         "INSERT INTO bug_reports (account_id, character_name, server, pos_x, pos_y, text)
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
         account,
-        text(&r.character_name),
+        name,
         r.server,
         r.pos_x,
         r.pos_y,
-        r.text
+        cp1252_to_string(&r.text)
+    )
+    .fetch_one(&mut *tx)
+    .await?;
+    tx.commit().await?;
+    Ok(Some(id))
+}
+
+/// Um relato de bug na fila do Discord.
+#[derive(Debug, Clone)]
+pub struct BugPost {
+    pub id: i64,
+    pub account: Option<String>,
+    pub character: String,
+    pub server: i32,
+    pub x: i32,
+    pub y: i32,
+    pub text: String,
+}
+
+/// Tentativas de postar um relato antes de desistir dele (fica no banco, fora da fila).
+pub const BUG_POST_ATTEMPTS: i32 = 10;
+
+/// Os relatos ainda não postados, do mais antigo.
+pub async fn pending_bug_posts(pool: &PgPool, limit: i64) -> Result<Vec<BugPost>> {
+    let rows = sqlx::query!(
+        "SELECT b.id, a.name AS \"account?\", b.character_name, b.server, b.pos_x, b.pos_y, b.text
+         FROM bug_reports b LEFT JOIN accounts a ON a.id = b.account_id
+         WHERE b.posted_at IS NULL AND b.post_attempts < $1
+         ORDER BY b.id LIMIT $2",
+        BUG_POST_ATTEMPTS,
+        limit
+    )
+    .fetch_all(pool)
+    .await?;
+    Ok(rows
+        .into_iter()
+        .map(|r| BugPost {
+            id: r.id,
+            account: r.account,
+            character: r.character_name,
+            server: r.server,
+            x: r.pos_x,
+            y: r.pos_y,
+            text: r.text,
+        })
+        .collect())
+}
+
+/// Relatos na fila do Discord.
+pub async fn bug_queue_len(pool: &PgPool) -> Result<i64> {
+    Ok(sqlx::query_scalar!(
+        r#"SELECT count(*) AS "n!" FROM bug_reports WHERE posted_at IS NULL AND post_attempts < $1"#,
+        BUG_POST_ATTEMPTS
     )
     .fetch_one(pool)
     .await?)
+}
+
+pub async fn mark_bug_posted(pool: &PgPool, id: i64) -> Result<()> {
+    sqlx::query!("UPDATE bug_reports SET posted_at = now() WHERE id = $1", id)
+        .execute(pool)
+        .await?;
+    Ok(())
+}
+
+pub async fn mark_bug_post_failed(pool: &PgPool, id: i64) -> Result<()> {
+    sqlx::query!(
+        "UPDATE bug_reports SET post_attempts = post_attempts + 1 WHERE id = $1",
+        id
+    )
+    .execute(pool)
+    .await?;
+    Ok(())
 }

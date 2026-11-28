@@ -851,6 +851,20 @@ struct		 MSG_DBServerChange
 };
 const short _MSG_DBItemDayLog				= (21 | FLAG_GAME2DB); //SignalParm
 
+/// @brief Relato do comando /bug (derust, docs/OPS.md): o TMSrv manda, o DBSrv grava no w2db
+///        (bug_reports), que posta no Discord.
+const short _MSG_DBBugReport				= (40 | FLAG_GAME2DB);
+struct		 MSG_DBBugReport
+{
+	_MSG;
+	char AccountName[ACCOUNTNAME_LENGTH];
+	char MobName[NAME_LENGTH];
+	int  Server;			///< canal (ServerIndex do TMSrv)
+	int  PosX;
+	int  PosY;
+	char Text[CHAT_LENGTH];	///< terminado em 0
+};
+
 const short _MSG_DBActivatePinCode			= (22 | FLAG_GAME2DB);
 struct		 MSG_DBActivatePinCode
 {

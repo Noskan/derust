@@ -1,0 +1,10 @@
+# Copie para /etc/grafana/provisioning/dashboards/ e o painel (deploy/grafana/dashboards/derust.json)
+# para /var/lib/grafana/dashboards/derust/.
+apiVersion: 1
+providers:
+  - name: derust
+    folder: derust
+    type: file
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards/derust

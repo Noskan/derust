@@ -140,6 +140,33 @@ acusa a duplicação forçada (`docs/W2DB.md`, No DBSrv). Mudanças em relação
 4. `/bug`: comando de chat como o `/day`, gravado em `bug_reports` e postado no Discord, com
    limite por personagem.
 
+Estado (2026-11-28): os quatro itens estão feitos (`docs/OPS.md`):
+- **Backup e restauração:** `deploy/postgres` e `deploy/pgbackrest` configuram o Postgres e o
+  pgBackRest; os timers e a `w2-backup@.service` saem do `tools/linux_deploy.py`.
+  `tools/w2db_restore.py restore` restaura numa instância separada e roda o `w2db check`, um
+  subcomando novo que confere o que as restrições do esquema não garantem. O
+  `w2db_restore.py selftest` faz o caminho inteiro no CI, num Debian 13 com o pgBackRest da
+  distribuição: backup completo e diferencial, WAL e restauração até um instante e até o fim.
+- **Métricas:** TMSrv e DBSrv gravam `.prom` para o node_exporter (`common/Metrics.h`) e o w2db
+  serve `/metrics`. As regras de alerta têm testes no `promtool`, e o Grafana tem a fonte e o
+  painel provisionados.
+- **Alertas:** o Alertmanager manda para o Discord, e todas as units têm
+  `OnFailure=w2-notify@%n.service`. Para o core dump, as units têm `LimitCORE=infinity` e usam o
+  systemd-coredump.
+- **`/bug`:** do TMSrv ao DBSrv (`_MSG_DBBugReport`) e daí ao w2db, que grava e posta no Discord,
+  com limite por conexão no TMSrv e por personagem no w2db. O smoke confere o caminho com um
+  webhook falso.
+
+O que difere do plano ou ficou de fora:
+- **Backup no CI:** o backup é testado com um repositório local (posix) no lugar do bucket. O
+  bucket e as chaves dele são configurados na VPS.
+- **Backup pela métrica do WAL:** o arquivamento contínuo é vigiado pelo `pg_stat_archiver`, lido
+  pelo w2db na coleta. Os backups completo e diferencial são vigiados pelo horário que a
+  `w2-backup@` grava ao terminar bem.
+- **Postagem pelo w2db:** quem posta os relatos no Discord é o próprio w2db, não o bot da B5,
+  porque ele já tem o banco e a fila. O bot da B5 pode assumir essa parte depois.
+- **Faltam o nftables e o usuário sem privilégios** nas units. Os dois são do portão do passo 3.
+
 ### B5 `feat/community-gm` (depois da B2 e B3)
 
 1. Bot de convite (Rust, serenity/poise): `/convite` gera código; `/registrar` devolve um link

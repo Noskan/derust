@@ -33,6 +33,7 @@ enum W2DbResult
 	W2DB_NAME_TAKEN,
 	W2DB_NUMERIC_NOT_SET,
 	W2DB_INVALID,
+	W2DB_RATE_LIMITED,	///< limite de relatos do /bug do personagem
 	W2DB_FAIL,		///< w2db fora do ar, prazo estourado ou erro interno
 };
 
@@ -78,6 +79,10 @@ W2DbResult W2DbFindCharacter(const char* ch, char* account, int* slot);
 
 /// @brief Apaga o personagem da vaga no banco (os itens dele vão com evento).
 W2DbResult W2DbDeleteCharacter(const char* account, int slot);
+
+/// @brief Grava o relato do /bug (bug_reports; o w2db posta no Discord). `text` em CP1252.
+W2DbResult W2DbReportBug(const char* account, const char* character, int server, int x, int y,
+	const char* text);
 
 /// @brief Esquece o estado da conta (saiu do jogo).
 void W2DbForget(const char* name);

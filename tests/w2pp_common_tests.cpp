@@ -22,11 +22,13 @@
 #include "common/Basedef.h"
 #include "common/ItemEffect.h"
 #include "common/RateLimit.h"
+#include "common/Metrics.h"
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <unistd.h>
 
 namespace
 {
@@ -493,6 +495,60 @@ void TestRateLimit()
 	CHECK(limit.Allow(ipA, 1200));
 }
 
+void TestMetrics()
+{
+	W2Metric table[] = {
+		{ "w2_test_online", "gauge", "Online.", 3 },
+		{ "w2_test_fail_total{reason=\"a\"}", "counter", "Falhas.", 5e9 },
+		{ "w2_test_fail_total{reason=\"b\"}", "counter", "Falhas.", 0 },
+		{ "w2_test_tick_seconds", "gauge", "Tick.", 0.0125 },
+	};
+	// Sem W2_METRICS_DIR não grava, mas o texto sai igual.
+	unsetenv("W2_METRICS_DIR");
+	CHECK(!W2MetricsInit("w2_test", table, 4, 15));
+	CHECK(W2MetricsWrite());
+	char out[2048];
+	int n = W2MetricsRender(out, sizeof(out), 1700000000);
+	CHECK(n > 0);
+	const char* head =
+		"# HELP w2_test_online Online.\n"
+		"# TYPE w2_test_online gauge\n"
+		"w2_test_online 3\n"
+		"# HELP w2_test_fail_total Falhas.\n"
+		"# TYPE w2_test_fail_total counter\n"
+		"w2_test_fail_total{reason=\"a\"} 5000000000\n"
+		"w2_test_fail_total{reason=\"b\"} 0\n"
+		"# HELP w2_test_tick_seconds Tick.\n"
+		"# TYPE w2_test_tick_seconds gauge\n"
+		"w2_test_tick_seconds 0.0125\n";
+	CHECK(std::strncmp(out, head, std::strlen(head)) == 0);
+	CHECK(std::strstr(out, "\nw2_test_last_write_timestamp_seconds 1700000000\n") != nullptr);
+	CHECK(std::strstr(out, "# TYPE w2_test_start_time_seconds gauge\n") != nullptr);
+	CHECK(W2MetricsRender(out, 64, 0) == -1);	// não coube: não devolve um texto cortado
+	CHECK(!W2MetricsDue());
+
+	// Com o diretório: grava <dir>/w2_test.prom inteiro, sem deixar o temporário.
+	char dir[] = "/tmp/w2metricsXXXXXX";
+	CHECK(mkdtemp(dir) != nullptr);
+	setenv("W2_METRICS_DIR", dir, 1);
+	CHECK(W2MetricsInit("w2_test", table, 4, 15));
+	CHECK(W2MetricsWrite());
+	char path[256];
+	std::snprintf(path, sizeof(path), "%s/w2_test.prom", dir);
+	FILE* fp = std::fopen(path, "rb");
+	CHECK(fp != nullptr);
+	if (fp != nullptr)
+	{
+		char got[2048] = { 0, };
+		size_t len = std::fread(got, 1, sizeof(got) - 1, fp);
+		std::fclose(fp);
+		CHECK(len > std::strlen(head) && std::strncmp(got, head, std::strlen(head)) == 0);
+	}
+	std::remove(path);
+	CHECK(rmdir(dir) == 0);	// vazio: o temporário foi renomeado
+	unsetenv("W2_METRICS_DIR");
+}
+
 int main()
 {
 	TestProtocolSizes();
@@ -507,6 +563,7 @@ int main()
 	TestStringAndChecksum();
 	TestItemDate();
 	TestRateLimit();
+	TestMetrics();
 
 	if (g_failures != 0)
 	{

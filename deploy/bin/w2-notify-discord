@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+"""Aviso no Discord quando uma unit do derust falha (OnFailure=w2-notify@%n.service).
+
+Manda o nome da unit, o motivo (código de saída, sinal, core dump) e as últimas linhas do journal
+dela. Com Restart=always, cada queda passa pelo estado failed e chama este aviso; para uma queda
+em laço não virar uma mensagem a cada reinício, a mesma unit só avisa de novo depois de
+COOLDOWN segundos, e o aviso seguinte diz quantas quedas ficaram sem aviso.
+
+O endereço do webhook vem do arquivo em W2_DISCORD_WEBHOOK_FILE (padrão
+/etc/derust/discord-alerts-webhook). O estado do intervalo fica em STATE_DIRECTORY (o
+StateDirectory= da unit) ou em /var/tmp.
+
+Uso: w2-notify-discord <unit> [--dry-run]
+"""
+
+import json
+import os
+import socket
+import subprocess
+import sys
+import time
+import urllib.request
+from pathlib import Path
+
+COOLDOWN = 300
+JOURNAL_LINES = 15
+MAX_CONTENT = 2000
+
+
+def run(*cmd):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=20).stdout
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def unit_result(unit):
+    props = {}
+    for line in run("systemctl", "show", unit, "-p", "Result", "-p", "ExecMainCode", "-p", "ExecMainStatus",
+                    "-p", "NRestarts").splitlines():
+        k, _, v = line.partition("=")
+        props[k] = v
+    return props
+
+
+def describe(props):
+    result = props.get("Result", "?")
+    code = props.get("ExecMainCode", "")
+    status = props.get("ExecMainStatus", "")
+    # ExecMainCode: 1 exited, 2 killed, 3 dumped (CLD_* do waitid).
+    how = {"1": f"saiu com {status}", "2": f"morto pelo sinal {status}", "3": f"core dump (sinal {status})"}.get(code, "")
+    return f"{result}, {how}" if how else result
+
+
+def fence(text):
+    # O journal pode ter texto de jogador (nomes): sem fechar o bloco de código antes da hora.
+    return text.replace("```", "'''")
+
+
+def message(unit, props, journal, coredump, suppressed):
+    host = socket.gethostname()
+    head = f"**{unit} falhou** em {host}: {describe(props)}"
+    restarts = props.get("NRestarts")
+    if restarts and restarts != "0":
+        head += f" (reinícios: {restarts})"
+    if suppressed:
+        head += f"\n{suppressed} queda(s) antes desta sem aviso (intervalo de {COOLDOWN // 60} min)."
+    dump = "\nCore dump:\n```\n" + fence(coredump)[:900] + "\n```" if coredump else ""
+    lines = fence(journal).splitlines()
+
+    def content():
+        return head + dump + "\nÚltimas linhas do journal:\n```\n" + "\n".join(lines) + "\n```"
+
+    # O fim do journal é o que importa: tira linhas do começo até caber.
+    while len(content()) > MAX_CONTENT and lines:
+        lines.pop(0)
+    return {"content": content()[:MAX_CONTENT], "allowed_mentions": {"parse": []}, "flags": 4}
+
+
+def throttle(unit):
+    """(deve avisar, quedas sem aviso desde o último)."""
+    base = Path(os.environ.get("STATE_DIRECTORY", "/var/tmp")) / "w2-notify"
+    base.mkdir(parents=True, exist_ok=True)
+    state = base / unit.replace("/", "_")
+    now = time.time()
+    last, suppressed = 0.0, 0
+    try:
+        a, b = state.read_text().split()
+        last, suppressed = float(a), int(b)
+    except (OSError, ValueError):
+        pass
+    if now - last < COOLDOWN:
+        state.write_text(f"{last} {suppressed + 1}\n")
+        return False, 0
+    state.write_text(f"{now} 0\n")
+    return True, suppressed
+
+
+def main():
+    args = [a for a in sys.argv[1:] if a != "--dry-run"]
+    dry = "--dry-run" in sys.argv[1:]
+    if len(args) != 1:
+        sys.exit(__doc__)
+    unit = args[0]
+
+    send, suppressed = (True, 0) if dry else throttle(unit)
+    if not send:
+        return 0
+
+    props = unit_result(unit)
+    journal = run("journalctl", "-u", unit, "-n", str(JOURNAL_LINES), "--no-pager", "-o", "short-iso").strip()
+    coredump = ""
+    if props.get("ExecMainCode") == "3":
+        info = run("coredumpctl", "info", "--no-pager", "-1", f"_SYSTEMD_UNIT={unit}")
+        coredump = "\n".join(info.splitlines()[:25])
+    payload = message(unit, props, journal or "(sem acesso ao journal)", coredump, suppressed)
+
+    if dry:
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+    url_file = os.environ.get("W2_DISCORD_WEBHOOK_FILE", "/etc/derust/discord-alerts-webhook")
+    url = Path(url_file).read_text().splitlines()[0].strip()
+    req = urllib.request.Request(url, data=json.dumps(payload).encode(), method="POST",
+                                 headers={"Content-Type": "application/json", "User-Agent": "derust-notify"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:
+            r.read()
+    except OSError as e:
+        # Sem o endereço no log (é segredo).
+        print(f"w2-notify-discord: não consegui postar o aviso de {unit}: {type(e).__name__}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

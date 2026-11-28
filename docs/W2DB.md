@@ -13,6 +13,9 @@ O `w2db` (`services/w2db`, Rust) guarda contas, personagens e itens num Postgres
 | `src/auth.rs` | argon2id, bloqueio por senha errada e códigos de convite |
 | `src/legacy.rs` | O arquivo de conta do DBSrv (`STRUCT_ACCOUNTFILE`) de e para o proto. Só o importador e o exportador usam |
 | `src/transfer.rs` | `w2db import` e `w2db export` |
+| `src/metrics.rs` | O `/metrics` para o Prometheus (`docs/OPS.md`) |
+| `src/discord.rs` | Os relatos do `/bug` postados no Discord |
+| `src/check.rs` | `w2db check`, as conferências do banco depois de uma restauração |
 
 ## Comandos
 
@@ -21,11 +24,15 @@ cd services
 cargo build --release
 export DATABASE_URL=postgres://w2@localhost/w2db
 target/release/w2db migrate
-target/release/w2db serve --socket /run/w2db/w2db.sock [--require-invite]
+target/release/w2db serve --socket /run/w2db/w2db.sock [--require-invite] \
+    [--metrics-addr 127.0.0.1:9730] [--discord-webhook-file /etc/derust/discord-bugs-webhook]
 target/release/w2db import /srv/w2/DBSRV/Run      # lê account/<letra>/<CONTA>
 target/release/w2db export /tmp/saida [--account NOME]
 target/release/w2db invite <id do Discord>        # imprime o código
+target/release/w2db check                         # só lê; sai com 1 se achar problema
 ```
+
+As opções do `serve` também vêm do ambiente: `W2DB_SOCKET`, `W2DB_REQUIRE_INVITE=true`, `W2DB_METRICS_ADDR` e `W2DB_DISCORD_WEBHOOK_FILE`. As métricas, os relatos do `/bug` no Discord, o `check` e o backup estão em `docs/OPS.md`.
 
 O socket é criado com permissão 0660: o usuário dos servidores do jogo precisa estar no grupo do dono do socket. O `SIGTERM` encerra o serviço e apaga o socket.
 
@@ -148,7 +155,7 @@ cargo clippy --all-targets -- -D warnings
 cargo sqlx prepare --workspace --check -- --all-targets   # .sqlx em dia com o esquema
 ```
 
-O que os testes cobrem:
+O que os testes cobrem (os de operação, `tests/ops.rs`, em `docs/OPS.md`):
 - **`tests/roundtrip.rs`:** os arquivos de conta que o DBSrv grava no `tools/server_boot_smoke.py` (`tests/data/account`, contas sintéticas) e 12 contas com bytes aleatórios em todo campo passam por banco e exportação e voltam iguais. Os dados pessoais não aparecem no banco.
 - **`tests/grpc.rs`:** o serviço por um Unix socket:
   - login e bloqueio por senha errada;
@@ -158,6 +165,7 @@ O que os testes cobrem:
   - troca pelo serial (inclusive a de mão dupla, sem falso alarme), suspeita de duplicação e destruição;
   - limite de versões guardadas;
   - apagar personagem;
+  - o limite de relatos do `/bug` por personagem;
   - convites e `/bug`.
 
 O teste de jogo (`tools/server_boot_smoke.py --w2db services/target/debug/w2db --forced-dupe`) faz o caminho inteiro com o DBSrv no w2db:

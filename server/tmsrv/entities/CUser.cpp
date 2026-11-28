@@ -36,6 +36,8 @@ CUser::CUser()
 	memset(Cargo, 0, sizeof(Cargo));
 	HandoffCount = 0;
 	TestKeepTrade = 0;
+	BugReported = 0;
+	LastBugTick = 0;
 
 	Admin			 = 0;
 	CastleStatus	 = 0;
@@ -97,6 +99,8 @@ int CUser::CloseUser()
 	 AccountName[0] = 0;
 	 HandoffCount = 0;
 	 TestKeepTrade = 0;
+	 BugReported = 0;
+	 LastBugTick = 0;
 
 	 return TRUE;
 }

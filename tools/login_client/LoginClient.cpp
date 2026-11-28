@@ -33,6 +33,8 @@
 ///  16. só com o argumento `dupe` (TMSrv com DERUST_TEST_HOOKS): A pede /w2dupe e dá a armadura
 ///      de Carry[2] a B, ficando com uma cópia, como num bug de duplicação. O smoke confere que o
 ///      w2db acusa o serial repetido.
+///  17. /bug (docs/OPS.md): sem texto volta o uso; com texto, "Relato enviado"; logo depois, o
+///      intervalo entre relatos. O smoke confere o relato no w2db e no webhook falso do Discord.
 ///
 /// Cada resposta é conferida campo a campo no layout do cliente. Os valores esperados do
 /// personagem vêm do BaseMob sintético que o `tools/server_boot_smoke.py` grava (ver
@@ -823,6 +825,40 @@ bool Trades(Session& sa, InGame& a, Session& sb, InGame& b, bool dupe)
 	return true;
 }
 
+/// O texto do /bug do passo 17. Igual ao BUG_TEXT de tools/server_boot_smoke.py, que o procura no
+/// banco e no webhook (o @everyone confere que o Discord não menciona ninguém).
+const char kBugText[] = "smoke: a porta do castelo nao abre @everyone";
+
+bool Whisper(Session& s, const char* command, const char* text, const char* reply)
+{
+	MSG_MessageWhisper w{};
+	w.Header.Type = MSG_MessageWhisper_Opcode;
+	std::snprintf(w.MobName, sizeof(w.MobName), "%s", command);
+	std::snprintf(w.String, sizeof(w.String), "%s", text);
+	s.Send(&w, sizeof(w));
+	MSG_MessagePanel mp{};
+	auto isReply = [reply](const char* p) {
+		return std::strncmp(reinterpret_cast<const MSG_MessagePanel*>(p)->String, reply, std::strlen(reply)) == 0;
+	};
+	if (!s.Wait(kTypeMessagePanel, &mp, sizeof(mp), nullptr, isReply))
+	{
+		Fail("%s: /%s %s sem a resposta \"%s\"", s.name_, command, text, reply);
+		return false;
+	}
+	return true;
+}
+
+/// @brief Passo 17: o /bug.
+bool BugReport(Session& sa)
+{
+	sa.Drain();
+	if (!Whisper(sa, "bug", "   ", "Uso: /bug") || !Whisper(sa, "bug", kBugText, "Relato enviado.")
+		|| !Whisper(sa, "bug", "outro relato", "Aguarde 1 minuto"))
+		return false;
+	std::printf("17. /bug: uso sem texto, relato enviado, segundo relato barrado pelo intervalo\n");
+	return true;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -843,7 +879,7 @@ int main(int argc, char** argv)
 	Session sa("A"), sb("B");
 	InGame a, b;
 	bool ok = sa.Connect(ip, port) && Login(sa, accA, true, a) && sb.Connect(ip, port) && Login(sb, accB, false, b)
-		&& Play(sa, a, accA, sb, b) && Trades(sa, a, sb, b, dupe);
+		&& Play(sa, a, accA, sb, b) && Trades(sa, a, sb, b, dupe) && BugReport(sa);
 	sa.sock_.CloseSocket();
 	sb.sock_.CloseSocket();
 	if (!ok || g_failures)

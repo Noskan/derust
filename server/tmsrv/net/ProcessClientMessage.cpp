@@ -34,6 +34,7 @@
 #include "net/ProcessClientMessage.h"
 #include "net/GetFunc.h"
 #include "net/SendFunc.h"
+#include "core/ServerMetrics.h"
 
 /// Tamanho mínimo de cada pacote tratado em ProcessClientMessage: o do struct que o cliente envia
 /// nesse tipo (client/src, conferido com o mingw i686 em 2026-11-28; os do servidor são iguais).
@@ -135,6 +136,7 @@ void  ProcessClientMessage(int conn, char *pMsg, BOOL isServer)
 
 	if (std->Size < ClientMessageMinSize(std->Type))
 	{
+		TmMetricAdd(TM_REJECTED_SHORT);
 		sprintf(temp, "err,packet short Type:%d Size:%d Min:%d", std->Type, std->Size, ClientMessageMinSize(std->Type));
 		if (conn > 0 && conn < MAX_USER)
 			Log(temp, pUser[conn].AccountName, pUser[conn].IP);

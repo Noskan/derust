@@ -6,6 +6,8 @@ set(DBSRV_SOURCES
   core/Server_Admin.cpp
   core/Server_Config.cpp
   core/Server_Logs.cpp
+  core/ServerMetrics.cpp
+  core/ServerMetrics.h
   core/stdafx.h
   net/CUser.cpp
   net/CUser.h

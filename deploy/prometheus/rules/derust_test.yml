@@ -1,0 +1,111 @@
+# Testes das regras (promtool test rules deploy/prometheus/rules/derust_test.yml).
+rule_files:
+  - derust.yml
+
+evaluation_interval: 15s
+
+tests:
+  # TMSrv parou de gravar no minuto 2; o DBSrv seguiu. O alerta sai depois de 90 s + 1 min.
+  - interval: 15s
+    input_series:
+      - series: w2_tmsrv_last_write_timestamp_seconds
+        values: "0+15x8 120x40"
+      - series: w2_dbsrv_last_write_timestamp_seconds
+        values: "0+15x48"
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: TMSrvSemMetricas
+        exp_alerts: []
+      - eval_time: 6m
+        alertname: TMSrvSemMetricas
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: "TMSrv parado ou travado: sem gravar métricas há 4m 0s"
+      - eval_time: 6m
+        alertname: DBSrvSemMetricas
+        exp_alerts: []
+
+  # Arquivo do DBSrv nunca apareceu.
+  - interval: 1m
+    input_series:
+      - series: w2_tmsrv_last_write_timestamp_seconds
+        values: "0+60x10"
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: ServidorSemArquivoDeMetricas
+        exp_alerts:
+          - exp_labels: {severity: critical}
+            exp_annotations:
+              summary: "O arquivo .prom do TMSrv ou do DBSrv não existe (W2_METRICS_DIR, node_exporter)"
+
+  # Uma suspeita de duplicação já basta; o reinício do w2db (contador volta a 0) não dispara.
+  - interval: 1m
+    input_series:
+      - series: w2db_dupe_suspects_total{job="w2db"}
+        values: "0 0 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: SuspeitaDeDuplicacao
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: SuspeitaDeDuplicacao
+        exp_alerts:
+          - exp_labels: {severity: critical, job: w2db}
+            exp_annotations:
+              summary: "1 item(ns) com suspeita de duplicação (item_events, dupe_suspect)"
+      - eval_time: 22m
+        alertname: SuspeitaDeDuplicacao
+        exp_alerts: []
+
+  # WAL: a última falha mais nova que o último arquivado, por 5 min.
+  - interval: 1m
+    input_series:
+      - series: w2db_wal_last_archived_timestamp_seconds{job="w2db"}
+        values: "100x20"
+      - series: w2db_wal_last_failed_timestamp_seconds{job="w2db"}
+        values: "0x5 200x15"
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: ArquivamentoDoWalFalhando
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: ArquivamentoDoWalFalhando
+        exp_alerts:
+          - exp_labels: {severity: critical, job: w2db}
+            exp_annotations:
+              summary: "O archive_command está falhando: o WAL não chega ao repositório do pgBackRest"
+
+  # Backup: diferencial diário em dia; o completo ficou velho.
+  - interval: 1h
+    input_series:
+      - series: w2_backup_last_success_timestamp_seconds{type="full", job="node"}
+        values: "0x240"
+      - series: w2_backup_last_success_timestamp_seconds{type="diff", job="node"}
+        values: "0+3600x240"
+    alert_rule_test:
+      - eval_time: 200h
+        alertname: BackupAtrasado
+        exp_alerts: []
+      - eval_time: 200h
+        alertname: BackupCompletoAtrasado
+        exp_alerts:
+          - exp_labels: {severity: critical, type: full, job: node}
+            exp_annotations:
+              summary: "Nenhum backup completo em 8 dias"
+      - eval_time: 2h
+        alertname: SemBackup
+        exp_alerts: []
+
+  # w2db fora: o alvo não responde.
+  - interval: 15s
+    input_series:
+      - series: up{job="w2db", instance="127.0.0.1:9730"}
+        values: "1x8 0x20"
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: W2dbFora
+        exp_alerts:
+          - exp_labels: {severity: critical, job: w2db, instance: "127.0.0.1:9730"}
+            exp_annotations:
+              summary: "O w2db (ou o Postgres atrás dele) não responde"

@@ -1,0 +1,19 @@
+#!/bin/sh
+# Registra um backup feito para o coletor textfile do node_exporter (docs/OPS.md): grava
+# <dir>/w2_backup_<tipo>.prom com o horário. Roda no ExecStartPost= da w2-backup@<tipo>.service,
+# que só chega aqui se o pgBackRest terminou bem. Os alertas BackupAtrasado e
+# BackupCompletoAtrasado olham esse horário.
+#
+# Uso: w2-backup-metric <full|diff|incr> <diretório das métricas>
+set -eu
+type="$1"
+dir="$2"
+case "$type" in full|diff|incr) ;; *) echo "tipo de backup inválido: $type" >&2; exit 2 ;; esac
+tmp="$dir/.w2_backup_$type.prom.$$"
+cat > "$tmp" <<EOF
+# HELP w2_backup_last_success_timestamp_seconds Último backup do pgBackRest que terminou bem (Unix).
+# TYPE w2_backup_last_success_timestamp_seconds gauge
+w2_backup_last_success_timestamp_seconds{type="$type"} $(date +%s)
+EOF
+chmod 0644 "$tmp"
+mv -f "$tmp" "$dir/w2_backup_$type.prom"

@@ -179,11 +179,13 @@ jobs:
       - name: Run unit tests
         run: ctest --test-dir build/linux --output-on-failure
 
-      # Monta a árvore de produção com os binários e confere as unidades do systemd geradas.
+      # Monta a árvore de produção com os binários e confere as unidades do systemd geradas (as
+      # do w2db e do backup são conferidas no job ops, que tem o w2db e o pgBackRest).
       - name: Deploy tree and verify the systemd units
         run: |
           python3 tools/linux_deploy.py "$RUNNER_TEMP/deploy" --bin build/linux
-          systemd-analyze verify "$RUNNER_TEMP/deploy/systemd/w2-dbsrv.service" "$RUNNER_TEMP/deploy/systemd/w2-tmsrv.service"
+          systemd-analyze verify "$RUNNER_TEMP/deploy/systemd/w2-dbsrv.service" "$RUNNER_TEMP/deploy/systemd/w2-tmsrv.service" \
+            "$RUNNER_TEMP/deploy/systemd/w2-notify@.service"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -280,6 +282,63 @@ jobs:
           command -v sqlx >/dev/null || cargo install sqlx-cli --version "^0.8" --no-default-features --features postgres,rustls --locked
           sqlx migrate run --source w2db/migrations
           SQLX_OFFLINE=false cargo sqlx prepare --workspace --check -- --all-targets
+
+      # O binário dos testes vai para o job ops (backup e restauração, unidades do systemd).
+      - name: Upload the w2db binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: w2db-debug
+          path: services/target/debug/w2db
+          retention-days: 3
+
+  # Operação (docs/OPS.md) num Debian 13, com as versões do pgBackRest, do Prometheus e do
+  # Alertmanager da distribuição: a configuração de deploy/ (métricas das regras e do painel,
+  # promtool check/test, amtool), backup e restauração de ponta a ponta com o pgBackRest
+  # (completo, diferencial, WAL, restauração até um instante e até o fim, `w2db check`) e todas as
+  # unidades do systemd geradas.
+  ops:
+    name: Operation (backup and restore, alerts, systemd units)
+    runs-on: ubuntu-24.04
+    needs: w2db
+    container: debian:trixie
+    timeout-minutes: 15
+    steps:
+      - name: Install Postgres 17, pgBackRest, promtool, Alertmanager and systemd
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get -q update
+          apt-get -q install -y --no-install-recommends git ca-certificates python3 systemd \
+            postgresql-17 pgbackrest promtool prometheus-alertmanager
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the w2db binary
+        uses: actions/download-artifact@v4
+        with:
+          name: w2db-debug
+          path: ${{ runner.temp }}/w2db
+
+      - name: Check the deploy configuration (metrics, Prometheus rules and tests, Alertmanager)
+        run: python3 tools/ops_check.py --require-tools
+
+      # O initdb não roda como root: o teste roda num usuário comum.
+      - name: Backup and restore the w2db with pgBackRest
+        run: |
+          chmod +x "$RUNNER_TEMP/w2db/w2db"
+          useradd -m ci
+          cp -r . /home/ci/derust && cp "$RUNNER_TEMP/w2db/w2db" /home/ci/w2db && chown -R ci /home/ci
+          runuser -u ci -- python3 /home/ci/derust/tools/w2db_restore.py selftest --w2db /home/ci/w2db \
+            --pg-bin /usr/lib/postgresql/17/bin
+
+      - name: Deploy tree with the w2db and verify every systemd unit
+        run: |
+          D="$RUNNER_TEMP/deploy"
+          python3 tools/linux_deploy.py "$D" --no-binaries --w2db "$RUNNER_TEMP/w2db/w2db" --user ci
+          # Só o ExecStart precisa existir para o verify; os binários do jogo estão no job linux-native.
+          for exe in DBSRV/Run/DBSrv TMSRV/Run/TMSrv; do install -m 0755 /dev/null "$D/$exe"; done
+          systemd-analyze verify "$D"/systemd/*.service "$D"/systemd/*.timer
 
   # Só o cliente: TMProject, o patch do cliente, os testes do cliente e o LoginClient. Os
   # servidores são só Linux (jobs linux-native e mingw-check).

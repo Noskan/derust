@@ -49,11 +49,20 @@ Com --forced-dupe (TMSrv montado com DERUST_TEST_HOOKS), o LoginClient força um
 segunda troca (/w2dupe: A dá a armadura e fica com uma cópia), e o teste exige que o w2db acuse o
 serial repetido (evento dupe_suspect) e que o DBSrv avise o operador.
 
+Operação (docs/OPS.md), conferida em todo teste com o LoginClient:
+ 11. O /bug do LoginClient (passo 17) chega ao log do TMSrv e do DBSrv; com --w2db, a linha de
+     bug_reports e o post no webhook falso do Discord (um servidor HTTP do teste), sem menção.
+ 12. As métricas que o TMSrv e o DBSrv gravam em W2_METRICS_DIR (w2_tmsrv.prom, w2_dbsrv.prom),
+     e, com --w2db, o /metrics do w2db (a suspeita de duplicação contada, com --forced-dupe).
+ 13. Com --w2db, o `w2db check` no banco do teste no fim.
+
 Uso: python3 tools/server_boot_smoke.py <dir com DBSrv e TMSrv> [--keep DIR] [--settle S]
        [--login-client EXE] [--require-login] [--w2db EXE [--pg-bin DIR] [--forced-dupe]]
 """
 
 import argparse
+import http.server
+import json
 import os
 import re
 import shutil
@@ -63,7 +72,9 @@ import struct
 import subprocess
 import sys
 import tempfile
+import threading
 import time
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -83,6 +94,8 @@ BASE_CLASSES = ("TK", "FM", "BM", "HT")  # ordem de g_pBaseSet no DBSrv
 LOGIN_ACCOUNT, LOGIN_PASSWORD, LOGIN_NUMERIC = "derust", "senha123", "1234"
 LOGIN_CHAR, LOGIN_CLASS = "Heroi", 1
 LOGIN_ACCOUNT_B, LOGIN_CHAR_B, LOGIN_CLASS_B = "derust2", "Parceiro", 2
+# O /bug do passo 17 do LoginClient (kBugText em tools/login_client/LoginClient.cpp).
+BUG_TEXT = "smoke: a porta do castelo nao abre @everyone"
 
 # Itens sintéticos no formato de BASE_ReadItemListFile:
 # índice, nome, malha.textura, nível.for.int.des.con, único, preço, pos, extra, grau, (efeito, valor)*
@@ -305,10 +318,15 @@ class LinuxHost:
 
     def __init__(self, work, need_wine):
         self.wine = WineHost(work) if need_wine else None
+        # W2_METRICS_DIR dos servidores (common/Metrics.h), definido no boot.
+        self.metrics_dir = None
 
     def start(self, name, cwd):
         log = cwd / "stderr.log"
-        proc = subprocess.Popen([str(cwd / name)], cwd=cwd, stdout=subprocess.DEVNULL, stderr=open(log, "wb"))
+        env = dict(os.environ)
+        if self.metrics_dir is not None:
+            env["W2_METRICS_DIR"] = str(self.metrics_dir)
+        proc = subprocess.Popen([str(cwd / name)], cwd=cwd, stdout=subprocess.DEVNULL, stderr=open(log, "wb"), env=env)
         return Server(self, name, proc, log)
 
     # Alertas que o teste provoca de propósito (a duplicação forçada): não contam como problema, e o
@@ -430,6 +448,132 @@ def find_pg_bin(given):
     return found[-1].parent
 
 
+class FakeWebhook:
+    """Servidor HTTP local no lugar do webhook do Discord: guarda o JSON de cada POST."""
+
+    def __init__(self):
+        posts = self.posts = []
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_POST(self):
+                body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+                posts.append((self.path, json.loads(body)))
+                self.send_response(204)
+                self.end_headers()
+
+            def log_message(self, *a):
+                pass
+
+        self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        self.url = f"http://127.0.0.1:{self.server.server_address[1]}/api/webhooks/1/teste"
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+
+    def close(self):
+        self.server.shutdown()
+
+
+def parse_metrics(text):
+    """{série com rótulos: valor} do formato de texto do Prometheus (sem as linhas #)."""
+    out = {}
+    for line in text.splitlines():
+        if not line or line.startswith("#"):
+            continue
+        name, _, value = line.rpartition(" ")
+        out[name] = float(value)
+    return out
+
+
+def check_metrics_files(metrics_dir, w2db, dupe, quiet=False):
+    """Os arquivos .prom do TMSrv e do DBSrv: formato e os contadores que o teste de jogo move."""
+    problems = []
+    values = {}
+    for name in ("w2_tmsrv", "w2_dbsrv"):
+        path = metrics_dir / f"{name}.prom"
+        if not path.exists():
+            problems.append(f"{name}.prom não foi gravado em W2_METRICS_DIR")
+            continue
+        text = path.read_text()
+        families = re.findall(r"^# TYPE (\S+) (counter|gauge|summary)$", text, re.M)
+        if len(families) != len(set(families)):
+            problems.append(f"{name}.prom: família repetida")
+        for line in text.splitlines():
+            if line and not line.startswith("#") and not re.match(r'^[a-z_][a-z0-9_]*(\{[a-z_]+="[^"]*"\})? -?[0-9.e+]+$', line):
+                problems.append(f"{name}.prom: linha fora do formato: {line!r}")
+        values.update(parse_metrics(text))
+        age = time.time() - values.get(f"{name}_last_write_timestamp_seconds", 0)
+        if age > 60:
+            problems.append(f"{name}.prom: gravado há {age:.0f}s (o intervalo é de 15 s)")
+    if problems:
+        return problems
+    want = {
+        "w2_tmsrv_packets_total": lambda v: v > 20,
+        "w2_tmsrv_ticks_total": lambda v: v > 10,
+        "w2_tmsrv_tick_seconds_total": lambda v: v > 0,
+        "w2_tmsrv_bug_reports_total": lambda v: v == 1,
+        "w2_tmsrv_dbsrv_connected": lambda v: v == 1,
+        "w2_dbsrv_tmsrv_connected": lambda v: v == 1,
+        "w2_dbsrv_saves_total": lambda v: v > 0,
+        "w2_dbsrv_w2db_failures_total": lambda v: v == 0,
+        "w2_dbsrv_w2db_pending_total": lambda v: v == 0,
+    }
+    if w2db:
+        want["w2_dbsrv_bug_reports_total"] = lambda v: v == 1
+        want["w2_dbsrv_dupe_suspects_total"] = (lambda v: v == 1) if dupe else (lambda v: v == 0)
+    for series, ok in want.items():
+        if series not in values or not ok(values[series]):
+            problems.append(f"métricas: {series} = {values.get(series)}")
+    if not problems and not quiet:
+        print(f"métricas em arquivo: {values['w2_tmsrv_packets_total']:.0f} pacotes, "
+              f"{values['w2_tmsrv_ticks_total']:.0f} ticks (pico {values['w2_tmsrv_tick_seconds_max'] * 1000:.1f} ms), "
+              f"{values['w2_dbsrv_saves_total']:.0f} gravações, 1 /bug")
+    return problems
+
+
+def check_bug_logs(tm_log, db_log):
+    """O /bug nos logs (gravados no encerramento)."""
+    problems = []
+    if f"etc,bug report {BUG_TEXT}" not in tm_log:
+        problems.append("TMSrv: o /bug não está no log")
+    if f"{LOGIN_CHAR}" not in db_log or BUG_TEXT not in db_log:
+        problems.append("DBSrv: o /bug não chegou (log)")
+    return problems
+
+
+def check_w2db_ops(db, dupe, timeout=20):
+    """O /bug no banco e no Discord falso, e o /metrics do w2db."""
+    problems = []
+    rows = db.sql("SELECT character_name, text, posted_at IS NOT NULL FROM bug_reports")
+    if [(r[0], r[1]) for r in rows] != [(LOGIN_CHAR, BUG_TEXT)]:
+        return [f"w2db: bug_reports {rows}, esperado o relato de {LOGIN_CHAR}"]
+    end = time.time() + timeout
+    while not db.webhook.posts and time.time() < end:
+        time.sleep(0.2)
+    if len(db.webhook.posts) != 1:
+        problems.append(f"Discord falso: {len(db.webhook.posts)} post(s), esperado 1")
+    else:
+        body = db.webhook.posts[0][1]
+        content = body.get("content", "")
+        if LOGIN_CHAR not in content or "\\@everyone" not in content or body.get("allowed_mentions") != {"parse": []}:
+            problems.append(f"Discord falso: post sem o relato escapado ou com menções: {body}")
+    m = db.metrics()
+    want = {
+        "w2db_bug_reports_total": 1,
+        "w2db_discord_posts_total": 1,
+        "w2db_dupe_suspects_total": 1 if dupe else 0,
+        "w2db_database_up": 1,
+        'w2db_rpc_errors_total{method="SaveAccount"}': 0,
+    }
+    for series, v in want.items():
+        if m.get(series) != v:
+            problems.append(f"/metrics do w2db: {series} = {m.get(series)}, esperado {v}")
+    if m.get('w2db_rpc_requests_total{method="SaveAccount"}', 0) == 0:
+        problems.append("/metrics do w2db: nenhuma gravação contada")
+    if not problems:
+        saves = m['w2db_rpc_requests_total{method="SaveAccount"}']
+        print(f"w2db: /bug no banco e no Discord falso (escapado, sem menção); /metrics com {saves:.0f} gravações")
+    return problems
+
+
 class W2Db:
     """Postgres próprio (só Unix socket, sem fsync) e o `w2db serve` em cima dele. Os sockets ficam
     num diretório curto do sistema: o caminho de um Unix socket tem limite de ~107 bytes."""
@@ -450,10 +594,18 @@ class W2Db:
         self.sql("CREATE DATABASE w2db", db="postgres")
         self.url = f"postgres://w2@localhost/w2db?host={self.sock}"
         self.socket = self.sock / "w2db.sock"
+        # Webhook falso do Discord para os relatos do /bug, e o /metrics numa porta livre.
+        self.webhook = FakeWebhook()
+        hook_file = work / "discord-webhook"
+        hook_file.write_text(self.webhook.url + "\n")
+        with socket.socket() as s:
+            s.bind(("127.0.0.1", 0))
+            self.metrics_url = f"http://127.0.0.1:{s.getsockname()[1]}/metrics"
         env = dict(os.environ, DATABASE_URL=self.url, RUST_LOG="info", NO_COLOR="1")
         log = open(work / "w2db.log", "wb")
-        self.proc = subprocess.Popen([str(self.exe), "serve", "--socket", str(self.socket)], env=env,
-                                     stdout=log, stderr=subprocess.STDOUT)
+        self.proc = subprocess.Popen([str(self.exe), "serve", "--socket", str(self.socket), "--metrics-addr",
+                                      self.metrics_url.split("/")[2], "--discord-webhook-file", str(hook_file),
+                                      "--discord-poll-secs", "1"], env=env, stdout=log, stderr=subprocess.STDOUT)
         end = time.time() + timeout
         while not self.socket.exists():
             if self.proc.poll() is not None or time.time() > end:
@@ -484,7 +636,23 @@ class W2Db:
                 out.append(f"w2db: {line.strip()}")
         return out
 
+    def metrics(self):
+        """{série: valor} do /metrics do w2db."""
+        text = urllib.request.urlopen(self.metrics_url, timeout=5).read().decode()
+        return parse_metrics(text)
+
+    def check(self):
+        """`w2db check` no banco do teste."""
+        r = subprocess.run([str(self.exe), "check"], capture_output=True, text=True,
+                           env=dict(os.environ, DATABASE_URL=self.url, NO_COLOR="1", RUST_LOG="warn"))
+        if r.returncode != 0:
+            return [f"w2db check: {l}" for l in r.stdout.splitlines() if l.startswith("PROBLEMA")] or \
+                [f"w2db check saiu com {r.returncode}: {r.stderr.strip()}"]
+        print("w2db check: " + r.stdout.strip().splitlines()[-1])
+        return []
+
     def close(self):
+        self.webhook.close()
         if self.proc is not None and self.proc.poll() is None:
             self.proc.send_signal(signal.SIGTERM)
             try:
@@ -720,6 +888,8 @@ def boot(host, work, exe_dir, args):
     servers = []
     graceful = False  # só encerra com WM_QUIT se os dois chegaram ao fim do tempo no ar
     db = None
+    host.metrics_dir = work / "metrics"
+    host.metrics_dir.mkdir(parents=True, exist_ok=True)
     try:
         if args.w2db:
             db = W2Db(work / "w2db", args.w2db, find_pg_bin(args.pg_bin))
@@ -753,12 +923,25 @@ def boot(host, work, exe_dir, args):
         if hasattr(host, "control") and not problems:
             problems += host.control(servers)
             problems += [p for s in servers for p in s.problems()]
+        if args.login_client and not problems and db is not None:
+            problems += check_w2db_ops(db, args.forced_dupe)
         time.sleep(args.settle)
         if not problems:
             problems += check_status_page(work / "Common", db_started)
+        if args.login_client and not problems:
+            # Gravadas a cada 15 s: espera uma gravação depois do /bug.
+            end = time.time() + 20
+            while True:
+                found = check_metrics_files(host.metrics_dir, db is not None, args.forced_dupe, quiet=True)
+                if not found or time.time() > end:
+                    break
+                time.sleep(1)
+            problems += check_metrics_files(host.metrics_dir, db is not None, args.forced_dupe)
         problems += [p for s in servers for p in s.problems()]
         if db is not None:
             problems += db.problems()
+            if not problems:
+                problems += db.check()
         graceful = not problems
     finally:
         stop_problems = host.stop(servers, graceful=graceful)
@@ -776,6 +959,8 @@ def boot(host, work, exe_dir, args):
         problems.append("TMSrv: perdeu a conexão com o DBSrv (\"err wsareaddb\")")
     if f"err wsa_accept request from  {game_host}" in db_log:
         problems.append(f"DBSrv: recusou a conexão do TMSrv ({game_host})")
+    if not problems and args.login_client:
+        problems += check_bug_logs(tm_log, db_log)
     if not problems:
         problems += check_bin_csv(work / "Common")
     if not problems:

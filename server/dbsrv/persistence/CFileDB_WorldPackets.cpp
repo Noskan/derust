@@ -35,6 +35,8 @@
 #include "persistence/CRanking.h"
 #include "core/CReadFiles.h"
 #include "common/Basedef.h"
+#include "core/ServerMetrics.h"
+#include "persistence/W2DbClient.h"
 
 
 extern int ServerIndex; //Server.cpp
@@ -474,6 +476,33 @@ int CFileDB::ProcessWorldMessage(char *Msg, int conn, bool& handled)
 		}
 
 		ItemDayLog[ItemID].Num++;
+	} break;
+
+	case _MSG_DBBugReport:
+	{
+		// O /bug do jogo (docs/OPS.md). Sem o w2db fica só no log.
+		if (std->Size < (int)sizeof(MSG_DBBugReport))
+			return TRUE;
+
+		MSG_DBBugReport *m = (MSG_DBBugReport*)Msg;
+		m->AccountName[ACCOUNTNAME_LENGTH - 1] = 0;
+		m->MobName[NAME_LENGTH - 1] = 0;
+		m->Text[CHAT_LENGTH - 1] = 0;
+
+		char temp[256];
+		snprintf(temp, sizeof(temp), "etc,bug %.16s %d %d,%d: %.120s", m->MobName, m->Server, m->PosX, m->PosY, m->Text);
+		Log(temp, m->AccountName, 0);
+
+		if (!W2DbOn())
+			return TRUE;
+
+		W2DbResult r = W2DbReportBug(m->AccountName, m->MobName, m->Server, m->PosX, m->PosY, m->Text);
+		if (r == W2DB_OK)
+			DbMetricAdd(DB_BUG_REPORTS);
+		else if (r == W2DB_RATE_LIMITED)
+			Log(const_cast<char*>("etc,bug report over the hourly limit"), m->AccountName, 0);
+		else
+			Log(const_cast<char*>("err,bug report not saved in the w2db"), m->AccountName, 0);
 	} break;
 
 	default:

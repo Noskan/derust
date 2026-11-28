@@ -38,6 +38,7 @@
 #include "common/ItemEffect.h"
 #include "net/CUser.h"
 #include "persistence/CFileDB.h"
+#include "core/ServerMetrics.h"
 #include "core/Server.h"
 #include "persistence/W2DbClient.h"
 #include "persistence/CRanking.h"
@@ -268,6 +269,8 @@ int main() // Last Updated 19/01/2013
 			TransperCharacter = 1;
 		}
 	}
+
+	DbMetricsInit();
 
 	W2LoopSetTimer(TIMER_SEC, 1000); 
 
@@ -853,6 +856,8 @@ void ProcessClientMessage(int conn, char *msg)
 
 void ProcessSecTimer()
 {
+	DbMetricsTick();
+
 	CReadFiles::ImportUser();
 	CReadFiles::UpdateUser();
 

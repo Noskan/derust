@@ -5,6 +5,7 @@
 #include "common/Basedef.h"
 #include "common/RateLimit.h"
 #include "core/Server.h"
+#include "core/ServerMetrics.h"
 
 namespace
 {
@@ -26,12 +27,14 @@ bool NetGuardAccept(int conn)
 	if (sameIP >= NETGUARD_MAX_CONN_PER_IP)
 	{
 		Log("err,netguard too many connections from ip", "-system", ip);
+		TmMetricAdd(TM_CONNECTIONS_REFUSED);
 		return false;
 	}
 
 	if (!g_acceptLimit.Allow(ip, W2TickCount()))
 	{
 		Log("err,netguard accept rate", "-system", ip);
+		TmMetricAdd(TM_CONNECTIONS_REFUSED);
 		return false;
 	}
 
@@ -44,6 +47,7 @@ bool NetGuardLogin(int conn)
 		return true;
 
 	Log("err,netguard login rate", pUser[conn].AccountName, pUser[conn].IP);
+	TmMetricAdd(TM_LOGINS_LIMITED);
 	return false;
 }
 

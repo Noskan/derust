@@ -9,6 +9,7 @@ add_library(w2pp_common STATIC
   System.cpp
   ProtocolLayoutCheck.cpp
   RateLimit.cpp
+  Metrics.cpp
   Basedef.h
   BasedefInternal.h
   CPSock.h
@@ -16,6 +17,7 @@ add_library(w2pp_common STATIC
   ItemEffect.h
   Platform.h
   RateLimit.h
+  Metrics.h
   System.h
 )
 

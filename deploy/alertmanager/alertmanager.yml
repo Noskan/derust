@@ -1,0 +1,25 @@
+# Alertmanager do derust (docs/OPS.md): todos os alertas vão para um canal do Discord. Copie para
+# /etc/prometheus/alertmanager.yml e ponha o endereço do webhook (segredo: quem o tem posta no
+# canal) em /etc/prometheus/discord-alerts-webhook, dono prometheus, modo 0600.
+route:
+  receiver: discord
+  group_by: [alertname]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    # Crítico repete mais.
+    - matchers: ['severity="critical"']
+      receiver: discord
+      repeat_interval: 1h
+
+receivers:
+  - name: discord
+    discord_configs:
+      - webhook_url_file: /etc/prometheus/discord-alerts-webhook
+        send_resolved: true
+
+# Com o servidor fora, os outros alertas dele são consequência.
+inhibit_rules:
+  - source_matchers: ['alertname="W2dbFora"']
+    target_matchers: ['alertname=~"W2dbErros|DBSrvFalhasDoW2db|RelatosParadosNaFila"']

@@ -29,6 +29,7 @@
 #include "persistence/CFileDB.h"
 #include "net/CUser.h"
 #include "core/Server.h"
+#include "core/ServerMetrics.h"
 #include "persistence/CRanking.h"
 #include "core/CReadFiles.h"
 #include "common/Basedef.h"
@@ -581,6 +582,8 @@ void CFileDB::SendDBSavingQuit(int Idx, int mode)
 
 int CFileDB::DBWriteAccount(STRUCT_ACCOUNTFILE *account)
 {
+	DbMetricAdd(DB_SAVES);
+
 	char *accname = account->Info.AccountName;
 
 	char check[ACCOUNTNAME_LENGTH + 1] = { 0, };

@@ -1,5 +1,6 @@
 //! w2db: o serviço (serve), as migrações e o importador/exportador dos arquivos do DBSrv.
 
+use std::net::SocketAddr;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
@@ -12,7 +13,7 @@ use tokio_stream::wrappers::UnixListenerStream;
 
 use w2db::pb::w2_db_server::W2DbServer;
 use w2db::store;
-use w2db::{auth, service, transfer};
+use w2db::{auth, check, discord, metrics, service, transfer};
 
 #[derive(Parser)]
 #[command(version, about)]
@@ -31,8 +32,17 @@ enum Cmd {
         #[arg(long, env = "W2DB_SOCKET", default_value = "/run/w2db/w2db.sock")]
         socket: PathBuf,
         /// Conta nova só com código de convite.
-        #[arg(long)]
+        #[arg(long, env = "W2DB_REQUIRE_INVITE")]
         require_invite: bool,
+        /// Serve /metrics (Prometheus) neste endereço, por exemplo 127.0.0.1:9730.
+        #[arg(long, env = "W2DB_METRICS_ADDR")]
+        metrics_addr: Option<SocketAddr>,
+        /// Arquivo com o endereço do webhook do Discord para os relatos do /bug (primeira linha).
+        #[arg(long, env = "W2DB_DISCORD_WEBHOOK_FILE")]
+        discord_webhook_file: Option<PathBuf>,
+        /// Segundos entre as olhadas na fila do Discord (o teste de jogo usa 1).
+        #[arg(long, default_value_t = discord::POLL.as_secs(), hide = true)]
+        discord_poll_secs: u64,
     },
     /// Aplica as migrações.
     Migrate,
@@ -47,6 +57,9 @@ enum Cmd {
     },
     /// Cria um código de convite para um id do Discord.
     Invite { discord_id: String },
+    /// Confere o banco (depois de restaurar um backup, por exemplo). Só lê; sai com 1 se achar
+    /// problema.
+    Check,
 }
 
 async fn connect(url: Option<String>) -> anyhow::Result<PgPool> {
@@ -62,9 +75,37 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let pool = connect(cli.database_url).await?;
     match cli.cmd {
-        Cmd::Serve { socket, require_invite } => {
+        Cmd::Serve {
+            socket,
+            require_invite,
+            metrics_addr,
+            discord_webhook_file,
+            discord_poll_secs,
+        } => {
             sqlx::migrate!().run(&pool).await?;
+            let webhook = match discord_webhook_file {
+                Some(f) => Some(discord::Webhook::new(discord::read_url(&f)?)?),
+                None => None,
+            };
+            metrics::METRICS.started();
+            if let Some(addr) = metrics_addr {
+                // Abre antes do socket do jogo: porta ocupada é erro de configuração, falha já.
+                let listener = metrics::bind(addr).await?;
+                tokio::spawn(metrics::serve(listener, pool.clone()));
+            }
+            if let Some(w) = webhook {
+                tracing::info!("relatos do /bug vão para o Discord");
+                tokio::spawn(w.run(pool.clone(), std::time::Duration::from_secs(discord_poll_secs.max(1))));
+            }
             serve(pool, &socket, require_invite).await
+        }
+        Cmd::Check => {
+            let r = check::run(&pool).await?;
+            println!("{r}");
+            if !r.problems.is_empty() {
+                std::process::exit(1);
+            }
+            Ok(())
         }
         Cmd::Migrate => {
             sqlx::migrate!().run(&pool).await?;
@@ -110,6 +151,7 @@ async fn serve(pool: PgPool, socket: &Path, require_invite: bool) -> anyhow::Res
         tracing::info!("encerrando");
     };
     tonic::transport::Server::builder()
+        .layer(metrics::RpcLayer)
         .add_service(W2DbServer::new(service::Service::new(pool, require_invite)))
         .serve_with_incoming_shutdown(UnixListenerStream::new(listener), shutdown)
         .await?;

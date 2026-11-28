@@ -121,6 +121,10 @@ public:
 
 	// Só com DERUST_TEST_HOOKS (/w2dupe): na próxima troca fica com uma cópia do que deu.
 	int TestKeepTrade;
+
+	// Último /bug da conexão (W2TickCount), para o intervalo entre relatos; 0 = nenhum.
+	int BugReported;
+	unsigned int LastBugTick;
 public:
 	CUser();
 	~CUser();

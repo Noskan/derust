@@ -33,4 +33,5 @@ W2DbResult W2DbSetPassword(const char*, const char*) { return W2DB_FAIL; }
 W2DbResult W2DbCheckNumeric(const char*, const char*) { return W2DB_FAIL; }
 W2DbResult W2DbFindCharacter(const char*, char*, int*) { return W2DB_FAIL; }
 W2DbResult W2DbDeleteCharacter(const char*, int) { return W2DB_FAIL; }
+W2DbResult W2DbReportBug(const char*, const char*, int, int, int, const char*) { return W2DB_FAIL; }
 void W2DbForget(const char*) {}

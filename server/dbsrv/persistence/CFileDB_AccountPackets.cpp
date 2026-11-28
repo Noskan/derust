@@ -32,6 +32,7 @@
 #include "persistence/CFileDB.h"
 #include "net/CUser.h"
 #include "core/Server.h"
+#include "core/ServerMetrics.h"
 #include "persistence/CRanking.h"
 #include "core/CReadFiles.h"
 #include "common/Basedef.h"
@@ -195,6 +196,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 			if(ret == 0)
 			{
 				SendDBSignal(conn, m->ID, _MSG_DBAccountLoginFail_Account);
+				DbMetricAdd(DB_LOGIN_FAIL_NO_ACCOUNT);
 
 				return TRUE;
 			}
@@ -212,6 +214,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				if(file.Info.Year >= when.tm_year || file.Info.Year >= when.tm_year && file.Info.YearDay >= when.tm_yday)
 				{
 					SendDBSignalParm(conn, m->ID, _MSG_DBAccountLoginFail_Block, 0);
+					DbMetricAdd(DB_LOGIN_FAIL_BLOCKED);
 					return TRUE;
 				}
 			}
@@ -242,12 +245,15 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				if (r == W2DB_NO_ACCOUNT || r == W2DB_FAIL || r == W2DB_INVALID)
 				{
 					SendDBSignal(conn, m->ID, _MSG_DBAccountLoginFail_Account);
+					if (r == W2DB_NO_ACCOUNT)
+						DbMetricAdd(DB_LOGIN_FAIL_NO_ACCOUNT);
 
 					return TRUE;
 				}
 				if (r != W2DB_OK)
 				{
 					SendDBSignal(conn, m->ID, _MSG_DBAccountLoginFail_Pass);
+					DbMetricAdd(r == W2DB_LOCKED ? DB_LOGIN_FAIL_LOCKED : DB_LOGIN_FAIL_PASSWORD);
 
 					return TRUE;
 				}
@@ -257,6 +263,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 			else if(strcmp(file.Info.AccountPass, m->AccountPass) != 0)
 			{
 				SendDBSignal(conn, m->ID, _MSG_DBAccountLoginFail_Pass);
+				DbMetricAdd(DB_LOGIN_FAIL_PASSWORD);
 
 				return TRUE;
 			}
@@ -1017,6 +1024,8 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 		}
 		else
 			numericOk = strncmp(pAccountList[Idx].File.Info.NumericToken, m->NumericToken, 6) == 0;
+		if (Change == 0 && Secure == -1 && !numericOk)
+			DbMetricAdd(DB_LOGIN_FAIL_NUMERIC);
 
 		if (Change == 0 && Secure == -1 && numericOk)
 		{

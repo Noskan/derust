@@ -1,0 +1,59 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT b.id, a.name AS \"account?\", b.character_name, b.server, b.pos_x, b.pos_y, b.text\n         FROM bug_reports b LEFT JOIN accounts a ON a.id = b.account_id\n         WHERE b.posted_at IS NULL AND b.post_attempts < $1\n         ORDER BY b.id LIMIT $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "account?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "character_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "server",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "pos_x",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "pos_y",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "text",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "81c653d06eb4e5c25f7c02bc9e553c11aae9fd79ff577a92be03ede21d591454"
+}

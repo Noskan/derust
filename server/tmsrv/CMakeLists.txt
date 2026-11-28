@@ -8,6 +8,8 @@ set(TMSRV_SOURCES
   core/Server_Config.cpp
   core/Server_Logs.cpp
   core/Server_Window.cpp
+  core/ServerMetrics.cpp
+  core/ServerMetrics.h
   entities/CItem.cpp
   entities/CItem.h
   entities/CMob.cpp

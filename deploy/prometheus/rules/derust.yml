@@ -1,0 +1,128 @@
+# Alertas do derust (docs/OPS.md). Vão para o Discord pelo Alertmanager. Testes em
+# derust_test.yml (promtool test rules), que o CI roda.
+groups:
+  - name: derust-servidores
+    rules:
+      - alert: TMSrvSemMetricas
+        expr: time() - w2_tmsrv_last_write_timestamp_seconds > 90
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "TMSrv parado ou travado: sem gravar métricas há {{ $value | humanizeDuration }}"
+      - alert: DBSrvSemMetricas
+        expr: time() - w2_dbsrv_last_write_timestamp_seconds > 90
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "DBSrv parado ou travado: sem gravar métricas há {{ $value | humanizeDuration }}"
+      - alert: ServidorSemArquivoDeMetricas
+        expr: absent(w2_tmsrv_last_write_timestamp_seconds) or absent(w2_dbsrv_last_write_timestamp_seconds)
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "O arquivo .prom do TMSrv ou do DBSrv não existe (W2_METRICS_DIR, node_exporter)"
+      - alert: UnitDoDerustFalhou
+        expr: node_systemd_unit_state{name=~"w2-.*", state="failed"} == 1
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.name }} está em failed"
+      - alert: TickLento
+        expr: w2_tmsrv_tick_seconds_max > 0.25
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: "ProcessSecTimer levou {{ $value | humanizeDuration }} (o timer é de 500 ms)"
+      - alert: TMSrvSemDBSrv
+        expr: w2_tmsrv_dbsrv_connected == 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "O TMSrv perdeu a conexão com o DBSrv"
+      - alert: MuitasConexoesRecusadas
+        expr: increase(w2_tmsrv_connections_refused_total[10m]) > 100
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value | humanize }} conexões recusadas pela borda de rede em 10 min"
+      - alert: MuitosLoginsRecusados
+        expr: >-
+          sum(increase(w2db_login_failures_total{reason=~"wrong_password|wrong_numeric|locked"}[10m])) > 50
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value | humanize }} senhas erradas ou contas bloqueadas em 10 min"
+
+  - name: derust-dados
+    rules:
+      - alert: W2dbFora
+        expr: up{job="w2db"} == 0 or w2db_database_up == 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "O w2db (ou o Postgres atrás dele) não responde"
+      - alert: W2dbErros
+        expr: sum by (method) (increase(w2db_rpc_errors_total[5m])) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value | humanize }} erro(s) do w2db em {{ $labels.method }} em 5 min"
+      - alert: DBSrvFalhasDoW2db
+        expr: increase(w2_dbsrv_w2db_failures_total[5m]) > 0
+        labels: {severity: critical}
+        annotations:
+          summary: "O DBSrv não conseguiu falar com o w2db ({{ $value | humanize }} vez(es) em 5 min)"
+      - alert: GravacaoPendente
+        expr: increase(w2_dbsrv_w2db_pending_total[10m]) > 0
+        labels: {severity: critical}
+        annotations:
+          summary: "Conta gravada em w2db_pending: precisa importar (docs/W2DB.md)"
+      - alert: SuspeitaDeDuplicacao
+        expr: increase(w2db_dupe_suspects_total[10m]) > 0
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $value | humanize }} item(ns) com suspeita de duplicação (item_events, dupe_suspect)"
+      - alert: RelatosParadosNaFila
+        expr: w2db_discord_queue > 20
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $value }} relatos do /bug sem ir para o Discord"
+
+  - name: derust-backup
+    rules:
+      - alert: ArquivamentoDoWalFalhando
+        expr: w2db_wal_last_failed_timestamp_seconds > w2db_wal_last_archived_timestamp_seconds
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "O archive_command está falhando: o WAL não chega ao repositório do pgBackRest"
+      - alert: BackupAtrasado
+        expr: time() - max(w2_backup_last_success_timestamp_seconds) > 26 * 3600
+        labels: {severity: critical}
+        annotations:
+          summary: "Nenhum backup (completo ou diferencial) nas últimas 26 h"
+      - alert: BackupCompletoAtrasado
+        expr: time() - w2_backup_last_success_timestamp_seconds{type="full"} > 8 * 86400
+        labels: {severity: critical}
+        annotations:
+          summary: "Nenhum backup completo em 8 dias"
+      - alert: SemBackup
+        expr: absent(w2_backup_last_success_timestamp_seconds{type="full"})
+        for: 1h
+        labels: {severity: critical}
+        annotations:
+          summary: "Não há registro de backup completo (w2_backup_full.prom)"
+
+  - name: derust-maquina
+    rules:
+      - alert: DiscoQuaseCheio
+        expr: >-
+          node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"}
+            / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} < 0.10
+        for: 10m
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.mountpoint }} com menos de 10% livre"
+      - alert: MemoriaQuaseCheia
+        expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes < 0.10
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "Menos de 10% de memória livre"

@@ -3,6 +3,7 @@
 use sqlx::PgPool;
 use tonic::{Request, Response, Status as GrpcStatus};
 
+use crate::metrics::{METRICS, Metrics};
 use crate::pb::{self, Status, w2_db_server::W2Db};
 use crate::store::{self, SaveMode, SaveOutcome, StoreError};
 use crate::{auth, legacy};
@@ -39,12 +40,18 @@ fn status(s: Status) -> Response<pb::StatusReply> {
 
 fn save_reply(o: SaveOutcome) -> pb::SaveAccountReply {
     match o {
-        SaveOutcome::Saved(r) => r,
-        SaveOutcome::VersionConflict(v) => pb::SaveAccountReply {
-            status: Status::VersionConflict as i32,
-            version: v,
-            ..Default::default()
-        },
+        SaveOutcome::Saved(r) => {
+            Metrics::add(&METRICS.dupe_suspects, r.dupe_suspects.len() as u64);
+            r
+        }
+        SaveOutcome::VersionConflict(v) => {
+            Metrics::inc(&METRICS.version_conflicts);
+            pb::SaveAccountReply {
+                status: Status::VersionConflict as i32,
+                version: v,
+                ..Default::default()
+            }
+        }
         SaveOutcome::NameTaken => pb::SaveAccountReply {
             status: Status::NameTaken as i32,
             ..Default::default()
@@ -104,11 +111,13 @@ impl Service {
     async fn check_secret(&self, name: &[u8], secret: &[u8], numeric: bool) -> Result<Auth, GrpcStatus> {
         let Some(a) = store::account_auth(&self.pool, name).await.map_err(store_err)? else {
             auth::verify_async(secret.to_vec(), auth::dummy_hash().to_string()).await;
+            Metrics::inc(&METRICS.login_no_account);
             return Ok(Auth::Fail(Status::NoAccount, 0));
         };
         if let Some(until) = a.locked_until {
             let left = (until - chrono::Utc::now()).num_seconds();
             if left > 0 {
+                Metrics::inc(&METRICS.login_locked);
                 return Ok(Auth::Fail(Status::Locked, left as u32));
             }
         }
@@ -121,6 +130,11 @@ impl Service {
             a.password_hash.clone()
         };
         if !auth::verify_async(secret.to_vec(), hash).await {
+            Metrics::inc(if numeric {
+                &METRICS.numeric_wrong
+            } else {
+                &METRICS.login_wrong_password
+            });
             store::record_login_failure(&self.pool, a.id, auth::MAX_FAILURES, auth::LOCK_SECONDS)
                 .await
                 .map_err(store_err)?;
@@ -387,16 +401,22 @@ impl W2Db for Service {
 
     async fn report_bug(&self, req: Request<pb::ReportBugRequest>) -> Rsp<pb::ReportBugReply> {
         let r = req.into_inner();
-        if r.text.trim().is_empty() || r.text.len() > 2000 {
-            return Ok(Response::new(pb::ReportBugReply {
-                status: Status::Invalid as i32,
-                id: 0,
-            }));
+        let reply = |s: Status, id| Ok(Response::new(pb::ReportBugReply { status: s as i32, id }));
+        if r.text.iter().all(|c| c.is_ascii_whitespace())
+            || r.text.len() > 2000
+            || !store::valid_name(&r.character_name)
+        {
+            return reply(Status::Invalid, 0);
         }
-        let id = store::report_bug(&self.pool, &r).await.map_err(store_err)?;
-        Ok(Response::new(pb::ReportBugReply {
-            status: Status::Ok as i32,
-            id,
-        }))
+        match store::report_bug(&self.pool, &r).await.map_err(store_err)? {
+            Some(id) => {
+                Metrics::inc(&METRICS.bug_reports);
+                reply(Status::Ok, id)
+            }
+            None => {
+                Metrics::inc(&METRICS.bug_reports_limited);
+                reply(Status::RateLimited, 0)
+            }
+        }
     }
 }

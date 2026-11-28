@@ -18,6 +18,7 @@
 #include "net/CUser.h"
 #include "core/Server.h"
 #include "persistence/W2DbConvert.h"
+#include "core/ServerMetrics.h"
 #include "w2db/v1/w2db.grpc.pb.h"
 
 namespace pb = w2db::v1;
@@ -80,6 +81,7 @@ void LogRpc(const char* what, const char* name, const grpc::Status& st)
 	snprintf(temp, sizeof(temp), "err,w2db %s: %d %s", what, static_cast<int>(st.error_code()),
 		st.error_message().c_str());
 	Log(temp, const_cast<char*>(name), 0);
+	DbMetricAdd(DB_W2DB_FAILURES);
 }
 
 W2DbResult FromStatus(int s)
@@ -94,6 +96,7 @@ W2DbResult FromStatus(int s)
 	case pb::STATUS_NAME_TAKEN: return W2DB_NAME_TAKEN;
 	case pb::STATUS_NUMERIC_NOT_SET: return W2DB_NUMERIC_NOT_SET;
 	case pb::STATUS_INVALID: return W2DB_INVALID;
+	case pb::STATUS_RATE_LIMITED: return W2DB_RATE_LIMITED;
 	default: return W2DB_FAIL;
 	}
 }
@@ -289,6 +292,7 @@ void WritePending(const STRUCT_ACCOUNTFILE* file)
 	snprintf(temp, sizeof(temp), "err,w2db save failed, account kept in %s", path.c_str());
 	Log(temp, const_cast<char*>(file->Info.AccountName), 0);
 	ServerAlert(temp, "w2db");
+	DbMetricAdd(DB_W2DB_PENDING);
 }
 
 W2DbResult LoadState(const char* name, STRUCT_ACCOUNTFILE* file, std::unique_ptr<State>* out)
@@ -510,6 +514,7 @@ W2DbResult W2DbSave(const STRUCT_ACCOUNTFILE* file, bool logout, const W2Handoff
 				name, static_cast<unsigned long long>(rep.dupe_suspects(0)));
 			Log(temp, const_cast<char*>(name), 0);
 			ServerAlert(temp, "w2db");
+			DbMetricAdd(DB_DUPE_SUSPECTS, rep.dupe_suspects_size());
 		}
 		st->Version = rep.version();
 		st->Serials = serials;
@@ -689,6 +694,28 @@ W2DbResult W2DbDeleteCharacter(const char* account, int slot)
 		return W2DB_OK;
 	}
 	return W2DB_FAIL;
+}
+
+W2DbResult W2DbReportBug(const char* account, const char* character, int server, int x, int y,
+	const char* text)
+{
+	pb::ReportBugRequest req;
+	req.set_account_name(Bytes(account, ACCOUNTNAME_LENGTH));
+	req.set_character_name(Bytes(character, NAME_LENGTH));
+	req.set_server(server);
+	req.set_pos_x(x);
+	req.set_pos_y(y);
+	req.set_text(Bytes(text, CHAT_LENGTH));
+	pb::ReportBugReply rep;
+	grpc::ClientContext ctx;
+	Deadline(ctx, W2DB_DEADLINE_MS);
+	grpc::Status st = g_stub->ReportBug(&ctx, req, &rep);
+	if (!st.ok())
+	{
+		LogRpc("bug report", account, st);
+		return W2DB_FAIL;
+	}
+	return FromStatus(rep.status());
 }
 
 void W2DbForget(const char* name)

@@ -43,6 +43,7 @@
 #include "core/CReadFiles.h"
 #include "systems/CWarTower.h"
 #include "systems/CCastleZakum.h"
+#include "core/ServerMetrics.h"
 
 /// Comandos do operador: os itens do menu da janela do Windows, pelo FIFO de controle.
 static void RegisterCommands()
@@ -207,6 +208,8 @@ int main()
 	CReadFiles();  // o construtor lê SancRate, QuestsRate, CompRate, Admin, Mac, Chall e Guild
 	// CEncampment::ReadCamp();
 	CCastleZakum::ReadCastleQuest();
+
+	TmMetricsInit();
 
 	W2LoopSetTimer(TIMER_SEC, 500);
 	W2LoopSetTimer(TIMER_MIN, 12000);

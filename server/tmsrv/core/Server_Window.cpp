@@ -47,6 +47,7 @@
 #include "net/ProcessClientMessage.h"
 #include "net/ProcessDBMessage.h"
 #include "net/NetGuard.h"
+#include "core/ServerMetrics.h"
 #include "core/CReadFiles.h"
 #include "systems/CWarTower.h"
 
@@ -143,7 +144,7 @@ void OnServerEvent(const W2Event& ev)
 	case W2_EVENT_TIMER:
 	{
 		if (ev.id == TIMER_SEC)
-			ProcessSecTimer();
+			TmMetricsSecTimer(ProcessSecTimer);
 		else if (ev.id == TIMER_MIN)
 			ProcessMinTimer();
 	} break;
@@ -414,10 +415,12 @@ void OnServerEvent(const W2Event& ev)
 
 				sprintf(temp, "err,read (%d),%d", Error, ErrorCode);
 				Log(temp, pUser[User].AccountName, pUser[User].IP);
+				TmMetricAdd(TM_REJECTED_READ);
 
 				break;
 			}
 
+			TmMetricAdd(TM_PACKETS);
 			ProcessClientMessage(User, Msg, FALSE);
 		};
 

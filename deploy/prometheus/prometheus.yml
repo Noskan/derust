@@ -1,0 +1,27 @@
+# Prometheus do derust (docs/OPS.md). Copie para /etc/prometheus/prometheus.yml e as regras
+# para /etc/prometheus/rules/. Tudo fica na mesma máquina, ouvindo só em 127.0.0.1 (o Grafana
+# chega pelo proxy HTTPS).
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/rules/derust.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["127.0.0.1:9093"]
+
+scrape_configs:
+  # node_exporter: a máquina, as units do systemd (--collector.systemd) e os arquivos .prom do
+  # TMSrv, do DBSrv e do backup (--collector.textfile.directory=<árvore>/metrics).
+  - job_name: node
+    static_configs:
+      - targets: ["127.0.0.1:9100"]
+  - job_name: w2db
+    static_configs:
+      - targets: ["127.0.0.1:9730"]
+  - job_name: prometheus
+    static_configs:
+      - targets: ["127.0.0.1:9090"]

@@ -491,20 +491,53 @@ async fn invites_and_bugs(pool: PgPool) {
         .unwrap();
     assert_eq!(discord.as_deref(), Some("123"));
 
-    let bug = c
-        .report_bug(pb::ReportBugRequest {
-            account_name: b"ZED".to_vec(),
-            character_name: b"Ninguem".to_vec(),
-            server: 1,
-            pos_x: 2100,
-            pos_y: 2100,
-            text: "porta não abre".into(),
-        })
-        .await
-        .unwrap()
-        .into_inner();
+    let bug_req = || pb::ReportBugRequest {
+        account_name: b"ZED".to_vec(),
+        character_name: b"Ninguem".to_vec(),
+        server: 1,
+        pos_x: 2100,
+        pos_y: 2100,
+        // CP1252, como vem do jogo.
+        text: b"porta n\xe3o abre".to_vec(),
+    };
+    let bug = c.report_bug(bug_req()).await.unwrap().into_inner();
     assert_eq!(bug.status, Status::Ok as i32);
     assert!(bug.id > 0);
+    let text: String = sqlx::query_scalar("SELECT text FROM bug_reports WHERE id = $1")
+        .bind(bug.id)
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(text, "porta não abre");
+
+    // Limite por personagem na última hora.
+    for _ in 1..w2db::store::BUG_LIMIT_PER_HOUR {
+        assert_eq!(
+            c.report_bug(bug_req()).await.unwrap().into_inner().status,
+            Status::Ok as i32
+        );
+    }
+    assert_eq!(
+        c.report_bug(bug_req()).await.unwrap().into_inner().status,
+        Status::RateLimited as i32
+    );
+    let other = pb::ReportBugRequest {
+        character_name: b"Outro".to_vec(),
+        ..bug_req()
+    };
+    assert_eq!(
+        c.report_bug(other).await.unwrap().into_inner().status,
+        Status::Ok as i32
+    );
+    let blank = pb::ReportBugRequest {
+        text: b"  ".to_vec(),
+        character_name: b"Outro".to_vec(),
+        ..bug_req()
+    };
+    assert_eq!(
+        c.report_bug(blank).await.unwrap().into_inner().status,
+        Status::Invalid as i32
+    );
 }
 
 #[sqlx::test]

@@ -59,7 +59,9 @@ O script:
 - cria os diretórios em que os servidores gravam e que não criam sozinhos: `Log`, `DayLog`, `chat_log`, `item_log`, `account/<inicial>`, `char/<inicial>`, `capsule`, `npc`, e `Import*`, `Error` e `status` em `Common`;
 - copia os binários para os `Run`;
 - confere a caixa dos arquivos de dados contra os nomes que o código abre, tirados das próprias fontes. `--fix-case` renomeia arquivos e diretórios para a caixa certa, e `--check-only` só confere;
-- grava `systemd/w2-dbsrv.service` e `systemd/w2-tmsrv.service` com os caminhos da árvore.
+- grava `systemd/w2-dbsrv.service` e `systemd/w2-tmsrv.service` com os caminhos da árvore;
+- com `--w2db <binário>`, copia o w2db para `W2DB/` e grava `w2-w2db.service` e um modelo do `/etc/derust/w2db.env`. O DBSrv passa a usar o socket do w2db (`W2DB_SOCKET`);
+- grava as unidades de operação (`docs/OPS.md`): `w2-notify@.service` (aviso no Discord quando uma unidade falha), `w2-backup@.service` e os timers do backup. Copia os scripts delas para `bin/` e cria `metrics/`, a pasta do `W2_METRICS_DIR` (`--metrics-dir` para outra).
 
 Ele não copia os dados do jogo nem cria arquivos de configuração (`localip.txt`, `serverlist.txt`, `gameconfig.txt`...): isso fica com quem opera. A lista dos arquivos que o código abre e que ainda faltam sai no fim.
 
@@ -79,6 +81,8 @@ Como as unidades se comportam:
   - os comandos `reboot` e `exit` do FIFO de controle (para desligar de vez, use `systemctl stop`);
   - o TMSrv que sai quando não alcança o DBSrv no boot. A unidade dele vem depois da do DBSrv (`After=`), mas o DBSrv pode ainda não estar escutando.
 - `LimitNOFILE=8192`: o padrão de 1024 descritores fica curto para os 1000 jogadores (`MAX_USER`), mais os arquivos e as conexões entre servidores.
+- Numa queda em laço, o intervalo entre reinícios dobra até 5 min (`RestartSteps=`, `RestartMaxDelaySec=`).
+- Cada queda chama `w2-notify@.service` (`OnFailure=`), que avisa no Discord com o motivo e o fim do journal. `LimitCORE=infinity` deixa o core dump para o `systemd-coredump` (`docs/OPS.md`).
 
 ## Como os servidores rodam no Linux
 

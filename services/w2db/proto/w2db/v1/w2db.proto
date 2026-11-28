@@ -52,6 +52,8 @@ enum Status {
   STATUS_INVITE_REQUIRED = 11;
   STATUS_BAD_INVITE = 12;
   STATUS_NUMERIC_NOT_SET = 13;
+  // Limite de relatos de bug do personagem (store::BUG_LIMIT_PER_HOUR).
+  STATUS_RATE_LIMITED = 14;
 }
 
 // ---------------------------------------------------------------- estruturas do jogo
@@ -355,13 +357,14 @@ message CreateInviteReply {
   string code = 1;
 }
 
+// O comando /bug do jogo. O texto é o que o jogador digitou, em CP1252 como os nomes.
 message ReportBugRequest {
   bytes account_name = 1;
   bytes character_name = 2;
   int32 server = 3;
   int32 pos_x = 4;
   int32 pos_y = 5;
-  string text = 6;
+  bytes text = 6;
 }
 message ReportBugReply {
   Status status = 1;

@@ -17,14 +17,17 @@ O que faz:
      passados a fopen/_open e as constantes de caminho). No Linux "LocalIP.txt" não é
      "localip.txt"; uma árvore copiada do Windows costuma ter esse problema. Com --fix-case,
      renomeia para o nome que o código abre.
-  4. Grava em <destino>/systemd as unidades w2-dbsrv.service e w2-tmsrv.service, com os
-     caminhos desta árvore. A instalação no sistema fica com quem opera (o script imprime
-     os comandos).
+  4. Grava em <destino>/systemd as unidades w2-dbsrv.service e w2-tmsrv.service (e a
+     w2-w2db.service com --w2db), com os caminhos desta árvore, mais as de operação
+     (docs/OPS.md): w2-notify@.service (aviso no Discord quando uma unidade falha),
+     w2-backup@.service e os timers do backup. Copia os scripts delas (deploy/bin) para
+     <destino>/bin e cria a pasta das métricas. A instalação no sistema fica com quem opera
+     (o script imprime os comandos).
 
 Não copia dados do jogo nem cria arquivos de configuração: isso é de quem opera.
 
 Uso: python3 tools/linux_deploy.py <destino> [--bin DIR] [--no-binaries] [--fix-case]
-       [--user USUÁRIO] [--check-only]
+       [--user USUÁRIO] [--check-only] [--w2db BIN] [--metrics-dir DIR] [--pg-user USUÁRIO]
 """
 
 import argparse
@@ -113,6 +116,18 @@ def fix_case(dest, rel):
     return renamed
 
 
+# Comum às unidades dos processos que ficam no ar.
+SERVICE_COMMON = """Restart=always
+RestartSec=5
+# Queda em laço: o intervalo dobra a cada reinício até 5 min.
+RestartSteps=5
+RestartMaxDelaySec=300
+# Core dump para o systemd-coredump (coredumpctl), que o aviso do Discord resume.
+LimitCORE=infinity
+StandardOutput=journal
+StandardError=journal
+"""
+
 UNIT = """# Gerado por tools/linux_deploy.py. Instale com:
 #   sudo cp {path} /etc/systemd/system/ && sudo systemctl daemon-reload
 #   sudo systemctl enable --now {name}
@@ -120,44 +135,137 @@ UNIT = """# Gerado por tools/linux_deploy.py. Instale com:
 Description={desc}
 After=network-online.target{after}
 Wants=network-online.target{wants}
+# Cada queda (Restart= passa pelo estado failed) vira um aviso no Discord (docs/OPS.md).
+OnFailure=w2-notify@%n.service
 
 [Service]
 Type=simple
 User={user}
 WorkingDirectory={run}
-ExecStart={run}/{exe}
-# SIGTERM é o pedido de encerramento, como fechar a janela no Windows: grava (guildas,
+ExecStart={exec}
+{env}# SIGTERM é o pedido de encerramento, como fechar a janela no Windows: grava (guildas,
 # configuração, logs) e sai.
 KillSignal=SIGTERM
 TimeoutStopSec=60
 # Reinicia sempre que o processo sair sem um `systemctl stop`: queda, o comando `reboot` ou `exit`
 # do FIFO de controle, e o TMSrv que sai quando não alcança o DBSrv no boot.
-Restart=always
-RestartSec=5
-# Um descritor por jogador (MAX_USER 1000) mais arquivos e as conexões entre servidores.
+{common}# Um descritor por jogador (MAX_USER 1000) mais arquivos e as conexões entre servidores.
 LimitNOFILE=8192
 # As MessageBox e o eco dos comandos de control.fifo saem no stderr: journalctl -u {name}
-StandardOutput=journal
-StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
 """
 
+W2DB_UNIT = """# Gerado por tools/linux_deploy.py (docs/W2DB.md, docs/OPS.md).
+# /etc/derust/w2db.env (modo 0600) tem pelo menos DATABASE_URL; o modelo é o que o script imprime.
+[Unit]
+Description=w2db (contas do DBSrv no Postgres)
+After=network-online.target postgresql.service
+Wants=postgresql.service
+OnFailure=w2-notify@%n.service
 
-def write_units(dest, user):
+[Service]
+Type=simple
+User={user}
+WorkingDirectory={run}
+EnvironmentFile=/etc/derust/w2db.env
+Environment=NO_COLOR=1
+ExecStart={run}/w2db serve --socket /run/w2db/w2db.sock
+# O socket fica em /run/w2db, só para o usuário dos servidores.
+RuntimeDirectory=w2db
+RuntimeDirectoryMode=0750
+{common}
+[Install]
+WantedBy=multi-user.target
+"""
+
+W2DB_ENV = """# /etc/derust/w2db.env (sudo install -m 0600 -o {user} ...): lido pela w2-w2db.service.
+DATABASE_URL=postgres:///w2db?host=/var/run/postgresql
+# /metrics para o Prometheus (só local).
+W2DB_METRICS_ADDR=127.0.0.1:9730
+# Relatos do /bug no Discord: o arquivo tem o endereço do webhook do canal (modo 0600).
+#W2DB_DISCORD_WEBHOOK_FILE=/etc/derust/discord-bugs-webhook
+# Conta nova só com convite (o teste fechado).
+#W2DB_REQUIRE_INVITE=true
+"""
+
+NOTIFY_UNIT = """# Gerado por tools/linux_deploy.py: o OnFailure= das unidades do derust (docs/OPS.md).
+# O endereço do webhook fica em /etc/derust/discord-alerts-webhook (dono {user}, modo 0600).
+[Unit]
+Description=Aviso no Discord da falha de %i
+
+[Service]
+Type=oneshot
+User={user}
+# Para ler o journal e o coredumpctl da unit que falhou.
+SupplementaryGroups=systemd-journal
+StateDirectory=w2-notify
+Environment=W2_DISCORD_WEBHOOK_FILE=/etc/derust/discord-alerts-webhook
+ExecStart={bin}/w2-notify-discord %i
+"""
+
+BACKUP_UNIT = """# Gerado por tools/linux_deploy.py: backup do w2db com o pgBackRest (docs/OPS.md), pelos
+# timers w2-backup-full.timer e w2-backup-diff.timer.
+[Unit]
+Description=Backup do w2db (pgBackRest, %i)
+After=postgresql.service
+OnFailure=w2-notify@%n.service
+
+[Service]
+Type=oneshot
+User={pg_user}
+ExecStart=/usr/bin/pgbackrest --stanza=w2db --type=%i backup
+# Só depois de um backup bom (com + roda como root, para gravar na pasta das métricas).
+ExecStartPost=+{bin}/w2-backup-metric %i {metrics}
+"""
+
+TIMER = """# Gerado por tools/linux_deploy.py (docs/OPS.md).
+[Unit]
+Description={desc}
+
+[Timer]
+OnCalendar={when}
+# Se a máquina estava desligada na hora, roda ao ligar.
+Persistent=true
+RandomizedDelaySec=10min
+Unit=w2-backup@{type}.service
+
+[Install]
+WantedBy=timers.target
+"""
+
+
+def write_units(dest, user, w2db, metrics, pg_user):
     sysd = dest / "systemd"
     sysd.mkdir(exist_ok=True)
+    bindir = dest / "bin"
+    env_metrics = f"Environment=W2_METRICS_DIR={metrics}\n"
+    dbsrv_env = env_metrics + ("Environment=W2DB_SOCKET=/run/w2db/w2db.sock\n" if w2db else "")
+    dbsrv_dep = " w2-w2db.service" if w2db else ""
     units = [
-        ("w2-dbsrv.service", "W2PP DBSrv (banco de dados)", dest / "DBSRV/Run", "DBSrv", "", ""),
+        ("w2-dbsrv.service", "W2PP DBSrv (banco de dados)", dest / "DBSRV/Run", "DBSrv", dbsrv_dep, dbsrv_dep,
+         dbsrv_env),
         ("w2-tmsrv.service", "W2PP TMSrv (servidor de jogo)", dest / "TMSRV/Run", "TMSrv",
-         " w2-dbsrv.service", " w2-dbsrv.service"),
+         " w2-dbsrv.service", " w2-dbsrv.service", env_metrics),
     ]
+    files = {}
+    for name, desc, run, exe, after, wants, env in units:
+        files[name] = UNIT.format(path=sysd / name, name=name, desc=desc, run=run, exec=f"{run}/{exe}", user=user,
+                                  after=after, wants=wants, env=env, common=SERVICE_COMMON)
+    if w2db:
+        files["w2-w2db.service"] = W2DB_UNIT.format(user=user, run=dest / "W2DB", common=SERVICE_COMMON)
+        files["w2db.env.example"] = W2DB_ENV.format(user=user)
+    files["w2-notify@.service"] = NOTIFY_UNIT.format(user=user, bin=bindir)
+    files["w2-backup@.service"] = BACKUP_UNIT.format(pg_user=pg_user, bin=bindir, metrics=metrics)
+    files["w2-backup-full.timer"] = TIMER.format(desc="Backup completo semanal do w2db", when="Sun *-*-* 04:00:00",
+                                                 type="full")
+    files["w2-backup-diff.timer"] = TIMER.format(desc="Backup diferencial diário do w2db",
+                                                 when="Mon..Sat *-*-* 04:00:00", type="diff")
     paths = []
-    for name, desc, run, exe, after, wants in units:
+    for name, text in files.items():
         path = sysd / name
-        path.write_text(UNIT.format(path=path, name=name, desc=desc, run=run, exe=exe, user=user,
-                                    after=after, wants=wants))
+        path.write_text(text)
         paths.append(path)
     return paths
 
@@ -170,6 +278,10 @@ def main():
     ap.add_argument("--fix-case", action="store_true", help="renomeia os arquivos de dados para a caixa que o código abre")
     ap.add_argument("--user", default=getpass.getuser(), help="usuário das unidades do systemd (padrão: o atual)")
     ap.add_argument("--check-only", action="store_true", help="só confere a caixa dos arquivos; não cria nem copia nada")
+    ap.add_argument("--w2db", metavar="BIN", help="binário do w2db: copia para <destino>/W2DB e gera a w2-w2db.service "
+                    "(o DBSrv passa a usar o w2db)")
+    ap.add_argument("--metrics-dir", help="pasta dos arquivos .prom para o node_exporter (padrão: <destino>/metrics)")
+    ap.add_argument("--pg-user", default="postgres", help="usuário do Postgres, que roda o pgBackRest (padrão: postgres)")
     args = ap.parse_args()
 
     dest = Path(args.dest).resolve()
@@ -177,7 +289,22 @@ def main():
         for base, subs in WRITE_DIRS.items():
             for s in [""] + subs:
                 (dest / base / s).mkdir(parents=True, exist_ok=True)
-        print(f"árvore em {dest}: Common, DBSRV/Run, TMSRV/Run e os diretórios de gravação")
+        metrics = Path(args.metrics_dir).resolve() if args.metrics_dir else dest / "metrics"
+        metrics.mkdir(parents=True, exist_ok=True)
+        os.chmod(metrics, 0o755)
+        print(f"árvore em {dest}: Common, DBSRV/Run, TMSRV/Run e os diretórios de gravação; métricas em {metrics}")
+
+        # Os scripts das unidades (aviso no Discord, registro do backup).
+        (dest / "bin").mkdir(exist_ok=True)
+        for script in sorted(p for p in (ROOT / "deploy/bin").iterdir() if p.is_file()):
+            shutil.copy2(script, dest / "bin" / script.name)
+            os.chmod(dest / "bin" / script.name, 0o755)
+
+        if args.w2db:
+            (dest / "W2DB").mkdir(exist_ok=True)
+            shutil.copy2(args.w2db, dest / "W2DB/w2db")
+            os.chmod(dest / "W2DB/w2db", 0o755)
+            print(f"w2db: {args.w2db} -> {dest / 'W2DB/w2db'}")
 
         if not args.no_binaries:
             bins = Path(args.bin).resolve() if args.bin else ROOT / "build/linux"
@@ -214,12 +341,18 @@ def main():
             print(f"  {rel}  ({', '.join(srcs)})")
 
     if not args.check_only:
-        units = write_units(dest, args.user)
-        print("unidades do systemd:")
+        units = write_units(dest, args.user, bool(args.w2db), metrics, args.pg_user)
+        print(f"unidades do systemd em {dest / 'systemd'}:")
         for u in units:
-            print(f"  {u}")
-        print("instale com: sudo cp " + " ".join(str(u) for u in units) + " /etc/systemd/system/ && "
-              "sudo systemctl daemon-reload && sudo systemctl enable --now w2-dbsrv w2-tmsrv")
+            print(f"  {u.name}")
+        names = [u.name for u in units if u.suffix in (".service", ".timer")]
+        services = "w2-w2db w2-dbsrv w2-tmsrv" if args.w2db else "w2-dbsrv w2-tmsrv"
+        print("instale com: sudo cp " + " ".join(str(dest / "systemd" / n) for n in names) + " /etc/systemd/system/ && "
+              f"sudo systemctl daemon-reload && sudo systemctl enable --now {services} "
+              "w2-backup-full.timer w2-backup-diff.timer")
+        print(f"node_exporter: --collector.textfile.directory={metrics} --collector.systemd (docs/OPS.md)")
+        if args.w2db:
+            print(f"w2db: copie {dest / 'systemd/w2db.env.example'} para /etc/derust/w2db.env (modo 0600) e ajuste")
 
     pending = wrong if not (args.fix_case and not args.check_only) else []
     if pending:

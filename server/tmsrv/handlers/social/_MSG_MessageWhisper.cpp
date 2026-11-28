@@ -18,6 +18,10 @@
 #include <cstddef>
 
 #include "net/ProcessClientMessage.h"
+#include "core/ServerMetrics.h"
+
+// Intervalo entre dois /bug da mesma conexão (o w2db limita também por hora, por personagem).
+#define BUG_REPORT_INTERVAL_MS 60000u
 
 void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 {
@@ -585,6 +589,61 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 		return;
 	}
 #endif
+#pragma region /bug - relato para a equipe (docs/OPS.md)
+	if (strcmp(m->MobName, "bug") == 0)
+	{
+		MSG_DBBugReport sm;
+		memset(&sm, 0, sizeof(sm));
+		memcpy(sm.Text, m->String, sizeof(sm.Text));
+		sm.Text[CHAT_LENGTH - 1] = 0;
+
+		bool blank = true;
+		for (const char* c = sm.Text; *c; c++)
+		{
+			if (*c != ' ')
+			{
+				blank = false;
+				break;
+			}
+		}
+		if (blank)
+		{
+			SendClientMessage(conn, "Uso: /bug o que aconteceu");
+			return;
+		}
+		if (pUser[conn].BugReported && W2TickCount() - pUser[conn].LastBugTick < BUG_REPORT_INTERVAL_MS)
+		{
+			SendClientMessage(conn, "Aguarde 1 minuto para mandar outro relato.");
+			return;
+		}
+		if (DBServerSocket.Sock == 0)
+		{
+			SendClientMessage(conn, "Relato nao enviado agora. Tente de novo em instantes.");
+			return;
+		}
+
+		sm.Type = _MSG_DBBugReport;
+		sm.ID = conn;
+		sm.Size = sizeof(sm);
+		memcpy(sm.AccountName, pUser[conn].AccountName, ACCOUNTNAME_LENGTH);
+		sm.AccountName[ACCOUNTNAME_LENGTH - 1] = 0;
+		memcpy(sm.MobName, pMob[conn].MOB.MobName, NAME_LENGTH);
+		sm.MobName[NAME_LENGTH - 1] = 0;
+		sm.Server = ServerIndex;
+		sm.PosX = pMob[conn].TargetX;
+		sm.PosY = pMob[conn].TargetY;
+		DBServerSocket.SendOneMessage((char*)&sm, sizeof(sm));
+
+		pUser[conn].BugReported = 1;
+		pUser[conn].LastBugTick = W2TickCount();
+		TmMetricAdd(TM_BUG_REPORTS);
+		SendClientMessage(conn, "Relato enviado. Obrigado!");
+
+		sprintf(temp, "etc,bug report %.60s", sm.Text);
+		Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+		return;
+	}
+#pragma endregion
 #pragma region /day - Skill
 	if (strcmp(m->MobName, "day") == 0)
 	{
