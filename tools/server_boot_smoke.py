@@ -56,6 +56,12 @@ Operação (docs/OPS.md), conferida em todo teste com o LoginClient:
      e, com --w2db, o /metrics do w2db (a suspeita de duplicação contada, com --forced-dupe).
  13. Com --w2db, o `w2db check` no banco do teste no fim.
 
+Painel de GM (docs/GM.md), com --w2db:
+ 14. As sessões do DBSrv: ResetSessions na subida, SetSession na entrada e na saída de cada conta,
+     e nenhuma conta marcada no jogo depois que o LoginClient sai.
+ 15. A conta bloqueada pelo GM (banned_until): o LoginClient no modo `banned` recebe a mensagem de
+     conta bloqueada e a conexão fechada, sem o 0x10A, e o DBSrv conta o login recusado.
+
 Uso: python3 tools/server_boot_smoke.py <dir com DBSrv e TMSrv> [--keep DIR] [--settle S]
        [--login-client EXE] [--require-login] [--w2db EXE [--pg-bin DIR] [--forced-dupe]]
 """
@@ -518,6 +524,7 @@ def check_metrics_files(metrics_dir, w2db, dupe, quiet=False):
     }
     if w2db:
         want["w2_dbsrv_bug_reports_total"] = lambda v: v == 1
+        want['w2_dbsrv_login_failures_total{reason="blocked"}'] = lambda v: v == 1
         want["w2_dbsrv_dupe_suspects_total"] = (lambda v: v == 1) if dupe else (lambda v: v == 0)
     for series, ok in want.items():
         if series not in values or not ok(values[series]):
@@ -755,6 +762,49 @@ def check_w2db_dupe(db, servers, timeout=20):
     return problems
 
 
+def check_w2db_sessions(db, timeout=15):
+    """As sessões do DBSrv no w2db (docs/GM.md): o DBSrv zerou todas ao subir (ResetSessions),
+    marcou cada conta ao entrar e desmarcou ao sair. Depois do LoginClient, nenhuma no jogo."""
+    end = time.time() + timeout
+    online = None
+    while time.time() < end:
+        online = db.sql("SELECT name_key FROM accounts WHERE online_since IS NOT NULL")
+        if not online:
+            break
+        time.sleep(0.5)
+    if online:
+        return [f"w2db: contas ainda marcadas no jogo depois do LoginClient sair: {online}"]
+    m = db.metrics()
+    resets = m.get('w2db_rpc_requests_total{method="ResetSessions"}', 0)
+    sessions = m.get('w2db_rpc_requests_total{method="SetSession"}', 0)
+    errors = m.get('w2db_rpc_errors_total{method="SetSession"}', 0)
+    # 2 contas, cada uma entra e sai: 4 no mínimo.
+    if resets != 1 or sessions < 4 or errors:
+        return [f"w2db: ResetSessions {resets} (esperado 1), SetSession {sessions} (esperado >= 4), erros {errors}"]
+    print(f"w2db: sessões do DBSrv conferidas (ResetSessions na subida, {sessions:.0f} SetSession, ninguém no jogo)")
+    return []
+
+
+def banned_login(host, work, game_host, client, db, timeout):
+    """O bloqueio pelo painel de GM (banned_until) no login real: o LoginClient no modo `banned`
+    espera a mensagem de conta bloqueada e a conexão fechada, sem o 0x10A."""
+    db.sql(f"UPDATE accounts SET banned_until = now() + interval '1 day', ban_reason = 'smoke' "
+           f"WHERE name_key = '{LOGIN_ACCOUNT.upper()}'")
+    cwd = work / "login-banned"
+    cwd.mkdir()
+    try:
+        r = host.run(client, [game_host, str(GAME_PORT), LOGIN_ACCOUNT, LOGIN_PASSWORD, "banned"], cwd, timeout)
+    except subprocess.TimeoutExpired:
+        return [f"LoginClient banned: não terminou em {timeout:.0f}s"]
+    for line in r.stdout.splitlines():
+        print(f"  {line}")
+    if r.returncode != 0:
+        return [f"LoginClient banned: {l}" for l in r.stdout.splitlines() if l.startswith("FALHA")] or \
+            [f"LoginClient banned: saiu com código {r.returncode}"]
+    print("conta bloqueada pelo GM: o login real foi recusado com a mensagem de bloqueio")
+    return []
+
+
 def prepare(work, exe_dir):
     db_dir, tm_dir, game_host = build_tree(work, exe_dir)
     return db_dir, tm_dir, game_host
@@ -859,10 +909,10 @@ def check_status_page(common, db_started, timeout=45):
     """A página de status do DBSrv (Common/status/serv<NN>.htm), que ele grava a cada 30 s: uma
     linha por canal (MAX_SERVER), com a lotação do canal 1, onde está o TMSrv, e -1 nos outros."""
     deadline = db_started + timeout
-    pages = []
-    while time.time() < deadline:
+    # Olha ao menos uma vez: com o LoginClient e o w2db, o prazo já pode ter passado aqui.
+    while True:
         pages = sorted((common / "status").glob("serv*.htm"))
-        if pages:
+        if pages or time.time() >= deadline:
             break
         time.sleep(1)
     if not pages:
@@ -920,6 +970,10 @@ def boot(host, work, exe_dir, args):
                 problems += check_w2db_trade(db)
                 if args.forced_dupe:
                     problems += check_w2db_dupe(db, servers)
+                if not problems:
+                    problems += check_w2db_sessions(db)
+                if not problems:
+                    problems += banned_login(host, work, game_host, args.login_client, db, args.timeout)
         if hasattr(host, "control") and not problems:
             problems += host.control(servers)
             problems += [p for s in servers for p in s.problems()]

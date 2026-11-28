@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE accounts SET online_since = CASE WHEN $2 THEN now() ELSE NULL END WHERE name_key = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "cc972f5bdc90fc9b558ea57eb8558f5324a436b04e6dba3ab5b0ad8763af89bf"
+}

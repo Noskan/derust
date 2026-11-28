@@ -377,6 +377,9 @@ void CFileDB::AddAccountList(int Idx)
 	pAccountList[Idx].Login = TRUE;
 	pAccountList[Idx].Slot  = -1;
 
+	if (W2DbOn())
+		W2DbSetSession(pAccountList[Idx].File.Info.AccountName, true);
+
 	return;
 }
 
@@ -393,7 +396,10 @@ void CFileDB::RemoveAccountList(int Idx)
 	pAccountList[Idx].Slot  = -1;
 
 	if (W2DbOn())
+	{
+		W2DbSetSession(pAccountList[Idx].File.Info.AccountName, false);
 		W2DbForget(pAccountList[Idx].File.Info.AccountName);
+	}
 
 	memset(&pAccountList[Idx].File, 0, sizeof(pAccountList[Idx].File));
 }

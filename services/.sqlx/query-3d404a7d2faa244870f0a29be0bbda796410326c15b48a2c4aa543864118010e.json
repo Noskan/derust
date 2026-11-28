@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE invites SET revoked_at = now() WHERE code = $1 AND used_at IS NULL AND revoked_at IS NULL\n         RETURNING discord_id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "discord_id",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "3d404a7d2faa244870f0a29be0bbda796410326c15b48a2c4aa543864118010e"
+}

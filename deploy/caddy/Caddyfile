@@ -1,0 +1,15 @@
+# Caddy na VPS (docs/GM.md): HTTPS com certificado automático (Let's Encrypt) na frente do w2gm,
+# que ouve só em 127.0.0.1:8730. Troque gm.exemplo.invalid pelo domínio do servidor (o DNS
+# precisa apontar para a VPS e as portas 80 e 443 precisam estar abertas para o certificado).
+# Instale em /etc/caddy/Caddyfile e rode: sudo systemctl reload caddy
+#
+# O Caddy redireciona o HTTP para o HTTPS e põe o IP do cliente no X-Forwarded-For (descartando o
+# que o cliente mandou), que é o que o w2gm usa no limite de tentativas de login.
+gm.exemplo.invalid {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:8730
+	header -Server
+	log {
+		output file /var/log/caddy/w2gm.log
+	}
+}

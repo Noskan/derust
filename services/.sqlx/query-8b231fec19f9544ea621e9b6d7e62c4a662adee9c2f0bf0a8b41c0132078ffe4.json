@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT at, actor, action, target, detail FROM gm_audit ORDER BY id DESC LIMIT $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 1,
+        "name": "actor",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "action",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "target",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "detail",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "8b231fec19f9544ea621e9b6d7e62c4a662adee9c2f0bf0a8b41c0132078ffe4"
+}

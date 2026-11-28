@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT code FROM invites WHERE discord_id = $1 AND used_at IS NULL AND revoked_at IS NULL\n         ORDER BY created_at LIMIT 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "code",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "4151acccefbbb01fc9cb8bd790b152e6052d4462314dca6b933ce128e971f01d"
+}

@@ -1,0 +1,29 @@
+[package]
+name = "w2gm"
+version = "0.1.0"
+description = "Painel de GM e bot do Discord do derust (convites, cadastro, consulta e rollback)"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+w2db = { path = "../w2db" }
+anyhow = "1.0.105"
+axum = { version = "0.8.9", default-features = false, features = ["http1", "tokio", "form", "query", "tracing"] }
+chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
+clap = { version = "4.6.10", features = ["derive", "env"] }
+data-encoding = "2.11.1"
+getrandom = "0.4.3"
+maud = { version = "0.27.0", features = ["axum"] }
+poise = "0.7.1"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio", "postgres", "macros", "chrono", "json"] }
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "net", "signal", "time"] }
+totp-rs = "6.0.0"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+
+[dev-dependencies]
+http-body-util = "0.1.5"
+tower = { version = "0.5.3", features = ["util"] }

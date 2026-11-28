@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE gm_users SET totp_last_step = $2, failed_logins = 0, locked_until = NULL\n         WHERE id = $1 AND totp_last_step < $2 AND NOT disabled",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ccc2cec98b9c1b75ae25e1f636230b8a5498af5a1e63821f3b41ae125e01bf97"
+}

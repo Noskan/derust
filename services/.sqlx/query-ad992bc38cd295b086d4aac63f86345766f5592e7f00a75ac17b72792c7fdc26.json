@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM gm_sessions WHERE gm_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ad992bc38cd295b086d4aac63f86345766f5592e7f00a75ac17b72792c7fdc26"
+}

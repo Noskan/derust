@@ -16,6 +16,7 @@ O `w2db` (`services/w2db`, Rust) guarda contas, personagens e itens num Postgres
 | `src/metrics.rs` | O `/metrics` para o Prometheus (`docs/OPS.md`) |
 | `src/discord.rs` | Os relatos do `/bug` postados no Discord |
 | `src/check.rs` | `w2db check`, as conferências do banco depois de uma restauração |
+| `src/admin.rs` | As operações do painel de GM e do bot (`services/w2gm`, `docs/GM.md`): sessões do DBSrv, bloqueio, busca, histórico de item, rollback de personagem, convites, cadastro pelo link e contas de GM |
 
 ## Comandos
 
@@ -45,7 +46,11 @@ O socket é criado com permissão 0660: o usuário dos servidores do jogo precis
 | `items` | Uma linha por item, com o `serial` como chave. Guarda a conta, o personagem, o `container` (0 sem lugar, 1 equipamento, 2 inventário, 3 baú), a vaga, o índice e os 3 pares efeito/valor |
 | `item_events` | O histórico de cada serial: `create`, `import`, `move`, `transfer`, `contest`, `remove`, `destroy`, `dupe_suspect` e `delete_character` |
 | `account_versions` | As últimas 20 versões de cada conta (a conta em JSON, com os seriais), para desfazer uma conta sem restaurar o banco |
-| `invites`, `bug_reports` | Convites de uso único e relatos do `/bug` |
+| `invites`, `bug_reports` | Convites de uso único (com quem criou e o cancelamento) e relatos do `/bug` |
+| `registrations` | Os links do `/registrar`: o sha256 do token, o convite e a validade |
+| `gm_users`, `gm_sessions`, `gm_audit` | Contas de GM (argon2id e TOTP), sessões do painel (sha256 do token) e o registro de cada ação de GM, convite e cadastro |
+
+Em `accounts`, `online_since` marca a conta carregada no DBSrv, e `banned_until` e `ban_reason` são o bloqueio pelo GM (`docs/GM.md`). A gravação da conta não mexe nessas três colunas, então o DBSrv não desfaz o bloqueio de quem está no jogo.
 
 Os dados pessoais de `STRUCT_ACCOUNTINFO` não entram no banco: nome real, SSN, e-mail, telefone e endereço.
 
@@ -75,6 +80,7 @@ A unidade de gravação é a conta inteira, como o arquivo do DBSrv: o baú e o 
 - Depois de 5 erros seguidos (senha ou senha numérica), a conta fica bloqueada por 15 minutos. O bloqueio responde `STATUS_LOCKED` com o tempo restante.
 - A conta inexistente também gasta o tempo de um hash, para a resposta não revelar quais contas existem.
 - O TMSrv limita as tentativas por IP (`NetGuard`, B1). O serviço limita por conta.
+- Conta bloqueada pelo GM (`banned_until` no futuro): a senha certa responde `STATUS_BANNED`, com o tempo que falta em `lock_seconds` (0 é para sempre). A senha errada continua `STATUS_WRONG_PASSWORD`.
 
 ## Importação e exportação
 
@@ -110,6 +116,8 @@ As primitivas do `CFileDB` mudam de lugar, e os pacotes do TMSrv continuam os me
 - Criar personagem: o nome é conferido com `FindCharacter`, e o personagem nasce na gravação da conta. Se outro levar o nome antes, a gravação volta `STATUS_NAME_TAKEN`, a criação falha e a conta em memória volta a ser a do banco.
 - Apagar personagem: `DeleteCharacter`, que leva os itens dele junto.
 - `SavingQuit` grava com `logout = true`. A cópia para `S:/export` do original não existe com o w2db.
+- Sessões (para o rollback pelo painel de GM, que só vale com a conta fora do jogo): `AddAccountList` chama `SetSession(online = true)`, e `RemoveAccountList` chama `SetSession(online = false)`. O `W2DbInit` chama `ResetSessions` depois do `Health`, porque o DBSrv acabou de subir e ninguém está no jogo. Uma falha nessas chamadas só vai para o log.
+- `STATUS_BANNED` vira `_MSG_DBAccountLoginFail_Block`, a mesma resposta da conta bloqueada pela data (`Info.Year`), e conta em `w2_dbsrv_login_failures_total{reason="blocked"}`.
 
 As chamadas são síncronas, com prazo (5 s; 15 s nas que calculam argon2id), na thread do laço de eventos. O w2db roda na mesma máquina, a gravação leva poucos milissegundos e o login algumas dezenas. Para o teste fechado (até 30 jogadores) isso não aparece, e a memória do DBSrv fica igual ao banco depois de cada chamada.
 
@@ -167,6 +175,7 @@ O que os testes cobrem (os de operação, `tests/ops.rs`, em `docs/OPS.md`):
   - apagar personagem;
   - o limite de relatos do `/bug` por personagem;
   - convites e `/bug`.
+- **`tests/admin.rs`:** as operações do painel de GM com o serviço do outro lado: sessões, bloqueio no login, rollback de personagem, cadastro pelo link e busca (`docs/GM.md`).
 
 O teste de jogo (`tools/server_boot_smoke.py --w2db services/target/debug/w2db --forced-dupe`) faz o caminho inteiro com o DBSrv no w2db:
 - sobe um Postgres próprio e o `w2db serve`;

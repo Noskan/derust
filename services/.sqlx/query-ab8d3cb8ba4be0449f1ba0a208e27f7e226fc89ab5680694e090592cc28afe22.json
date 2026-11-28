@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE registrations SET used_at = now()\n         WHERE token_hash = $1 AND used_at IS NULL AND expires_at > now() RETURNING invite_code",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "invite_code",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Bytea"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "ab8d3cb8ba4be0449f1ba0a208e27f7e226fc89ab5680694e090592cc28afe22"
+}

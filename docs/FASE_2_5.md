@@ -175,6 +175,36 @@ O que difere do plano ou ficou de fora:
    de conta e personagem, inventário com seriais, histórico de item, rollback de personagem fora
    do jogo, bloqueio de conta, convites.
 
+Estado (2026-11-28): os dois itens estão feitos, num binário só, o `w2gm` (`services/w2gm`,
+`docs/GM.md`):
+- **Bot:** `/convite membro` (só com o cargo de GM) liga um convite ao id do Discord da pessoa, e
+  `/registrar` devolve a ela, em resposta efêmera, um link de uso único que vale 30 minutos. Na
+  página, ela escolhe o nome da conta e a senha. O banco guarda só o sha256 do token.
+- **Painel:** login com senha (argon2id) e TOTP de uso único, com bloqueio depois de cinco erros,
+  limite por IP, CSRF em todo formulário, cookie `__Host-` e CSP sem script. Busca, conta com os
+  itens e seriais, histórico de item, rollback de personagem, bloqueio, convites e o registro
+  de cada ação (`gm_audit`).
+- **Rollback:** volta um personagem para uma das 20 versões guardadas. O item que hoje é de
+  outra conta não volta (o relatório diz onde está), e o que foi destruído volta com serial novo
+  ligado ao antigo. Só com a conta fora do jogo, que o DBSrv informa ao w2db (`SetSession` e
+  `ResetSessions`).
+- **Bloqueio:** `accounts.banned_until`, conferido no login do w2db (`STATUS_BANNED`). O DBSrv
+  responde com a mensagem de conta bloqueada que o cliente já conhece. O smoke confere isso com o
+  LoginClient num modo novo, `banned`.
+- **Deploy:** a `w2-w2gm.service` sem privilégios, com o filtro de chamadas de sistema, que sai do
+  `linux_deploy.py --w2gm`, e o `deploy/caddy/Caddyfile` para o HTTPS com certificado automático.
+
+O que difere do plano:
+- **Sem htmx:** as páginas são formulários HTML comuns, sem JavaScript, o que deixa a CSP em
+  `default-src 'none'`.
+- **Acesso ao banco:** o painel e o bot falam direto com o Postgres pela biblioteca do w2db, sem
+  passar pelo gRPC. O contrato do DBSrv fica só com o que o jogo usa, e uma queda do painel não
+  afeta o jogo.
+- **Bloqueio de quem está no jogo:** vale no próximo login. Para tirar do jogo quem está conectado,
+  o GM usa o `/gm kick` do jogo.
+- **Ainda fazem falta na VPS:** o domínio do painel, a aplicação do bot no Discord e os ids do
+  servidor e do cargo.
+
 ## Portão do passo 3
 
 B1 a B5 na `main` com o CI verde, e versionados para o passo 3: regras nftables (abertas só 8281,

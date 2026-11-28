@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT i.serial, i.container, c.slot AS \"char_slot?\", i.slot AS \"slot!\", i.item_index,\n                  i.ef1, i.ev1, i.ef2, i.ev2, i.ef3, i.ev3, o.name AS \"contested_from?\"\n           FROM items i LEFT JOIN characters c ON c.id = i.character_id\n                        LEFT JOIN accounts o ON o.id = i.contested_from\n           WHERE i.account_id = $1 AND i.container <> 0\n           ORDER BY i.container, c.slot, i.slot",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "serial",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "container",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 2,
+        "name": "char_slot?",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "slot!",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 4,
+        "name": "item_index",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "ef1",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "ev1",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 7,
+        "name": "ef2",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 8,
+        "name": "ev2",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 9,
+        "name": "ef3",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 10,
+        "name": "ev3",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 11,
+        "name": "contested_from?",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "4edf30a5895de5d2428d985d5ff08bf7970593d8d0cc94ab98dec28fb544500b"
+}

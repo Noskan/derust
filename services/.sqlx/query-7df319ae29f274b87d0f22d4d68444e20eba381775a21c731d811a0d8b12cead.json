@@ -1,0 +1,88 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, name, discord_id, version, cargo_coin, created_at, last_login_at, last_logout_at,\n                online_since, banned_until, ban_reason, locked_until\n         FROM accounts WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "discord_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "version",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "cargo_coin",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "last_login_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "last_logout_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "online_since",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "banned_until",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "ban_reason",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 11,
+        "name": "locked_until",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "7df319ae29f274b87d0f22d4d68444e20eba381775a21c731d811a0d8b12cead"
+}

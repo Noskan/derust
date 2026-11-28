@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT i.account_id, a.name AS account, i.container, c.name AS \"character?\", i.slot, i.item_index AS index\n           FROM items i JOIN accounts a ON a.id = i.account_id LEFT JOIN characters c ON c.id = i.character_id\n           WHERE i.serial = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "account_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "account",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "container",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "character?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "slot",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "index",
+        "type_info": "Int2"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "9b5dbb2cc94eeaffbe5145a99e8d71a915ec12878c0cb2d58266316062fd1cd3"
+}

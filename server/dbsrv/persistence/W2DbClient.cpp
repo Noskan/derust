@@ -97,6 +97,7 @@ W2DbResult FromStatus(int s)
 	case pb::STATUS_NUMERIC_NOT_SET: return W2DB_NUMERIC_NOT_SET;
 	case pb::STATUS_INVALID: return W2DB_INVALID;
 	case pb::STATUS_RATE_LIMITED: return W2DB_RATE_LIMITED;
+	case pb::STATUS_BANNED: return W2DB_BANNED;
 	default: return W2DB_FAIL;
 	}
 }
@@ -359,6 +360,14 @@ bool W2DbInit()
 	char temp[512];
 	snprintf(temp, sizeof(temp), "sys,w2db %s em %s", rep.version().c_str(), g_socket.c_str());
 	Log(temp, const_cast<char*>("-system"), 0);
+
+	pb::ResetSessionsRequest rreq;
+	pb::StatusReply rrep;
+	grpc::ClientContext rctx;
+	Deadline(rctx, W2DB_DEADLINE_MS);
+	grpc::Status rst = g_stub->ResetSessions(&rctx, rreq, &rrep);
+	if (!rst.ok())
+		LogRpc("reset sessions", "-system", rst);
 	return true;
 }
 
@@ -716,6 +725,19 @@ W2DbResult W2DbReportBug(const char* account, const char* character, int server,
 		return W2DB_FAIL;
 	}
 	return FromStatus(rep.status());
+}
+
+void W2DbSetSession(const char* name, bool online)
+{
+	pb::SetSessionRequest req;
+	req.set_name(Bytes(name, ACCOUNTNAME_LENGTH));
+	req.set_online(online);
+	pb::StatusReply rep;
+	grpc::ClientContext ctx;
+	Deadline(ctx, W2DB_DEADLINE_MS);
+	grpc::Status st = g_stub->SetSession(&ctx, req, &rep);
+	if (!st.ok())
+		LogRpc(online ? "session on" : "session off", name, st);
 }
 
 void W2DbForget(const char* name)

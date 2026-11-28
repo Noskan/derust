@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, password_hash, numeric_hash, failed_logins, locked_until FROM accounts WHERE name_key = $1",
+  "query": "SELECT id, password_hash, numeric_hash, failed_logins, locked_until, banned_until\n         FROM accounts WHERE name_key = $1",
   "describe": {
     "columns": [
       {
@@ -27,6 +27,11 @@
         "ordinal": 4,
         "name": "locked_until",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "banned_until",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -39,8 +44,9 @@
       false,
       true,
       false,
+      true,
       true
     ]
   },
-  "hash": "61c70c6d0a89f599dc442dee6f60a65ad0634e0571edd036aca564cd56bf0311"
+  "hash": "44d549d650e57044a1b725f3bcfc0348e9ba87ce3b4a7bd338a527851a224c8c"
 }

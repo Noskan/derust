@@ -6,7 +6,7 @@ use tonic::{Request, Response, Status as GrpcStatus};
 use crate::metrics::{METRICS, Metrics};
 use crate::pb::{self, Status, w2_db_server::W2Db};
 use crate::store::{self, SaveMode, SaveOutcome, StoreError};
-use crate::{auth, legacy};
+use crate::{admin, auth, legacy};
 
 pub struct Service {
     pool: PgPool,
@@ -66,41 +66,6 @@ fn simple_save(s: Status) -> Response<pb::SaveAccountReply> {
     })
 }
 
-/// Senha de conta e senha numérica: 1..15 bytes sem zero (cabem no campo de 16 com terminador).
-fn valid_secret(s: &[u8]) -> bool {
-    !s.is_empty() && s.len() < legacy::ACCOUNTPASS_LENGTH && !s.contains(&0)
-}
-
-/// A conta nova do DBSrv (`CFileDB::AddAccount`): barra de skills da vaga 0 em -1 e, com bônus,
-/// 50 itens 401 e 50 itens 406 no baú.
-fn new_account(name: &[u8], bonus: bool) -> pb::Account {
-    let item = |index| pb::Item {
-        index,
-        effects: vec![pb::ItemEffect::default(); 3],
-    };
-    pb::Account {
-        name: name.to_vec(),
-        version: 1,
-        empty_slots: vec![pb::EmptySlot {
-            slot: 0,
-            short_skill: vec![0xFF; 8],
-            ..Default::default()
-        }],
-        cargo: if bonus {
-            (0..100)
-                .map(|i| pb::StoredItem {
-                    serial: 0,
-                    slot: i,
-                    item: Some(item(if i < 50 { 401 } else { 406 })),
-                })
-                .collect()
-        } else {
-            Vec::new()
-        },
-        ..Default::default()
-    }
-}
-
 enum Auth {
     Ok(store::AccountAuth),
     Fail(Status, u32),
@@ -141,6 +106,10 @@ impl Service {
             return Ok(Auth::Fail(Status::WrongPassword, 0));
         }
         store::record_login_success(&self.pool, a.id).await.map_err(store_err)?;
+        // O bloqueio pelo GM vem depois da senha: a senha errada conta como sempre.
+        if !numeric && let Some(left) = admin::ban_left(a.banned_until) {
+            return Ok(Auth::Fail(Status::Banned, left));
+        }
         Ok(Auth::Ok(a))
     }
 
@@ -165,7 +134,7 @@ impl W2Db for Service {
     async fn create_account(&self, req: Request<pb::CreateAccountRequest>) -> Rsp<pb::CreateAccountReply> {
         let r = req.into_inner();
         let reply = |s: Status| Ok(Response::new(pb::CreateAccountReply { status: s as i32 }));
-        if !store::valid_name(&r.name) || !valid_secret(&r.password) || legacy::first_key(&r.name).is_err() {
+        if !store::valid_name(&r.name) || !store::valid_secret(&r.password) || legacy::first_key(&r.name).is_err() {
             return reply(Status::Invalid);
         }
         if self.require_invite && r.invite_code.is_empty() {
@@ -173,38 +142,21 @@ impl W2Db for Service {
         }
         let hash = auth::hash_async(r.password.clone()).await.map_err(internal)?;
         let mut tx = self.pool.begin().await.map_err(internal)?;
-        let discord = if r.invite_code.is_empty() {
-            None
-        } else {
-            match store::take_invite(&mut tx, &r.invite_code).await.map_err(store_err)? {
-                Some(d) => Some(d),
-                None => return reply(Status::BadInvite),
-            }
-        };
-        let Some(id) = store::create_account(&mut tx, &r.name, &hash, None, discord.as_deref())
-            .await
-            .map_err(store_err)?
-        else {
-            return reply(Status::AccountExists);
-        };
-        if !r.invite_code.is_empty() {
-            store::bind_invite(&mut tx, &r.invite_code, id)
-                .await
-                .map_err(store_err)?;
-        }
-        let acc = new_account(&r.name, r.bonus);
-        store::save_account(&mut tx, id, &acc, &[], "nova conta", false, SaveMode::Characters)
+        let invite = (!r.invite_code.is_empty()).then_some(r.invite_code.as_str());
+        let s = admin::create_account_in(&mut tx, &r.name, &hash, r.bonus, invite)
             .await
             .map_err(store_err)?;
-        tx.commit().await.map_err(internal)?;
-        reply(Status::Ok)
+        if s == Status::Ok {
+            tx.commit().await.map_err(internal)?;
+        }
+        reply(s)
     }
 
     async fn account_login(&self, req: Request<pb::AccountLoginRequest>) -> Rsp<pb::AccountLoginReply> {
         let r = req.into_inner();
         match self.check_secret(&r.name, &r.password, false).await? {
             Auth::Fail(s, lock) => {
-                if s == Status::WrongPassword || s == Status::Locked {
+                if s == Status::WrongPassword || s == Status::Locked || s == Status::Banned {
                     tracing::info!(ip = %r.ip, account = %legacy::cp1252_to_string(&r.name), "login recusado: {s:?}");
                 }
                 Ok(Response::new(pb::AccountLoginReply {
@@ -241,7 +193,7 @@ impl W2Db for Service {
 
     async fn set_password(&self, req: Request<pb::SetPasswordRequest>) -> Rsp<pb::StatusReply> {
         let r = req.into_inner();
-        if !valid_secret(&r.password) {
+        if !store::valid_secret(&r.password) {
             return Ok(status(Status::Invalid));
         }
         let Some(id) = self.id_of(&r.name).await? else {
@@ -271,6 +223,22 @@ impl W2Db for Service {
             Auth::Ok(_) => Status::Ok,
             Auth::Fail(s, _) => s,
         }))
+    }
+
+    async fn set_session(&self, req: Request<pb::SetSessionRequest>) -> Rsp<pb::StatusReply> {
+        let r = req.into_inner();
+        let found = admin::set_session(&self.pool, &r.name, r.online)
+            .await
+            .map_err(store_err)?;
+        Ok(status(if found { Status::Ok } else { Status::NoAccount }))
+    }
+
+    async fn reset_sessions(&self, _: Request<pb::ResetSessionsRequest>) -> Rsp<pb::StatusReply> {
+        let n = admin::reset_sessions(&self.pool).await.map_err(store_err)?;
+        if n > 0 {
+            tracing::info!("{n} conta(s) marcadas no jogo de antes da subida do DBSrv");
+        }
+        Ok(status(Status::Ok))
     }
 
     async fn save_account(&self, req: Request<pb::SaveAccountRequest>) -> Rsp<pb::SaveAccountReply> {

@@ -34,10 +34,12 @@ enum W2DbResult
 	W2DB_NUMERIC_NOT_SET,
 	W2DB_INVALID,
 	W2DB_RATE_LIMITED,	///< limite de relatos do /bug do personagem
+	W2DB_BANNED,		///< conta bloqueada por um GM (painel, docs/GM.md)
 	W2DB_FAIL,		///< w2db fora do ar, prazo estourado ou erro interno
 };
 
-/// @brief Lê a configuração e confere o w2db (Health). @return false se configurado e fora do ar.
+/// @brief Lê a configuração e confere o w2db (Health). Marca todas as contas fora do jogo
+///        (ResetSessions): o DBSrv acabou de subir. @return false se configurado e fora do ar.
 bool W2DbInit();
 
 /// @brief O DBSrv está usando o w2db.
@@ -83,6 +85,10 @@ W2DbResult W2DbDeleteCharacter(const char* account, int slot);
 /// @brief Grava o relato do /bug (bug_reports; o w2db posta no Discord). `text` em CP1252.
 W2DbResult W2DbReportBug(const char* account, const char* character, int server, int x, int y,
 	const char* text);
+
+/// @brief A conta entrou ou saiu da lista do DBSrv (AddAccountList, RemoveAccountList). O painel de
+///        GM só faz rollback de conta fora do jogo. Uma falha só vai para o log.
+void W2DbSetSession(const char* name, bool online);
 
 /// @brief Esquece o estado da conta (saiu do jogo).
 void W2DbForget(const char* name);

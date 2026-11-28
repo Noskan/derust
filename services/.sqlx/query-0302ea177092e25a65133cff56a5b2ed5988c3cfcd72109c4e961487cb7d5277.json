@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT version, saved_at, snapshot FROM account_versions WHERE account_id = $1 ORDER BY version DESC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "version",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "saved_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "snapshot",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0302ea177092e25a65133cff56a5b2ed5988c3cfcd72109c4e961487cb7d5277"
+}

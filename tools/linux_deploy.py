@@ -18,7 +18,7 @@ O que faz:
      "localip.txt"; uma árvore copiada do Windows costuma ter esse problema. Com --fix-case,
      renomeia para o nome que o código abre.
   4. Grava em <destino>/systemd as unidades w2-dbsrv.service e w2-tmsrv.service (e a
-     w2-w2db.service com --w2db), com os caminhos desta árvore, mais as de operação
+     w2-w2db.service com --w2db, e a w2-w2gm.service do painel de GM com --w2gm), com os caminhos desta árvore, mais as de operação
      (docs/OPS.md): w2-notify@.service (aviso no Discord quando uma unidade falha),
      w2-backup@.service e os timers do backup. Copia os scripts delas (deploy/bin) para
      <destino>/bin e cria a pasta das métricas. A instalação no sistema fica com quem opera
@@ -27,7 +27,7 @@ O que faz:
 Não copia dados do jogo nem cria arquivos de configuração: isso é de quem opera.
 
 Uso: python3 tools/linux_deploy.py <destino> [--bin DIR] [--no-binaries] [--fix-case]
-       [--user USUÁRIO] [--check-only] [--w2db BIN] [--metrics-dir DIR] [--pg-user USUÁRIO]
+       [--user USUÁRIO] [--check-only] [--w2db BIN [--w2gm BIN]] [--metrics-dir DIR] [--pg-user USUÁRIO]
 """
 
 import argparse
@@ -190,6 +190,61 @@ W2DB_METRICS_ADDR=127.0.0.1:9730
 #W2DB_REQUIRE_INVITE=true
 """
 
+W2GM_UNIT = """# Gerado por tools/linux_deploy.py (docs/GM.md): o painel de GM, o cadastro pelo link e o bot.
+# Ouve só em 127.0.0.1; o Caddy (deploy/caddy/Caddyfile) põe o HTTPS na frente.
+# /etc/derust/w2gm.env (modo 0600) tem DATABASE_URL e W2GM_PUBLIC_URL; o modelo é o que o script
+# imprime.
+[Unit]
+Description=w2gm (painel de GM e bot do Discord)
+After=network-online.target postgresql.service w2-w2db.service
+Wants=network-online.target w2-w2db.service
+OnFailure=w2-notify@%n.service
+
+[Service]
+Type=simple
+User={user}
+WorkingDirectory={run}
+EnvironmentFile=/etc/derust/w2gm.env
+Environment=NO_COLOR=1
+ExecStart={run}/w2gm serve
+# É a parte que a internet alcança (pelo Caddy): sem privilégios e sem gravar nada no disco.
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+{common}
+[Install]
+WantedBy=multi-user.target
+"""
+
+W2GM_ENV = """# /etc/derust/w2gm.env (sudo install -m 0600 -o {user} ...): lido pela w2-w2gm.service.
+DATABASE_URL=postgres:///w2db?host=/var/run/postgresql
+W2GM_LISTEN=127.0.0.1:8730
+# O endereço do Caddy (deploy/caddy/Caddyfile): vai nos links do /registrar.
+W2GM_PUBLIC_URL=https://gm.exemplo.invalid
+# O bot do Discord (docs/GM.md). Sem o token, só o site roda.
+#W2GM_DISCORD_TOKEN_FILE=/etc/derust/discord-bot-token
+#W2GM_DISCORD_GUILD=<id do servidor>
+#W2GM_DISCORD_GM_ROLE=<id do cargo que cria convites>
+"""
+
 NOTIFY_UNIT = """# Gerado por tools/linux_deploy.py: o OnFailure= das unidades do derust (docs/OPS.md).
 # O endereço do webhook fica em /etc/derust/discord-alerts-webhook (dono {user}, modo 0600).
 [Unit]
@@ -236,7 +291,7 @@ WantedBy=timers.target
 """
 
 
-def write_units(dest, user, w2db=False, metrics=None, pg_user="postgres"):
+def write_units(dest, user, w2db=False, metrics=None, pg_user="postgres", w2gm=False):
     if metrics is None:
         metrics = dest / "metrics"
         metrics.mkdir(exist_ok=True)
@@ -259,6 +314,9 @@ def write_units(dest, user, w2db=False, metrics=None, pg_user="postgres"):
     if w2db:
         files["w2-w2db.service"] = W2DB_UNIT.format(user=user, run=dest / "W2DB", common=SERVICE_COMMON)
         files["w2db.env.example"] = W2DB_ENV.format(user=user)
+    if w2gm:
+        files["w2-w2gm.service"] = W2GM_UNIT.format(user=user, run=dest / "W2GM", common=SERVICE_COMMON)
+        files["w2gm.env.example"] = W2GM_ENV.format(user=user)
     files["w2-notify@.service"] = NOTIFY_UNIT.format(user=user, bin=bindir)
     files["w2-backup@.service"] = BACKUP_UNIT.format(pg_user=pg_user, bin=bindir, metrics=metrics)
     files["w2-backup-full.timer"] = TIMER.format(desc="Backup completo semanal do w2db", when="Sun *-*-* 04:00:00",
@@ -283,11 +341,15 @@ def main():
     ap.add_argument("--check-only", action="store_true", help="só confere a caixa dos arquivos; não cria nem copia nada")
     ap.add_argument("--w2db", metavar="BIN", help="binário do w2db: copia para <destino>/W2DB e gera a w2-w2db.service "
                     "(o DBSrv passa a usar o w2db)")
+    ap.add_argument("--w2gm", metavar="BIN", help="binário do w2gm: copia para <destino>/W2GM e gera a w2-w2gm.service "
+                    "(painel de GM e bot; precisa do --w2db)")
     ap.add_argument("--metrics-dir", help="pasta dos arquivos .prom para o node_exporter (padrão: <destino>/metrics)")
     ap.add_argument("--pg-user", default="postgres", help="usuário do Postgres, que roda o pgBackRest (padrão: postgres)")
     args = ap.parse_args()
 
     dest = Path(args.dest).resolve()
+    if args.w2gm and not args.w2db:
+        sys.exit("--w2gm precisa do --w2db (o painel lê o banco do w2db)")
     if not args.check_only:
         for base, subs in WRITE_DIRS.items():
             for s in [""] + subs:
@@ -308,6 +370,11 @@ def main():
             shutil.copy2(args.w2db, dest / "W2DB/w2db")
             os.chmod(dest / "W2DB/w2db", 0o755)
             print(f"w2db: {args.w2db} -> {dest / 'W2DB/w2db'}")
+        if args.w2gm:
+            (dest / "W2GM").mkdir(exist_ok=True)
+            shutil.copy2(args.w2gm, dest / "W2GM/w2gm")
+            os.chmod(dest / "W2GM/w2gm", 0o755)
+            print(f"w2gm: {args.w2gm} -> {dest / 'W2GM/w2gm'}")
 
         if not args.no_binaries:
             bins = Path(args.bin).resolve() if args.bin else ROOT / "build/linux"
@@ -344,18 +411,23 @@ def main():
             print(f"  {rel}  ({', '.join(srcs)})")
 
     if not args.check_only:
-        units = write_units(dest, args.user, bool(args.w2db), metrics, args.pg_user)
+        units = write_units(dest, args.user, bool(args.w2db), metrics, args.pg_user, bool(args.w2gm))
         print(f"unidades do systemd em {dest / 'systemd'}:")
         for u in units:
             print(f"  {u.name}")
         names = [u.name for u in units if u.suffix in (".service", ".timer")]
         services = "w2-w2db w2-dbsrv w2-tmsrv" if args.w2db else "w2-dbsrv w2-tmsrv"
+        if args.w2gm:
+            services += " w2-w2gm"
         print("instale com: sudo cp " + " ".join(str(dest / "systemd" / n) for n in names) + " /etc/systemd/system/ && "
               f"sudo systemctl daemon-reload && sudo systemctl enable --now {services} "
               "w2-backup-full.timer w2-backup-diff.timer")
         print(f"node_exporter: --collector.textfile.directory={metrics} --collector.systemd (docs/OPS.md)")
         if args.w2db:
             print(f"w2db: copie {dest / 'systemd/w2db.env.example'} para /etc/derust/w2db.env (modo 0600) e ajuste")
+        if args.w2gm:
+            print(f"w2gm: copie {dest / 'systemd/w2gm.env.example'} para /etc/derust/w2gm.env (modo 0600) e ajuste; "
+                  f"o HTTPS é o deploy/caddy/Caddyfile")
 
     pending = wrong if not (args.fix_case and not args.check_only) else []
     if pending:

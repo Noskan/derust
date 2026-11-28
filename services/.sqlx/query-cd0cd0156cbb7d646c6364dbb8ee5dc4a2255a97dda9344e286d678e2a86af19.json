@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT i.code, i.discord_id, i.created_by, i.created_at, i.used_at, i.revoked_at, a.name AS \"account?\"\n         FROM invites i LEFT JOIN accounts a ON a.id = i.account_id\n         ORDER BY i.created_at DESC LIMIT $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "code",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "discord_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "created_by",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "used_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "revoked_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "account?",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "cd0cd0156cbb7d646c6364dbb8ee5dc4a2255a97dda9344e286d678e2a86af19"
+}

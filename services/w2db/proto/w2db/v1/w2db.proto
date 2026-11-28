@@ -22,6 +22,12 @@ service W2Db {
   rpc SetNumericPassword(SetNumericPasswordRequest) returns (StatusReply);
   rpc CheckNumericPassword(CheckNumericPasswordRequest) returns (StatusReply);
 
+  // A conta entrou ou saiu da lista do DBSrv (AddAccountList, RemoveAccountList). O rollback pelo
+  // painel de GM só vale para conta fora do jogo. ResetSessions é a subida do DBSrv: ninguém está
+  // no jogo.
+  rpc SetSession(SetSessionRequest) returns (StatusReply);
+  rpc ResetSessions(ResetSessionsRequest) returns (StatusReply);
+
   // Gravação da conta inteira (personagens, baú, itens), com versão esperada. Com logout = true
   // é o SavingQuit.
   rpc SaveAccount(SaveAccountRequest) returns (SaveAccountReply);
@@ -54,6 +60,8 @@ enum Status {
   STATUS_NUMERIC_NOT_SET = 13;
   // Limite de relatos de bug do personagem (store::BUG_LIMIT_PER_HOUR).
   STATUS_RATE_LIMITED = 14;
+  // Conta bloqueada por um GM (lock_seconds: o que falta; 0 é para sempre).
+  STATUS_BANNED = 15;
 }
 
 // ---------------------------------------------------------------- estruturas do jogo
@@ -340,6 +348,12 @@ message DeleteCharacterRequest {
   // O que fica nos bytes da vaga depois de apagar (ver EmptySlot); pode vir vazio.
   EmptySlot residue = 4;
 }
+
+message SetSessionRequest {
+  bytes name = 1;
+  bool online = 2;
+}
+message ResetSessionsRequest {}
 
 message FindCharacterRequest {
   bytes name = 1;

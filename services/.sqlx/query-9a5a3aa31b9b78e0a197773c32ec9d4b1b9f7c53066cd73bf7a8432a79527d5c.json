@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT i.serial, i.account_id, a.name FROM items i JOIN accounts a ON a.id = i.account_id\n         WHERE i.serial = ANY($1) FOR UPDATE OF i",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "serial",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "account_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8Array"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "9a5a3aa31b9b78e0a197773c32ec9d4b1b9f7c53066cd73bf7a8432a79527d5c"
+}

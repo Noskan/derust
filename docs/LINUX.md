@@ -61,6 +61,7 @@ O script:
 - confere a caixa dos arquivos de dados contra os nomes que o código abre, tirados das próprias fontes. `--fix-case` renomeia arquivos e diretórios para a caixa certa, e `--check-only` só confere;
 - grava `systemd/w2-dbsrv.service` e `systemd/w2-tmsrv.service` com os caminhos da árvore;
 - com `--w2db <binário>`, copia o w2db para `W2DB/` e grava `w2-w2db.service` e um modelo do `/etc/derust/w2db.env`. O DBSrv passa a usar o socket do w2db (`W2DB_SOCKET`);
+- com `--w2gm <binário>` (junto do `--w2db`), copia o painel de GM para `W2GM/` e grava `w2-w2gm.service`, sem privilégios, e um modelo do `/etc/derust/w2gm.env` (`docs/GM.md`);
 - grava as unidades de operação (`docs/OPS.md`): `w2-notify@.service` (aviso no Discord quando uma unidade falha), `w2-backup@.service` e os timers do backup. Copia os scripts delas para `bin/` e cria `metrics/`, a pasta do `W2_METRICS_DIR` (`--metrics-dir` para outra).
 
 Ele não copia os dados do jogo nem cria arquivos de configuração (`localip.txt`, `serverlist.txt`, `gameconfig.txt`...): isso fica com quem opera. A lista dos arquivos que o código abre e que ainda faltam sai no fim.

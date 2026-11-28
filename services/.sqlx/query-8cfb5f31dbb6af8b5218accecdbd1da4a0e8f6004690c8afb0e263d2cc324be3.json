@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO gm_sessions (token_hash, gm_id, csrf, expires_at) VALUES ($1, $2, $3, now() + make_interval(hours => $4))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Bytea",
+        "Int8",
+        "Text",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8cfb5f31dbb6af8b5218accecdbd1da4a0e8f6004690c8afb0e263d2cc324be3"
+}

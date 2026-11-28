@@ -168,7 +168,8 @@ Na ordem, depois do Postgres e do pgBackRest acima:
    e gera as units em `/srv/derust/systemd`. O pacote `prometheus-node-exporter` precisa ler
    `/srv/derust/metrics`, então a árvore não pode ficar numa pasta pessoal fechada.
 2. `/etc/derust/w2db.env` a partir de `systemd/w2db.env.example` (modo 0600). Coloque também os
-   webhooks do Discord em `/etc/derust/`.
+   webhooks do Discord em `/etc/derust/`. Com o painel de GM (`--w2gm`), o `/etc/derust/w2gm.env`
+   e o Caddy, como em `docs/GM.md`.
 3. Copie as units e ative-as. O script imprime o comando.
 4. **node_exporter:** em `/etc/default/prometheus-node-exporter`, `ARGS="--web.listen-address=127.0.0.1:9100 --collector.systemd --collector.textfile.directory=/srv/derust/metrics"`.
 5. **Prometheus:** `deploy/prometheus/prometheus.yml` em `/etc/prometheus/` e as regras em
@@ -195,7 +196,8 @@ Só as portas do jogo, 80/443 e 22 ficam abertas; as regras do nftables são do 
   - o `w2db check` no fim.
 - **Job `ops` do CI** (Debian 13):
   - `tools/ops_check.py`: toda métrica das regras e do painel existe no código, mais o
-    `promtool check config`, o `promtool test rules` e o `amtool check-config`;
+    `promtool check config`, o `promtool test rules`, o `amtool check-config` e o
+    `caddy validate` do Caddyfile do painel de GM;
   - `tools/w2db_restore.py selftest`, de ponta a ponta com o pgBackRest num repositório local:
     contas sintéticas, backup completo e diferencial, restauração até um instante (o que veio
     depois dele não está lá), restauração até o fim, `w2db check` nas duas, e o arquivamento

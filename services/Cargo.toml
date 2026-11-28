@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["w2db"]
+members = ["w2db", "w2gm"]
 
 [workspace.package]
 edition = "2024"

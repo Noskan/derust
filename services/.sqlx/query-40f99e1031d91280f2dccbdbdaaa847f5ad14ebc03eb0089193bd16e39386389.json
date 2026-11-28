@@ -1,0 +1,58 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT slot, name, class, level, coin, pos_x, pos_y FROM characters WHERE account_id = $1 ORDER BY slot",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "slot",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "class",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "level",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "coin",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "pos_x",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "pos_y",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "40f99e1031d91280f2dccbdbdaaa847f5ad14ebc03eb0089193bd16e39386389"
+}

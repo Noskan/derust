@@ -36,12 +36,17 @@
 ///  17. /bug (docs/OPS.md): sem texto volta o uso; com texto, "Relato enviado"; logo depois, o
 ///      intervalo entre relatos. O smoke confere o relato no w2db e no webhook falso do Discord.
 ///
+/// Só o login, com o argumento `banned` no lugar dos outros (w2db, conta bloqueada pelo painel de
+/// GM, docs/GM.md): o `_MSG_AccountLogin` volta a mensagem de conta bloqueada (`MSG_MessagePanel`)
+/// e o servidor fecha a conexão, sem `MSG_CNFAccountLogin`.
+///
 /// Cada resposta é conferida campo a campo no layout do cliente. Os valores esperados do
 /// personagem vêm do BaseMob sintético que o `tools/server_boot_smoke.py` grava (ver
 /// `synthetic_base_mob` lá): se um campo chegar fora do lugar, o valor lido sai errado.
 ///
 /// Uso: LoginClient <ip> <porta> <conta> <senha> <senha numérica> <personagem> <classe>
 ///                  <conta B> <personagem B> <classe B> [dupe]
+///        LoginClient <ip> <porta> <conta> <senha> banned
 /// A conta B usa a mesma senha e a mesma senha numérica. Código de saída 0 quando tudo confere.
 
 #include "core/pch.h"
@@ -861,8 +866,70 @@ bool BugReport(Session& sa)
 
 } // namespace
 
+/// @brief O modo `banned`: login da conta bloqueada pelo GM. A resposta é um `MSG_MessagePanel`
+/// seguido do fim da conexão; um `MSG_CNFAccountLogin` é falha.
+bool BannedLogin(Session& s, const char* account, const char* password)
+{
+	MSG_AccountLogin m{};
+	m.Header.Type = MSG_AccountLogin_Opcode;
+	std::strncpy(m.AccountPass, password, sizeof(m.AccountPass) - 1);
+	std::strncpy(m.AccountName, account, sizeof(m.AccountName) - 1);
+	m.Version = 1758;
+	m.Force = 1;
+	s.Send(&m, sizeof(m));
+
+	bool panel = false;
+	const DWORD end = GetTickCount() + kStepTimeoutMs;
+	while ((int)(end - GetTickCount()) > 0)
+	{
+		int err = 0, errType = 0;
+		while (char* msg = s.sock_.ReadMessage(&err, &errType))
+		{
+			const MSG_STANDARD* h = reinterpret_cast<const MSG_STANDARD*>(msg);
+			if (h->Type == MSG_CNFAccountLogin_Opcode)
+			{
+				Fail("conta bloqueada: o servidor aceitou o login (0x10A)");
+				return false;
+			}
+			if (h->Type == kTypeMessagePanel)
+			{
+				const MSG_MessagePanel* p = reinterpret_cast<const MSG_MessagePanel*>(msg);
+				std::printf("conta bloqueada, servidor: \"%.*s\"\n", (int)sizeof(p->String), p->String);
+				panel = true;
+			}
+		}
+		fd_set rd;
+		FD_ZERO(&rd);
+		FD_SET(s.sock_.Sock, &rd);
+		timeval tv{ 0, 200000 };
+		if (select(0, &rd, nullptr, nullptr, &tv) <= 0)
+			continue;
+		const int before = s.sock_.nRecvPosition;
+		if (s.sock_.Receive() != 1 || s.sock_.nRecvPosition == before)
+		{
+			// Fim da conexão: o que chegou antes já foi lido acima.
+			while (char* msg = s.sock_.ReadMessage(&err, &errType))
+				panel = panel || reinterpret_cast<const MSG_STANDARD*>(msg)->Type == kTypeMessagePanel;
+			EXPECT(panel, "conta bloqueada: a conexão fechou sem a mensagem de conta bloqueada");
+			if (panel)
+				std::printf("conta bloqueada: mensagem e conexão fechada, sem 0x10A\n");
+			return panel;
+		}
+	}
+	Fail("conta bloqueada: tempo esgotado sem a conexão fechar (mensagem: %s)", panel ? "sim" : "não");
+	return false;
+}
+
 int main(int argc, char** argv)
 {
+	if (argc == 6 && std::strcmp(argv[5], "banned") == 0)
+	{
+		setvbuf(stdout, nullptr, _IONBF, 0);
+		Session s("A");
+		const bool ok = s.Connect(argv[1], std::atoi(argv[2])) && BannedLogin(s, argv[3], argv[4]);
+		s.sock_.CloseSocket();
+		return ok && !g_failures ? 0 : 1;
+	}
 	if (argc != 11 && !(argc == 12 && std::strcmp(argv[11], "dupe") == 0))
 	{
 		std::printf("uso: %s <ip> <porta> <conta> <senha> <senha numérica> <personagem> <classe>"

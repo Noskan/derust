@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT snapshot FROM account_versions WHERE account_id = $1 AND version = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "snapshot",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "631ff74e1db1cef0a6bf6005685326c663ec894f4016ed911efaf0df0f552378"
+}

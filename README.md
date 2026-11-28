@@ -16,6 +16,7 @@ Monorepo unificando o servidor (**W2PP**) e o cliente (**TMProject**) do *With Y
   - `client/docs/` — Documentação auxiliar do cliente.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — Mapa completo de módulos, diagrama de dependências, travas de ABI, regras de fronteira e roteiro da Fase 2.
 - [`docs/OPS.md`](docs/OPS.md) — Operação do servidor no ar: backup e restauração (pgBackRest), métricas, alertas no Discord e o `/bug`.
+- [`docs/GM.md`](docs/GM.md) — Painel de GM, bot do Discord (`/convite`, `/registrar`) e cadastro pelo link de uso único.
 - [`docs/DADOS_GLOBAL.md`](docs/DADOS_GLOBAL.md) — Dados do WYD Global no cliente: modelo híbrido, formatos lidos direto e a camada gerada por [`tools/global_client_data.py`](tools/global_client_data.py).
 - [`tools/check_boundaries.py`](tools/check_boundaries.py) — Verificador automático de fronteiras de dependência entre módulos.
 - [`tests/`](tests/CMakeLists.txt) — Suíte de testes unitários CTest (`w2pp_common_tests`) para funções puras e layout binário do servidor.

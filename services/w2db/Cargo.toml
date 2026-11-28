@@ -12,6 +12,7 @@ argon2 = "0.6.0"
 bytes = "1.12.2"
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
 clap = { version = "4.6.10", features = ["derive", "env"] }
+data-encoding = "2.11"
 getrandom = "0.4.3"
 http = "1.5.0"
 http-body-util = "0.1.5"
@@ -21,6 +22,7 @@ prost = "0.14.6"
 reqwest = { version = "0.13.5", default-features = false, features = ["rustls", "json"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
+sha2 = "0.11"
 sqlx = { version = "0.8.6", default-features = false, features = ["runtime-tokio", "postgres", "macros", "migrate", "json", "chrono"] }
 thiserror = "2.0.21"
 tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "net", "signal", "fs", "time"] }

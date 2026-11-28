@@ -250,6 +250,14 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 					return TRUE;
 				}
+				if (r == W2DB_BANNED)
+				{
+					// Bloqueio pelo GM: a mesma resposta da conta bloqueada pela data (Info.Year).
+					SendDBSignalParm(conn, m->ID, _MSG_DBAccountLoginFail_Block, 0);
+					DbMetricAdd(DB_LOGIN_FAIL_BLOCKED);
+
+					return TRUE;
+				}
 				if (r != W2DB_OK)
 				{
 					SendDBSignal(conn, m->ID, _MSG_DBAccountLoginFail_Pass);

@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE accounts SET online_since = NULL WHERE online_since IS NOT NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "e9c84d975d34c05ddd16ca5f41943dc3eb442cddb8ee5adb607584e80ca27487"
+}

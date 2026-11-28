@@ -9,8 +9,9 @@
    (deploy/prometheus/rules/derust_test.yml).
 3. Com o amtool: a configuração do Alertmanager.
 4. O painel do Grafana é JSON válido, com ids únicos e a fonte de dados provisionada.
+5. Com o caddy: o Caddyfile do HTTPS do painel de GM (deploy/caddy, docs/GM.md).
 
-Uso: ops_check.py [--promtool BIN] [--amtool BIN] [--require-tools]
+Uso: ops_check.py [--promtool BIN] [--amtool BIN] [--caddy BIN] [--require-tools]
 """
 
 import argparse
@@ -99,7 +100,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--promtool")
     ap.add_argument("--amtool")
-    ap.add_argument("--require-tools", action="store_true", help="falha se o promtool ou o amtool não existirem")
+    ap.add_argument("--caddy")
+    ap.add_argument("--require-tools", action="store_true",
+                    help="falha se o promtool, o amtool ou o caddy não existirem")
     args = ap.parse_args()
 
     errors = []
@@ -137,6 +140,19 @@ def main():
             print("amtool check-config: ok")
     else:
         print("amtool não encontrado: configuração do Alertmanager não conferida")
+
+    caddy = tool("caddy", args.caddy, args.require_tools)
+    if caddy:
+        with tempfile.TemporaryDirectory() as tmp:
+            r = subprocess.run([caddy, "validate", "--adapter", "caddyfile", "--config",
+                                str(DEPLOY / "caddy/Caddyfile")], capture_output=True, text=True,
+                               env={"HOME": tmp, "XDG_DATA_HOME": tmp, "XDG_CONFIG_HOME": tmp, "PATH": "/usr/bin:/bin"})
+            if r.returncode != 0 or "Valid configuration" not in r.stdout + r.stderr:
+                errors.append(f"caddy validate: {r.stdout}{r.stderr}")
+            else:
+                print("caddy validate: ok")
+    else:
+        print("caddy não encontrado: o Caddyfile não foi conferido")
 
     for e in errors:
         print(f"ERRO: {e}")

@@ -1,0 +1,48 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT a.id, a.name, a.online_since IS NOT NULL AS \"online!\",\n                  COALESCE(a.banned_until > now(), false) AS \"banned!\",\n                  COALESCE(array_agg(c.name ORDER BY c.slot) FILTER (WHERE c.name IS NOT NULL), '{}') AS \"characters!\"\n           FROM accounts a LEFT JOIN characters c ON c.account_id = a.id\n           WHERE a.name_key LIKE $1 OR a.discord_id = $2\n              OR a.id IN (SELECT account_id FROM characters WHERE name_key LIKE $1)\n           GROUP BY a.id ORDER BY a.name_key LIMIT $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "online!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 3,
+        "name": "banned!",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 4,
+        "name": "characters!",
+        "type_info": "TextArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "baa5a44dc7e7768f7cd1b5a848d49474db42d2a8cd7ffa869b71196d1ddf61b0"
+}

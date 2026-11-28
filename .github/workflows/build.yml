@@ -303,13 +303,13 @@ jobs:
     container: debian:trixie
     timeout-minutes: 15
     steps:
-      - name: Install Postgres 17, pgBackRest, promtool, Alertmanager and systemd
+      - name: Install Postgres 17, pgBackRest, promtool, Alertmanager, Caddy and systemd
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           apt-get -q update
           apt-get -q install -y --no-install-recommends git ca-certificates python3 systemd \
-            postgresql-17 pgbackrest promtool prometheus-alertmanager
+            postgresql-17 pgbackrest promtool prometheus-alertmanager caddy
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -320,7 +320,7 @@ jobs:
           name: w2db-debug
           path: ${{ runner.temp }}/w2db
 
-      - name: Check the deploy configuration (metrics, Prometheus rules and tests, Alertmanager)
+      - name: Check the deploy configuration (metrics, Prometheus rules and tests, Alertmanager, Caddy)
         run: python3 tools/ops_check.py --require-tools
 
       # O initdb não roda como root: o teste roda num usuário comum.
@@ -332,10 +332,13 @@ jobs:
           runuser -u ci -- python3 /home/ci/derust/tools/w2db_restore.py selftest --w2db /home/ci/w2db \
             --pg-bin /usr/lib/postgresql/17/bin
 
-      - name: Deploy tree with the w2db and verify every systemd unit
+      - name: Deploy tree with the w2db and the GM panel and verify every systemd unit
         run: |
           D="$RUNNER_TEMP/deploy"
-          python3 tools/linux_deploy.py "$D" --no-binaries --w2db "$RUNNER_TEMP/w2db/w2db" --user ci
+          # O binário do w2gm não importa aqui: o verify só confere a unit (o w2gm é testado no job w2db).
+          install -m 0755 /dev/null "$RUNNER_TEMP/w2gm"
+          python3 tools/linux_deploy.py "$D" --no-binaries --w2db "$RUNNER_TEMP/w2db/w2db" --w2gm "$RUNNER_TEMP/w2gm" --user ci
+          test -f "$D/systemd/w2-w2gm.service"
           # Só o ExecStart precisa existir para o verify; os binários do jogo estão no job linux-native.
           for exe in DBSRV/Run/DBSrv TMSRV/Run/TMSrv; do install -m 0755 /dev/null "$D/$exe"; done
           systemd-analyze verify "$D"/systemd/*.service "$D"/systemd/*.timer

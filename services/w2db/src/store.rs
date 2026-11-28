@@ -52,6 +52,7 @@ pub struct AccountAuth {
     pub numeric_hash: Option<String>,
     pub failed_logins: i32,
     pub locked_until: Option<chrono::DateTime<chrono::Utc>>,
+    pub banned_until: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 fn text(name: &[u8]) -> String {
@@ -67,11 +68,17 @@ pub fn valid_name(name: &[u8]) -> bool {
     !name.is_empty() && name.len() < legacy::NAME_LENGTH && !name.contains(&0)
 }
 
+/// Senha de conta e senha numérica: 1..15 bytes sem zero (cabem no campo de 16 com terminador).
+pub fn valid_secret(s: &[u8]) -> bool {
+    !s.is_empty() && s.len() < legacy::ACCOUNTPASS_LENGTH && !s.contains(&0)
+}
+
 // ---------------------------------------------------------------- contas
 
 pub async fn account_auth(pool: &PgPool, name: &[u8]) -> Result<Option<AccountAuth>> {
     let row = sqlx::query!(
-        "SELECT id, password_hash, numeric_hash, failed_logins, locked_until FROM accounts WHERE name_key = $1",
+        "SELECT id, password_hash, numeric_hash, failed_logins, locked_until, banned_until
+         FROM accounts WHERE name_key = $1",
         key(name)
     )
     .fetch_optional(pool)
@@ -82,6 +89,7 @@ pub async fn account_auth(pool: &PgPool, name: &[u8]) -> Result<Option<AccountAu
         numeric_hash: r.numeric_hash,
         failed_logins: r.failed_logins,
         locked_until: r.locked_until,
+        banned_until: r.banned_until,
     }))
 }
 
