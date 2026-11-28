@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE items SET container = 0, slot = NULL, character_id = NULL WHERE account_id = $1 AND container <> 0",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4b5288797dd0751073983370319c285fab1f32db3a9cf16967445acfa51b3f8e"
+}

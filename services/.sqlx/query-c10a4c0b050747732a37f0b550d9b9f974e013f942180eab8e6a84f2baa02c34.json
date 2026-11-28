@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH gone AS (\n           DELETE FROM items i USING characters c\n           WHERE c.account_id = $1 AND c.slot = $2 AND i.character_id = c.id\n           RETURNING i.serial, i.item_index)\n         INSERT INTO item_events (serial, kind, account_id, item_index)\n         SELECT serial, 'delete_character', $1, item_index FROM gone",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int2"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "c10a4c0b050747732a37f0b550d9b9f974e013f942180eab8e6a84f2baa02c34"
+}

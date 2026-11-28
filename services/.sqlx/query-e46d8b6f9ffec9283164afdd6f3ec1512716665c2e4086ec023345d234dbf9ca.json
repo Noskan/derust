@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO items (account_id, character_id, container, slot, item_index, ef1, ev1, ef2, ev2, ef3, ev3)\n             SELECT $1, * FROM UNNEST($2::bigint[], $3::smallint[], $4::smallint[], $5::smallint[], $6::smallint[],\n                                      $7::smallint[], $8::smallint[], $9::smallint[], $10::smallint[], $11::smallint[])\n             RETURNING serial, character_id, container, slot AS \"slot!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "serial",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "character_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "container",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "slot!",
+        "type_info": "Int2"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8Array",
+        "Int2Array",
+        "Int2Array",
+        "Int2Array",
+        "Int2Array",
+        "Int2Array",
+        "Int2Array",
+        "Int2Array",
+        "Int2Array",
+        "Int2Array"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "e46d8b6f9ffec9283164afdd6f3ec1512716665c2e4086ec023345d234dbf9ca"
+}

@@ -1,0 +1,369 @@
+// Contrato do serviço de persistência (w2db). O DBSrv é o cliente, por um Unix socket.
+//
+// As mensagens de personagem espelham as estruturas do arquivo de conta (server/common/Basedef.h,
+// shared/protocol/GameStructs.h): a conversão STRUCT_* <-> proto fica no C++. Os textos do jogo
+// (nomes) vão como bytes, na codificação do jogo (CP1252), sem o terminador. Vetores de tamanho
+// fixo vão sem os elementos zerados do fim; quem converte completa com zeros. Campos "reserved_*"
+// são os bytes reservados (EMPTY, dummy) e vão vazios quando são todos zero.
+//
+// Versão do contrato: w2db.v1. Mudança incompatível vira w2db.v2.
+syntax = "proto3";
+
+package w2db.v1;
+
+service W2Db {
+  rpc Health(HealthRequest) returns (HealthReply);
+
+  // Contas.
+  rpc CreateAccount(CreateAccountRequest) returns (CreateAccountReply);
+  rpc AccountLogin(AccountLoginRequest) returns (AccountLoginReply);
+  rpc LoadAccount(LoadAccountRequest) returns (LoadAccountReply);
+  rpc SetPassword(SetPasswordRequest) returns (StatusReply);
+  rpc SetNumericPassword(SetNumericPasswordRequest) returns (StatusReply);
+  rpc CheckNumericPassword(CheckNumericPasswordRequest) returns (StatusReply);
+
+  // Gravação da conta inteira (personagens, baú, itens), com versão esperada. Com logout = true
+  // é o SavingQuit.
+  rpc SaveAccount(SaveAccountRequest) returns (SaveAccountReply);
+
+  rpc CreateCharacter(CreateCharacterRequest) returns (SaveAccountReply);
+  rpc DeleteCharacter(DeleteCharacterRequest) returns (SaveAccountReply);
+  rpc FindCharacter(FindCharacterRequest) returns (FindCharacterReply);
+
+  // Comunidade.
+  rpc CreateInvite(CreateInviteRequest) returns (CreateInviteReply);
+  rpc ReportBug(ReportBugRequest) returns (ReportBugReply);
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_OK = 1;
+  STATUS_NO_ACCOUNT = 2;
+  STATUS_WRONG_PASSWORD = 3;
+  // Muitas senhas erradas: a conta fica bloqueada por um tempo (lock_seconds).
+  STATUS_LOCKED = 4;
+  STATUS_ACCOUNT_EXISTS = 5;
+  STATUS_NAME_TAKEN = 6;
+  STATUS_SLOT_TAKEN = 7;
+  STATUS_SLOT_EMPTY = 8;
+  // A versão enviada não é a do banco: outra gravação veio antes.
+  STATUS_VERSION_CONFLICT = 9;
+  STATUS_INVALID = 10;
+  STATUS_INVITE_REQUIRED = 11;
+  STATUS_BAD_INVITE = 12;
+  STATUS_NUMERIC_NOT_SET = 13;
+}
+
+// ---------------------------------------------------------------- estruturas do jogo
+
+message ItemEffect {
+  uint32 effect = 1;
+  uint32 value = 2;
+}
+
+// STRUCT_ITEM.
+message Item {
+  int32 index = 1;
+  repeated ItemEffect effects = 2;  // 3 pares
+}
+
+// Um item numa vaga. serial = 0 é item novo: o serviço atribui e devolve o serial.
+message StoredItem {
+  uint64 serial = 1;
+  uint32 slot = 2;
+  Item item = 3;
+}
+
+// STRUCT_SCORE.
+message Score {
+  int32 level = 1;
+  int32 ac = 2;
+  int32 damage = 3;
+  uint32 merchant = 4;
+  uint32 attack_run = 5;
+  uint32 direction = 6;
+  uint32 chaos_rate = 7;
+  int32 max_hp = 8;
+  int32 max_mp = 9;
+  int32 hp = 10;
+  int32 mp = 11;
+  int32 str = 12;
+  int32 int = 13;
+  int32 dex = 14;
+  int32 con = 15;
+  repeated int32 special = 16;  // 4
+}
+
+// STRUCT_AFFECT.
+message Affect {
+  uint32 type = 1;
+  uint32 level = 2;
+  uint32 value = 3;
+  uint32 time = 4;
+}
+
+// STRUCT_MOB sem o nome e os itens (estão em Character).
+message Mob {
+  int32 clan = 1;
+  uint32 merchant = 2;
+  uint32 guild = 3;
+  uint32 class = 4;
+  uint32 rsv = 5;
+  uint32 quest = 6;
+  int32 coin = 7;
+  int64 exp = 8;
+  int32 home_town_x = 9;
+  int32 home_town_y = 10;
+  Score base_score = 11;
+  Score current_score = 12;
+  repeated uint32 learned_skill = 13;  // 2
+  uint32 score_bonus = 14;
+  uint32 special_bonus = 15;
+  uint32 skill_bonus = 16;
+  uint32 critical = 17;
+  uint32 save_mana = 18;
+  bytes short_skill = 19;  // 4
+  uint32 guild_level = 20;
+  uint32 magic = 21;
+  uint32 regen_hp = 22;
+  uint32 regen_mp = 23;
+  bytes resist = 24;  // 4 (char com sinal)
+  bytes reserved_dummy = 25;  // 212
+  uint32 current_kill = 26;
+  uint32 total_kill = 27;
+}
+
+message SaveCelestial {
+  int32 class = 1;
+  int64 exp = 2;
+  int32 spx = 3;
+  int32 spy = 4;
+  Score base_score = 5;
+  int32 learned_skill = 6;
+  uint32 score_bonus = 7;
+  uint32 special_bonus = 8;
+  uint32 skill_bonus = 9;
+  bytes skill_bar1 = 10;  // 4
+  bytes skill_bar2 = 11;  // 16
+  int32 soul = 12;
+  bytes reserved = 13;  // 30
+}
+
+// STRUCT_MOBEXTRA. Os bytes de 1 byte com sinal (char) vão como int32.
+message MobExtra {
+  int32 class_master = 1;
+  int32 citizen = 2;
+  int32 fame = 3;
+  int32 soul = 4;
+  int32 mortal_face = 5;
+
+  int32 mortal_newbie = 6;
+  int32 mortal_terra_mistica = 7;
+  int32 mortal_molar_gargula = 8;
+  int32 mortal_pilula_orc = 9;
+  bytes mortal_reserved = 10;  // 30
+
+  int32 arch_mortal_slot = 11;
+  int32 arch_mortal_level = 12;
+  int32 arch_level355 = 13;
+  int32 arch_level370 = 14;
+  int32 arch_cristal = 15;
+  bytes arch_reserved = 16;  // 30
+
+  int32 celestial_arch_level = 17;
+  int32 celestial_celestial_level = 18;
+  int32 celestial_sub_celestial_level = 19;
+  int32 celestial_lv40 = 20;
+  int32 celestial_lv90 = 21;
+  int32 celestial_add120 = 22;
+  int32 celestial_add150 = 23;
+  int32 celestial_add180 = 24;
+  int32 celestial_add200 = 25;
+  int32 celestial_arcana = 26;
+  int32 celestial_reset = 27;
+  bytes celestial_reserved = 28;  // 30
+
+  int32 circle = 29;
+  bytes quest_reserved = 30;  // 30
+
+  repeated SaveCelestial save_celestial = 31;  // 2
+
+  int64 last_nt = 32;
+  int32 nt = 33;
+  int32 kefra_ticket = 34;
+  int64 divine_end = 35;
+  uint32 hold = 36;
+  int64 day_log_exp = 37;
+  int32 day_log_year_day = 38;
+  int64 donate_last_time = 39;
+  int32 donate_count = 40;
+  bytes reserved = 41;  // 36
+}
+
+message Character {
+  uint32 slot = 1;  // 0..3
+  bytes name = 2;
+  Mob mob = 3;
+  repeated StoredItem equip = 4;  // vagas 0..15
+  repeated StoredItem carry = 5;  // vagas 0..63
+  repeated Affect affects = 6;  // 32
+  bytes short_skill = 7;  // 16 (ShortSkill da conta)
+  MobExtra extra = 8;
+}
+
+// Bytes de uma vaga de personagem vazia que não são zero (o DBSrv deixa, por exemplo, a barra de
+// skills em -1 na conta nova). Só existem para a conta voltar igual ao arquivo.
+message EmptySlot {
+  uint32 slot = 1;
+  bytes mob = 2;  // 1024
+  bytes short_skill = 3;  // 16
+  bytes affects = 4;  // 256
+  bytes extra = 5;  // 536
+}
+
+message Account {
+  bytes name = 1;
+  uint64 version = 2;
+  int32 cargo_coin = 3;
+  int32 donate = 4;
+  int32 year = 5;
+  int32 year_day = 6;
+  bytes temp_key = 7;  // 52
+  repeated StoredItem cargo = 8;  // vagas 0..127
+  repeated Character characters = 9;
+  repeated EmptySlot empty_slots = 10;
+  bool numeric_set = 11;
+}
+
+// ---------------------------------------------------------------- pedidos
+
+message HealthRequest {}
+message HealthReply {
+  bool database_ok = 1;
+  string version = 2;
+}
+
+message StatusReply {
+  Status status = 1;
+}
+
+message CreateAccountRequest {
+  bytes name = 1;
+  bytes password = 2;
+  // Os 100 itens iniciais do baú (bônus do ImportUser).
+  bool bonus = 3;
+  string invite_code = 4;
+}
+message CreateAccountReply {
+  Status status = 1;
+}
+
+message AccountLoginRequest {
+  bytes name = 1;
+  bytes password = 2;
+  string ip = 3;
+}
+message AccountLoginReply {
+  Status status = 1;
+  Account account = 2;
+  uint32 lock_seconds = 3;
+}
+
+message LoadAccountRequest {
+  bytes name = 1;
+}
+message LoadAccountReply {
+  Status status = 1;
+  Account account = 2;
+}
+
+message SetPasswordRequest {
+  bytes name = 1;
+  bytes password = 2;
+}
+
+message SetNumericPasswordRequest {
+  bytes name = 1;
+  bytes numeric = 2;
+}
+
+message CheckNumericPasswordRequest {
+  bytes name = 1;
+  bytes numeric = 2;
+}
+
+message SaveAccountRequest {
+  // account.version é a versão esperada (a que veio no login ou na última gravação).
+  Account account = 1;
+  // Seriais destruídos de propósito desde a última gravação (consumo, refinação, NPC).
+  repeated uint64 destroyed = 2;
+  string reason = 3;
+  bool logout = 4;
+}
+
+enum Container {
+  CONTAINER_UNSPECIFIED = 0;
+  CONTAINER_EQUIP = 1;
+  CONTAINER_CARRY = 2;
+  CONTAINER_CARGO = 3;
+}
+
+message AssignedSerial {
+  Container container = 1;
+  uint32 character_slot = 2;  // para equip e carry
+  uint32 slot = 3;
+  uint64 serial = 4;
+}
+
+message SaveAccountReply {
+  Status status = 1;
+  uint64 version = 2;
+  // Seriais dados aos itens que vieram com serial 0, e aos que vieram com o serial de um item
+  // que está em outra vaga viva (suspeita de duplicação: o item fica, com serial novo, e o caso
+  // vai para item_events).
+  repeated AssignedSerial assigned = 3;
+  repeated uint64 dupe_suspects = 4;
+}
+
+message CreateCharacterRequest {
+  bytes account_name = 1;
+  uint64 expected_version = 2;
+  Character character = 3;
+}
+
+message DeleteCharacterRequest {
+  bytes account_name = 1;
+  uint64 expected_version = 2;
+  uint32 slot = 3;
+  // O que fica nos bytes da vaga depois de apagar (ver EmptySlot); pode vir vazio.
+  EmptySlot residue = 4;
+}
+
+message FindCharacterRequest {
+  bytes name = 1;
+}
+message FindCharacterReply {
+  Status status = 1;
+  bytes account_name = 2;
+  uint32 slot = 3;
+}
+
+message CreateInviteRequest {
+  string discord_id = 1;
+}
+message CreateInviteReply {
+  string code = 1;
+}
+
+message ReportBugRequest {
+  bytes account_name = 1;
+  bytes character_name = 2;
+  int32 server = 3;
+  int32 pos_x = 4;
+  int32 pos_y = 5;
+  string text = 6;
+}
+message ReportBugReply {
+  Status status = 1;
+  int64 id = 2;
+}

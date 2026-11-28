@@ -81,6 +81,18 @@ Estado (2026-11-28): itens 1, 2 (sem o `fuzz_db_message`), 4, 5 e 6 feitos; uso 
 
 Saída: conta sintética arquivo→banco→arquivo igual byte a byte, fora senha e dados pessoais.
 
+Estado (2026-11-28): feito, com a saída conferida (`docs/W2DB.md`). Mudanças em relação ao plano:
+- A versão para concorrência otimista fica na conta, não no personagem, e `character_versions`
+  virou `account_versions`. O baú e o gold do baú são da conta, e o DBSrv grava a conta inteira:
+  com versão por personagem, duas gravações da mesma conta poderiam se cruzar no baú.
+- O Rust conhece o layout do arquivo, mas só no importador e no exportador (`legacy.rs`; o
+  importador já é o `w2db import`). Em jogo, a conversão continua no C++ (B3). Os dois lados
+  conferem contra `shared/protocol/account_layout.txt`, que o próprio C++ gera.
+- `SavingQuit` é o `SaveAccount` com `logout = true`.
+- Guildas, cápsulas, ranking e safira ficam para a B3. Cada um tem arquivo e fluxo próprios no
+  DBSrv, e a forma das RPCs depende de como a B3 ligar o `CFileDB` a eles. Os itens dentro das
+  cápsulas também precisam de serial.
+
 ### B3 `feat/dbsrv-on-postgres` (depois da B2)
 
 1. Cliente gRPC assíncrono no DBSrv, com a fila de conclusão no laço de eventos. Login e criação

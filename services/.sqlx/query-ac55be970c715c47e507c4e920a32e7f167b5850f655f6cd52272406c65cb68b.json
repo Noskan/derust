@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM account_versions WHERE account_id = $1 AND version <= $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ac55be970c715c47e507c4e920a32e7f167b5850f655f6cd52272406c65cb68b"
+}

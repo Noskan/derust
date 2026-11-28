@@ -18,6 +18,15 @@ if(DERUST_BUILD_SERVER)
   target_link_libraries(w2pp_characterization_tests PRIVATE w2pp_common)
 
   add_test(NAME w2pp_characterization_tests COMMAND w2pp_characterization_tests)
+
+  # Layout do arquivo de conta, referência do codec do w2db (services/w2db/src/legacy.rs).
+  add_executable(account_layout_dump
+    account_layout_dump.cpp
+  )
+
+  target_link_libraries(account_layout_dump PRIVATE w2pp_common)
+
+  add_test(NAME account_layout COMMAND account_layout_dump ${CMAKE_SOURCE_DIR}/shared/protocol/account_layout.txt)
 endif()
 
 # Testes de caracterização das funções BASE_* do cliente (TMProject). Compila só o que esses

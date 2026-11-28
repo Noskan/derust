@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO accounts (name, name_key, password_hash, numeric_hash, discord_id)\n         VALUES ($1, $2, $3, $4, $5) ON CONFLICT (name_key) DO NOTHING RETURNING id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "595ed7642854fedb15d942de5155f3e578a25c201d4bb704583426fb91056e41"
+}

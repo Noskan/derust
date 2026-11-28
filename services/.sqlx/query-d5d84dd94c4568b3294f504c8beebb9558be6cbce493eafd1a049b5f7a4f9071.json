@@ -1,0 +1,70 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT name, version, cargo_coin, donate, year, year_day, temp_key, empty_slots,\n                numeric_hash IS NOT NULL AS \"numeric_set!\"\n         FROM accounts WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "version",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "cargo_coin",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 3,
+        "name": "donate",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "year",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "year_day",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "temp_key",
+        "type_info": "Bytea"
+      },
+      {
+        "ordinal": 7,
+        "name": "empty_slots",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 8,
+        "name": "numeric_set!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "d5d84dd94c4568b3294f504c8beebb9558be6cbce493eafd1a049b5f7a4f9071"
+}

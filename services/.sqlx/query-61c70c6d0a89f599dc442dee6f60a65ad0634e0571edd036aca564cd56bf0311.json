@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, password_hash, numeric_hash, failed_logins, locked_until FROM accounts WHERE name_key = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "password_hash",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "numeric_hash",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "failed_logins",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "locked_until",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "61c70c6d0a89f599dc442dee6f60a65ad0634e0571edd036aca564cd56bf0311"
+}
