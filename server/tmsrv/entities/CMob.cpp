@@ -155,6 +155,9 @@ int  CMob::StandingByProcessor(void)
 			}
 			if (WaitSec <= 0 || RouteType == 6)
 			{
+				if (SegmentProgress < 0 || SegmentProgress >= MAX_SEGMENT)
+					SegmentProgress = 0;
+
 				int Seg = SegmentWait[SegmentProgress];
 				if (Seg > 0)
 				{
@@ -485,8 +488,7 @@ int CMob::SetSegment()
 		return 0;
 	}
 
-	// Valor padrão para o caminho que sai sem atribuir (rota 4 com SegmentProgress -1, que não
-	// acontece: a direção 1 só é usada nas rotas 2 e 3).
+	// Valor padrão quando um ramo sai sem atribuir; rotas com break garantem SegmentProgress válido.
 	int iterator = 0;
 	while (1)
 	{
@@ -518,6 +520,8 @@ int CMob::SetSegment()
 			}
 			else if (RouteType == 3)
 			{
+				SegmentProgress = 0;
+				SegmentDirection = 0;
 				iterator = 2;
 				break;
 			}
@@ -564,6 +568,7 @@ int CMob::SetSegment()
 			
 			if (RouteType == 1)
 			{
+				SegmentProgress = 0;
 				iterator = 2;
 				break;
 			}
@@ -589,6 +594,9 @@ int CMob::SetSegment()
 		iterator = 0;
 		break;
 	}
+
+	if (SegmentProgress < 0 || SegmentProgress >= MAX_SEGMENT)
+		SegmentProgress = 0;
 
 	SegmentX = SegmentListX[SegmentProgress];
 	SegmentY = SegmentListY[SegmentProgress];

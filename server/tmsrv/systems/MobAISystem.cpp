@@ -97,7 +97,7 @@ void ProcessNpcMovementTick(int initial)
 				}
 				int Progress = pMob[index].SegmentProgress;
 
-				if (Progress < 0 || Progress > MAX_SEGMENT)
+				if (Progress < 0 || Progress >= MAX_SEGMENT)
 				{
 					pMob[index].SegmentProgress = 0;
 					Progress = 0;
