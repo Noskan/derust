@@ -163,7 +163,8 @@ def local_ips():
 
 def build_tree(work, exe_dir):
     """Monta a árvore da produção, <work>/{Common,DBSRV/Run,TMSRV/Run} (os servidores abrem
-    ../../Common e ../../<outro>/Run), com os diretórios de gravação de tools/linux_deploy.py."""
+    ../../Common e ../../<outro>/Run), com os diretórios de gravação de tools/linux_deploy.py.
+    Sem exe_dir, não copia os servidores (tools/fuzz_tmsrv.py usa só os dados)."""
     common = work / "Common"
     db = work / "DBSRV" / "Run"
     tm = work / "TMSRV" / "Run"
@@ -187,14 +188,16 @@ def build_tree(work, exe_dir):
     # UTF-8 + CP1252 de Âmago para conferir CReadFiles::ReadSancRate sem sobrescrever PO.
     (common / "Settings/SancRate.txt").write_bytes(b"PO 0 100\n\xc3\x82mago 0 50\n\xc2mago 1 40\n")
 
-    shutil.copy(exe_dir / "DBSrv", db)
+    if exe_dir is not None:
+        shutil.copy(exe_dir / "DBSrv", db)
     (db / "Config.txt").write_text("Sapphire 8\nLastCapsule 0\n")
     zero_file(db / "AttributeMap.dat", 1024 * 1024)
     (db / "BaseMob").mkdir()
     for i, cls in enumerate(BASE_CLASSES):
         (db / "BaseMob" / cls).write_bytes(synthetic_base_mob(i))
 
-    shutil.copy(exe_dir / "TMSrv", tm)
+    if exe_dir is not None:
+        shutil.copy(exe_dir / "TMSrv", tm)
     # O gameconfig.txt é o que o próprio TMSrv grava quando não o encontra (DrawConfig).
     # Com DropItem 1, para o teste de jogo soltar item no chão.
     config = (DATA / "gameconfig.txt").read_text()

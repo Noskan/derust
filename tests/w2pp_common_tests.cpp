@@ -21,6 +21,7 @@
 
 #include "common/Basedef.h"
 #include "common/ItemEffect.h"
+#include "common/RateLimit.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -468,6 +469,30 @@ void TestItemDate()
 
 } // namespace
 
+/// @brief Limite por chave em janela fixa (borda de rede do TMSrv).
+void TestRateLimit()
+{
+	W2RateLimit limit(3, 1000);
+	const unsigned ipA = 0x0100007F, ipB = 0x0200007F;
+
+	CHECK(limit.Allow(ipA, 100));
+	CHECK(limit.Allow(ipA, 200));
+	CHECK(limit.Allow(ipA, 300));
+	CHECK(!limit.Allow(ipA, 400));      // quarto evento na mesma janela
+	CHECK(limit.Allow(ipB, 400));       // outra chave tem a própria contagem
+	CHECK(!limit.Allow(ipA, 1099));     // ainda na janela que começou em 100
+	CHECK(limit.Allow(ipA, 1100));      // janela nova
+
+	// Volta do relógio de 32 bits: a janela continua medida pela diferença.
+	W2RateLimit wrap(1, 1000);
+	CHECK(wrap.Allow(ipA, 0xFFFFFF00u));
+	CHECK(!wrap.Allow(ipA, 0x00000010u)); // 0x110 ms depois
+	CHECK(wrap.Allow(ipA, 0x00000400u));  // 0x500 ms depois
+
+	limit.Clear();
+	CHECK(limit.Allow(ipA, 1200));
+}
+
 int main()
 {
 	TestProtocolSizes();
@@ -481,6 +506,7 @@ int main()
 	TestOutOfDomainInputs();
 	TestStringAndChecksum();
 	TestItemDate();
+	TestRateLimit();
 
 	if (g_failures != 0)
 	{

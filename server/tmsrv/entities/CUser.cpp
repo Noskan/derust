@@ -31,6 +31,7 @@ CUser::CUser()
 	Unk3			 = 0;
 	IsBillConnect    = 0;
 	LastReceiveTime  = 0;
+	AcceptSec        = 0;
 
 	memset(Cargo, 0, sizeof(Cargo));
 
@@ -77,6 +78,8 @@ BOOL CUser::AcceptUser(int ListenSocket)
 	IP		   = acc_sin.sin_addr.s_addr;
 	Mode	   = USER_ACCEPT;
 	Unk3	   = 0;
+	AcceptSec  = SecCounter;
+	LastReceiveTime = SecCounter;
 
 	return TRUE;
 }

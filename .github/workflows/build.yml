@@ -147,6 +147,41 @@ jobs:
             build/linux/server/dbsrv/DBSrv
             build/linux/server/tmsrv/TMSrv
 
+  # Fuzzing da borda de rede (tests/fuzz, libFuzzer com ASan/UBSan): reexecuta as entradas de
+  # regressão versionadas e roda 60s por alvo a partir das sementes. Rodadas longas são manuais
+  # (tools/fuzz_tmsrv.py --time).
+  fuzz:
+    name: Fuzz the server network edge (clang, libFuzzer)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build the fuzz targets
+        run: |
+          cmake -S . -B "$RUNNER_TEMP/fuzz" -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DDERUST_BUILD_FUZZERS=ON \
+            -DCMAKE_CXX_FLAGS="-fsanitize=fuzzer-no-link,address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer" \
+            -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+          cmake --build "$RUNNER_TEMP/fuzz" --parallel 4 --target fuzz_sock_read fuzz_client_message
+
+      - name: Replay the regression inputs
+        run: python3 tools/fuzz_tmsrv.py "$RUNNER_TEMP/fuzz" --regress --work "$RUNNER_TEMP/fuzz-work"
+
+      - name: Fuzz each target for 60s
+        run: python3 tools/fuzz_tmsrv.py "$RUNNER_TEMP/fuzz" --time 60 --work "$RUNNER_TEMP/fuzz-work"
+
+      - name: Upload crashing inputs and fuzz logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-crashes
+          path: |
+            ${{ runner.temp }}/fuzz-work/crash/
+            ${{ runner.temp }}/fuzz-work/log/
+          if-no-files-found: ignore
+
   # Só o cliente: TMProject, o patch do cliente, os testes do cliente e o LoginClient. Os
   # servidores são só Linux (jobs linux-native e mingw-check).
   build-windows:

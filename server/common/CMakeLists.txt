@@ -8,12 +8,14 @@ add_library(w2pp_common STATIC
   Platform.cpp
   System.cpp
   ProtocolLayoutCheck.cpp
+  RateLimit.cpp
   Basedef.h
   BasedefInternal.h
   CPSock.h
   EventLoop.h
   ItemEffect.h
   Platform.h
+  RateLimit.h
   System.h
 )
 

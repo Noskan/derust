@@ -38,6 +38,7 @@
 #include "net/ProcessDBMessage.h"
 #include "core/CReadFiles.h"
 #include "systems/CWarTower.h"
+#include "net/NetGuard.h"
 
 #pragma region Defines
 
@@ -774,6 +775,15 @@ void CheckIdle(int conn)
 
 	if (lst < ser - 1440)
 		pUser[conn].LastReceiveTime = SecCounter;
+
+	if (NetGuardLoginExpired(conn))
+	{
+		sprintf(temp, "sys,disconnect login timeout mode:%d conn:%d", pUser[conn].Mode, conn);
+		Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+
+		CloseUser(conn);
+		return;
+	}
 
 	if (lst < ser - 720)
 	{

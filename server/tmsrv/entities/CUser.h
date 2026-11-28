@@ -95,6 +95,7 @@ public:
 	int RankingTarget; // 2712 // RankingTarget ???
 	int RankingType; // 2716 // RankingType ???
 	int LastReceiveTime; // 2720
+	unsigned int AcceptSec; // SecCounter no aceite: tempo limite para terminar o login (CheckIdle)
 	int Admin; // 2724
 	int Unk_2728; // 2728 // Related to BILLING (Child!?!)
 	unsigned int Unk_2732; // 2732 // Something related to BILLING (ReqBillSec?????)

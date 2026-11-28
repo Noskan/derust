@@ -162,6 +162,40 @@ A lista de canais do cliente mostra a lotação de cada canal e marca os que est
 
 O histórico de lotação vai para `Common/data<NN>.csv`: a cada 15 minutos, uma linha com a data e a hora, o pico de cada canal no período e o total.
 
+## Borda de rede do TMSrv
+
+O TMSrv recusa, por IP (`server/tmsrv/net/NetGuard.h`):
+- a sexta conexão simultânea;
+- mais de 10 conexões novas em 10 s;
+- mais de 5 pedidos de login de conta em 60 s. O jogador recebe "Muitas tentativas de login" e a conexão fecha.
+
+A conexão que não termina o login da conta em 30 s, contados do aceite, é fechada no `CheckIdle`. Isso inclui a que não manda o `INITCODE`.
+
+O despacho (`ProcessClientMessage`) descarta o pacote menor do que a estrutura do seu tipo. Os tamanhos estão em `ClientMessageMinSize`, e o descarte grava `err,packet short` no log. As recusas da borda gravam `err,netguard ...`. Atrás de NAT, até 5 jogadores dividem um IP.
+
+## Fuzzing
+
+Dois alvos do libFuzzer, em `tests/fuzz`, compilados com clang, ASan e UBSan:
+- `fuzz_sock_read`: bytes crus no `CPSock::ReadMessage`;
+- `fuzz_client_message`: o TMSrv inteiro (`tmsrv_core`, o servidor sem o `main`) com a árvore sintética do teste de jogo. Cada entrada leva um jogador ao estágio escolhido (conectado, seleção de personagem ou em jogo, com o DBSrv imitado) e manda até 16 pacotes no `ProcessClientMessage`.
+
+```bash
+cmake -S . -B build/fuzz -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DDERUST_BUILD_FUZZERS=ON \
+  -DCMAKE_CXX_FLAGS="-fsanitize=fuzzer-no-link,address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer" \
+  -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+cmake --build build/fuzz --parallel --target fuzz_sock_read fuzz_client_message
+python3 tools/fuzz_tmsrv.py build/fuzz --regress                    # entradas de regressão
+python3 tools/fuzz_tmsrv.py build/fuzz --time 3600 --work build/fz  # rodada longa
+```
+
+Os resultados de `tools/fuzz_tmsrv.py`:
+- o corpus fica em `<work>/corpus/<alvo>`;
+- a entrada que derruba o alvo fica em `<work>/crash/<alvo>/`;
+- a saída inteira fica em `<work>/log/<alvo>.txt`. Algumas quedas dependem do estado acumulado do mundo e não se repetem com a entrada sozinha.
+
+Cada bug corrigido ganha uma entrada em `tests/fuzz/regress/<alvo>`. O CI reexecuta essas entradas e roda 60 s por alvo (job `fuzz`).
+
 ## Pendências
 
 - Nenhuma do port. Os `sprintf` que o gcc do Ubuntu apontava com `-Wformat-overflow` foram corrigidos (`docs/ARCHITECTURE.md`, item 27).

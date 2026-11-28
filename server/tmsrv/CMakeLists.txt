@@ -17,6 +17,8 @@ set(TMSRV_SOURCES
   entities/CUser.cpp
   entities/CUser.h
   net/GetFunc.cpp
+  net/NetGuard.cpp
+  net/NetGuard.h
   net/GetFunc.h
   net/ProcessClientMessage.cpp
   net/ProcessClientMessage.h
@@ -114,13 +116,17 @@ set(TMSRV_SOURCES
   handlers/world/_MSG_ReqTeleport.cpp
 )
 
-add_executable(TMSrv ${TMSRV_SOURCES})
+# Tudo menos o main: os alvos de fuzzing (tests/fuzz) ligam a mesma biblioteca.
+add_library(tmsrv_core OBJECT ${TMSRV_SOURCES})
 
-target_include_directories(TMSrv
-  PRIVATE
+target_include_directories(tmsrv_core
+  PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-target_link_libraries(TMSrv PRIVATE w2pp_common)
+target_link_libraries(tmsrv_core PUBLIC w2pp_common)
 
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TMSRV_SOURCES})
+add_executable(TMSrv core/Main.cpp)
+target_link_libraries(TMSrv PRIVATE tmsrv_core)
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${TMSRV_SOURCES} core/Main.cpp)

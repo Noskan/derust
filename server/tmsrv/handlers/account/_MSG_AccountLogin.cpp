@@ -17,6 +17,7 @@
 *   Contact at:
 */
 #include "net/ProcessClientMessage.h"
+#include "net/NetGuard.h"
 
 void Exec_MSG_AccountLogin(int conn, char *pMsg)
 {
@@ -73,11 +74,23 @@ void Exec_MSG_AccountLogin(int conn, char *pMsg)
 	m->Type = _MSG_DBAccountLogin;
 	m->ID = conn;
 
+	// O campo do pacote pode vir sem terminador: sem isto o %s copiava além dos 16 bytes de
+	// pUser[conn].AccountName, antes da autenticação.
+	m->AccountName[ACCOUNTNAME_LENGTH - 1] = 0;
+	pUser[conn].AccountName[0] = 0;
 	sscanf(m->AccountName, "%s", pUser[conn].AccountName);
 
 	W2StrUpper(pUser[conn].AccountName);
 
 	strncpy(m->AccountName, pUser[conn].AccountName, NAME_LENGTH);
+
+	if (!NetGuardLogin(conn))
+	{
+		SendClientMessage(conn, "Muitas tentativas de login. Aguarde 1 minuto.");
+		pUser[conn].cSock.SendMessage();
+		CloseUser(conn);
+		return;
+	}
 
 	int check = CheckFailAccount(m->AccountName);
 
