@@ -119,7 +119,7 @@ void CReadFiles::UpdateConnectionData()
 
 	sprintf(temp, "%4.4d_%2.2d_%2.2d_%2.2d ", when.tm_year + 1900, when.tm_mon + 1, when.tm_mday, when.tm_hour);
 
-	fprintf(fp, temp);
+	fprintf(fp, "%s", temp);
 
 	if (fp == NULL)
 		return;

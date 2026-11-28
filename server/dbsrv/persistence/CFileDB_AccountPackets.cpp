@@ -444,7 +444,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			for(int i = 0; i < len; i++)
 			{
-				if(m->MobName[i] == 'í' && m->MobName[i + 1] == 'í')
+				if(m->MobName[i] == '\xED' && m->MobName[i + 1] == '\xED')
 				{
 					SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
 
@@ -1008,7 +1008,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		for (int i = 0; i < len; i++)
 		{
-			if (m->MobName[i] == 'í' && m->MobName[i + 1] == 'í')
+			if (m->MobName[i] == '\xED' && m->MobName[i + 1] == '\xED')
 			{
 				SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
 
@@ -1329,7 +1329,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		for (int i = 0; i < len; i++)
 		{
-			if (m->MobName[i] == 'í' && m->MobName[i + 1] == 'í')
+			if (m->MobName[i] == '\xED' && m->MobName[i + 1] == '\xED')
 			{
 				SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
 

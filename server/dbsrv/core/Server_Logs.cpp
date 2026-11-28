@@ -92,10 +92,10 @@ void Log(char *str1, char *str2, unsigned int ip)
 		sprintf(LogTemp, "[%02d/%02d/%04d][%02d:%02d:%02d] IP: %d.%d.%d.%d", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec, cIP[0], cIP[1], cIP[2], cIP[3]);
 	else
 		sprintf(LogTemp, "[%02d/%02d/%04d][%02d:%02d:%02d] ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
-	sprintf(LogTemp + strlen(LogTemp), " %s %s \n", str2, str1);
+	snprintf(LogTemp + strlen(LogTemp), sizeof(LogTemp) - strlen(LogTemp), " %s %s \n", str2, str1);
 
 	if (fLogFile)
-		fprintf(fLogFile, LogTemp);
+		fprintf(fLogFile, "%s", LogTemp);
 }
 
 void DayLog_ExpLog()
@@ -243,7 +243,7 @@ void DayLog_ItemLog()
 		W2Format(Temp + len, sizeof(Temp) - len, " ItemID:%d ItemName:%s ItemNum:%d \n", i, g_pItemList[i].Name, ItemDayLog[i].Num);
 
 		if (fp)
-			fprintf(fp, Temp);
+			fprintf(fp, "%s", Temp);
 
 		ItemDayLog[i].Num = 0;
 	}

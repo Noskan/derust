@@ -110,10 +110,10 @@ int CNPCGenerator::ReadNPCGenerator()
 
 			int len = strlen(tmp1);
 
-			if (len > 8 && tmp1[0] != 'Í')
+			if (len > 8 && tmp1[0] != '\xCD')
 				fprintf(fp, "\t%s\t%s\n", &tmp1, &tmp2);
 
-			else if(tmp1[0] != 'Í')
+			else if(tmp1[0] != '\xCD')
 				fprintf(fp, "\t%s\t\t%s\n", &tmp1, &tmp2);
 		}
 	}

@@ -66,6 +66,8 @@ extern CNPCGenerator mNPCGen;
 extern CUser pUser[MAX_USER];
 
 void  ProcessClientMessage(int conn, char *pMsg, BOOL isServer);
+/// Tamanho mínimo do pacote do cliente para o tipo (o do struct que o cliente envia).
+int   ClientMessageMinSize(int type);
 
 
 ///**************************************************************************************************

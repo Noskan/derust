@@ -285,7 +285,11 @@ void Exec_MSG_Attack(int conn, char *pMsg)
 
 	if (skillnum == 79)
 	{
-		for (int x = 1; x < 6; x++)
+		// Só os alvos que cabem no pacote: no AttackOne (1 alvo) e no AttackTwo (2) a cópia
+		// gravava além do fim, e o laço abaixo já não lê esses alvos.
+		const int targets = m->Size >= (int)sizeof(MSG_Attack) ? 6 : m->Size >= (int)sizeof(MSG_AttackTwo) ? 2 : 1;
+
+		for (int x = 1; x < targets; x++)
 		{
 			m->Dam[x].Damage = m->Dam[0].Damage;
 			m->Dam[x].TargetID = m->Dam[0].TargetID;

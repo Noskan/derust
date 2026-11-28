@@ -108,10 +108,10 @@ void Log(char *str1, char *str2, unsigned int ip)
 	else
 		sprintf(LogTemp, "[%02d/%02d/%04d][%02d:%02d:%02d] ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 	
-	sprintf(LogTemp + strlen(LogTemp), " %s %s \n", str2, str1);
+	snprintf(LogTemp + strlen(LogTemp), sizeof(LogTemp) - strlen(LogTemp), " %s %s \n", str2, str1);
 
 	if (fLogFile)
-		fprintf(fLogFile, LogTemp);
+		fprintf(fLogFile, "%s", LogTemp);
 }
 
 void StartChatLog()
@@ -147,10 +147,10 @@ void ChatLog(char *str1, char *str2, unsigned int ip)
 	else
 		sprintf(LogTemp, "%02d.%02d.%04d.%02d.%02d.%02d ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 	
-	sprintf(LogTemp + strlen(LogTemp), " %s %s \n", str2, str1);
+	snprintf(LogTemp + strlen(LogTemp), sizeof(LogTemp) - strlen(LogTemp), " %s %s \n", str2, str1);
 
 	if (fChatLogFile)
-		fprintf(fChatLogFile, LogTemp);
+		fprintf(fChatLogFile, "%s", LogTemp);
 }
 
 void StartItemLog()
@@ -186,8 +186,8 @@ void ItemLog(char *str1, char *str2, unsigned int ip)
 	else
 		sprintf(LogTemp, "%02d.%02d.%04d.%02d.%02d.%02d ", when.tm_mday, when.tm_mon + 1, when.tm_year + 1900, when.tm_hour, when.tm_min, when.tm_sec);
 	
-	sprintf(LogTemp + strlen(LogTemp), " %s %s \n", str2, str1);
+	snprintf(LogTemp + strlen(LogTemp), sizeof(LogTemp) - strlen(LogTemp), " %s %s \n", str2, str1);
 
 	if (fItemLogFile)
-		fprintf(fItemLogFile, LogTemp);
+		fprintf(fItemLogFile, "%s", LogTemp);
 }

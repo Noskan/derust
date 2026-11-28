@@ -45,7 +45,7 @@ void Exec_MSG_TradingItem(int conn, char *pMsg)
 	{
 		int WarpID = m->WarpID;
 
-		if (WarpID <= MAX_USER && WarpID >= MAX_MOB)
+		if (WarpID < MAX_USER || WarpID >= MAX_MOB)
 		{
 			SendClientSignal(conn, ESCENE_FIELD, 412);
 			return;

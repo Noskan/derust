@@ -35,6 +35,80 @@
 #include "net/GetFunc.h"
 #include "net/SendFunc.h"
 
+/// Tamanho mínimo de cada pacote tratado em ProcessClientMessage: o do struct que o cliente envia
+/// nesse tipo (client/src, conferido com o mingw i686 em 2026-11-28; os do servidor são iguais).
+/// Um pacote mais curto que isso não vem do cliente, e o handler leria além dele. Tipos sem
+/// handler (e os que só usam o cabeçalho) ficam no tamanho do cabeçalho.
+int ClientMessageMinSize(int type)
+{
+	switch (type)
+	{
+	case _MSG_AccountLogin:			return sizeof(MSG_AccountLogin);
+	case _MSG_CharacterLogin:		return sizeof(MSG_CharacterLogin);
+	case _MSG_DeleteCharacter:		return sizeof(MSG_DeleteCharacter);
+	case _MSG_ReqTransper:			return sizeof(MSG_ReqTransper);
+	case _MSG_MessageLog:			return sizeof(MSG_MessageLog);
+	case _MSG_CreateCharacter:		return sizeof(MSG_CreateCharacter);
+	case _MSG_AccountSecure:		return sizeof(MSG_AccountSecure);
+	case _MSG_MessageChat:			return sizeof(MSG_MessageChat);
+	case _MSG_Action:
+	case _MSG_Action2:
+	case _MSG_Action3:				return sizeof(MSG_Action);
+	case _MSG_Motion:				return sizeof(MSG_Motion);
+	case _MSG_NoViewMob:
+	case _MSG_Deprivate:
+	case _MSG_Challange:
+	case _MSG_ReqTeleport:
+	case _MSG_Deposit:
+	case _MSG_Withdraw:
+	case _MSG_RemoveParty:
+	case _MSG_ChangeCity:
+	case _MSG_PKMode:
+	case _MSG_ReqTradeList:
+	case _MSG_CapsuleInfo:			return sizeof(MSG_STANDARDPARM);
+	case _MSG_ChallangeConfirm:
+	case _MSG_Quest:
+	case _MSG_ReqRanking:
+	case _MSG_InviteGuild:
+	case _MSG_War:					return sizeof(MSG_STANDARDPARM2);
+	case _MSG_REQShopList:			return sizeof(MSG_REQShopList);
+	case _MSG_SendReqParty:			return sizeof(MSG_SendReqParty);
+	case _MSG_AcceptParty:			return sizeof(MSG_AcceptParty);
+	case _MSG_TradingItem:			return sizeof(MSG_TradingItem);
+	case _MSG_MessageWhisper:		return sizeof(MSG_MessageWhisper);
+	case _MSG_UpdateItem:			return sizeof(MSG_UpdateItem);
+	case _MSG_SetShortSkill:		return sizeof(MSG_SetShortSkill);
+	case _MSG_Attack:				return sizeof(MSG_Attack);
+	case _MSG_AttackOne:			return sizeof(MSG_AttackOne);
+	case _MSG_AttackTwo:			return sizeof(MSG_AttackTwo);
+	case _MSG_DropItem:				return sizeof(MSG_DropItem);
+	case _MSG_GetItem:				return sizeof(MSG_GetItem);
+	case _MSG_UseItem:				return sizeof(MSG_UseItem);
+	case _MSG_ApplyBonus:			return sizeof(MSG_ApplyBonus);
+	case _MSG_SendAutoTrade:		return sizeof(MSG_SendAutoTrade);
+	case _MSG_ReqBuy:				return sizeof(MSG_ReqBuy);
+	case _MSG_Buy:					return sizeof(MSG_Buy);
+	case _MSG_Sell:
+	case _MSG_CombineItemExtracao:	return sizeof(MSG_Sell);
+	case _MSG_Trade:				return sizeof(MSG_Trade);
+	case _MSG_CombineItem:
+	case _MSG_CombineItemEhre:
+	case _MSG_CombineItemTiny:
+	case _MSG_CombineItemShany:
+	case _MSG_CombineItemAilyn:
+	case _MSG_CombineItemAgatha:
+	case _MSG_CombineItemOdin:
+	case _MSG_CombineItemOdin2:
+	case _MSG_CombineItemLindy:
+	case _MSG_CombineItemAlquimia:	return sizeof(MSG_CombineItem);
+	case _MSG_DeleteItem:			return sizeof(MSG_DeleteItem);
+	case _MSG_SplitItem:			return sizeof(MSG_SplitItem);
+	case _MSG_GuildAlly:			return sizeof(MSG_GuildAlly);
+	case _MSG_PutoutSeal:			return sizeof(MSG_PutoutSeal);
+	}
+	return sizeof(MSG_STANDARD);
+}
+
 void  ProcessClientMessage(int conn, char *pMsg, BOOL isServer)
 {
 	MSG_STANDARD *std = (MSG_STANDARD *)pMsg;
@@ -58,6 +132,16 @@ void  ProcessClientMessage(int conn, char *pMsg, BOOL isServer)
 
 	if (std->Type == _MSG_Ping)
 		return;
+
+	if (std->Size < ClientMessageMinSize(std->Type))
+	{
+		sprintf(temp, "err,packet short Type:%d Size:%d Min:%d", std->Type, std->Size, ClientMessageMinSize(std->Type));
+		if (conn > 0 && conn < MAX_USER)
+			Log(temp, pUser[conn].AccountName, pUser[conn].IP);
+		else
+			Log(temp, "-system", 0);
+		return;
+	}
 
 	// Checa se o pacote foi enviado por algum jogador e possui o timestamp de controle interno.
 	if (isServer == FALSE && std->ClientTick == SKIPCHECKTICK)
