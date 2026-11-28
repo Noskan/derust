@@ -210,17 +210,19 @@ int TMGround::Render()
                     }
                 }
 
-                char bCoordIndex = m_TileMapData[nX + (nY << 6)].byTileCoord;
-                char bCoordBackIndex = m_TileMapData[nX + (nY << 6)].byBackTileCoord;
-                int nTexIndex = (unsigned char)m_TileMapData[nX + (nY << 6)].byTileIndex + 10;
+                const float (*pTileCoord)[2] = GetTileCoord(m_TileMapData[nX + (nY << 6)].byTileCoord);
+                unsigned char bCoordBackIndex = m_TileMapData[nX + (nY << 6)].byBackTileCoord;
+                if (bCoordBackIndex >= 32)
+                    bCoordBackIndex = 0;
+                int nTexIndex = m_TileMapData[nX + (nY << 6)].sTileIndex + TILE_TEXTURE_BASE;
 
                 if (g_pDevice->m_bVoodoo == 1)
                 {
                     // TODO: THIS CODE NEED TO BE REVIEW =)
                     for (int nVertexIndex = 0; nVertexIndex < 4; ++nVertexIndex)
                     {
-                        m_vertexVoodoo[nVertexIndex].tu = TMGround::TileCoordList[(unsigned char)bCoordIndex][nVertexIndex][0];
-                        m_vertexVoodoo[nVertexIndex].tv = TMGround::TileCoordList[(unsigned char)bCoordIndex][nVertexIndex][1];
+                        m_vertexVoodoo[nVertexIndex].tu = pTileCoord[nVertexIndex][0];
+                        m_vertexVoodoo[nVertexIndex].tv = pTileCoord[nVertexIndex][1];
                     }
 
                     dwColor[0] = m_TileMapData[nX + (nY << 6)].dwColor;
@@ -306,16 +308,16 @@ int TMGround::Render()
                     continue;
                 }
 
-                int nIndex = m_TileMapData[nX + (nY << 6)].byTileIndex + 10;
+                int nIndex = m_TileMapData[nX + (nY << 6)].sTileIndex + TILE_TEXTURE_BASE;
                 for (int k = 0; k < 4; k++)
                 {
-                    m_vertex[k].tu1 = TMGround::TileCoordList[(unsigned char)bCoordIndex][k][0];
-                    m_vertex[k].tv1 = TMGround::TileCoordList[(unsigned char)bCoordIndex][k][1];
+                    m_vertex[k].tu1 = pTileCoord[k][0];
+                    m_vertex[k].tv1 = pTileCoord[k][1];
 
                     if (!m_bDungeon || m_bDungeon == 3 || m_bDungeon == 4)
                     {
-                        m_vertex[k].tu2 = TMGround::BackTileCoordList[(unsigned char)bCoordBackIndex][k][0];
-                        m_vertex[k].tv2 = TMGround::BackTileCoordList[(unsigned char)bCoordBackIndex][k][1];
+                        m_vertex[k].tu2 = TMGround::BackTileCoordList[bCoordBackIndex][k][0];
+                        m_vertex[k].tv2 = TMGround::BackTileCoordList[bCoordBackIndex][k][1];
                        continue;
                     }
 
@@ -547,7 +549,7 @@ int TMGround::Render()
                 g_pDevice->SetTexture(0, g_pTextureManager->GetEnvTexture(nTexIndex, 5000));
 
                 if (!m_bDungeon || m_bDungeon == 3 || m_bDungeon == 4)
-                    g_pDevice->SetTexture(1, g_pTextureManager->GetEnvTexture(((unsigned char)m_TileMapData[nX + (nY << 6)].byBackTileIndex + 256), 5000));
+                    g_pDevice->SetTexture(1, g_pTextureManager->GetEnvTexture(m_TileMapData[nX + (nY << 6)].sBackTileIndex + BACK_TILE_TEXTURE_BASE, 5000));
 
                 g_pDevice->m_pd3dDevice->SetFVF(594);
 

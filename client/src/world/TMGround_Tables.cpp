@@ -2240,3 +2240,12 @@ int TMGround::m_nCheckSum[64][32] =
     0
   }
 };
+
+const float (*TMGround::GetTileCoord(unsigned char byCoord))[2]
+{
+    if (byCoord < 8)
+        return TileCoordList[byCoord];
+    if (byCoord < 8 + 32)
+        return BackTileCoordList[byCoord - 8];
+    return TileCoordList[0];
+}

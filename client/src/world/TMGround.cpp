@@ -632,7 +632,7 @@ int TMGround::GetTileType(TMVector2 vecPosition)
     if (m_pVAttrData[nY][nX] == 1)
         return 1;
 
-    int nIndex = m_TileMapData[nX / 2 + (nY / 2 << 6)].byTileIndex + 10;
+    int nIndex = m_TileMapData[nX / 2 + (nY / 2 << 6)].sTileIndex + TILE_TEXTURE_BASE;
 
     if (nIndex >= 14 && nIndex <= 17 && nIndex >= 38 && nIndex <= 77 && nIndex >= 86 && nIndex <= 101 && nIndex >= 130 && nIndex <= 149)
         return 0;
