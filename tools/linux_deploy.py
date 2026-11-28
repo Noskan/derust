@@ -236,7 +236,10 @@ WantedBy=timers.target
 """
 
 
-def write_units(dest, user, w2db, metrics, pg_user):
+def write_units(dest, user, w2db=False, metrics=None, pg_user="postgres"):
+    if metrics is None:
+        metrics = dest / "metrics"
+        metrics.mkdir(exist_ok=True)
     sysd = dest / "systemd"
     sysd.mkdir(exist_ok=True)
     bindir = dest / "bin"
