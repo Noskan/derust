@@ -1122,6 +1122,9 @@ LABEL_59:
 /// Aplica ou renova um buff/debuff (Affect) no slot correspondente do personagem/mob.
 BOOL SetAffect(int conn, int skillnum, int time, int Level)
 {
+	if (conn <= 0 || conn >= MAX_MOB || skillnum < 0 || skillnum >= MAX_SPELL_LIST)
+		return FALSE;
+
 	if (pMob[conn].MOB.Merchant == 1 || conn > MAX_USER)
 		return FALSE;
 
@@ -1170,7 +1173,10 @@ BOOL SetAffect(int conn, int skillnum, int time, int Level)
 /// Aplica um efeito periodico com intervalo de tick configurado.
 BOOL SetTick(int mob, int skillnum, int Delay, int Level)
 {
-	if (pMob[mob].MOB.Merchant == 1 && mob > MAX_USER)
+	if (mob <= 0 || mob >= MAX_MOB || skillnum < 0 || skillnum >= MAX_SPELL_LIST)
+		return FALSE;
+
+	if (pMob[mob].MOB.Merchant == 1 && mob >= MAX_USER)
 		return FALSE;
 
 	int sTickType = g_pSpell[skillnum].TickType;
