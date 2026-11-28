@@ -545,6 +545,23 @@ W2DbResult W2DbSave(const STRUCT_ACCOUNTFILE* file, bool logout, const W2Handoff
 	return W2DB_FAIL;
 }
 
+W2DbResult W2DbCheckPassword(const char* name, const char* pass)
+{
+	pb::AccountLoginRequest req;
+	req.set_name(Bytes(name, ACCOUNTNAME_LENGTH));
+	req.set_password(Bytes(pass, ACCOUNTPASS_LENGTH));
+	pb::AccountLoginReply rep;
+	grpc::ClientContext ctx;
+	Deadline(ctx, W2DB_LOGIN_DEADLINE_MS);
+	grpc::Status st = g_stub->AccountLogin(&ctx, req, &rep);
+	if (!st.ok())
+	{
+		LogRpc("password check", name, st);
+		return W2DB_FAIL;
+	}
+	return FromStatus(rep.status());
+}
+
 W2DbResult W2DbCreateAccount(const char* name, const char* pass, bool bonus)
 {
 	pb::CreateAccountRequest req;

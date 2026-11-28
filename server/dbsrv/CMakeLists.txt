@@ -64,6 +64,10 @@ if(DERUST_W2DB)
     VERBATIM
   )
 
+  # O código que o protoc gera não é nosso: os avisos dele (falsos positivos do gcc com ASan) ficam
+  # de fora.
+  set_source_files_properties(${_w2db_out} PROPERTIES COMPILE_OPTIONS "-w")
+
   # Código gerado e a conversão STRUCT_ACCOUNTFILE <-> proto (também usada pelos testes).
   add_library(w2db_cpp STATIC
     ${_w2db_out}

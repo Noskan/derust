@@ -894,7 +894,21 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				break;
 			}
 
-			if (strncmp(m->Password, pAccountList[Idx].File.Info.AccountPass, ACCOUNTPASS_LENGTH) != 0)
+			// No w2db a senha só está na memória se a conta entrou com ela (depois de uma troca de
+			// canal, pela TempKey, não está): confere no banco.
+			bool passwordOk;
+			if (W2DbOn())
+			{
+				char pass[ACCOUNTPASS_LENGTH + 1] = { 0, };
+				strncpy(pass, m->Password, ACCOUNTPASS_LENGTH);
+				passwordOk = pAccountList[Idx].File.Info.AccountPass[0] != 0
+					? strncmp(pass, pAccountList[Idx].File.Info.AccountPass, ACCOUNTPASS_LENGTH) == 0
+					: W2DbCheckPassword(pAccountList[Idx].File.Info.AccountName, pass) == W2DB_OK;
+			}
+			else
+				passwordOk = strncmp(m->Password, pAccountList[Idx].File.Info.AccountPass, ACCOUNTPASS_LENGTH) == 0;
+
+			if (!passwordOk)
 			{
 				SendDBSignal(conn, m->ID, _MSG_DBDeleteCharacterFail);
 

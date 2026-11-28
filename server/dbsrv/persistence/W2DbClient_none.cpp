@@ -27,6 +27,7 @@ bool W2DbOn() { return false; }
 W2DbResult W2DbLogin(const char*, const char*, STRUCT_ACCOUNTFILE*, int*) { return W2DB_FAIL; }
 W2DbResult W2DbLoad(const char*, STRUCT_ACCOUNTFILE*, bool) { return W2DB_FAIL; }
 W2DbResult W2DbSave(const STRUCT_ACCOUNTFILE*, bool, const W2Handoff*, int) { return W2DB_FAIL; }
+W2DbResult W2DbCheckPassword(const char*, const char*) { return W2DB_FAIL; }
 W2DbResult W2DbCreateAccount(const char*, const char*, bool) { return W2DB_FAIL; }
 W2DbResult W2DbSetPassword(const char*, const char*) { return W2DB_FAIL; }
 W2DbResult W2DbCheckNumeric(const char*, const char*) { return W2DB_FAIL; }

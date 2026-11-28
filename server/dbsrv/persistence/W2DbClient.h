@@ -65,6 +65,10 @@ struct W2Handoff
 W2DbResult W2DbSave(const STRUCT_ACCOUNTFILE* file, bool logout, const W2Handoff* handoffs = nullptr,
 	int handoffCount = 0);
 
+/// @brief Confere a senha da conta no w2db (conta para o bloqueio por senha errada), sem guardar
+///        nada.
+W2DbResult W2DbCheckPassword(const char* name, const char* pass);
+
 W2DbResult W2DbCreateAccount(const char* name, const char* pass, bool bonus);
 W2DbResult W2DbSetPassword(const char* name, const char* pass);
 W2DbResult W2DbCheckNumeric(const char* name, const char* numeric);
