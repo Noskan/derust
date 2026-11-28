@@ -666,8 +666,11 @@ void GenerateMob(int index, int PosX, int PosY)
 	{
 		int level = pMob[tmob].MOB.CurrentScore.Level;
 
-		GuildImpostoID[level] = tmob;
-		pMob[tmob].MOB.Guild = g_pGuildZone[level].ChargeGuild;
+		if (level >= 0 && level < MAX_GUILDZONE)
+		{
+			GuildImpostoID[level] = tmob;
+			pMob[tmob].MOB.Guild = g_pGuildZone[level].ChargeGuild;
+		}
 	}
 
 
@@ -735,13 +738,15 @@ void GenerateMob(int index, int PosX, int PosY)
 		}
 		memset(pMob[tempmob].Affect, 0, sizeof(pMob[tempmob].Affect));
 
+		int fmt = (Formation >= 0 && Formation < 5) ? Formation : 0;
+
 		for (int j = 0; j < MAX_SEGMENT; j++)
 		{
 			if (mNPCGen.pList[index].SegmentRange[j])
 			{
-				pMob[tempmob].SegmentListX[j] = g_pFormation[i][j][Formation] + pMob[tmob].SegmentListX[j];
+				pMob[tempmob].SegmentListX[j] = g_pFormation[fmt][i][0] + pMob[tmob].SegmentListX[j];
 
-				pMob[tempmob].SegmentListY[j] = g_pFormation[i][j][Formation] + pMob[tmob].SegmentListY[j];
+				pMob[tempmob].SegmentListY[j] = g_pFormation[fmt][i][1] + pMob[tmob].SegmentListY[j];
 
 
 				pMob[tempmob].SegmentWait[j] = mNPCGen.pList[index].SegmentWait[j];
