@@ -812,6 +812,7 @@ void ProcessDBMessage(char *Msg)
 										 pUser[conn].Unk_2708 = 0;
 										 pUser[conn].LastChat[0] = 0;
 										 pUser[conn].Slot = m->Slot;
+										 pUser[conn].HandoffCount = 0;
 										 pUser[conn].NumError = 0;
 										 pUser[conn].LastMove = 0;
 										 pUser[conn].LastAction = _MSG_Action;

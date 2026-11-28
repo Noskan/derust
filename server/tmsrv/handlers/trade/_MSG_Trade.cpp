@@ -325,11 +325,63 @@ void Exec_MSG_Trade(int conn, char *pMsg)
 					return;
 				}
 
+#ifdef W2_TEST_HOOKS
+				STRUCT_ITEM myBefore[MAX_CARRY];
+				STRUCT_ITEM oppBefore[MAX_CARRY];
+				memcpy(myBefore, pMob[conn].MOB.Carry, sizeof(myBefore));
+				memcpy(oppBefore, pMob[OpponentID].MOB.Carry, sizeof(oppBefore));
+#endif
+
 				memcpy(pMob[conn].MOB.Carry, mydest, sizeof(mydest));
 				memcpy(pMob[OpponentID].MOB.Carry, oppdest, sizeof(oppdest));
 
 				pMob[conn].MOB.Coin = fGold;
 				pMob[OpponentID].MOB.Coin = opfGold;
+
+				// Cada item que mudou de mão vai na próxima gravação de quem recebeu, com a conta e a
+				// vaga de origem: com o w2db, o item leva o serial que tinha.
+				for (int i = 0; i < MAX_TRADE; i++)
+				{
+					if (pUser[conn].Trade.Item[i].sIndex)
+						AddItemHandoff(OpponentID, conn, pUser[conn].Trade.CarryPos[i], &pUser[conn].Trade.Item[i]);
+
+					if (pUser[OpponentID].Trade.Item[i].sIndex)
+						AddItemHandoff(conn, OpponentID, pUser[OpponentID].Trade.CarryPos[i], &pUser[OpponentID].Trade.Item[i]);
+				}
+
+#ifdef W2_TEST_HOOKS
+				// Teste do w2db (DERUST_TEST_HOOKS, /w2dupe): quem pediu fica com uma cópia do que deu,
+				// como num bug de duplicação. O DBSrv tem de acusar o serial repetido.
+				for (int side = 0; side < 2; side++)
+				{
+					const int who = side == 0 ? conn : OpponentID;
+					const STRUCT_ITEM* before = side == 0 ? myBefore : oppBefore;
+
+					if (pUser[who].TestKeepTrade == 0)
+						continue;
+
+					pUser[who].TestKeepTrade = 0;
+
+					for (int i = 0; i < MAX_TRADE; i++)
+					{
+						const int pos = pUser[who].Trade.CarryPos[i];
+
+						if (pUser[who].Trade.Item[i].sIndex == 0 || pos < 0 || pos >= MAX_CARRY - 4)
+							continue;
+
+						int dest = pos;
+
+						if (pMob[who].MOB.Carry[dest].sIndex != 0)
+							for (dest = 0; dest < MAX_CARRY - 4 && pMob[who].MOB.Carry[dest].sIndex != 0; dest++)
+								;
+
+						if (dest < MAX_CARRY - 4)
+							pMob[who].MOB.Carry[dest] = before[pos];
+					}
+
+					Log("etc,test hook w2dupe: kept traded items", pUser[who].AccountName, pUser[who].IP);
+				}
+#endif
 
 				SendCarry(conn);
 				SendCarry(OpponentID);

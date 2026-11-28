@@ -34,6 +34,8 @@ CUser::CUser()
 	AcceptSec        = 0;
 
 	memset(Cargo, 0, sizeof(Cargo));
+	HandoffCount = 0;
+	TestKeepTrade = 0;
 
 	Admin			 = 0;
 	CastleStatus	 = 0;
@@ -93,6 +95,8 @@ int CUser::CloseUser()
 	 Mode = USER_EMPTY;
 
 	 AccountName[0] = 0;
+	 HandoffCount = 0;
+	 TestKeepTrade = 0;
 
 	 return TRUE;
 }

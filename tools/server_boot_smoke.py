@@ -39,8 +39,18 @@ alerta (ServerAlert, a antiga MessageBox) escreve "[título] texto" no stderr, q
 fechar a janela. O LoginClient.exe roda no wine (32 bits, num prefixo próprio, dentro do diretório de trabalho, e
 num Xvfb próprio): é um cliente Windows contra servidores Linux.
 
+Com --w2db (o binário de services/w2db), as contas ficam no Postgres em vez de ./account: o teste
+sobe um cluster Postgres próprio (initdb no diretório de trabalho, só Unix socket) e o `w2db serve`,
+e aponta o DBSrv para ele (w2db.txt). Confere também, no banco:
+  9. As contas e os personagens criados pelo caminho do jogo, sem senha em claro, e os itens de
+     cada um com serial e evento de criação.
+ 10. A troca de mão dupla do LoginClient pelo serial: a espada criada em cada conta está na outra.
+Com --forced-dupe (TMSrv montado com DERUST_TEST_HOOKS), o LoginClient força uma duplicação numa
+segunda troca (/w2dupe: A dá a armadura e fica com uma cópia), e o teste exige que o w2db acuse o
+serial repetido (evento dupe_suspect) e que o DBSrv avise o operador.
+
 Uso: python3 tools/server_boot_smoke.py <dir com DBSrv e TMSrv> [--keep DIR] [--settle S]
-       [--login-client EXE] [--require-login]
+       [--login-client EXE] [--require-login] [--w2db EXE [--pg-bin DIR] [--forced-dupe]]
 """
 
 import argparse
@@ -106,6 +116,10 @@ def synthetic_base_mob(cls):
         struct.pack_into("<4h", mob, score + 32, 10 + cls, 20 + cls, 30 + cls, 40 + cls)  # Str/Int/Dex/Con
     struct.pack_into("<h", mob, 140 + 8, 2)               # Equip[1].sIndex: ArmaduraTeste
     struct.pack_into("<h", mob, 268, 412)                 # Carry[0].sIndex: PocaoTeste
+    # Carry[1] e Carry[2]: espada e armadura para as trocas, com o grau (EF_SANC) da classe, para
+    # os itens de A e de B serem diferentes.
+    struct.pack_into("<h6B", mob, 268 + 1 * 8, 1, 43, cls, 0, 0, 0, 0)
+    struct.pack_into("<h6B", mob, 268 + 2 * 8, 2, 43, cls, 0, 0, 0, 0)
     # Carry[61]: bolsa (libera Carry[45..59]), válida até 31/12/2099 (dia, mês, ano - 2000 nos
     # valores dos três efeitos, como BASE_CheckItemDate lê). Carry[60] fica sem bolsa.
     struct.pack_into("<h6B", mob, 268 + 61 * 8, 3467, 0, 31, 0, 12, 0, 99)
@@ -297,9 +311,14 @@ class LinuxHost:
         proc = subprocess.Popen([str(cwd / name)], cwd=cwd, stdout=subprocess.DEVNULL, stderr=open(log, "wb"))
         return Server(self, name, proc, log)
 
+    # Alertas que o teste provoca de propósito (a duplicação forçada): não contam como problema, e o
+    # teste confere à parte que vieram.
+    expected_alerts = []
+
     def problems(self, server):
         text = server.log.read_bytes().decode("utf-8", "replace") if server.log.exists() else ""
-        out = [f'{server.name}: MessageBox "{l}"' for l in text.splitlines() if l.startswith("[")]
+        out = [f'{server.name}: MessageBox "{l}"' for l in text.splitlines()
+               if l.startswith("[") and not any(re.search(p, l) for p in self.expected_alerts)]
         code = server.proc.poll()
         if code is not None and code < 0:
             out.append(f"{server.name}: terminou pelo sinal {-code}")
@@ -393,6 +412,181 @@ def wait_port(port, host, servers, timeout):
     return [f"porta {port} não abriu em {timeout}s"]
 
 
+def find_pg_bin(given):
+    """Diretório com initdb, pg_ctl e psql: o dado, o do pg_config ou o maior /usr/lib/postgresql/N/bin."""
+    if given:
+        return Path(given)
+    if shutil.which("initdb"):
+        return Path(shutil.which("initdb")).parent
+    try:
+        out = subprocess.run(["pg_config", "--bindir"], capture_output=True, text=True, check=True).stdout.strip()
+        if (Path(out) / "initdb").exists():
+            return Path(out)
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    found = sorted(Path("/usr/lib/postgresql").glob("*/bin/initdb"), key=lambda p: int(p.parent.parent.name))
+    if not found:
+        raise SystemExit("não achei o initdb do Postgres (--pg-bin)")
+    return found[-1].parent
+
+
+class W2Db:
+    """Postgres próprio (só Unix socket, sem fsync) e o `w2db serve` em cima dele. Os sockets ficam
+    num diretório curto do sistema: o caminho de um Unix socket tem limite de ~107 bytes."""
+
+    def __init__(self, work, exe, pg_bin, timeout=60):
+        self.work, self.exe, self.pg_bin = work, Path(exe), pg_bin
+        work.mkdir(parents=True, exist_ok=True)
+        self.sock = Path(tempfile.mkdtemp(prefix="w2db_"))
+        self.data = work / "pg"
+        self.proc = None
+        quiet = {"stdout": subprocess.DEVNULL, "stderr": subprocess.STDOUT}
+        subprocess.run([str(pg_bin / "initdb"), "-D", str(self.data), "-U", "w2", "--auth=trust", "-E", "UTF8",
+                        "--locale=C", "--no-sync"], check=True, **quiet)
+        opts = f"-c listen_addresses='' -k {self.sock} -c fsync=off -c full_page_writes=off"
+        subprocess.run([str(pg_bin / "pg_ctl"), "-D", str(self.data), "-l", str(work / "pg.log"), "-o", opts, "-w",
+                        "start"], check=True, **quiet)
+        self.url = f"postgres://w2@localhost/postgres?host={self.sock}"
+        self.sql("CREATE DATABASE w2db", db="postgres")
+        self.url = f"postgres://w2@localhost/w2db?host={self.sock}"
+        self.socket = self.sock / "w2db.sock"
+        env = dict(os.environ, DATABASE_URL=self.url, RUST_LOG="info", NO_COLOR="1")
+        log = open(work / "w2db.log", "wb")
+        self.proc = subprocess.Popen([str(self.exe), "serve", "--socket", str(self.socket)], env=env,
+                                     stdout=log, stderr=subprocess.STDOUT)
+        end = time.time() + timeout
+        while not self.socket.exists():
+            if self.proc.poll() is not None or time.time() > end:
+                raise SystemExit(f"w2db não subiu (log em {work / 'w2db.log'}):\n{self.log()}")
+            time.sleep(0.2)
+        print(f"w2db no ar em {self.socket} (Postgres em {self.data})")
+
+    def sql(self, query, db="w2db"):
+        """Linhas da consulta, cada uma uma tupla de textos."""
+        r = subprocess.run([str(self.pg_bin / "psql"), "-h", str(self.sock), "-U", "w2", "-d", db, "-X", "-q", "-tA",
+                            "-F", "\t", "-v", "ON_ERROR_STOP=1", "-c", query], capture_output=True, text=True)
+        if r.returncode != 0:
+            raise RuntimeError(f"psql: {r.stderr.strip()}")
+        return [tuple(l.split("\t")) for l in r.stdout.splitlines() if l]
+
+    def log(self):
+        try:
+            return (self.work / "w2db.log").read_text(errors="replace")
+        except OSError:
+            return ""
+
+    def problems(self):
+        out = []
+        if self.proc is not None and self.proc.poll() is not None:
+            out.append(f"w2db: saiu com código {self.proc.returncode}")
+        for line in re.sub(r"\x1b\[[0-9;]*m", "", self.log()).splitlines():
+            if " ERROR " in line or "panicked" in line:
+                out.append(f"w2db: {line.strip()}")
+        return out
+
+    def close(self):
+        if self.proc is not None and self.proc.poll() is None:
+            self.proc.send_signal(signal.SIGTERM)
+            try:
+                self.proc.wait(10)
+            except subprocess.TimeoutExpired:
+                self.proc.kill()
+        subprocess.run([str(self.pg_bin / "pg_ctl"), "-D", str(self.data), "-m", "fast", "-w", "stop"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        shutil.rmtree(self.sock, ignore_errors=True)
+
+
+def check_w2db(db):
+    """Contas, personagens e itens que o jogo gravou no w2db."""
+    problems = []
+    accounts = {r[0]: r for r in db.sql(
+        "SELECT name_key, password_hash LIKE '$argon2id$%', numeric_hash IS NOT NULL, version FROM accounts")}
+    for account in (LOGIN_ACCOUNT, LOGIN_ACCOUNT_B):
+        row = accounts.get(account.upper())
+        if row is None:
+            problems.append(f"w2db: a conta {account.upper()} não está no banco")
+        elif row[1] != "t":
+            problems.append(f"w2db: a senha da conta {account.upper()} não está em argon2id")
+    if LOGIN_ACCOUNT.upper() in accounts and accounts[LOGIN_ACCOUNT.upper()][2] != "t":
+        problems.append(f"w2db: a senha numérica de {LOGIN_ACCOUNT.upper()} não foi gravada")
+    chars = {r[0]: r for r in db.sql(
+        "SELECT c.name, a.name_key, c.class, (SELECT count(*) FROM items i WHERE i.character_id = c.id) "
+        "FROM characters c JOIN accounts a ON a.id = c.account_id")}
+    for name, account, cls in ((LOGIN_CHAR, LOGIN_ACCOUNT, LOGIN_CLASS), (LOGIN_CHAR_B, LOGIN_ACCOUNT_B, LOGIN_CLASS_B)):
+        row = chars.get(name)
+        if row is None:
+            problems.append(f"w2db: o personagem {name} não está no banco")
+            continue
+        if row[1] != account.upper() or int(row[2]) != cls:
+            problems.append(f"w2db: personagem {name} com conta/classe {row[1]}/{row[2]}, esperado {account.upper()}/{cls}")
+        if int(row[3]) == 0:
+            problems.append(f"w2db: o personagem {name} está sem itens no banco")
+    if len(chars) != 2:
+        problems.append(f"w2db: esperava 2 personagens (o apagado sai do banco), há {sorted(chars)}")
+    orphans = db.sql("SELECT i.serial FROM items i WHERE NOT EXISTS (SELECT 1 FROM item_events e WHERE "
+                     "e.serial = i.serial AND e.kind IN ('create', 'import', 'dupe_suspect'))")
+    if orphans:
+        problems.append(f"w2db: itens sem evento de criação: {[r[0] for r in orphans]}")
+    if not problems:
+        n = db.sql("SELECT count(*), count(DISTINCT kind) FROM item_events")[0]
+        print(f"w2db: 2 contas e 2 personagens no banco, itens com serial ({n[0]} eventos, {n[1]} tipos)")
+    return problems
+
+
+ITEM_HOME = ("SELECT i.serial, a.name_key, (SELECT ca.name_key FROM item_events e JOIN accounts ca ON ca.id = "
+             "e.account_id WHERE e.serial = i.serial AND e.kind = 'create'), i.ev1, "
+             "(SELECT string_agg(e.kind, ',' ORDER BY e.id) FROM item_events e WHERE e.serial = i.serial) "
+             "FROM items i JOIN accounts a ON a.id = i.account_id WHERE i.container <> 0 AND i.item_index = {}")
+
+
+def check_w2db_trade(db):
+    """A espada de cada conta (EF_SANC = classe) foi na troca de mão dupla para a outra, com o
+    serial que nasceu na conta de origem."""
+    problems = []
+    rows = db.sql(ITEM_HOME.format(1))
+    want = {(LOGIN_ACCOUNT.upper(), LOGIN_ACCOUNT_B.upper(), LOGIN_CLASS),
+            (LOGIN_ACCOUNT_B.upper(), LOGIN_ACCOUNT.upper(), LOGIN_CLASS_B)}
+    got = {(r[2], r[1], int(r[3])) for r in rows}
+    if got != want:
+        problems.append(f"w2db: espadas depois da troca (criada em, está em, grau): {sorted(got)}, esperado "
+                        f"{sorted(want)}; linhas {rows}")
+    else:
+        hist = "; ".join(f"{r[0]}: {r[4]}" for r in rows)
+        print(f"w2db: troca de mão dupla pelo serial: cada espada está na outra conta ({hist})")
+    return problems
+
+
+def check_w2db_dupe(db, servers, timeout=20):
+    """A duplicação forçada: a armadura de A foi para B com o serial dela, e a cópia que ficou com A
+    virou suspeita de duplicação (serial novo, evento dupe_suspect com o original), com aviso do
+    DBSrv ao operador."""
+    end = time.time() + timeout
+    dupes = []
+    while time.time() < end and not dupes:
+        dupes = db.sql("SELECT e.serial, a.name_key, e.item_index, e.detail->>'original_serial' FROM item_events e "
+                       "JOIN accounts a ON a.id = e.account_id WHERE e.kind = 'dupe_suspect'")
+        time.sleep(0.5)
+    problems = []
+    armor = {r[0]: r for r in db.sql(ITEM_HOME.format(2))}
+    if len(dupes) != 1:
+        return [f"w2db: esperava uma suspeita de duplicação (a armadura forçada), há {dupes}"]
+    serial, account, index, original = dupes[0]
+    if account != LOGIN_ACCOUNT.upper() or int(index) != 2:
+        problems.append(f"w2db: suspeita de duplicação em {account} item {index}, esperado {LOGIN_ACCOUNT.upper()} item 2")
+    home = armor.get(original)
+    if home is None or home[1] != LOGIN_ACCOUNT_B.upper() or home[2] != LOGIN_ACCOUNT.upper():
+        problems.append(f"w2db: o serial original {original} da armadura duplicada não está em "
+                        f"{LOGIN_ACCOUNT_B.upper()} vindo de {LOGIN_ACCOUNT.upper()}: {home}")
+    db_server = next(s for s in servers if s.name == "DBSrv")
+    text = db_server.log.read_bytes().decode("utf-8", "replace") if db_server.log.exists() else ""
+    if not any(l.startswith("[w2db]") and "dupe suspect" in l for l in text.splitlines()):
+        problems.append("DBSrv: não avisou o operador da suspeita de duplicação (alerta [w2db] no stderr)")
+    if not problems:
+        print(f"w2db: duplicação forçada acusada: a cópia de A ganhou o serial {serial} (original {original}, "
+              f"que foi para {LOGIN_ACCOUNT_B.upper()}), e o DBSrv avisou o operador")
+    return problems
+
+
 def prepare(work, exe_dir):
     db_dir, tm_dir, game_host = build_tree(work, exe_dir)
     return db_dir, tm_dir, game_host
@@ -431,7 +625,7 @@ def import_accounts(common):
     return paths
 
 
-def login(host, work, db_dir, game_host, client, import_files, timeout):
+def login(host, work, db_dir, game_host, client, import_files, timeout, db=None, dupe=False):
     """Espera o DBSrv importar as contas e roda o LoginClient contra o TMSrv."""
     end = time.time() + timeout
     while any(f.exists() for f in import_files) and time.time() < end:
@@ -439,6 +633,11 @@ def login(host, work, db_dir, game_host, client, import_files, timeout):
     for f in import_files:
         if f.exists():
             return [f"DBSrv: não importou a conta de {f} em {timeout:.0f}s"]
+        if db is not None:
+            if not db.sql(f"SELECT 1 FROM accounts WHERE name_key = '{f.name.upper()}'"):
+                return [f"DBSrv: importou a conta {f.name} mas ela não está no w2db"]
+            print(f"conta \"{f.name}\" criada pelo ImportUser no w2db")
+            continue
         account = db_dir / "account" / f.name[0].upper() / f.name.upper()
         if not account.exists():
             return [f"DBSrv: importou a conta mas não gravou {account}"]
@@ -446,7 +645,7 @@ def login(host, work, db_dir, game_host, client, import_files, timeout):
     cwd = work / "login"
     cwd.mkdir()
     args = [game_host, str(GAME_PORT), LOGIN_ACCOUNT, LOGIN_PASSWORD, LOGIN_NUMERIC, LOGIN_CHAR, str(LOGIN_CLASS),
-            LOGIN_ACCOUNT_B, LOGIN_CHAR_B, str(LOGIN_CLASS_B)]
+            LOGIN_ACCOUNT_B, LOGIN_CHAR_B, str(LOGIN_CLASS_B)] + (["dupe"] if dupe else [])
     try:
         r = host.run(client, args, cwd, timeout)
     except subprocess.TimeoutExpired:
@@ -520,7 +719,11 @@ def boot(host, work, exe_dir, args):
     import_files = import_accounts(work / "Common") if args.login_client else None
     servers = []
     graceful = False  # só encerra com WM_QUIT se os dois chegaram ao fim do tempo no ar
+    db = None
     try:
+        if args.w2db:
+            db = W2Db(work / "w2db", args.w2db, find_pg_bin(args.pg_bin))
+            (db_dir / "w2db.txt").write_text(f"{db.socket}\n")
         t0 = db_started = time.time()
         servers.append(host.start("DBSrv", db_dir))
         problems = wait_port(DB_PORT, "127.0.0.1", servers, args.timeout)
@@ -537,10 +740,16 @@ def boot(host, work, exe_dir, args):
             if not port_open(port, h):
                 problems.append(f"conexão de teste em {h}:{port} recusada")
         if args.login_client and not problems:
-            problems += login(host, work, db_dir, game_host, args.login_client, import_files, args.timeout)
+            problems += login(host, work, db_dir, game_host, args.login_client, import_files, args.timeout, db,
+                              args.forced_dupe)
             problems += [p for s in servers for p in s.problems()]
             if not problems:
                 print("login e jogo de ponta a ponta conferidos")
+            if db is not None and not problems:
+                problems += check_w2db(db)
+                problems += check_w2db_trade(db)
+                if args.forced_dupe:
+                    problems += check_w2db_dupe(db, servers)
         if hasattr(host, "control") and not problems:
             problems += host.control(servers)
             problems += [p for s in servers for p in s.problems()]
@@ -548,9 +757,14 @@ def boot(host, work, exe_dir, args):
         if not problems:
             problems += check_status_page(work / "Common", db_started)
         problems += [p for s in servers for p in s.problems()]
+        if db is not None:
+            problems += db.problems()
         graceful = not problems
     finally:
         stop_problems = host.stop(servers, graceful=graceful)
+        if db is not None:
+            stop_problems += db.problems()
+            db.close()
     problems += stop_problems
     # O TMSrv só grava "sys,start server" depois de ler o heightmap e o BASE_InitializeBaseDef;
     # sem o heightmap, o Reboot() só registra o erro e volta, e o boot pareceria bom.
@@ -579,7 +793,17 @@ def main():
     ap.add_argument("--no-self-test", action="store_true", help="pula o autoteste do detector de MessageBox")
     ap.add_argument("--login-client", help="LoginClient.exe (padrão: o do diretório dos servidores, se houver)")
     ap.add_argument("--require-login", action="store_true", help="falha se não houver LoginClient.exe")
+    ap.add_argument("--w2db", help="binário do w2db (services/w2db): contas no Postgres em vez de ./account")
+    ap.add_argument("--pg-bin", help="diretório com initdb, pg_ctl e psql (padrão: procura)")
+    ap.add_argument("--forced-dupe", action="store_true",
+                    help="com --w2db: força uma duplicação numa troca (TMSrv com DERUST_TEST_HOOKS) e exige que seja acusada")
     args = ap.parse_args()
+    if args.forced_dupe and not args.w2db:
+        raise SystemExit("--forced-dupe precisa de --w2db")
+    if args.w2db:
+        args.w2db = Path(args.w2db).resolve()
+        if not args.w2db.is_file():
+            raise SystemExit(f"falta {args.w2db}")
 
     exe_dir = Path(args.exe_dir).resolve()
     for exe in ("DBSrv", "TMSrv"):
@@ -608,6 +832,8 @@ def main():
 
     need_wine = bool(args.login_client) and Path(args.login_client).suffix.lower() == ".exe"
     host = LinuxHost(work, need_wine)
+    if args.forced_dupe:
+        host.expected_alerts.append(r"^\[w2db\] err,w2db 1 dupe suspect\(s\) in " + LOGIN_ACCOUNT.upper() + ",")
     print("plataforma: Linux nativo" + (" (LoginClient no wine + Xvfb)" if need_wine else ""))
     try:
         problems = [] if args.no_self_test else self_test(host, work / "selftest", exe_dir, args.timeout)

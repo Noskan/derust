@@ -27,6 +27,19 @@ if(DERUST_BUILD_SERVER)
   target_link_libraries(account_layout_dump PRIVATE w2pp_common)
 
   add_test(NAME account_layout COMMAND account_layout_dump ${CMAKE_SOURCE_DIR}/shared/protocol/account_layout.txt)
+
+  # Conversão arquivo de conta <-> proto do DBSrv contra o codec do w2db (os .pb das contas de teste,
+  # que o teste golden_protos do Rust gera).
+  if(TARGET w2db_cpp)
+    add_executable(w2db_convert_tests
+      w2db_convert_tests.cpp
+    )
+
+    target_link_libraries(w2db_convert_tests PRIVATE w2db_cpp)
+
+    add_test(NAME w2db_convert COMMAND w2db_convert_tests ${CMAKE_SOURCE_DIR}/services/w2db/tests/data/account/D
+      ${CMAKE_SOURCE_DIR}/services/w2db/tests/data/golden)
+  endif()
 endif()
 
 # Testes de caracterização das funções BASE_* do cliente (TMProject). Compila só o que esses

@@ -35,6 +35,7 @@
 #include "persistence/CRanking.h"
 #include "core/CReadFiles.h"
 #include "common/Basedef.h"
+#include "persistence/W2DbClient.h"
 
 
 extern int ServerIndex; //Server.cpp
@@ -50,6 +51,48 @@ extern STRUCT_MOB g_pBaseSet[MAX_CLASS]; // Server.cpp
 
 extern int  ChargedGuildList[MAX_SERVER][MAX_GUILDZONE];
 extern STRUCT_ITEMLOG ItemDayLog[MAX_ITEMLIST];
+
+namespace
+{
+/// @brief O w2db recusou a gravação (nome de personagem tomado, por exemplo): a conta em memória
+///        volta a ser a do banco, com a senha e a senha numérica que o DBSrv já conhecia.
+void W2DbRevert(STRUCT_ACCOUNTFILE* file)
+{
+	if (!W2DbOn())
+		return;
+	STRUCT_ACCOUNTINFO info = file->Info;
+	static STRUCT_ACCOUNTFILE fresh;
+	if (W2DbLoad(info.AccountName, &fresh, true) != W2DB_OK)
+		return;
+	fresh.Info = info;
+	*file = fresh;
+}
+}
+
+/// @brief Itens que a conta recebeu em trocas (o TMSrv manda na gravação), com o personagem de quem
+///        deu, se ele está conectado.
+static int W2DbHandoffs(CFileDB& db, int count, const STRUCT_ITEMHANDOFF* in, W2Handoff* out)
+{
+	if (count < 0)
+		count = 0;
+	if (count > MAX_ITEM_HANDOFF)
+		count = MAX_ITEM_HANDOFF;
+	for (int i = 0; i < count; i++)
+	{
+		W2Handoff& h = out[i];
+		memset(&h, 0, sizeof(h));
+		memcpy(h.From, in[i].From, ACCOUNTNAME_LENGTH);
+		W2StrUpper(h.From);
+		h.FromCarry = in[i].FromCarry;
+		h.Item = in[i].Item;
+		h.FromChar = -1;
+		int idx = db.GetIndex(h.From);
+		if (idx >= 0 && idx < MAX_DBACCOUNT && db.pAccountList[idx].Login &&
+			strncmp(db.pAccountList[idx].File.Info.AccountName, h.From, ACCOUNTNAME_LENGTH) == 0)
+			h.FromChar = db.pAccountList[idx].Slot;
+	}
+	return count;
+}
 
 int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 {
@@ -83,7 +126,18 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			file->Coin = 0;
 
-			int ret = DBWriteAccount(file);
+			int ret;
+			if (W2DbOn())
+			{
+				// A conta nasce no w2db (sem os dados pessoais) e volta de lá como ficou.
+				char pass[ACCOUNTPASS_LENGTH + 1] = { 0, };
+				strncpy(pass, m->AccountInfo.AccountPass, ACCOUNTPASS_LENGTH);
+				ret = W2DbCreateAccount(accname, pass, false) == W2DB_OK &&
+					W2DbLoad(accname, file, true) == W2DB_OK;
+				strncpy(file->Info.AccountPass, pass, ACCOUNTPASS_LENGTH);
+			}
+			else
+				ret = DBWriteAccount(file);
 
 			if(ret == 0)
 			{
@@ -177,7 +231,30 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 				return TRUE;
 			}
 
-			if(strcmp(file.Info.AccountPass, m->AccountPass) != 0)
+			if (W2DbOn())
+			{
+				// A senha confere no w2db (argon2id, com bloqueio depois de muitas erradas). A conta
+				// volta de novo do login, com a senha digitada em AccountPass.
+				char pass[ACCOUNTPASS_LENGTH + 1] = { 0, };
+				strncpy(pass, m->AccountPass, ACCOUNTPASS_LENGTH);
+				int lockSeconds = 0;
+				W2DbResult r = W2DbLogin(m->AccountName, pass, &file, &lockSeconds);
+				if (r == W2DB_NO_ACCOUNT || r == W2DB_FAIL || r == W2DB_INVALID)
+				{
+					SendDBSignal(conn, m->ID, _MSG_DBAccountLoginFail_Account);
+
+					return TRUE;
+				}
+				if (r != W2DB_OK)
+				{
+					SendDBSignal(conn, m->ID, _MSG_DBAccountLoginFail_Pass);
+
+					return TRUE;
+				}
+				if (file.Coin < 0)
+					file.Coin = 0;
+			}
+			else if(strcmp(file.Info.AccountPass, m->AccountPass) != 0)
 			{
 				SendDBSignal(conn, m->ID, _MSG_DBAccountLoginFail_Pass);
 
@@ -503,6 +580,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			if(ret == 0)
 			{
+				W2DbRevert(&pAccountList[Idx].File);
 				SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
 
 				Log("err,newchar fail - create file", m->MobName, 0);
@@ -684,7 +762,14 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 			pAccountList[Idx].File.Coin = m->Coin;
 
-			DBWriteAccount(&pAccountList[Idx].File);
+			if (W2DbOn())
+			{
+				W2Handoff handoffs[MAX_ITEM_HANDOFF];
+				int n = W2DbHandoffs(*this, m->HandoffCount, m->Handoff, handoffs);
+				W2DbSave(&pAccountList[Idx].File, false, handoffs, n);
+			}
+			else
+				DBWriteAccount(&pAccountList[Idx].File);
 
 			if(m->Export != 0)
 				DBExportAccount(&pAccountList[Idx].File);
@@ -755,7 +840,14 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 			pAccountList[Idx].File.Coin = m->Coin;
 			pAccountList[Idx].File.Donate = m->Donate;
 
-			DBWriteAccount(&pAccountList[Idx].File);
+			if (W2DbOn())
+			{
+				W2Handoff handoffs[MAX_ITEM_HANDOFF];
+				int n = W2DbHandoffs(*this, m->HandoffCount, m->Handoff, handoffs);
+				W2DbSave(&pAccountList[Idx].File, true, handoffs, n);
+			}
+			else
+				DBWriteAccount(&pAccountList[Idx].File);
 			DBExportAccount(&pAccountList[Idx].File);
 			RemoveAccountList(Idx);
 
@@ -833,7 +925,13 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 	
 			memset(pAccountList[Idx].File.ShortSkill[Slot], 0, 16);
 
-			DeleteCharacter(mob->MobName, pAccountList[Idx].File.Info.AccountName);
+			if (!DeleteCharacter(mob->MobName, pAccountList[Idx].File.Info.AccountName) && W2DbOn())
+			{
+				// No w2db o personagem só sai da conta pelo banco.
+				SendDBSignal(conn, m->ID, _MSG_DBDeleteCharacterFail);
+
+				return TRUE;
+			}
 
 			char Temp[128];
 			sprintf(Temp, "delete char [%s]", mob->MobName);		
@@ -892,7 +990,21 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 			break;
 		}
 
-		if (Change == 0 && Secure == -1 && strncmp(pAccountList[Idx].File.Info.NumericToken, m->NumericToken, 6) == 0)
+		// No w2db a conta só tem o hash da senha numérica (NumericToken vem zerado): confere lá.
+		bool numericOk;
+		if (W2DbOn())
+		{
+			char numeric[7] = { 0, };
+			strncpy(numeric, m->NumericToken, 6);
+			numericOk = Change == 0 && Secure == -1 &&
+				W2DbCheckNumeric(pAccountList[Idx].File.Info.AccountName, numeric) == W2DB_OK;
+			if (numericOk)
+				strncpy(pAccountList[Idx].File.Info.NumericToken, numeric, 6);
+		}
+		else
+			numericOk = strncmp(pAccountList[Idx].File.Info.NumericToken, m->NumericToken, 6) == 0;
+
+		if (Change == 0 && Secure == -1 && numericOk)
 		{
 			pAccountList[Idx].SecurePass = 1;
 			SendDBSignal(conn, m->ID, _MSG_AccountSecure);
@@ -1065,6 +1177,7 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 
 		if (ret == 0)
 		{
+			W2DbRevert(&pAccountList[Idx].File);
 			SendDBSignal(conn, m->ID, _MSG_DBNewCharacterFail);
 
 			Log("err,newchar fail - create file", m->MobName, 0);
@@ -1152,6 +1265,15 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 		int Slot = m->Parm;
 
 		int Idx = GetIndex(conn, m->ID);
+
+		// Cápsulas ainda não existem no w2db (docs/FASE_2_5.md): o personagem sairia da conta sem
+		// passar pelo banco.
+		if (W2DbOn())
+		{
+			Log("err,putincapsule not available with w2db", pAccountList[Idx].File.Info.AccountName, 0);
+
+			return TRUE;
+		}
 		   
 		if (Slot < 0 || Slot >= MOB_PER_ACCOUNT)
 		{
@@ -1236,6 +1358,14 @@ int CFileDB::ProcessAccountMessage(char *Msg, int conn, bool& handled)
 		int Slot = m->Slot;
 		int NovoSlot = 0;
 		int Idx = GetIndex(conn, m->ID);
+
+		if (W2DbOn())
+		{
+			Log("err,outcapsule not available with w2db", pAccountList[Idx].File.Info.AccountName, 0);
+			SendDBSignal(conn, m->ID, _MSG_DBCNFCapsuleCharacterFail);
+
+			return TRUE;
+		}
 		   
 		if (Slot < 0 || Slot >= MOB_PER_ACCOUNT)
 		{

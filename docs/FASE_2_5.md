@@ -107,6 +107,28 @@ Estado (2026-11-28): feito, com a saída conferida (`docs/W2DB.md`). Mudanças e
 
 Saída: smoke completo com ASan/UBSan e Postgres no CI; dupe forçado detectado.
 
+Estado (2026-11-28): itens 2, 4 e 5 feitos, e 1 e 3 de outro jeito (abaixo). A saída foi conferida
+localmente: o smoke com ASan/UBSan e Postgres confere a troca de mão dupla pelo serial no banco e
+acusa a duplicação forçada (`docs/W2DB.md`, No DBSrv). Mudanças em relação ao plano:
+- **Chamadas síncronas, com prazo, na thread do laço** (item 1). O w2db roda na mesma máquina, a
+  gravação leva milissegundos e o login (argon2id) dezenas deles. Para até 30 jogadores isso não
+  aparece. Também evita a máquina de estados no login e na criação de personagem, e a memória do
+  DBSrv fica igual ao banco depois de cada chamada. O assíncrono fica para quando a carga pedir.
+- **Os seriais ficam no DBSrv, não no TMSrv** (item 3). O DBSrv deduz os seriais da conta a cada
+  gravação: o item na mesma vaga, ou que mudou de lugar, mantém o serial. Entre contas, o TMSrv
+  avisa as trocas (`STRUCT_ITEMHANDOFF` nas gravações, com a conta e a vaga de origem), e o item
+  recebido leva o serial de origem. Assim um bug de duplicação na troca é acusado sem mexer nas
+  dezenas de operações de item do TMSrv. Chão, loja pessoal e correio ainda dão serial novo ao
+  item que muda de conta.
+- **Conferência** (item 4): o item de troca cujo serial não foi achado vai para o log. A suspeita
+  de duplicação vai para o log e para o aviso ao operador (stderr; o Discord é a B4).
+- **Duplicação forçada:** pelo gancho `/w2dupe`, que só existe com `DERUST_TEST_HOOKS=ON`, ligado
+  só no build do smoke.
+- Guardar e tirar personagem da cápsula é recusado com o w2db. Ranking e DayLog, que varrem
+  `./account`, ficam vazios. Guildas e safira seguem nos arquivos, que não são de conta.
+- A gravação que o w2db não aceitou fica em `./w2db_pending/<CONTA>`. Ela é importada à mão, e o
+  `w2db import` dá serial novo aos itens.
+
 ### B4 `feat/ops` (backup e métricas depois da B3)
 
 1. pgBackRest para um bucket fora da VPS e script de restauração em outra instância com as

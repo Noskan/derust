@@ -32,6 +32,7 @@
 #include "persistence/CRanking.h"
 #include "core/CReadFiles.h"
 #include "common/Basedef.h"
+#include "persistence/W2DbClient.h"
 
 
 extern int ServerIndex; //Server.cpp
@@ -87,6 +88,10 @@ int CFileDB::AddAccount(char *id, char *pass, char *name, int ssn1, int ssn2, ch
 		return FALSE;
 	if(check[0] == 'L' && check[1] == 'P' && check[2] == 'T' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
+
+	// No w2db a conta nasce lá (com a senha em argon2id); os dados pessoais não são guardados.
+	if (W2DbOn())
+		return W2DbCreateAccount(id, pass, bonus != 0) == W2DB_OK ? TRUE : FALSE;
 
 	char First[128];
 
@@ -155,6 +160,16 @@ int CFileDB::UpdateAccount(char *id, char *pass)
 		return FALSE;
 	if(check[0] == 'L' && check[1] == 'P' && check[2] == 'T' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
+
+	if (W2DbOn())
+	{
+		if (W2DbSetPassword(id, pass) != W2DB_OK)
+			return FALSE;
+		int Idx = GetIndex(id);
+		if (Idx != 0)
+			strncpy(pAccountList[Idx].File.Info.AccountPass, pass, ACCOUNTPASS_LENGTH);
+		return TRUE;
+	}
 
 	char First[128];
 
@@ -376,6 +391,9 @@ void CFileDB::RemoveAccountList(int Idx)
 	pAccountList[Idx].Login = FALSE;
 	pAccountList[Idx].Slot  = -1;
 
+	if (W2DbOn())
+		W2DbForget(pAccountList[Idx].File.Info.AccountName);
+
 	memset(&pAccountList[Idx].File, 0, sizeof(pAccountList[Idx].File));
 }
 
@@ -400,6 +418,19 @@ int CFileDB::CreateCharacter(char *ac, char *ch)
 		return FALSE;
 	if(check[0] == 'L' && check[1] == 'P' && check[2] == 'T' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
+
+	// No w2db o nome é único no banco: aqui só a consulta; a gravação da conta com o personagem novo
+	// falha com o nome tomado se outro chegar antes.
+	if (W2DbOn())
+	{
+		char owner[ACCOUNTNAME_LENGTH];
+		W2DbResult r = W2DbFindCharacter(ch, owner, nullptr);
+		if (r == W2DB_NO_ACCOUNT)
+			return TRUE;
+		if (r == W2DB_OK)
+			Log("err createchar EEXIST", ch, 0);
+		return FALSE;
+	}
 
 	char First[128];
 	char temp[128];
@@ -459,6 +490,19 @@ int CFileDB::DeleteCharacter(char *ch, char *account)
 		return FALSE;
 	if(check[0] == 'L' && check[1] == 'P' && check[2] == 'T' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
+
+	// No w2db o personagem sai do banco com os itens dele (evento delete_character).
+	if (W2DbOn())
+	{
+		char owner[ACCOUNTNAME_LENGTH];
+		int slot = -1;
+		if (W2DbFindCharacter(ch, owner, &slot) != W2DB_OK || strncmp(owner, account, ACCOUNTNAME_LENGTH) != 0)
+		{
+			Log("err deletechar w2db not found", ch, 0);
+			return FALSE;
+		}
+		return W2DbDeleteCharacter(account, slot) == W2DB_OK ? TRUE : FALSE;
+	}
 
 	char First[128];
 	char temp[128];
@@ -550,6 +594,9 @@ int CFileDB::DBWriteAccount(STRUCT_ACCOUNTFILE *account)
 	if(check[0] == 'L' && check[1] == 'P' && check[2] == 'T' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
 
+	if (W2DbOn())
+		return W2DbSave(account, false) == W2DB_OK ? TRUE : FALSE;
+
 	char First[128];
 
 	BASE_GetFirstKey(check, First);
@@ -632,6 +679,10 @@ int CFileDB::DBExportAccount(STRUCT_ACCOUNTFILE *file)
 	if(check[0] == 'L' && check[1] == 'P' && check[2] == 'T' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
 
+	// Cópia para outro servidor (S:/export do original): o w2db já é o lugar único da conta.
+	if (W2DbOn())
+		return TRUE;
+
 	char temp[128];
 
 	sprintf(temp, "S:/export/account%d/%s", ServerIndex, check);
@@ -681,6 +732,10 @@ int CFileDB::DBReadAccount(STRUCT_ACCOUNTFILE *file)
 		return FALSE;
 	if(check[0] == 'L' && check[1] == 'P' && check[2] == 'T' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return FALSE;
+
+	// No w2db a conta vem sem senha (AccountPass zerado): o login confere a senha com W2DbLogin.
+	if (W2DbOn())
+		return W2DbLoad(file->Info.AccountName, file, true) == W2DB_OK ? TRUE : FALSE;
 
 	char First[128];
 
@@ -793,6 +848,12 @@ void CFileDB::GetAccountByChar(char *acc, char *cha)
 		return;
 	if(check[0] == 'L' && check[1] == 'P' && check[2] == 'T' && check[3] >= '0' && check[3] <= '9' && check[4] == 0)
 		return;
+
+	if (W2DbOn())
+	{
+		W2DbFindCharacter(cha, acc, nullptr);
+		return;
+	}
 
 	char first[16];
 	memset(first, 0, 16);

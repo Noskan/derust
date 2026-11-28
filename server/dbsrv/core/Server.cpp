@@ -39,6 +39,7 @@
 #include "net/CUser.h"
 #include "persistence/CFileDB.h"
 #include "core/Server.h"
+#include "persistence/W2DbClient.h"
 #include "persistence/CRanking.h"
 #include "core/CReadFiles.h"
 
@@ -176,6 +177,11 @@ int main() // Last Updated 19/01/2013
 	memset(g_pGuildAlly, 0, sizeof(g_pGuildAlly));
 
 	ReadConfig();
+
+	// Contas no w2db (W2DB_SOCKET ou w2db.txt): sem ele no ar, o DBSrv não sobe, para não cair nos
+	// arquivos sem querer.
+	if (!W2DbInit())
+		return FALSE;
 
 	int ret = 0;
 

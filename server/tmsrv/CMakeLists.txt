@@ -126,6 +126,13 @@ target_include_directories(tmsrv_core
 
 target_link_libraries(tmsrv_core PUBLIC w2pp_common)
 
+# Ganchos de teste do tools/server_boot_smoke.py (hoje só o /w2dupe, que força uma duplicação numa
+# troca para o teste do w2db). Nunca na produção.
+option(DERUST_TEST_HOOKS "TMSrv com os ganchos de teste do smoke (/w2dupe)" OFF)
+if(DERUST_TEST_HOOKS)
+  target_compile_definitions(tmsrv_core PUBLIC W2_TEST_HOOKS)
+endif()
+
 add_executable(TMSrv core/Main.cpp)
 target_link_libraries(TMSrv PRIVATE tmsrv_core)
 

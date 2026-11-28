@@ -575,6 +575,16 @@ void Exec_MSG_MessageWhisper(int conn, char *pMsg)
 		return;
 	}
 #pragma endregion
+#ifdef W2_TEST_HOOKS
+	// Teste do w2db (DERUST_TEST_HOOKS): a próxima troca deixa uma cópia do que foi dado.
+	if (strcmp(m->MobName, "w2dupe") == 0)
+	{
+		pUser[conn].TestKeepTrade = 1;
+		SendClientMessage(conn, "w2dupe");
+
+		return;
+	}
+#endif
 #pragma region /day - Skill
 	if (strcmp(m->MobName, "day") == 0)
 	{

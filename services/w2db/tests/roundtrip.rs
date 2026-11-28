@@ -103,3 +103,26 @@ async fn random_accounts_round_trip(pool: PgPool) {
         assert_round_trip(src, &got, acc);
     }
 }
+
+/// O proto que o codec do importador tira de cada arquivo de tests/data/account, gravado ao lado
+/// (`<CONTA>.pb`). A conversão do DBSrv (server/dbsrv/persistence/W2DbConvert.cpp) confere contra
+/// esses arquivos no ctest. Para regravar: W2DB_WRITE_GOLDEN=1 cargo test --test roundtrip golden.
+#[test]
+fn golden_protos() {
+    use prost::Message;
+    let dir = data_dir().join("account/D");
+    for name in ["DERUST", "DERUST2"] {
+        let (acc, _) = legacy::decode(&std::fs::read(dir.join(name)).unwrap()).unwrap();
+        let bytes = acc.encode_to_vec();
+        let golden = data_dir().join(format!("golden/{name}.pb"));
+        if std::env::var_os("W2DB_WRITE_GOLDEN").is_some() {
+            std::fs::write(&golden, &bytes).unwrap();
+        }
+        let want = std::fs::read(&golden).expect("falta o .pb (W2DB_WRITE_GOLDEN=1)");
+        assert_eq!(
+            w2db::pb::Account::decode(want.as_slice()).unwrap(),
+            acc,
+            "{name}.pb desatualizado"
+        );
+    }
+}

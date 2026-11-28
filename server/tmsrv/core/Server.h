@@ -136,6 +136,9 @@ int   GetLength(int x, int y);
 int   ReadMob(STRUCT_MOB *mob, char *dir);
 void  DeleteMob(int conn, int Type);
 void  SaveUser(int conn,int Export);
+/// @brief Registra que `to` recebeu numa troca o item que estava no Carry[fromCarry] de `from`. Vai
+///        na próxima gravação de `to` (STRUCT_ITEMHANDOFF).
+void  AddItemHandoff(int to, int from, int fromCarry, const STRUCT_ITEM* item);
 void  CharLogOut(int conn);
 void  Reboot();  
 void  ClearChallanger(); 

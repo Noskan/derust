@@ -4,6 +4,14 @@ O DBSrv e o TMSrv compilam e rodam só no Linux x86_64. O cliente (TMProject, Di
 
 ## Build
 
+O DBSrv fala com o serviço de persistência (`docs/W2DB.md`) por gRPC. No Debian ou no Ubuntu:
+
+```bash
+sudo apt install libgrpc++-dev libprotobuf-dev protobuf-compiler protobuf-compiler-grpc
+```
+
+Sem esses pacotes, o CMake avisa e monta o DBSrv só com os arquivos (`DERUST_W2DB=OFF`).
+
 ```bash
 cmake -S . -B build/linux -DCMAKE_BUILD_TYPE=Release
 cmake --build build/linux --parallel
@@ -29,6 +37,8 @@ python3 tools/server_boot_smoke.py <diretório> --require-login
 ```
 
 O LoginClient roda no wine. O teste fica sendo um cliente Windows jogando contra servidores Linux. A árvore que o teste monta é a mesma da produção (próxima seção).
+
+Para o mesmo teste com as contas no Postgres, use `--w2db services/target/debug/w2db`. O Postgres é o do sistema: o teste roda `initdb` no próprio diretório. Com `--forced-dupe`, o teste também força uma duplicação e exige que ela seja acusada. Isso precisa de um TMSrv montado com `-DDERUST_TEST_HOOKS=ON`, que nunca vai para a produção. Detalhes em `docs/W2DB.md`.
 
 Avisos: `tools/linux_warning_check.py` compila o Release do zero e compara os avisos com a linha de base. Os tipos acompanhados são os mesmos da checagem mingw. Há uma linha de base por versão do gcc, `tools/linux_warning_baseline-gcc<N>.txt`, e a comparação vale por tipo e por arquivo. O CI usa esse mesmo build para os testes e para o artefato. Depois de remover ou justificar avisos:
 

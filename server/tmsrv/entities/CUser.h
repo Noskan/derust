@@ -114,6 +114,13 @@ public:
 	unsigned int PotionTime;
 
 	int OnlyTrade;
+
+	// Itens recebidos em trocas desde a última gravação (vão no MSG_DBSaveMob/MSG_SavingQuit).
+	int HandoffCount;
+	STRUCT_ITEMHANDOFF Handoff[MAX_ITEM_HANDOFF];
+
+	// Só com DERUST_TEST_HOOKS (/w2dupe): na próxima troca fica com uma cópia do que deu.
+	int TestKeepTrade;
 public:
 	CUser();
 	~CUser();

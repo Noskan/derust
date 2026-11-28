@@ -26,13 +26,20 @@
 ///  12. A usa a poção de Carry[50] → `MSG_SetHpMp` (0x181);
 ///  13. A sai do personagem (0x215 → 0x116, B recebe o 0x165) e entra de novo: o 0x114 traz o
 ///      inventário que o DBSrv gravou (poção gasta, bolsa no lugar).
+///  14. /day e combate com um NPC do NPCGener.txt.
+///  15. troca de mão dupla (`MSG_Trade`, 0x383): a espada de A (Carry[1]) pela de B; os dois
+///      confirmam e recebem o `MSG_Carry` (0x185) com a espada do outro. O smoke confere no w2db
+///      que cada espada levou o serial para a outra conta.
+///  16. só com o argumento `dupe` (TMSrv com DERUST_TEST_HOOKS): A pede /w2dupe e dá a armadura
+///      de Carry[2] a B, ficando com uma cópia, como num bug de duplicação. O smoke confere que o
+///      w2db acusa o serial repetido.
 ///
 /// Cada resposta é conferida campo a campo no layout do cliente. Os valores esperados do
 /// personagem vêm do BaseMob sintético que o `tools/server_boot_smoke.py` grava (ver
 /// `synthetic_base_mob` lá): se um campo chegar fora do lugar, o valor lido sai errado.
 ///
 /// Uso: LoginClient <ip> <porta> <conta> <senha> <senha numérica> <personagem> <classe>
-///                  <conta B> <personagem B> <classe B>
+///                  <conta B> <personagem B> <classe B> [dupe]
 /// A conta B usa a mesma senha e a mesma senha numérica. Código de saída 0 quando tudo confere.
 
 #include "core/pch.h"
@@ -70,6 +77,8 @@ constexpr int kStepTimeoutMs = 30000;
 constexpr int kPlaceCarry = 1;
 constexpr short kPotion = 412;   // PocaoTeste (EF_VOLATILE 1, EF_HP), em Carry[0]
 constexpr short kBag = 3467;     // bolsa: libera Carry[45..59] em Carry[61]
+constexpr short kSword = 1;      // EspadaTeste em Carry[1], com EF_SANC = classe
+constexpr short kArmor = 2;      // ArmaduraTeste em Carry[2], com EF_SANC = classe
 
 int g_failures = 0;
 
@@ -716,16 +725,115 @@ bool Play(Session& sa, InGame& a, const Account& accA, Session& sb, InGame& b)
 	return true;
 }
 
+/// @brief Acha `item` no inventário (-1 se não há).
+int FindCarry(const STRUCT_ITEM* carry, const STRUCT_ITEM& item)
+{
+	for (int i = 0; i < 64; ++i)
+		if (std::memcmp(&carry[i], &item, sizeof(STRUCT_ITEM)) == 0)
+			return i;
+	return -1;
+}
+
+/// @brief Troca entre A e B: cada um oferece o item da vaga dada (-1: nada), A confirma e depois B
+/// (o TMSrv fecha a troca na confirmação de B). Devolve o inventário de cada um depois da troca.
+bool Trade(Session& sa, InGame& a, int posA, Session& sb, InGame& b, int posB, STRUCT_ITEM* carryA, STRUCT_ITEM* carryB)
+{
+	auto offer = [](const InGame& who, const InGame& other, int pos) {
+		MSG_Trade m{};
+		m.Header.Type = MSG_Trade_Opcode;
+		for (int i = 0; i < 15; ++i)
+			m.CarryPos[i] = -1;
+		if (pos >= 0)
+		{
+			m.Item[0] = who.mob.Carry[pos];
+			m.CarryPos[0] = (char)pos;
+		}
+		m.OpponentID = (unsigned short)other.clientId;
+		return m;
+	};
+	MSG_Trade ma = offer(a, b, posA);
+	MSG_Trade mb = offer(b, a, posB);
+	static MSG_Trade r;
+
+	sa.Send(&ma, sizeof(ma));
+	if (!sb.Wait(MSG_Trade_Opcode, &r, sizeof(r)))
+		return false;
+	sb.Send(&mb, sizeof(mb));
+	if (!sa.Wait(MSG_Trade_Opcode, &r, sizeof(r)))
+		return false;
+	ma.MyCheck = 1;
+	sa.Send(&ma, sizeof(ma));
+	if (!sb.Wait(MSG_Trade_Opcode, &r, sizeof(r)))
+		return false;
+	mb.MyCheck = 1;
+	sb.Send(&mb, sizeof(mb));
+
+	static MSG_Carry ca, cb;
+	if (!sa.Wait(MSG_UpdateCarry_Opcode, &ca, sizeof(ca)) || !sb.Wait(MSG_UpdateCarry_Opcode, &cb, sizeof(cb)))
+		return false;
+	std::memcpy(carryA, ca.Carry, sizeof(ca.Carry));
+	std::memcpy(carryB, cb.Carry, sizeof(cb.Carry));
+	std::memcpy(a.mob.Carry, ca.Carry, sizeof(ca.Carry));
+	std::memcpy(b.mob.Carry, cb.Carry, sizeof(cb.Carry));
+	return true;
+}
+
+/// @brief Passos 15 e 16: troca de mão dupla e, com `dupe`, a duplicação forçada.
+bool Trades(Session& sa, InGame& a, Session& sb, InGame& b, bool dupe)
+{
+	sa.Drain();
+	sb.Drain();
+	{
+		const STRUCT_ITEM swordA = a.mob.Carry[1];
+		const STRUCT_ITEM swordB = b.mob.Carry[1];
+		EXPECT(swordA.sIndex == kSword && swordB.sIndex == kSword, "Carry[1] de A/B com %d/%d, esperado a espada %d",
+			swordA.sIndex, swordB.sIndex, kSword);
+		STRUCT_ITEM ca[64], cb[64];
+		if (!Trade(sa, a, 1, sb, b, 1, ca, cb))
+			return false;
+		EXPECT(FindCarry(ca, swordB) >= 0 && FindCarry(ca, swordA) < 0, "0x185 de A: sem a espada de B ou ainda com a sua");
+		EXPECT(FindCarry(cb, swordA) >= 0 && FindCarry(cb, swordB) < 0, "0x185 de B: sem a espada de A ou ainda com a sua");
+		std::printf("15. troca de mão dupla: a espada de A (Carry[1]) foi para Carry[%d] de B, a de B para Carry[%d] de A\n",
+			FindCarry(cb, swordA), FindCarry(ca, swordB));
+	}
+	if (dupe)
+	{
+		MSG_MessageWhisper w{};
+		w.Header.Type = MSG_MessageWhisper_Opcode;
+		std::snprintf(w.MobName, sizeof(w.MobName), "w2dupe");
+		sa.Send(&w, sizeof(w));
+		MSG_MessagePanel mp{};
+		auto isHook = [](const char* p) {
+			return std::strncmp(reinterpret_cast<const MSG_MessagePanel*>(p)->String, "w2dupe", 6) == 0;
+		};
+		if (!sa.Wait(kTypeMessagePanel, &mp, sizeof(mp), nullptr, isHook))
+		{
+			Fail("A: /w2dupe sem resposta (TMSrv sem DERUST_TEST_HOOKS?)");
+			return false;
+		}
+		const STRUCT_ITEM armorA = a.mob.Carry[2];
+		EXPECT(armorA.sIndex == kArmor, "Carry[2] de A com %d, esperado a armadura %d", armorA.sIndex, kArmor);
+		STRUCT_ITEM ca[64], cb[64];
+		if (!Trade(sa, a, 2, sb, b, -1, ca, cb))
+			return false;
+		EXPECT(FindCarry(cb, armorA) >= 0, "0x185 de B: sem a armadura de A");
+		EXPECT(FindCarry(ca, armorA) >= 0, "0x185 de A: o gancho /w2dupe não deixou a cópia da armadura");
+		std::printf("16. duplicação forçada: A deu a armadura a B e ficou com uma cópia em Carry[%d]\n", FindCarry(ca, armorA));
+	}
+	return true;
+}
+
 } // namespace
 
 int main(int argc, char** argv)
 {
-	if (argc != 11)
+	if (argc != 11 && !(argc == 12 && std::strcmp(argv[11], "dupe") == 0))
 	{
 		std::printf("uso: %s <ip> <porta> <conta> <senha> <senha numérica> <personagem> <classe>"
-			" <conta B> <personagem B> <classe B>\n", argv[0]);
+			" <conta B> <personagem B> <classe B> [dupe]\n", argv[0]);
 		return 2;
 	}
+	const bool dupe = argc == 12;
 	setvbuf(stdout, nullptr, _IONBF, 0);
 	const char* ip = argv[1];
 	const int port = std::atoi(argv[2]);
@@ -735,7 +843,7 @@ int main(int argc, char** argv)
 	Session sa("A"), sb("B");
 	InGame a, b;
 	bool ok = sa.Connect(ip, port) && Login(sa, accA, true, a) && sb.Connect(ip, port) && Login(sb, accB, false, b)
-		&& Play(sa, a, accA, sb, b);
+		&& Play(sa, a, accA, sb, b) && Trades(sa, a, sb, b, dupe);
 	sa.sock_.CloseSocket();
 	sb.sock_.CloseSocket();
 	if (!ok || g_failures)

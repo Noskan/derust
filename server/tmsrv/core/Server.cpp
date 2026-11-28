@@ -40,6 +40,8 @@
 #include "systems/CWarTower.h"
 #include "net/NetGuard.h"
 
+static void TakeHandoffs(int conn, int* count, STRUCT_ITEMHANDOFF* out);
+
 #pragma region Defines
 
 int FREEEXP = 35;
@@ -980,6 +982,8 @@ void CloseUser(int conn)
 
 			sm.ID = conn;
 
+			TakeHandoffs(conn, &sm.HandoffCount, sm.Handoff);
+
 			DBServerSocket.SendOneMessage((char*)&sm, sizeof(MSG_SavingQuit));
 
 			pUser[conn].Mode = USER_SAVING4QUIT;
@@ -1039,6 +1043,32 @@ int  GetLength(int x, int y)
 	return out;
 }
 
+void AddItemHandoff(int to, int from, int fromCarry, const STRUCT_ITEM* item)
+{
+	CUser& u = pUser[to];
+	if (u.HandoffCount >= MAX_ITEM_HANDOFF)
+	{
+		// Não cabe (a troca grava logo depois, então não deveria acontecer): perde o mais antigo,
+		// e o item dele fica com serial novo no destino.
+		Log("err,item handoff full", u.AccountName, u.IP);
+		memmove(&u.Handoff[0], &u.Handoff[1], sizeof(STRUCT_ITEMHANDOFF) * (MAX_ITEM_HANDOFF - 1));
+		u.HandoffCount = MAX_ITEM_HANDOFF - 1;
+	}
+	STRUCT_ITEMHANDOFF& h = u.Handoff[u.HandoffCount++];
+	memset(&h, 0, sizeof(h));
+	strncpy(h.From, pUser[from].AccountName, ACCOUNTNAME_LENGTH);
+	h.FromCarry = fromCarry;
+	h.Item = *item;
+}
+
+// Os itens recebidos em trocas vão na gravação e saem da lista.
+static void TakeHandoffs(int conn, int* count, STRUCT_ITEMHANDOFF* out)
+{
+	*count = pUser[conn].HandoffCount;
+	memcpy(out, pUser[conn].Handoff, sizeof(STRUCT_ITEMHANDOFF) * pUser[conn].HandoffCount);
+	pUser[conn].HandoffCount = 0;
+}
+
 void SaveUser(int conn, int Export)
 {
 	MSG_DBSaveMob sm;
@@ -1064,6 +1094,8 @@ void SaveUser(int conn, int Export)
 
 	memcpy(sm.affect, pMob[conn].Affect, sizeof(sm.affect));
 	sm.extra = pMob[conn].extra;
+
+	TakeHandoffs(conn, &sm.HandoffCount, sm.Handoff);
 
 	DBServerSocket.SendOneMessage((char*)&sm, sizeof(MSG_DBSaveMob));
 }

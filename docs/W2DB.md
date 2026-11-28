@@ -1,6 +1,6 @@
 # w2db: serviço de persistência
 
-O `w2db` (`services/w2db`, Rust) guarda contas, personagens e itens num Postgres. O DBSrv fala com ele por gRPC num Unix socket. Na B2 o serviço existe e está testado. Quem liga o DBSrv a ele é a B3 (`docs/FASE_2_5.md`); até lá o DBSrv continua nos arquivos.
+O `w2db` (`services/w2db`, Rust) guarda contas, personagens e itens num Postgres. O DBSrv fala com ele por gRPC num Unix socket ([No DBSrv](#no-dbsrv)). Sem um w2db configurado, o DBSrv continua nos arquivos (`./account`, `./char`).
 
 ## Peças
 
@@ -89,6 +89,53 @@ O codec do arquivo (`legacy.rs`) e o C++ conferem contra a mesma tabela de layou
 
 Se a estrutura mudar, os dois testes falham.
 
+## No DBSrv
+
+O DBSrv usa o w2db quando há um socket configurado: a variável `W2DB_SOCKET` ou a primeira linha de `w2db.txt` no diretório do DBSrv. Com o w2db configurado e fora do ar (`Health`), o DBSrv não sobe, para não cair nos arquivos sem querer. Sem o gRPC de C++ no build (`DERUST_W2DB=OFF`, ou `libgrpc++-dev` ausente), o DBSrv é montado só com os arquivos e também não sobe se houver um w2db configurado.
+
+O cliente fica em `server/dbsrv/persistence/W2DbClient.cpp`. A conversão `STRUCT_ACCOUNTFILE` ↔ `w2db.v1.Account` fica em `W2DbConvert.cpp` e produz exatamente o proto do codec do importador: o `ctest` `w2db_convert` confere as contas de teste contra os `.pb` que o Rust gera delas (`tests/data/golden`, teste `golden_protos`).
+
+As primitivas do `CFileDB` mudam de lugar, e os pacotes do TMSrv continuam os mesmos:
+- `DBReadAccount` e `DBWriteAccount` viram `LoadAccount` e `SaveAccount`. A conta vem sem senha.
+- O login confere a senha no w2db (`AccountLogin`), com o bloqueio dele. A senha digitada fica em `AccountPass`, na memória, porque apagar personagem compara com ela.
+- A senha numérica é conferida no w2db (`CheckNumericPassword`). Quando o TMSrv grava uma senha numérica nova, o DBSrv a manda para `SetNumericPassword`.
+- `AddAccount` (o `ImportUser`) chama `CreateAccount`, e `UpdateAccount` chama `SetPassword`. Os dados pessoais são descartados.
+- Criar personagem: o nome é conferido com `FindCharacter`, e o personagem nasce na gravação da conta. Se outro levar o nome antes, a gravação volta `STATUS_NAME_TAKEN`, a criação falha e a conta em memória volta a ser a do banco.
+- Apagar personagem: `DeleteCharacter`, que leva os itens dele junto.
+- `SavingQuit` grava com `logout = true`. A cópia para `S:/export` do original não existe com o w2db.
+
+As chamadas são síncronas, com prazo (5 s; 15 s nas que calculam argon2id), na thread do laço de eventos. O w2db roda na mesma máquina, a gravação leva poucos milissegundos e o login algumas dezenas. Para o teste fechado (até 30 jogadores) isso não aparece, e a memória do DBSrv fica igual ao banco depois de cada chamada.
+
+Se uma gravação falhar (w2db fora do ar, prazo estourado ou conflito de versão duas vezes seguidas), o DBSrv grava o arquivo da conta em `./w2db_pending/<CONTA>`, registra no log e avisa o operador. Num conflito de versão, o DBSrv relê a conta do banco e grava de novo, uma vez.
+
+### Seriais
+
+Os seriais ficam no DBSrv. Para cada conta conectada, ele guarda a versão, os seriais e os itens da última gravação. A cada gravação os seriais são deduzidos, nesta ordem:
+1. mesma vaga e mesmo item;
+2. item recebido numa troca, com o serial que tinha na conta de origem (abaixo);
+3. mesma vaga e mesmo índice: o item mudou na vaga (refinação, quantidade);
+4. mesmo item em outra vaga: o item mudou de lugar.
+
+O resto vai com serial 0, que para o w2db é item novo.
+
+Entre contas, o TMSrv avisa as trocas. No fim de uma troca, cada item que mudou de mão entra na próxima gravação de quem recebeu (`STRUCT_ITEMHANDOFF` em `MSG_DBSaveMob` e `MSG_SavingQuit`), com a conta e a vaga do Carry de onde saiu. O DBSrv acha o serial:
+- na vaga de quem deu, se ele ainda não gravou depois da troca;
+- senão, entre os itens que saíram das últimas gravações de quem deu.
+
+O item recebido grava com esse serial, e o w2db faz a `contest` ou a `transfer`. Se quem deu ainda tiver o item, que é o que acontece num bug de duplicação, a gravação dele leva o mesmo serial, e o w2db acusa a suspeita de duplicação. O DBSrv registra no log e avisa o operador (`[w2db] err,w2db N dupe suspect(s) ...` no stderr).
+
+Ficam com serial novo, e o item antigo fica sem lugar (`remove`):
+- item que muda de conta sem troca: chão, loja pessoal (`_MSG_ReqBuy`), correio;
+- item recebido que o TMSrv junta com outro na troca.
+
+O histórico do item se perde nesses casos, mas nada se duplica. O DBSrv registra no log o item de troca que não achou.
+
+### O que ainda não passa pelo w2db
+
+- **Cápsulas:** guardar e tirar personagem da cápsula é recusado com o w2db.
+- **Ranking e DayLog:** varrem `./account` e ficam vazios.
+- **Guildas e safira:** seguem nos arquivos de sempre, que não são de conta.
+
 ## Testes
 
 Precisam de um Postgres. O `sqlx::test` cria um banco por teste, a partir do usuário de `DATABASE_URL`, que precisa poder criar bancos.
@@ -112,6 +159,14 @@ O que os testes cobrem:
   - limite de versões guardadas;
   - apagar personagem;
   - convites e `/bug`.
+
+O teste de jogo (`tools/server_boot_smoke.py --w2db services/target/debug/w2db --forced-dupe`) faz o caminho inteiro com o DBSrv no w2db:
+- sobe um Postgres próprio e o `w2db serve`;
+- cria as contas pelo `ImportUser`;
+- joga com o `LoginClient`;
+- confere no banco as contas, os personagens e os itens com serial, e a troca de mão dupla pelo serial: a espada criada em cada conta está na outra. Uma espada vai por `contest` e a outra por `remove` e `transfer`.
+
+Com `--forced-dupe`, uma segunda troca é feita com o gancho de teste `/w2dupe`. Esse gancho só existe com `DERUST_TEST_HOOKS=ON` e deixa uma cópia do item com quem deu. O teste exige o `dupe_suspect` no banco e o aviso do DBSrv. O CI roda esse teste com ASan/UBSan.
 
 As consultas são conferidas na compilação contra o esquema. Sem banco, a conferência usa a cópia em `services/.sqlx` (`SQLX_OFFLINE=true`, como no CI). Depois de mudar uma consulta ou uma migração, rode `cargo sqlx prepare --workspace -- --all-targets` e inclua o `.sqlx` no commit.
 

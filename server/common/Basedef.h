@@ -749,6 +749,17 @@ const short _MSG_DBAccountLogin				= (3 | FLAG_GAME2DB);
 const short _MSG_DBCharacterLogin			= (4 | FLAG_GAME2DB);
 const short _MSG_DBNoNeedSave				= (5 | FLAG_GAME2DB);
 
+/// @brief Item que passou de uma conta para outra numa troca, desde a última gravação de quem o
+///        recebeu. Vai nas gravações (MSG_DBSaveMob, MSG_SavingQuit): com o w2db, o DBSrv dá ao
+///        item recebido o serial que ele tinha na conta de origem (docs/W2DB.md).
+#define MAX_ITEM_HANDOFF 16
+struct STRUCT_ITEMHANDOFF
+{
+	char        From[ACCOUNTNAME_LENGTH];	// conta de quem deu
+	int         FromCarry;					// vaga do Carry de onde saiu
+	STRUCT_ITEM Item;
+};
+
 const short _MSG_DBSaveMob					= (7 | FLAG_GAME2DB);
 struct		 MSG_DBSaveMob
 {
@@ -764,6 +775,8 @@ struct		 MSG_DBSaveMob
 	STRUCT_MOBEXTRA extra;
 	STRUCT_AFFECT	affect[MAX_AFFECT];
 	int Donate;
+	int                HandoffCount;
+	STRUCT_ITEMHANDOFF Handoff[MAX_ITEM_HANDOFF];
 };
 
 const short _MSG_DBDeleteCharacter			= (9 | FLAG_GAME2DB);
@@ -945,6 +958,8 @@ struct		  MSG_SavingQuit
 	STRUCT_MOBEXTRA extra;
 	STRUCT_AFFECT	affect[MAX_AFFECT];
 	int Donate;
+	int                HandoffCount;
+	STRUCT_ITEMHANDOFF Handoff[MAX_ITEM_HANDOFF];
 };
 
 const short	_MSG_MessageDBImple				= (11 | FLAG_GAME2DB | FLAG_DB2GAME); //   Parm 
