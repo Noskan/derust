@@ -63,6 +63,28 @@ raiz. A instalação original não é alterada; a ferramenta recusa uma saída d
 `python3 tools/global_client_data.py selftest` confere as conversões com dados sintéticos (roda
 no CI).
 
+## Árvore do servidor Linux
+
+```
+python3 tools/global_server_data.py build <servidor W2PP> "<instalação do Global>" <destino> \
+    --ip <ip do TMSrv> [--extra-ip <ip> ...] [--bin <dir com DBSrv e TMSrv> | --no-binaries]
+```
+
+Monta a árvore que o `tools/linux_deploy.py` espera, juntando as duas origens (as duas só são
+lidas; o destino tem de ser novo ou vazio):
+
+| Da distribuição W2PP | Do WYD Global |
+|---|---|
+| `BaseMob`, `BaseSummon`, `npc/`, `NPCGener.txt`, `Settings/`, `gameconfig.txt`, `Language.txt`, `LevelItem.txt`, `InitItem.csv` | `ItemList.bin` e `SkillData.bin` (no layout do 7662, como na camada do cliente), `HeightMap.dat`, `AttributeMap.dat`, `Lang/PT/strdef.bin` |
+
+Os `STRUCT_MOB` de 816 ou 1296 bytes viram os de 1024, e os itens que não existem no ItemList do
+Global saem dos mobs e do `LevelItem.txt`. Os textos passam a LF, sem BOM. Os nomes de
+`Leader:`/`Follower:` terminados em ponto (aceitos no Windows) perdem o ponto quando o arquivo
+sem ponto existe em `npc/`. Contas, personagens, listas administrativas, logs e binários da
+origem não são copiados. `--bin` põe os servidores e gera as unidades do systemd (`--user`).
+`python3 tools/global_server_data.py selftest` confere a conversão e o isolamento com dados
+sintéticos.
+
 ## Página de status dos canais
 
 O DBSrv grava `serv00.htm` (`CReadFiles::UpdateConnection`) com uma linha por TMSrv: a linha k é
@@ -84,3 +106,10 @@ o primeiro número.
 - **"Invalide Item Class 0" no log:** vinha do personagem de teste, criado com o `BaseMob`
   sintético do `tools/server_boot_smoke.py`, que não tem rosto (`Equip[0]`); a classe sai do
   `EF_CLASS` do rosto. Os rostos do ItemList do Global têm `EF_CLASS` certo.
+- **Segunda medição, mundo povoado (2026-11-27):** com o servidor montado pela
+  `tools/global_server_data.py` e o cliente com a camada, o personagem entra no Campo de Treino
+  com o rosto do `BaseMob` real, entre NPCs e monstros. O chão sai sem as placas brancas (layout
+  de tile do Global), a HUD sai sem o "Battlefield" e sem a barra "Classe", e o personagem anda.
+  O "Invalide Item Class 0" aparece só 3 vezes, ao entrar no campo. O loop básico (spawn,
+  combate, abate, EXP e gravação do personagem) passou com o DBSrv e o TMSrv compilados com ASan
+  e UBSan; os defeitos que eles acharam estão em docs/BUGS_LATENTES.md.
