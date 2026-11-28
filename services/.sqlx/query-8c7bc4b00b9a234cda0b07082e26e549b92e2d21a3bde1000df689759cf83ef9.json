@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE items SET contested_from = NULL WHERE contested_from = $1 AND NOT (serial = ANY($2))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int8Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8c7bc4b00b9a234cda0b07082e26e549b92e2d21a3bde1000df689759cf83ef9"
+}

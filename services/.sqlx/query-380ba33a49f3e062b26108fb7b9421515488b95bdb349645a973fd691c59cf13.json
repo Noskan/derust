@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE items SET contested_from = u.contested_from\n             FROM UNNEST($1::bigint[], $2::bigint[]) AS u(serial, contested_from)\n             WHERE items.serial = u.serial",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8Array",
+        "Int8Array"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "380ba33a49f3e062b26108fb7b9421515488b95bdb349645a973fd691c59cf13"
+}

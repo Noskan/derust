@@ -36,7 +36,7 @@ O socket é criado com permissão 0660: o usuário dos servidores do jogo precis
 | `accounts` | Nome, hashes da senha e da senha numérica, `cargo_coin`, `donate`, `temp_key`, `version`, bloqueio por senha errada, id do Discord |
 | `characters` | Uma linha por personagem. Colunas para consulta: classe, `class_master`, nível, exp, gold, guilda e posição. O resto vai em `data` (jsonb): `{mob, extra, affects, short_skill}` |
 | `items` | Uma linha por item, com o `serial` como chave. Guarda a conta, o personagem, o `container` (0 sem lugar, 1 equipamento, 2 inventário, 3 baú), a vaga, o índice e os 3 pares efeito/valor |
-| `item_events` | O histórico de cada serial: `create`, `import`, `move`, `transfer`, `remove`, `destroy`, `dupe_suspect` e `delete_character` |
+| `item_events` | O histórico de cada serial: `create`, `import`, `move`, `transfer`, `contest`, `remove`, `destroy`, `dupe_suspect` e `delete_character` |
 | `account_versions` | As últimas 20 versões de cada conta (a conta em JSON, com os seriais), para desfazer uma conta sem restaurar o banco |
 | `invites`, `bug_reports` | Convites de uso único e relatos do `/bug` |
 
@@ -54,7 +54,8 @@ A unidade de gravação é a conta inteira, como o arquivo do DBSrv: o baú e o 
    - **serial 0:** item novo. Ganha serial (evento `create`), e o serial volta na resposta (`assigned`).
    - **serial desta conta:** vai para a vaga pedida (`move`, se mudou de lugar).
    - **serial de outra conta, que lá está sem lugar:** muda de dono (`transfer`). É a troca: a conta A gravou sem o item e a conta B grava com ele.
-   - **serial que está numa vaga viva de outra conta, repetido na mesma gravação ou inexistente:** suspeita de duplicação. O item fica com serial novo, que vai em `dupe_suspects`, e o evento `dupe_suspect` guarda o serial original. O jogador não perde nada e o caso fica registrado.
+   - **serial numa vaga viva de outra conta:** também muda de dono (`contest`), e a conta que perdeu o item fica marcada (`items.contested_from`). É a troca em que o outro lado ainda não gravou: no fim de uma troca o TMSrv grava os dois jogadores, um depois do outro, e numa troca de mão dupla o primeiro sempre grava com o item que ainda está no outro. A marca sai quando a conta marcada grava sem o serial.
+   - **serial de um item que esta conta perdeu numa disputa, de um item já disputado, repetido na mesma gravação ou inexistente:** suspeita de duplicação. O item fica com serial novo, que vai em `dupe_suspects`, e o evento `dupe_suspect` guarda o serial original. O jogador não perde nada e o caso fica registrado. Numa duplicação de verdade, as duas contas têm o item: a primeira a gravar leva o serial, e a segunda dispara a suspeita.
    - **serial desta conta que não veio na gravação:** fica sem lugar (`remove`). Ele espera uma `transfer`.
    - **serial em `destroyed`:** é apagado (`destroy`). É o caso de consumo, refinação e venda ao NPC.
 4. A versão sobe, e a conta gravada vai para `account_versions`.
@@ -107,7 +108,7 @@ O que os testes cobrem:
   - senha numérica e bônus da conta nova;
   - personagens e nomes únicos;
   - conflito de versão;
-  - troca pelo serial, suspeita de duplicação e destruição;
+  - troca pelo serial (inclusive a de mão dupla, sem falso alarme), suspeita de duplicação e destruição;
   - limite de versões guardadas;
   - apagar personagem;
   - convites e `/bug`.

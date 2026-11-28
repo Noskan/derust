@@ -347,15 +347,34 @@ async fn characters_items_and_versions(pool: PgPool) {
     let beto = account(&mut c, "BETO").await;
     assert!(beto.characters[0].carry.iter().any(|i| i.serial == sword.serial));
 
-    // Duplicação: a Ana grava de novo com a espada que agora é do Beto.
+    // Duplicação: a Ana grava de novo com a espada que agora é do Beto. A primeira gravação leva a
+    // espada para a Ana (pode ser o lado que grava primeiro numa troca); quando o Beto grava de
+    // novo com ela, é a suspeita.
     let mut ana = account(&mut c, "ANA").await;
     ana.characters[0].equip.push(sword.clone());
     let r = save(&mut c, &ana, vec![]).await;
+    assert_eq!(r.status, Status::Ok as i32);
+    assert!(r.dupe_suspects.is_empty());
+    let beto = account(&mut c, "BETO").await;
+    assert!(
+        beto.characters[0].carry.iter().all(|i| i.serial != sword.serial),
+        "a espada passou para a Ana no banco"
+    );
+    let mut beto_stale = beto.clone();
+    beto_stale.characters[0].carry.push(pb::StoredItem {
+        slot: 20,
+        ..sword.clone()
+    });
+    let r = save(&mut c, &beto_stale, vec![]).await;
     assert_eq!(r.status, Status::Ok as i32);
     assert_eq!(r.dupe_suspects.len(), 1);
     let copy = r.dupe_suspects[0];
     assert_ne!(copy, sword.serial);
     assert_eq!(events(&pool, copy).await, ["dupe_suspect"]);
+    assert_eq!(
+        events(&pool, sword.serial).await,
+        ["create", "remove", "transfer", "contest"]
+    );
     let original: i64 =
         sqlx::query_scalar("SELECT (detail->>'original_serial')::bigint FROM item_events WHERE serial = $1")
             .bind(copy as i64)
@@ -486,4 +505,44 @@ async fn invites_and_bugs(pool: PgPool) {
         .into_inner();
     assert_eq!(bug.status, Status::Ok as i32);
     assert!(bug.id > 0);
+}
+
+#[sqlx::test]
+async fn two_way_trade_is_not_a_dupe(pool: PgPool) {
+    let (mut c, _dir) = start(pool.clone(), false).await;
+    create(&mut c, "Caio", "c").await;
+    create(&mut c, "Duda", "d").await;
+    assert_eq!(
+        new_char(&mut c, "CAIO", character(0, "Caio1")).await.status,
+        Status::Ok as i32
+    );
+    assert_eq!(
+        new_char(&mut c, "DUDA", character(0, "Duda1")).await.status,
+        Status::Ok as i32
+    );
+    let mut caio = account(&mut c, "CAIO").await;
+    let mut duda = account(&mut c, "DUDA").await;
+    let s = caio.characters[0].carry[0].clone();
+    let t = duda.characters[0].carry[0].clone();
+
+    // A troca no TMSrv: cada um fica com o item do outro; o Caio grava primeiro.
+    caio.characters[0].carry = vec![pb::StoredItem { slot: 3, ..t.clone() }];
+    duda.characters[0].carry = vec![pb::StoredItem { slot: 3, ..s.clone() }];
+    let r = save(&mut c, &caio, vec![]).await;
+    assert!(r.dupe_suspects.is_empty() && r.assigned.is_empty());
+    let r = save(&mut c, &duda, vec![]).await;
+    assert!(r.dupe_suspects.is_empty() && r.assigned.is_empty(), "{r:?}");
+    assert_eq!(events(&pool, t.serial).await, ["create", "contest"]);
+    assert_eq!(events(&pool, s.serial).await, ["create", "remove", "transfer"]);
+    let marks: i64 = sqlx::query_scalar("SELECT count(*) FROM items WHERE contested_from IS NOT NULL")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(marks, 0, "a Duda gravou sem o item que perdeu: a disputa se resolveu");
+
+    // Gravações seguintes não geram nada.
+    let caio = account(&mut c, "CAIO").await;
+    assert!(save(&mut c, &caio, vec![]).await.dupe_suspects.is_empty());
+    let duda = account(&mut c, "DUDA").await;
+    assert!(save(&mut c, &duda, vec![]).await.dupe_suspects.is_empty());
 }

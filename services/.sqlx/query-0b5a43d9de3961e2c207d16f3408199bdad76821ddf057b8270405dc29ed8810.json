@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT serial, account_id, container FROM items WHERE serial = ANY($1) FOR UPDATE",
+  "query": "SELECT serial, account_id, container, contested_from FROM items WHERE serial = ANY($1) FOR UPDATE",
   "describe": {
     "columns": [
       {
@@ -17,6 +17,11 @@
         "ordinal": 2,
         "name": "container",
         "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "contested_from",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
@@ -27,8 +32,9 @@
     "nullable": [
       false,
       false,
-      false
+      false,
+      true
     ]
   },
-  "hash": "aaeed165a38b9bdd8bb8e415e0378e94467cad60760438fe5aee0bc80ccf532c"
+  "hash": "0b5a43d9de3961e2c207d16f3408199bdad76821ddf057b8270405dc29ed8810"
 }

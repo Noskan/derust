@@ -528,9 +528,13 @@ pub async fn save_account(
 /// - serial 0: item novo, ganha serial (`create`, ou `import` na importação);
 /// - serial desta conta: vai para a vaga (`move` se mudou de lugar);
 /// - serial de outra conta, sem lugar lá (saiu numa troca, por exemplo): muda de dono (`transfer`);
-/// - serial que está numa vaga viva de outra conta, repetido nesta gravação ou que não existe no
-///   banco: suspeita de duplicação. O item fica, com serial novo, e o evento `dupe_suspect` guarda
-///   o serial original;
+/// - serial numa vaga viva de outra conta: também muda de dono (`contest`), e a conta que o perdeu
+///   fica marcada em `contested_from`. É a troca em que o outro lado ainda não gravou (nas trocas
+///   de mão dupla, um dos lados sempre grava primeiro). A marca sai quando aquela conta grava sem o
+///   serial;
+/// - serial que veio de uma conta marcada (ela grava de novo com o item que perdeu), de um item já
+///   disputado, repetido nesta gravação ou que não existe no banco: suspeita de duplicação. O item
+///   fica, com serial novo, e o evento `dupe_suspect` guarda o serial original;
 /// - serial desta conta que não veio e não está em `destroyed`: fica sem lugar (`remove`);
 /// - serial em `destroyed`: apagado (`destroy`).
 async fn place_items(
@@ -606,15 +610,17 @@ async fn place_items(
         .map(|p| p.serial as i64)
         .filter(|s| *s != 0 && !own.contains_key(s))
         .collect();
-    let others: HashMap<i64, (i64, i16)> = sqlx::query!(
-        "SELECT serial, account_id, container FROM items WHERE serial = ANY($1) FOR UPDATE",
+    let others: HashMap<i64, (i64, i16, Option<i64>)> = sqlx::query!(
+        "SELECT serial, account_id, container, contested_from FROM items WHERE serial = ANY($1) FOR UPDATE",
         &foreign
     )
     .fetch_all(&mut **tx)
     .await?
     .into_iter()
-    .map(|r| (r.serial, (r.account_id, r.container)))
+    .map(|r| (r.serial, (r.account_id, r.container, r.contested_from)))
     .collect();
+    // Serial que mudou de dono nesta gravação -> nova marca de disputa (None: sem disputa).
+    let mut contest: Vec<(i64, Option<i64>)> = Vec::new();
 
     let mut used: HashSet<i64> = HashSet::new();
     let mut moves: Vec<(&Placement<'_>, i64)> = Vec::new();
@@ -637,9 +643,10 @@ async fn place_items(
                 });
             }
             moves.push((p, s));
-        } else if let Some(&(other, container)) = others.get(&s) {
+        } else if let Some(&(other, container, contested)) = others.get(&s) {
             if container == 0 {
                 used.insert(s);
+                contest.push((s, None));
                 events.push(Event {
                     serial: s,
                     kind: "transfer",
@@ -648,8 +655,21 @@ async fn place_items(
                     detail: serde_json::json!({ "reason": reason }),
                 });
                 moves.push((p, s));
+            } else if contested.is_none() {
+                used.insert(s);
+                contest.push((s, Some(other)));
+                events.push(Event {
+                    serial: s,
+                    kind: "contest",
+                    from_account: Some(other),
+                    item_index: p.item.index as i16,
+                    detail: serde_json::json!({ "reason": reason }),
+                });
+                moves.push((p, s));
+            } else if contested == Some(id) {
+                inserts.push((p, Some((s, "a conta grava de novo um item que passou para outra"))));
             } else {
-                inserts.push((p, Some((s, "em vaga viva de outra conta"))));
+                inserts.push((p, Some((s, "item já disputado por outra conta"))));
             }
         } else {
             inserts.push((p, Some((s, "serial inexistente"))));
@@ -702,6 +722,29 @@ async fn place_items(
         .execute(&mut **tx)
         .await?;
     }
+
+    if !contest.is_empty() {
+        let serial: Vec<i64> = contest.iter().map(|c| c.0).collect();
+        let from: Vec<Option<i64>> = contest.iter().map(|c| c.1).collect();
+        sqlx::query!(
+            "UPDATE items SET contested_from = u.contested_from
+             FROM UNNEST($1::bigint[], $2::bigint[]) AS u(serial, contested_from)
+             WHERE items.serial = u.serial",
+            &serial,
+            &from as &[Option<i64>]
+        )
+        .execute(&mut **tx)
+        .await?;
+    }
+    // Esta conta gravou sem os itens que perdeu numa disputa: confirma a perda.
+    let kept: Vec<i64> = wanted.iter().map(|p| p.serial as i64).filter(|s| *s != 0).collect();
+    sqlx::query!(
+        "UPDATE items SET contested_from = NULL WHERE contested_from = $1 AND NOT (serial = ANY($2))",
+        id,
+        &kept
+    )
+    .execute(&mut **tx)
+    .await?;
 
     // Itens novos.
     let mut assigned = Vec::new();
